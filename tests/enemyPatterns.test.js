@@ -22,8 +22,12 @@ test('todos os tipos possuem dois níveis de dificuldade e atributos progressivo
     assert.equal(enemyStats(type, 15).level, 2);
   }
   assert.ok(enemyStats(3, 2).shotInterval < enemyStats(3, 1).shotInterval);
+  assert.equal(enemyStats(3, 1).volleyCount, 1);
+  assert.equal(enemyStats(3, 2).volleyCount, 2);
   assert.ok(enemyStats(4, 2).warningDuration < enemyStats(4, 1).warningDuration);
   assert.ok(enemyStats(5, 2).spawnInterval < enemyStats(5, 1).spawnInterval);
+  assert.equal(enemyStats(5, 1).spawnCount, 1);
+  assert.equal(enemyStats(5, 2).spawnCount, 2);
 });
 
 test('a fileira final cobre praticamente toda a largura sem sair da tela', () => {
