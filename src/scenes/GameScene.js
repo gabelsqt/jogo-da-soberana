@@ -752,7 +752,14 @@ export class GameScene extends Phaser.Scene {
 
   chooseDefenseTarget() {
     const targets = availableDefenseTargets(CANNON, this.supportTowers);
-    return targets[Phaser.Math.Between(0, targets.length - 1)];
+    const selected = targets[Phaser.Math.Between(0, targets.length - 1)];
+    if (!this.combat.electricFence) return selected;
+    const shieldEnergy = selected.kind === 'cannon' ? this.shield : selected.tower?.shield;
+    // Além de maior na tela, a cúpula ampliada recebe as colisões um pouco
+    // mais cedo. Não muda o alvo caso a barreira esteja sem energia.
+    return shieldEnergy > 0
+      ? { ...selected, y: selected.y - ELECTRIC_FENCE_RADIUS_BONUS }
+      : selected;
   }
 
   makeInvaderRoute(x, y, target) {
