@@ -405,7 +405,45 @@ export class GameScene extends Phaser.Scene {
         if (enemy.phase === 'dive') this.assignInvaderTarget(enemy, enemy.target);
       }
 
-      if (enemy.phase === 'formation') {
+      if (enemy.phase === 'orbit') {
+        // Nível 2: dez naves se organizam num círculo, giram juntas e depois
+        // param em uma linha para avisar o jogador antes do mergulho.
+        const orbitAge = Math.max(0, enemy.phaseAge - 1.35);
+        const position = orbitalFormationPosition(
+          enemy.orbitCenterX, enemy.orbitCenterY,
+          enemy.orbitIndex, enemy.orbitCount, orbitAge,
+        );
+        const t = Math.min(1, enemy.phaseAge / 1.35);
+        const ease = t * t * (3 - 2 * t);
+        enemy.sprite.setPosition(
+          Phaser.Math.Linear(enemy.orbitEntryX, position.x, ease),
+          Phaser.Math.Linear(enemy.orbitEntryY, position.y, ease),
+        );
+        if (enemy.phaseAge >= 7.2) {
+          enemy.phase = 'stage';
+          enemy.phaseAge = 0;
+          enemy.stageEntryX = enemy.sprite.x;
+          enemy.stageEntryY = enemy.sprite.y;
+        }
+      } else if (enemy.phase === 'stage') {
+        const settle = Math.min(1, enemy.phaseAge / 1.4);
+        const smooth = settle * settle * (3 - 2 * settle);
+        const goalX = lineFormationX(enemy.orbitIndex, enemy.orbitCount, W, 115);
+        const goalY = 218 + Math.abs(enemy.orbitIndex - (enemy.orbitCount - 1) / 2) * 3;
+        enemy.sprite.setPosition(
+          Phaser.Math.Linear(enemy.stageEntryX, goalX, smooth),
+          Phaser.Math.Linear(enemy.stageEntryY, goalY, smooth),
+        );
+        // Piscar em amarelo no último segundo da formação.
+        if (enemy.box) {
+          const blink = enemy.phaseAge > 1.4 && Math.sin(enemy.phaseAge * 25) > 0;
+          enemy.box.setStrokeStyle(3, blink ? 0xff6f75 : 0xffd26e);
+        }
+        if (enemy.phaseAge >= 2.65) {
+          enemy.phase = 'dive';
+          this.assignInvaderTarget(enemy, enemy.target);
+        }
+      } else if (enemy.phase === 'formation') {
         const blend = Math.min(1, dt * 1.5);
         enemy.sprite.x = Phaser.Math.Linear(enemy.sprite.x, enemy.formationX, blend);
         enemy.sprite.y = Phaser.Math.Linear(enemy.sprite.y, enemy.formationY, blend);
@@ -423,11 +461,11 @@ export class GameScene extends Phaser.Scene {
         // Bombardeiro mantém posição, dispara projéteis interceptáveis e depois avança.
         enemy.sprite.x += Math.sin(enemy.age * 1.2) * 15 * dt;
         enemy.shotTimer += dt;
-        if (enemy.shotTimer >= 2.4) {
+        if (enemy.shotTimer >= enemy.definition.shotInterval) {
           enemy.shotTimer = 0;
           this.fireEnemyProjectile(enemy);
         }
-        if (enemy.phaseAge >= 11) {
+        if (enemy.phaseAge >= (enemy.level > 1 ? 9 : 11)) {
           enemy.phase = 'dive';
           this.assignInvaderTarget(enemy, enemy.target);
         }
@@ -458,7 +496,7 @@ export class GameScene extends Phaser.Scene {
         enemy.laserGraphics.lineBetween(
           enemy.sprite.x, enemy.sprite.y, enemy.target.x, enemy.target.y,
         );
-        if (enemy.phaseAge >= 1.4) {
+        if (enemy.phaseAge >= enemy.definition.warningDuration) {
           enemy.phase = 'laser';
           enemy.phaseAge = 0;
           this.damageTarget(enemy.target, 40);
@@ -478,26 +516,31 @@ export class GameScene extends Phaser.Scene {
         enemy.sprite.y = Math.min(140, enemy.sprite.y + enemy.speed * dt);
         if (enemy.sprite.y >= 140) {
           enemy.phase = 'boss';
+          enemy.bossAnchorX = enemy.sprite.x;
+          enemy.bossAnchorY = enemy.sprite.y;
           enemy.phaseAge = 0;
           enemy.shotTimer = 0;
           enemy.spawnTimer = 0;
         }
       } else if (enemy.phase === 'boss') {
-        enemy.sprite.x = W / 2 + Math.sin(enemy.age * 0.7) * 130;
+        // Nunca usa a idade anterior à chegada: o primeiro frame do boss
+        // começa exatamente na última posição da fase de entrada.
+        enemy.sprite.x = bossCruiseX(enemy.bossAnchorX, enemy.phaseAge);
+        enemy.sprite.y = enemy.bossAnchorY + Math.sin(enemy.phaseAge * 1.05) * 10;
         enemy.shotTimer += dt;
         enemy.spawnTimer += dt;
-        if (enemy.shotTimer >= 2.8) {
+        if (enemy.shotTimer >= enemy.definition.shotInterval) {
           enemy.shotTimer = 0;
           this.fireEnemyProjectile(enemy);
         }
-        if (enemy.spawnTimer >= 4.2) {
+        if (enemy.spawnTimer >= enemy.definition.spawnInterval) {
           enemy.spawnTimer = 0;
           this.spawnEnemy(1, { x: Phaser.Math.Clamp(enemy.sprite.x, 100, W - 100) });
         }
       } else if (enemy.phase === 'dive') {
         if (this.moveAlongRoute(enemy, dt)) {
           this.removeEnemy(i);
-          this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE);
+          this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE * (enemy.level > 1 ? 1.12 : 1));
           if (this.gameOver) return;
           continue;
         }
