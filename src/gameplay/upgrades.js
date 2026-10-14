@@ -61,7 +61,11 @@ export function combatStatsFor(upgradeId) {
 export function shotAngles(aimAngle, bulletsPerShot) {
   if (bulletsPerShot <= 1) return [aimAngle];
   // Dispersão pequena, simétrica em torno da direção apontada.
-  return Array.from({ length: bulletsPerShot }, (_, i) => (
-    aimAngle + (i - (bulletsPerShot - 1) / 2) * 0.10
+  const minAngle = -Math.PI + Math.PI / 12;
+  const maxAngle = -Math.PI / 12;
+  // A dispersão também respeita os limites físicos do canhão.
+  return Array.from({ length: bulletsPerShot }, (_, i) => Math.max(
+    minAngle,
+    Math.min(maxAngle, aimAngle + (i - (bulletsPerShot - 1) / 2) * 0.10),
   ));
 }
