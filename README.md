@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.9** — Japão e EUA ganharam habilidades distintas: Katana de Plasma (a cada 3 disparos) e Munição de Fragmentação (dano de área ao acertar). Mantém a contagem 3–2–1 e as demais melhorias. Ainda **não** implementa as ondas 2–11, os upgrades de nível 2–10, as torres dos animais nem a traição final.
+> **Protótipo 0.10** — maior densidade nas Ondas 0 e 1, com inimigos surgindo mais cedo, intervalos curtos e rajadas simultâneas; mantém a Katana de Plasma, Fragmentação e demais upgrades. Ainda **não** implementa as ondas 2–11, os upgrades de nível 2–10, as torres dos animais nem a traição final.
 
 ## Jogar no computador (PowerShell)
 
@@ -29,9 +29,9 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 ## Fluxo jogável nesta versão
 
 1. Menu inicial → **Começar**.
-2. **Onda 0:** contagem regressiva **3, 2, 1** antes de começar; dez invasores Tipo 1, tutorial de no mínimo 30 segundos; é possível perder se ignorá-los.
+2. **Onda 0:** contagem regressiva **3, 2, 1** antes de começar; **32 invasores Tipo 1** (20 em sequência, a cada 1,28 s, mais três grupos simultâneos de 3, 4 e 5). O primeiro aparece 0,25 s após a contagem; continua sendo possível perder.
 3. Após concluir a Onda 0, aparecem cinco cartões para escolher **um upgrade inicial**.
-4. **Onda 1:** nova contagem **3, 2, 1**; chegam **18 invasores básicos** a intervalos menores, dois trios Tipo 2, um ataque circular de dez Tipo 2 avançados e uma **fileira final de dez OVNIs Tipo 1**, ocupando a largura do céu. A onda só termina depois que todas as ameaças são neutralizadas.
+4. **Onda 1:** nova contagem **3, 2, 1**; são **70 inimigos**: 32 invasores básicos em sequência (a cada 0,96 s), grupos simultâneos com 3, 4 e 5 básicos, dois trios Tipo 2, um ataque circular de dez Tipo 2 avançados e uma **fileira final de dez OVNIs Tipo 1**, ocupando a largura do céu. A onda só termina depois que todas as ameaças são neutralizadas.
 5. Ao vencer, surge o painel de conclusão com acesso ao **laboratório de inimigos** ou ao menu.
 6. **Testar inimigos**, disponível também no menu inicial, apresenta os Tipos 2–5 sem fingir que as ondas seguintes estão completas.
 7. **Testar upgrades** abre um laboratório independente, sem ondas nem derrota: ative/desative livremente as cinco primeiras melhorias e experimente combinações.
@@ -76,7 +76,9 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 **Aparência dos Tipos 2–5 é provisória:** quadrados com o número do tipo. O contorno dourado e o sufixo `II` indicam dificuldade 2. O Tipo 1 de nível 2 é levemente dourado e mais rápido. Os níveis 2 dos Tipos 3 e 4 também possuem mais vida e velocidade; o **Bombardeiro II dispara duas bombas convergentes por salva**, e o **Caça Relâmpago II prepara o laser mais rapidamente**. O balanceamento ainda pode mudar.
 
 ### Padrões avançados
-- **Onda 1:** o ritmo foi acelerado e ganhou uma formação circular avançada antes da fileira final de dez Tipo 1, que entra simultaneamente de toda a largura da tela.
+- **Onda 0:** inimigos Tipo 1 surgem a partir de 0,25 segundo após a contagem, com cadência de 1,28 s e três ataques em grupo; total de 32 OVNIs.
+- **Onda 1:** ritmo mais intenso: um básico a cada 0,96 s (32 na sequência), três grupos adicionais simultâneos, trios Tipo 2, uma formação circular avançada e a fileira final de dez Tipo 1. Total de 70 inimigos. A nova distribuição preserva a possibilidade de usar o tiro especial para defender uma área.
+- **Entrada dos básicos:** os sprites aparecem mais cedo na borda superior, em vez de percorrer uma área invisível acima da tela.
 - **Contagem regressiva:** aparece antes das Ondas 0 e 1; os eventos e o relógio da onda começam após o 1. A pausa também interrompe a contagem. Laboratórios continuam entrando imediatamente.
 - **Rússia:** o empurrão agora é uma força amortecida ao longo de vários frames, preservando a trajetória curva e eliminando o salto instantâneo.
 - **Teste de inimigos:** surge automaticamente um grupo de dez Tipo 2 em órbita no final da sequência; também pode gerá-lo sob demanda.
