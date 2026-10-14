@@ -66,7 +66,9 @@ test('onda zero, onda um e laboratório possuem programação distinta', () => {
   assert.equal(getWaveEvents('wave0').length, 10);
   const wave1 = getWaveEvents('wave1');
   assert.ok(wave1.some((e) => e.type === 2 && e.group));
-  assert.equal(wave1.filter((e) => e.type === 1 && !e.pattern).length, 12);
+  assert.equal(wave1.filter((e) => e.type === 1 && !e.pattern).length, 18);
+  assert.ok(wave1.some((e) => e.type === 2 && e.level === 2 && e.pattern === 'orbit' && e.count === 10));
+  assert.ok(wave1.some((e) => e.type === 2 && e.group && e.level === 2));
   const finale = wave1.find((e) => e.pattern === 'line');
   assert.ok(finale && finale.type === 1 && finale.count === 10 && finale.level === 2);
   assert.ok(finale.at > wave1.filter((e) => e.pattern !== 'line').at(-1).at);
@@ -122,4 +124,17 @@ test('melhorias brasileiras e japonesas acumulam cadência; EUA e Rússia acumul
   assert.equal(stats.specialCooldown, 8000);
   assert.deepEqual(combatStatsForLoadout([]), combatStatsFor(null));
   assert.deepEqual(combatStatsForLoadout(['br', 'br']), combatStatsFor('br'));
+});
+
+test('onda 1 ficou mais intensa sem alterar a onda zero ou o laboratório', () => {
+  const wave0 = getWaveEvents('wave0');
+  const wave1 = getWaveEvents('wave1');
+  const lab = getWaveEvents('lab');
+  assert.equal(wave0.length, 10);
+  assert.ok(wave1.length > wave0.length);
+  assert.ok(wave1.some((e) => e.pattern === 'line' && e.count === 10));
+  assert.ok(wave1.some((e) => e.pattern === 'orbit' && e.count === 10));
+  const regular = wave1.filter((e) => e.type === 1 && !e.pattern);
+  assert.ok(regular.every((e, i) => i === 0 || e.at - regular[i - 1].at <= 1600));
+  assert.ok(lab.some((e) => e.type === 5));
 });
