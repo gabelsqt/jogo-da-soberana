@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { SKY_LAYERS } from '../config/scenery.js';
 
 const W = 960;
 const H = 540;
@@ -10,17 +11,6 @@ const TUTORIAL_MIN_DURATION = 30000;
 // Invasores chegam gradualmente para dar tempo de praticar os controles.
 const TUTORIAL_SPAWN_TIMES = [600, 2400, 4400, 6300, 9500, 12200, 15300, 18600, 22000, 25000];
 const INVADER_COUNT = TUTORIAL_SPAWN_TIMES.length;
-
-const SKY_LAYERS = [
-  '01_ceu_noturno_estrelado',
-  '02_lua_e_nuvens',
-  '03_montanhas_distantes',
-  '04_baia_e_reflexos',
-  '05_pao_de_acucar_e_ilhas',
-  '06_cristo_redentor_e_morro',
-  '07_horizonte_urbano',
-  '08_primeiro_plano_telhados',
-];
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -76,6 +66,8 @@ export class GameScene extends Phaser.Scene {
       if (pointer.rightButtonDown()) this.shootSpecial(pointer);
     });
     this.input.keyboard.on('keydown-R', () => this.scene.restart());
+    this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
+    this.input.keyboard.on('keydown-P', () => this.pauseGame());
 
     TUTORIAL_SPAWN_TIMES.forEach((delay) => {
       this.time.delayedCall(delay, () => this.spawnInvader());
@@ -106,6 +98,29 @@ export class GameScene extends Phaser.Scene {
     this.healthText = this.add.text(14, H - 28, '', {
       ...font, fontSize: '13px', color: '#e2ebfa',
     }).setDepth(101);
+
+    const pauseButton = this.add.rectangle(W / 2, 20, 156, 32, 0x18364c, 0.95)
+      .setStrokeStyle(2, 0x74bace)
+      .setDepth(102)
+      .setInteractive({ useHandCursor: true });
+    this.add.text(W / 2, 20, 'Ⅱ  PAUSAR [P]', {
+      ...font, fontSize: '13px', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(103);
+
+    pauseButton.on('pointerover', () => pauseButton.setFillStyle(0x27667a, 1));
+    pauseButton.on('pointerout', () => pauseButton.setFillStyle(0x18364c, 0.95));
+    pauseButton.on('pointerdown', (pointer, _localX, _localY, event) => {
+      if (!pointer.leftButtonDown()) return;
+      event?.stopPropagation();
+      this.pauseGame();
+    });
+  }
+
+  pauseGame() {
+    if (this.scene.isActive('PauseScene')) return;
+    // Ao pausar a cena, os timers de spawn, o jogo e os cooldowns param juntos.
+    this.scene.pause();
+    this.scene.launch('PauseScene');
   }
 
   spawnInvader() {
