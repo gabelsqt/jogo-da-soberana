@@ -570,7 +570,14 @@ export class GameScene extends Phaser.Scene {
         }
         if (enemy.spawnTimer >= enemy.definition.spawnInterval) {
           enemy.spawnTimer = 0;
-          this.spawnEnemy(1, { x: Phaser.Math.Clamp(enemy.sprite.x, 100, W - 100) });
+          const count = enemy.definition.spawnCount;
+          for (let j = 0; j < count; j += 1) {
+            const spread = (j - (count - 1) / 2) * 84;
+            this.spawnEnemy(1, {
+              level: enemy.level > 1 ? 2 : 1,
+              x: Phaser.Math.Clamp(enemy.sprite.x + spread, 100, W - 100),
+            });
+          }
         }
       } else if (enemy.phase === 'dive') {
         if (this.moveAlongRoute(enemy, dt)) {
@@ -588,20 +595,25 @@ export class GameScene extends Phaser.Scene {
 
   fireEnemyProjectile(enemy) {
     const target = this.chooseDefenseTarget();
-    const dx = target.x - enemy.sprite.x;
-    const dy = target.y - enemy.sprite.y;
-    const distance = Math.max(1, Math.hypot(dx, dy));
-    const projectile = this.add.rectangle(
-      enemy.sprite.x, enemy.sprite.y + enemy.definition.height / 2, 11, 11,
-      ENEMY_SHOT_COLOR,
-    ).setStrokeStyle(1, 0xfff5bc).setDepth(28);
-    this.enemyBullets.push({
-      sprite: projectile,
-      hp: enemy.definition.shotHp ?? 1,
-      target,
-      vx: dx / distance * 160,
-      vy: dy / distance * 160,
-    });
+    const count = enemy.definition.volleyCount;
+    for (let i = 0; i < count; i += 1) {
+      // A versão II do bombardeiro dispara duas bombas das laterais,
+      // que convergem para o mesmo escudo e podem ser abatidas separadamente.
+      const x = enemy.sprite.x + (i - (count - 1) / 2) * 48;
+      const y = enemy.sprite.y + enemy.definition.height / 2;
+      const dx = target.x - x;
+      const dy = target.y - y;
+      const distance = Math.max(1, Math.hypot(dx, dy));
+      const projectile = this.add.rectangle(x, y, 11, 11, ENEMY_SHOT_COLOR)
+        .setStrokeStyle(1, 0xfff5bc).setDepth(28);
+      this.enemyBullets.push({
+        sprite: projectile,
+        hp: enemy.definition.shotHp ?? 1,
+        target,
+        vx: dx / distance * 160,
+        vy: dy / distance * 160,
+      });
+    }
   }
 
   updateEnemyBullets(dt) {
