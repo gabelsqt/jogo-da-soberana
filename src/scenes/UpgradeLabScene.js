@@ -123,9 +123,9 @@ export class UpgradeLabScene extends Phaser.Scene {
     this.statsPreview.setText(
       'TIROS ' + (1000 / stats.basicInterval).toFixed(1) + '/s' +
       '   DANO ' + stats.basicDamage.toFixed(2) +
-      '   VEL ' + stats.basicSpeed +
-      '   PERF ' + stats.pierce +
-      '   PROJ ' + stats.bulletsPerShot,
+      '   PROJ ' + stats.bulletsPerShot +
+      '   FRAG ' + (stats.fragmentation ? '78px' : 'NÃO') +
+      '   KATANA ' + (stats.plasmaEvery ? 'A CADA 3 TIROS' : 'NÃO'),
     );
   }
 
