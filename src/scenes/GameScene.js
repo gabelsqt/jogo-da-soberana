@@ -73,7 +73,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   clearTestEnemies() {
-    if (this.mode !== 'upgradeLab') return;
+    if (this.mode !== 'upgradeLab' && this.mode !== 'lab') return;
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) this.removeEnemy(i);
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) this.removeEnemyBullet(i);
     for (const bullet of this.projectiles) bullet.sprite.destroy();
@@ -640,19 +640,68 @@ export class GameScene extends Phaser.Scene {
     this.enemies.splice(index, 1);
   }
 
-  impactInvader(index, damage = 1, knockback = 0) {
+  drawEnemyHealthBars() {
+    const graphics = this.enemyHealthGraphics;
+    graphics.clear();
+    for (const enemy of this.enemies) {
+      if (enemy.maxHp <= 1) continue;
+      const width = Phaser.Math.Clamp(enemy.definition.width + 2, 33, 110);
+      const x = enemy.sprite.x - width / 2;
+      const y = enemy.sprite.y - enemy.definition.height / 2 - 15;
+      graphics.fillStyle(0x061426, 0.95);
+      graphics.fillRect(x - 2, y - 2, width + 4, 8);
+      graphics.fillStyle(enemy.level > 1 ? 0xffc977 : 0x6df3ba, 0.95);
+      graphics.fillRect(x, y, width * Math.max(0, enemy.hp / enemy.maxHp), 4);
+    }
+  }
+
+  popHitNumber(x, y, damage, color = '#ffe09f') {
+    const amount = Number(damage.toFixed(2));
+    const number = this.add.text(x, y - 23, '-' + amount, {
+      fontFamily: 'monospace', fontSize: '15px', fontStyle: 'bold',
+      color, stroke: '#071222', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(55);
+    this.tweens.add({
+      targets: number, y: number.y - 24, alpha: 0,
+      duration: 570,
+      onComplete: () => number.destroy(),
+    });
+  }
+
+  impactInvader(index, damage = 1, knockback = 0, hitColor = '#ffe09f') {
     const enemy = this.enemies[index];
     if (!enemy) return;
+    this.popHitNumber(enemy.sprite.x, enemy.sprite.y, damage, hitColor);
     enemy.hp -= damage;
     if (enemy.hp <= 0) {
       this.removeEnemy(index);
     } else {
       if (enemy.box) enemy.box.setFillStyle(0xffffff);
       else enemy.sprite.setTint(0xffa8a8);
-      if (enemy.phase === 'dive') {
-        enemy.progress = Math.max(0, enemy.progress - knockback);
-      }
+      this.time.delayedCall(100, () => {
+        if (!enemy.sprite.active) return;
+        if (enemy.box?.active) enemy.box.setFillStyle(enemy.definition.color);
+        else enemy.sprite.setTint(enemy.level > 1 ? 0xffd5a0 : 0xffffff);
+      });
+      if (enemy.phase === 'dive') enemy.progress = Math.max(0, enemy.progress - knockback);
     }
+  }
+
+  activeUpgradeIds() {
+    return this.mode === 'upgradeLab'
+      ? this.upgradeIds
+      : this.upgradeId ? [this.upgradeId] : [];
+  }
+
+  showMuzzleFlash(angle) {
+    const style = shotVisualFor(this.activeUpgradeIds());
+    const x = CANNON.x + Math.cos(angle) * 34;
+    const y = CANNON.y + Math.sin(angle) * 34;
+    const flash = this.add.circle(x, y, 7, style.color, 0.9).setDepth(38);
+    this.tweens.add({
+      targets: flash, scale: 2.5, alpha: 0, duration: 145,
+      onComplete: () => flash.destroy(),
+    });
   }
 
   shootBasic(pointer) {
@@ -663,6 +712,7 @@ export class GameScene extends Phaser.Scene {
     for (const firingAngle of shotAngles(angle, this.combat.bulletsPerShot)) {
       this.createProjectile(firingAngle, false);
     }
+    this.showMuzzleFlash(angle);
   }
 
   shootSpecial(pointer) {
@@ -679,20 +729,27 @@ export class GameScene extends Phaser.Scene {
   createProjectile(angle, special, distance = 0) {
     const vx = Math.cos(angle);
     const vy = Math.sin(angle);
-    const dot = this.add.circle(
-      CANNON.x + vx * 29, CANNON.y + vy * 29,
-      special ? 8 : 4, special ? 0x72eaf8 : 0xffe29b,
-    ).setDepth(35);
+    const x = CANNON.x + vx * 29;
+    const y = CANNON.y + vy * 29;
+    const style = shotVisualFor(this.activeUpgradeIds());
+    const dot = special
+      ? this.add.circle(x, y, 8, 0x72eaf8).setDepth(35)
+      : this.add.rectangle(x, y, style.width, style.length, style.color)
+        .setStrokeStyle(1, 0xffffff, 0.65)
+        .setRotation(angle + Math.PI / 2)
+        .setDepth(35);
+    const speed = special ? 300 : this.combat.basicSpeed;
     this.projectiles.push({
       sprite: dot,
-      vx: vx * (special ? 300 : 480),
-      vy: vy * (special ? 300 : 480),
+      vx: vx * speed,
+      vy: vy * speed,
       special,
       tx: special ? CANNON.x + vx * distance : null,
       ty: special ? CANNON.y + vy * distance : null,
       damage: special ? 0 : this.combat.basicDamage,
       pierceLeft: special ? 0 : this.combat.pierce,
       knockback: special ? 0 : this.combat.knockback,
+      impactColor: style.impactColor,
       hitEnemyIds: new Set(),
     });
   }
@@ -718,7 +775,7 @@ export class GameScene extends Phaser.Scene {
       blast.hits.add(enemy.uid);
       // Cada explosão pode atingir o mesmo alvo uma única vez.
       // Naves grandes recebem dano, não morrem instantaneamente.
-      this.impactInvader(index, enemy.type === 5 ? 4 : 3);
+      this.impactInvader(index, enemy.type === 5 ? 4 : 3, 0, '#a8faff');
       break;
     }
   }
@@ -797,7 +854,7 @@ export class GameScene extends Phaser.Scene {
             remove = true;
           } else {
             bullet.hitEnemyIds.add(enemy.uid);
-            this.impactInvader(j, bullet.damage, bullet.knockback);
+            this.impactInvader(j, bullet.damage, bullet.knockback, bullet.impactColor);
             bullet.pierceLeft -= 1;
             remove = bullet.pierceLeft <= 0;
           }
