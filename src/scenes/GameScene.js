@@ -13,7 +13,10 @@ import {
   SPECIAL_BLAST_DURATION,
 } from '../gameplay/specialBlast.js';
 import { ENEMY_TYPES, ENEMY_SHOT_COLOR, enemyDefinition, enemyContactRadius } from '../gameplay/enemies.js';
-import { getFirstUpgrade, combatStatsFor, shotAngles } from '../gameplay/upgrades.js';
+import {
+  getFirstUpgrade, combatStatsFor, shotAngles,
+  combatStatsForLoadout, normalizeLabUpgrades, toggleLabUpgrade,
+} from '../gameplay/upgrades.js';
 import { MODES, getWaveEvents, waveIsFinished } from '../gameplay/waves.js';
 import { addMenuButton } from '../ui/menuButton.js';
 
@@ -34,11 +37,46 @@ export class GameScene extends Phaser.Scene {
     this.mode = MODES[data.mode] ? data.mode : 'wave0';
     this.upgradeId = this.mode === 'wave1' && getFirstUpgrade(data.upgradeId)
       ? data.upgradeId : null;
-    this.combat = combatStatsFor(this.upgradeId);
+    this.upgradeIds = this.mode === 'upgradeLab'
+      ? normalizeLabUpgrades(data.upgradeIds) : [];
+    this.combat = this.mode === 'upgradeLab'
+      ? combatStatsForLoadout(this.upgradeIds)
+      : combatStatsFor(this.upgradeId);
   }
 
   getRunOptions() {
+    if (this.mode === 'upgradeLab') {
+      return { mode: this.mode, upgradeIds: [...this.upgradeIds] };
+    }
     return { mode: this.mode, upgradeId: this.upgradeId };
+  }
+
+  setUpgradesForLab(ids) {
+    if (this.mode !== 'upgradeLab') return;
+    this.upgradeIds = normalizeLabUpgrades(ids);
+    this.combat = combatStatsForLoadout(this.upgradeIds);
+    // Não exige espera para experimentar a nova cadência ao retornar ao campo.
+    this.lastBasicFire = this.time.now - this.combat.basicInterval;
+  }
+
+  toggleUpgradeForLab(id) {
+    this.setUpgradesForLab(toggleLabUpgrade(this.upgradeIds, id));
+  }
+
+  openUpgradeLab() {
+    if (this.mode !== 'upgradeLab' || this.scene.isActive('UpgradeLabScene')) return;
+    this.scene.pause();
+    this.scene.launch('UpgradeLabScene', { selectedIds: [...this.upgradeIds] });
+  }
+
+  clearTestEnemies() {
+    if (this.mode !== 'upgradeLab') return;
+    for (let i = this.enemies.length - 1; i >= 0; i -= 1) this.removeEnemy(i);
+    for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) this.removeEnemyBullet(i);
+    for (const bullet of this.projectiles) bullet.sprite.destroy();
+    this.projectiles.length = 0;
+    for (const blast of this.specialBlasts) blast.graphics.destroy();
+    this.specialBlasts.length = 0;
   }
 
   preload() {
@@ -105,6 +143,31 @@ export class GameScene extends Phaser.Scene {
         this.spawnWaveEvent(event);
       });
     });
+
+    if (this.mode === 'upgradeLab') {
+      // Alvos de treino regulares e geração manual dos cinco tipos.
+      this.time.addEvent({
+        delay: 2700,
+        loop: true,
+        callback: () => {
+          if (!this.tutorialComplete && this.enemies.length < 10) this.spawnEnemy(1);
+        },
+      });
+      for (let type = 1; type <= 5; type += 1) {
+        this.input.keyboard.on('keydown-' + type, () => {
+          if (!this.scene.isActive('GameScene') || this.tutorialComplete) return;
+          this.spawnWaveEvent({ type, group: type === 2 });
+        });
+      }
+      this.input.keyboard.on('keydown-U', () => {
+        if (this.scene.isActive('GameScene')) this.openUpgradeLab();
+      });
+      this.input.keyboard.on('keydown-C', () => {
+        if (this.scene.isActive('GameScene')) this.clearTestEnemies();
+      });
+      // Exibe a seleção logo ao entrar; ela pode ser reaberta com U.
+      this.time.delayedCall(1, () => this.openUpgradeLab());
+    }
   }
 
   createTurret() {
@@ -129,6 +192,26 @@ export class GameScene extends Phaser.Scene {
       ...font, fontSize: '13px', color: '#e2ebfa',
     }).setDepth(101);
 
+    if (this.mode === 'upgradeLab') {
+      this.labUpgradeLabel = this.add.text(14, 98, '', {
+        ...font, fontSize: '13px', color: '#a5ffe7',
+        backgroundColor: '#0b1a2bcc', padding: { x: 7, y: 3 },
+      }).setDepth(102);
+      const labButton = this.add.rectangle(859, 69, 174, 33, 0x174c55, 0.98)
+        .setStrokeStyle(2, 0x87ead5)
+        .setDepth(104).setInteractive({ useHandCursor: true });
+      this.add.text(859, 69, 'UPGRADES [U]', {
+        ...font, fontSize: '14px', color: '#e4ffef', fontStyle: 'bold',
+      }).setOrigin(0.5).setDepth(105);
+      labButton.on('pointerover', () => labButton.setFillStyle(0x256976, 1));
+      labButton.on('pointerout', () => labButton.setFillStyle(0x174c55, 0.98));
+      labButton.on('pointerdown', (pointer, _x, _y, event) => {
+        if (!pointer.leftButtonDown()) return;
+        event?.stopPropagation();
+        this.openUpgradeLab();
+      });
+    }
+
     const pauseButton = this.add.rectangle(W / 2, 20, 156, 32, 0x18364c, 0.95)
       .setStrokeStyle(2, 0x74bace).setDepth(102)
       .setInteractive({ useHandCursor: true });
@@ -145,7 +228,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   pauseGame() {
-    if (this.tutorialComplete || this.scene.isActive('PauseScene')) return;
+    if (this.tutorialComplete || this.scene.isActive('PauseScene') ||
+        this.scene.isActive('UpgradeLabScene')) return;
     this.scene.pause();
     this.scene.launch('PauseScene');
   }
@@ -608,6 +692,12 @@ export class GameScene extends Phaser.Scene {
 
   damageCannon(amount) {
     this.lastDamageAt = this.time.now;
+    if (this.mode === 'upgradeLab') {
+      // Laboratório: escudo ainda pode sofrer dano, mas o teste não termina.
+      this.shield = Math.max(0, this.shield - amount);
+      this.cannonHealth = 100;
+      return;
+    }
     const result = applyShieldedHit(this.shield, this.cannonHealth, amount);
     this.shield = result.shield;
     this.cannonHealth = result.health;
@@ -735,6 +825,10 @@ export class GameScene extends Phaser.Scene {
       this.tutorialText.setText(
         'UPGRADE: ' + (upgrade?.title ?? 'NENHUM') + '  |  DEFENDA A CIDADE',
       );
+    } else if (this.mode === 'upgradeLab') {
+      this.tutorialText.setText('1–5: GERAR INIMIGOS   C: LIMPAR   U: MELHORIAS');
+      const names = this.upgradeIds.map((id) => getFirstUpgrade(id)?.flag).filter(Boolean);
+      this.labUpgradeLabel.setText('MELHORIAS ATIVAS: ' + (names.length ? names.join(' + ') : 'NENHUMA'));
     } else {
       this.tutorialText.setText('TESTE: 2 FORMAÇÃO · 3 BOMBAS · 4 LASER · 5 NAVE-MÃE');
     }
