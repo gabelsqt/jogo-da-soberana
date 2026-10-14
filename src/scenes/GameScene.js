@@ -27,6 +27,14 @@ import {
 } from '../gameplay/waves.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import {
+  normalizeCampaignState, unlockedFirstUpgrades,
+  activeTowerCountries,
+} from '../gameplay/progression.js';
+import {
+  TOWER_DEFINITIONS, SUPPORT_TOWER_POSITIONS,
+  towerDefinition, chooseTowerAttackTarget, canInstallTower,
+} from '../gameplay/towers.js';
+import {
   PLASMA_EVERY_SHOTS,
   PLASMA_DAMAGE,
   PLASMA_HALF_WIDTH,
@@ -53,20 +61,31 @@ export class GameScene extends Phaser.Scene {
 
   init(data = {}) {
     this.mode = MODES[data.mode] ? data.mode : 'wave0';
-    this.upgradeId = this.mode === 'wave1' && getFirstUpgrade(data.upgradeId)
-      ? data.upgradeId : null;
+    // Compatibilidade com saves antigos que tinham apenas "upgradeId".
+    const legacy = getFirstUpgrade(data.upgradeId) && this.mode === 'wave1'
+      ? { choices: [data.upgradeId] } : {};
+    this.campaign = normalizeCampaignState(data.campaign ?? legacy);
+    this.upgradeId = this.campaign.choices.at(-1) ?? null;
     this.upgradeIds = this.mode === 'upgradeLab'
       ? normalizeLabUpgrades(data.upgradeIds) : [];
+    this.labTowerIds = this.mode === 'upgradeLab'
+      ? [...new Set(Array.isArray(data.labTowerIds) ? data.labTowerIds : [])]
+        .filter((id) => towerDefinition(id)).slice(0, 2)
+      : [];
+    const firstUpgrades = unlockedFirstUpgrades(this.campaign);
     this.combat = this.mode === 'upgradeLab'
       ? combatStatsForLoadout(this.upgradeIds)
-      : combatStatsFor(this.upgradeId);
+      : combatStatsForLoadout(firstUpgrades);
   }
 
   getRunOptions() {
     if (this.mode === 'upgradeLab') {
-      return { mode: this.mode, upgradeIds: [...this.upgradeIds] };
+      return {
+        mode: this.mode, upgradeIds: [...this.upgradeIds],
+        labTowerIds: [...this.labTowerIds],
+      };
     }
-    return { mode: this.mode, upgradeId: this.upgradeId };
+    return { mode: this.mode, campaign: normalizeCampaignState(this.campaign) };
   }
 
   setUpgradesForLab(ids) {
@@ -128,7 +147,8 @@ export class GameScene extends Phaser.Scene {
     this.projectiles = [];
     this.enemyBullets = [];
     this.specialBlasts = [];
-    this.supportTowers = []; // Futuras torres dos animais, inicialmente vazias.
+    this.supportTowers = [];
+    this.supportProjectiles = [];
     this.nextEnemyId = 1;
     this.nextBlastId = 1;
     this.elapsed = 0;
@@ -149,6 +169,7 @@ export class GameScene extends Phaser.Scene {
     this.createTurret();
     this.shieldGraphics = this.add.graphics().setDepth(23);
     this.enemyHealthGraphics = this.add.graphics().setDepth(27);
+    this.createSupportTowers();
     this.createHud();
     this.drawShield();
 
@@ -159,7 +180,7 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
     this.input.keyboard.on('keydown-P', () => this.pauseGame());
 
-    if (this.mode === 'wave0' || this.mode === 'wave1') {
+    if (this.mode === 'wave0' || this.mode === 'wave1' || this.mode === 'wave2') {
       this.startWaveCountdown();
     } else {
       this.scheduleWaveEvents();
@@ -781,7 +802,7 @@ export class GameScene extends Phaser.Scene {
   activeUpgradeIds() {
     return this.mode === 'upgradeLab'
       ? this.upgradeIds
-      : this.upgradeId ? [this.upgradeId] : [];
+      : unlockedFirstUpgrades(this.campaign);
   }
 
   showMuzzleFlash(angle) {
@@ -1062,7 +1083,8 @@ export class GameScene extends Phaser.Scene {
       const result = applyShieldedHit(tower.shield ?? 0, tower.health, amount);
       tower.shield = result.shield;
       tower.health = result.health;
-      if (tower.health === 0 && tower.sprite) tower.sprite.setTint(0x545966);
+      tower.lastDamageAt = this.time.now;
+      if (tower.health === 0 && tower.sprite) tower.sprite.setAlpha(0.32);
       return;
     }
     this.damageCannon(amount);
@@ -1071,13 +1093,21 @@ export class GameScene extends Phaser.Scene {
   drawShield() {
     const graphics = this.shieldGraphics;
     graphics.clear();
-    if (this.shield <= 0) return;
-    const fraction = this.shield / this.shieldMax;
-    const color = fraction > 0.6 ? 0x70e6ec : fraction > 0.3 ? 0xf4c15e : 0xf06c77;
-    graphics.lineStyle(3, color, Math.max(0.35, fraction));
-    graphics.beginPath();
-    graphics.arc(CANNON.x, CANNON.y + 10, 62, Math.PI, Math.PI * 2, false);
-    graphics.strokePath();
+    const dome = (x, y, radius, shield, max) => {
+      if (shield <= 0) return;
+      const fraction = shield / max;
+      const color = fraction > 0.6 ? 0x70e6ec : fraction > 0.3 ? 0xf4c15e : 0xf06c77;
+      graphics.lineStyle(3, color, Math.max(0.35, fraction));
+      graphics.beginPath();
+      graphics.arc(x, y + 10, radius, Math.PI, Math.PI * 2, false);
+      graphics.strokePath();
+    };
+    dome(CANNON.x, CANNON.y, 62, this.shield, this.shieldMax);
+    for (const tower of this.supportTowers) {
+      if (tower.health > 0) {
+        dome(tower.x, tower.y, tower.shieldRadius, tower.shield, tower.shieldMax);
+      }
+    }
   }
 
   showDefeat() {
@@ -1113,8 +1143,11 @@ export class GameScene extends Phaser.Scene {
     if (this.tutorialComplete) return;
     this.tutorialComplete = true;
 
-    if (this.mode === 'wave0') {
-      this.scene.start('UpgradeScene');
+    if (this.mode === 'wave0' || this.mode === 'wave1') {
+      this.scene.start('UpgradeScene', {
+        campaign: this.campaign,
+        completedWave: this.mode === 'wave0' ? 0 : 1,
+      });
       return;
     }
     this.statusText.setText('DEFESA BEM-SUCEDIDA');
@@ -1123,13 +1156,13 @@ export class GameScene extends Phaser.Scene {
       .setDepth(120).setInteractive();
     this.add.rectangle(W / 2, H / 2, 530, 332, 0x0b1c33, 0.98)
       .setStrokeStyle(2, 0x71e2b9).setDepth(121);
-    this.add.text(W / 2, 166, this.mode === 'lab' ? 'TESTE CONCLUÍDO' : 'ONDA 1 CONCLUÍDA!', {
+    this.add.text(W / 2, 166, this.mode === 'lab' ? 'TESTE CONCLUÍDO' : 'ONDA 2 CONCLUÍDA!', {
       fontFamily: 'monospace', fontSize: '32px',
       color: '#f4e3a3', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(122);
     this.add.text(W / 2, 218, this.mode === 'lab'
       ? 'Os cinco tipos já têm comportamento provisório.'
-      : 'Você experimentou sua primeira melhoria!',
+      : 'Protótipo concluído! Próximas ondas em desenvolvimento.',
     {
       fontFamily: 'monospace', fontSize: '14px', color: '#e0f3ff',
     }).setOrigin(0.5).setDepth(122);
@@ -1172,15 +1205,15 @@ export class GameScene extends Phaser.Scene {
       } else {
         this.tutorialText.setText('Proteja o canhão! Escudos regeneram sem dano.');
       }
-    } else if (this.mode === 'wave1') {
-      const upgrade = getFirstUpgrade(this.upgradeId);
-      const special = this.combat.plasmaEvery
-        ? 'KATANA ' + (this.basicShotCount % PLASMA_EVERY_SHOTS) +
-          '/' + PLASMA_EVERY_SHOTS + ' (PRÓXIMO: ' +
-          (PLASMA_EVERY_SHOTS - this.basicShotCount % PLASMA_EVERY_SHOTS) + ' TIROS)'
-        : this.combat.fragmentation ? 'PROJÉTEIS EXPLODEM AO ACERTAR' : 'DEFENDA A CIDADE';
+    } else if (this.mode === 'wave1' || this.mode === 'wave2') {
+      const history = this.campaign.choices.map((id) => id.toUpperCase()).join(' + ');
+      const special = this.combat.plasmaEvery ? ' | KATANA: ' +
+        (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/3'
+        : this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
+      const towerLabel = this.supportTowers.map((tower) => tower.definition.label).join(' + ');
       this.tutorialText.setText(
-        'UPGRADE: ' + (upgrade?.title ?? 'NENHUM') + '  |  ' + special,
+        'ALIADOS: ' + (history || 'NENHUM') +
+        (towerLabel ? ' | TORRE: ' + towerLabel : '') + special,
       );
     } else if (this.mode === 'upgradeLab') {
       this.tutorialText.setText('1–5: GERAR   SHIFT+1–5: NÍVEL 2   C: LIMPAR   U: UPGRADES');
@@ -1219,11 +1252,19 @@ export class GameScene extends Phaser.Scene {
     this.updateEnemyBullets(dt);
     if (this.gameOver) return;
     this.updatePlayerProjectiles(dt);
+    this.updateSupportTowers(dt);
+    this.updateSupportProjectiles(dt);
     this.updateBlasts();
     this.drawEnemyHealthBars();
 
     if (this.time.now - this.lastDamageAt > SHIELD_REGEN_DELAY && this.shield < this.shieldMax) {
       this.shield = Math.min(this.shieldMax, this.shield + SHIELD_REGEN_RATE * dt);
+    }
+    for (const tower of this.supportTowers) {
+      if (tower.health > 0 && tower.shield < tower.shieldMax &&
+          this.time.now - tower.lastDamageAt > SHIELD_REGEN_DELAY) {
+        tower.shield = Math.min(tower.shieldMax, tower.shield + SHIELD_REGEN_RATE * dt);
+      }
     }
     this.drawShield();
     this.updateHud();
