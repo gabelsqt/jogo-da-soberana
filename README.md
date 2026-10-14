@@ -26,7 +26,30 @@ git push
 npm.cmd run dev
 ```
 
-O ZIP acima acompanha a entrega do novo cenário no chat. Antes de atualizar o itch.io, faça `npm.cmd run build` e compacte o **conteúdo** de `dist` como de costume.
+O ZIP acima acompanha a entrega do novo cenário no chat. O arquivo da imagem deve estar no projeto para aparecer também no HTML de publicação.
+
+## Publicar no itch.io sem arquivos externos — RECOMENDADO
+
+Houve erro MIME/404 no CDN do itch.io para o arquivo JavaScript do build normal. Agora existe um **exportador HTML único** que incorpora tanto o JavaScript quanto os PNGs do jogo (inclusive o cenário fixo) no próprio HTML:
+
+```powershell
+cd "$HOME\Projects\jogo-da-soberana"
+git pull
+npm.cmd install
+npm.cmd run build:itch
+```
+
+Ele gera **`itch-build/index.html`**. Na página **Edit game** do itch.io:
+
+1. Mantenha **Kind of project: HTML**.
+2. Remova os ZIPs anteriores da seção de upload.
+3. Envie **diretamente `itch-build/index.html` como um único arquivo HTML**, sem ZIP.
+4. Ative a opção de execução no navegador, se solicitada, e mantenha viewport **960 × 540**.
+5. Salve e faça um teste na página.
+
+Esse HTML não precisa pedir `assets/index-*.js` nem os PNGs a caminhos separados, portanto contorna o erro MIME causado por JS ausente. O projeto continua com `npm.cmd run dev` para desenvolver e `npm.cmd run build`/`preview` para testar o build normal.
+
+**Atenção:** é importante fazer `git pull` antes. Se o arquivo `rio_fundo_fixo.png` ainda não estiver no computador, o exportador avisará que está usando o cenário antigo como fallback.
 
 ## Jogar no computador (PowerShell)
 
@@ -48,7 +71,7 @@ npm.cmd test
 npm.cmd run build
 ```
 
-Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta inteira, e selecione jogo HTML5.
+Para publicação no itch.io, prefira `npm.cmd run build:itch` e envie diretamente o **`itch-build/index.html`**, sem ZIP. O ZIP normal de `dist/` continua possível, mas apresentou erro no CDN do itch.io nos testes anteriores.
 
 ## Fluxo jogável nesta versão
 
