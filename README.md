@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.7** — upgrades com efeitos visuais e medidores, dois níveis de dificuldade dos cinco tipos, fileira final na Onda 1 e esquadrão circular de dez inimigos Tipo 2. Ainda **não** implementa as ondas 2–11, os upgrades de nível 2–10, as torres dos animais nem a traição final.
+> **Protótipo 0.8** — contagem regressiva 3–2–1, Onda 1 mais desafiadora e recuo russo suave, mantendo os upgrades iniciais já disponíveis. Ainda **não** implementa as ondas 2–11, os upgrades de nível 2–10, as torres dos animais nem a traição final.
 
 ## Jogar no computador (PowerShell)
 
@@ -29,9 +29,9 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 ## Fluxo jogável nesta versão
 
 1. Menu inicial → **Começar**.
-2. **Onda 0:** dez invasores Tipo 1, tutorial de no mínimo 30 segundos; é possível perder se ignorá-los.
+2. **Onda 0:** contagem regressiva **3, 2, 1** antes de começar; dez invasores Tipo 1, tutorial de no mínimo 30 segundos; é possível perder se ignorá-los.
 3. Após concluir a Onda 0, aparecem cinco cartões para escolher **um upgrade inicial**.
-4. **Onda 1:** começa do zero com o upgrade escolhido, invasores básicos, dois esquadrões Tipo 2 e uma **fileira final de dez OVNIs Tipo 1**, ocupando a largura do céu.
+4. **Onda 1:** nova contagem **3, 2, 1**; chegam **18 invasores básicos** a intervalos menores, dois trios Tipo 2, um ataque circular de dez Tipo 2 avançados e uma **fileira final de dez OVNIs Tipo 1**, ocupando a largura do céu. A onda só termina depois que todas as ameaças são neutralizadas.
 5. Ao vencer, surge o painel de conclusão com acesso ao **laboratório de inimigos** ou ao menu.
 6. **Testar inimigos**, disponível também no menu inicial, apresenta os Tipos 2–5 sem fingir que as ondas seguintes estão completas.
 7. **Testar upgrades** abre um laboratório independente, sem ondas nem derrota: ative/desative livremente as cinco primeiras melhorias e experimente combinações.
@@ -43,7 +43,7 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 | Brasil | Gambiarra Balística | +25% de cadência (500 ms → 400 ms) |
 | EUA | Balas da Liberdade | Dano básico duplicado |
 | Japão | Protocolo Otaku | Tiros mais rápidos, perfuram até dois alvos |
-| Rússia | Camarada Canhão | +75% de dano, empurra inimigos em mergulho |
+| Rússia | Camarada Canhão | +75% de dano, aplica **recuo gradual** aos inimigos em mergulho (em vez de saltar a posição) |
 | China | AliExplode — Frete Grátis | Dois projéteis simultâneos com pequena dispersão |
 
 Os upgrades posteriores e o limite de duas torres de animais serão implementados numa etapa própria, seguindo o GDD.
@@ -76,7 +76,9 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 **Aparência dos Tipos 2–5 é provisória:** quadrados com o número do tipo. O contorno dourado e o sufixo `II` indicam dificuldade 2. O Tipo 1 de nível 2 é levemente dourado e mais rápido. Os níveis 2 dos Tipos 3 e 4 também possuem mais vida e velocidade; o **Bombardeiro II dispara duas bombas convergentes por salva**, e o **Caça Relâmpago II prepara o laser mais rapidamente**. O balanceamento ainda pode mudar.
 
 ### Padrões avançados
-- **Onda 1:** último evento é a fileira de dez Tipo 1, entrando simultaneamente de toda a largura da tela.
+- **Onda 1:** o ritmo foi acelerado e ganhou uma formação circular avançada antes da fileira final de dez Tipo 1, que entra simultaneamente de toda a largura da tela.
+- **Contagem regressiva:** aparece antes das Ondas 0 e 1; os eventos e o relógio da onda começam após o 1. A pausa também interrompe a contagem. Laboratórios continuam entrando imediatamente.
+- **Rússia:** o empurrão agora é uma força amortecida ao longo de vários frames, preservando a trajetória curva e eliminando o salto instantâneo.
 - **Teste de inimigos:** surge automaticamente um grupo de dez Tipo 2 em órbita no final da sequência; também pode gerá-lo sob demanda.
 - **Níveis 1 e 2 de todos os tipos:** selecionáveis nos laboratórios com teclas numéricas normais ou com Shift.
 
