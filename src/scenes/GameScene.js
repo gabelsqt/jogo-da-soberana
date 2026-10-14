@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
+import { assetUrl } from '../config/assetUrl.js';
 import {
   restrictedAimAngle,
   availableDefenseTargets,
@@ -166,9 +167,10 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     preloadRioBackdrop(this);
-    this.load.setPath('assets/inimigos/tipo1');
+    this.load.setPath('');
     for (let frame = 1; frame <= 4; frame += 1) {
-      this.load.image('tipo1_' + frame, 'frame_' + String(frame).padStart(2, '0') + '.png');
+      const name = 'frame_' + String(frame).padStart(2, '0') + '.png';
+      this.load.image('tipo1_' + frame, assetUrl('assets/inimigos/tipo1/' + name));
     }
   }
 
