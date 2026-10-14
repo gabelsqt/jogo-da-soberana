@@ -17,8 +17,9 @@ export const TOWER_DEFINITIONS = {
   },
   ru: {
     id: 'ru', label: 'URSO', glyph: 'U', color: 0xf27e75,
-    healthMax: 130, shieldMax: 75, range: 540, interval: 1750,
-    damage: 3.7, speed: 320, knockback: 0.11, type: 'shell',
+    healthMax: 130, shieldMax: 75, range: 600, interval: 2000,
+    damage: 3.7, speed: 410, knockback: 0.13, type: 'shell',
+    blastRadius: 85,
   },
   cn: {
     id: 'cn', label: 'PANDAPRIME', glyph: 'P', color: 0xf4d46e,
