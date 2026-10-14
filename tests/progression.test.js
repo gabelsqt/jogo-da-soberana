@@ -32,11 +32,15 @@ test('as cinco primeiras melhorias alteram o combate como prometido', () => {
 });
 
 test('projétil extra chinês cria dois tiros simétricos', () => {
-  assert.deepEqual(shotAngles(1.2, 1), [1.2]);
-  const shots = shotAngles(1.2, 2);
+  const center = -Math.PI / 2;
+  assert.deepEqual(shotAngles(center, 1), [center]);
+  const shots = shotAngles(center, 2);
   assert.equal(shots.length, 2);
-  assert.ok(shots[0] < 1.2 && shots[1] > 1.2);
-  assert.ok(Math.abs((shots[0] + shots[1]) / 2 - 1.2) < 1e-12);
+  assert.ok(shots[0] < center && shots[1] > center);
+  assert.ok(Math.abs((shots[0] + shots[1]) / 2 - center) < 1e-12);
+  const edge = shotAngles(-Math.PI / 12, 2);
+  assert.ok(edge.every((angle) => angle <= -Math.PI / 12));
+  assert.ok(edge.every((angle) => angle >= -Math.PI + Math.PI / 12));
 });
 
 test('cinco inimigos possuem HP e dimensões distintos, tipos 2-5 quadrados coloridos', () => {
