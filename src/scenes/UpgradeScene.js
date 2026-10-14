@@ -19,6 +19,8 @@ export class UpgradeScene extends Phaser.Scene {
   }
 
   create() {
+    // Phaser reutiliza a mesma instância da Scene entre partidas.
+    this.chosen = false;
     drawRioBackdrop(this);
     this.add.rectangle(W / 2, H / 2, W, H, 0x030c20, 0.77).setDepth(20);
     this.add.text(W / 2, 44, 'ESCOLHA SEU ALIADO', {
@@ -68,13 +70,20 @@ export class UpgradeScene extends Phaser.Scene {
         if (pointer.leftButtonDown()) this.selectUpgrade(upgrade.id);
       });
 
-      this.input.keyboard.on('keydown-' + (index + 1), () => this.selectUpgrade(upgrade.id));
+
     });
 
     this.add.text(W / 2, 485, 'UM GRANDE PODER EXIGE UMA GRANDE CAPACIDADE DE IMPORTAÇÃO.', {
       fontFamily: 'monospace', fontSize: '14px',
       color: '#aec5df',
     }).setOrigin(0.5).setDepth(22);
+    this.input.keyboard.on('keydown', (event) => {
+      const index = Number(event.key) - 1;
+      if (event.key >= '1' && event.key <= '5' && FIRST_UPGRADES[index]) {
+        this.selectUpgrade(FIRST_UPGRADES[index].id);
+      }
+    });
+
     this.add.text(W / 2, 513, 'TECLAS 1–5 OU CLIQUE NO CARTÃO', {
       fontFamily: 'monospace', fontSize: '12px', color: '#eaf6ff',
     }).setOrigin(0.5).setDepth(22);
