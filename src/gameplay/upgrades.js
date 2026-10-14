@@ -58,6 +58,50 @@ export function combatStatsFor(upgradeId) {
   return stats;
 }
 
+// O laboratório permite ativar vários upgrades já implementados simultaneamente.
+// A campanha continua usando apenas um por escolha, conforme o GDD.
+export function normalizeLabUpgrades(ids = []) {
+  if (!Array.isArray(ids)) return [];
+  return [...new Set(ids)].filter((id) => getFirstUpgrade(id) !== null);
+}
+
+export function toggleLabUpgrade(ids, id) {
+  const current = normalizeLabUpgrades(ids);
+  if (!getFirstUpgrade(id)) return current;
+  return current.includes(id)
+    ? current.filter((selected) => selected !== id)
+    : [...current, id];
+}
+
+export function combatStatsForLoadout(ids = []) {
+  const stats = combatStatsFor(null);
+  for (const id of normalizeLabUpgrades(ids)) {
+    switch (id) {
+      case 'br':
+        stats.basicInterval *= 0.8;
+        break;
+      case 'us':
+        stats.basicDamage *= 2;
+        break;
+      case 'jp':
+        stats.basicInterval *= 0.68;
+        stats.pierce = Math.max(stats.pierce, 2);
+        break;
+      case 'ru':
+        stats.basicDamage *= 1.75;
+        stats.knockback = Math.max(stats.knockback, 0.12);
+        break;
+      case 'cn':
+        stats.bulletsPerShot += 1;
+        break;
+      default:
+        break;
+    }
+  }
+  stats.basicInterval = Math.round(stats.basicInterval);
+  return stats;
+}
+
 export function shotAngles(aimAngle, bulletsPerShot) {
   if (bulletsPerShot <= 1) return [aimAngle];
   // Dispersão pequena, simétrica em torno da direção apontada.
