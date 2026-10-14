@@ -773,7 +773,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   shootBasic(pointer) {
-    if (this.tutorialComplete) return;
+    if (this.tutorialComplete || this.countdownActive) return;
     if (this.time.now - this.lastBasicFire < this.combat.basicInterval) return;
     this.lastBasicFire = this.time.now;
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
@@ -784,7 +784,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   shootSpecial(pointer) {
-    if (this.tutorialComplete) return;
+    if (this.tutorialComplete || this.countdownActive) return;
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
     this.lastSpecialFire = this.time.now;
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
