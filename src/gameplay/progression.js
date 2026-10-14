@@ -1,11 +1,13 @@
 import { FIRST_UPGRADES } from './upgrades.js';
+import { SECOND_UPGRADES, secondUpgradeCountries } from './secondUpgrades.js';
 
 export const COUNTRIES = FIRST_UPGRADES.map(({ id }) => id);
 export const MAX_SUPPORT_TOWERS = 2;
+export { SECOND_UPGRADES };
 
-// Segunda melhoria de cada linha, conforme o GDD. Os níveis seguintes não
-// ficam acessíveis até serem realmente implementados.
-export const SECOND_UPGRADES = {
+// A primeira torre é o TERCEIRO upgrade do mesmo país. A segunda só será
+// desbloqueada no nível 7; seus perfis seguem no GDD, ainda não implementados.
+export const THIRD_UPGRADES = {
   br: { title: 'Projeto Caramelo', description: 'Instala um vira-lata mecanizado que atira automaticamente nos invasores.', tower: true },
   us: { title: 'Águia da Liberdade I', description: 'Instala águia mecanizada que dispara mísseis teleguiados.', tower: true },
   jp: { title: 'Projeto Tsuru I', description: 'Instala grou japonês mecanizado com laser automático de precisão.', tower: true },
@@ -28,12 +30,16 @@ export function unlockedFirstUpgrades(state) {
   return [...new Set(normalizeCampaignState(state).choices)];
 }
 
+export function unlockedSecondUpgrades(state) {
+  return secondUpgradeCountries(normalizeCampaignState(state));
+}
+
 export function activeTowerCountries(state) {
   const seen = new Map();
   const towers = [];
   for (const id of normalizeCampaignState(state).choices) {
     seen.set(id, (seen.get(id) ?? 0) + 1);
-    if (seen.get(id) === 2) towers.push(id);
+    if (seen.get(id) === 3) towers.push(id);
   }
   return towers.slice(0, MAX_SUPPORT_TOWERS);
 }
@@ -45,9 +51,11 @@ export function nextUpgradeOptions(state) {
     const level = countryLevel(normalized, first.id) + 1;
     if (level === 1) return { ...first, level, locked: false, tower: false };
     if (level === 2) {
-      const second = SECOND_UPGRADES[first.id];
+      return { ...first, ...SECOND_UPGRADES[first.id], level, locked: false };
+    }
+    if (level === 3) {
       return {
-        ...first, ...second, level,
+        ...first, ...THIRD_UPGRADES[first.id], level,
         locked: installed >= MAX_SUPPORT_TOWERS,
         reason: installed >= MAX_SUPPORT_TOWERS ? 'DUAS TORRES JÁ INSTALADAS' : '',
       };
@@ -62,6 +70,7 @@ export function nextUpgradeOptions(state) {
 
 export function chooseCampaignUpgrade(state, countryId) {
   const normalized = normalizeCampaignState(state);
+  if (normalized.choices.length >= 10) return null;
   const option = nextUpgradeOptions(normalized).find(({ id }) => id === countryId);
   if (!option || option.locked) return null;
   return { choices: [...normalized.choices, countryId] };
