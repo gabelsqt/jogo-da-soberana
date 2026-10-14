@@ -77,6 +77,7 @@ test('armas têm paletas e tamanhos distintos, além de alterações de atributo
   assert.equal(new Set(variants.map((v) => v.color)).size, 5);
   assert.ok(shotVisualFor(['us']).width > shotVisualFor(['br']).width);
   assert.ok(shotVisualFor(['jp']).length > shotVisualFor(['br']).length);
-  assert.ok(combatStatsForLoadout(['jp']).basicSpeed >
-    combatStatsForLoadout(['br']).basicSpeed);
+  assert.equal(combatStatsForLoadout(['jp']).plasmaEvery, 3);
+  assert.equal(combatStatsForLoadout(['us']).fragmentation, true);
+  assert.equal(combatStatsForLoadout(['jp']).basicSpeed, 480);
 });
