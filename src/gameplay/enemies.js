@@ -58,6 +58,10 @@ export function enemyStats(type, level = 1) {
     speed: Math.round(base.speed * (advanced ? 1.17 : 1)),
     shotInterval: type === 3 ? (advanced ? 1.7 : 2.4)
       : type === 5 ? (advanced ? 2.1 : 2.8) : null,
+    // O bombardeiro II lança duas bombas convergentes por salva.
+    volleyCount: type === 3 && advanced ? 2 : 1,
+    // A Nave-Mãe II libera dois caças básicos por vez.
+    spawnCount: type === 5 && advanced ? 2 : 1,
     spawnInterval: type === 5 ? (advanced ? 3.0 : 4.2) : null,
     warningDuration: type === 4 ? (advanced ? 0.85 : 1.4) : null,
   };
