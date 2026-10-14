@@ -105,7 +105,9 @@ export class GameScene extends Phaser.Scene {
   openUpgradeLab() {
     if (this.mode !== 'upgradeLab' || this.scene.isActive('UpgradeLabScene')) return;
     this.scene.pause();
-    this.scene.launch('UpgradeLabScene', { selectedIds: [...this.upgradeIds] });
+    this.scene.launch('UpgradeLabScene', {
+      selectedIds: [...this.upgradeIds], selectedTowerIds: [...this.labTowerIds],
+    });
   }
 
   clearTestEnemies() {
@@ -116,6 +118,8 @@ export class GameScene extends Phaser.Scene {
     this.projectiles.length = 0;
     for (const blast of this.specialBlasts) blast.graphics.destroy();
     this.specialBlasts.length = 0;
+    for (const bullet of this.supportProjectiles) bullet.sprite.destroy();
+    this.supportProjectiles.length = 0;
   }
 
   preload() {
@@ -169,6 +173,7 @@ export class GameScene extends Phaser.Scene {
     this.createTurret();
     this.shieldGraphics = this.add.graphics().setDepth(23);
     this.enemyHealthGraphics = this.add.graphics().setDepth(27);
+    this.towerStatusGraphics = this.add.graphics().setDepth(35);
     this.createSupportTowers();
     this.createHud();
     this.drawShield();
@@ -1257,8 +1262,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   damageTarget(target, amount) {
-    if (target.kind === 'tower' && target.tower?.health > 0) {
+    if (target.kind === 'tower') {
       const tower = target.tower;
+      if (!tower || tower.health <= 0) return;
       const result = applyShieldedHit(tower.shield ?? 0, tower.health, amount);
       tower.shield = result.shield;
       tower.health = result.health;
@@ -1267,6 +1273,22 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     this.damageCannon(amount);
+  }
+
+  drawTowerStatus() {
+    const graphics = this.towerStatusGraphics;
+    graphics.clear();
+    for (const tower of this.supportTowers) {
+      const width = 52;
+      const x = tower.x - width / 2;
+      const y = tower.y - 74;
+      graphics.fillStyle(0x101b2c, 0.90);
+      graphics.fillRect(x - 1, y - 1, width + 2, 10);
+      graphics.fillStyle(tower.health > 0 ? 0x76e5b5 : 0xff716f, 1);
+      graphics.fillRect(x, y, width * (tower.health / tower.healthMax), 4);
+      graphics.fillStyle(0x70d7f4, 0.90);
+      graphics.fillRect(x, y + 5, width * (tower.shield / tower.shieldMax), 3);
+    }
   }
 
   drawShield() {
@@ -1446,6 +1468,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
     this.drawShield();
+    this.drawTowerStatus();
     this.updateHud();
 
     if (waveIsFinished({
