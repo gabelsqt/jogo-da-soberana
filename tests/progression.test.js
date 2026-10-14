@@ -28,11 +28,14 @@ test('as cinco primeiras melhorias alteram o combate como prometido', () => {
   const cn = combatStatsFor('cn');
   assert.equal(base.basicInterval, 500);
   assert.equal(br.basicInterval, 400);
-  assert.equal(us.basicDamage, 2);
-  assert.ok(jp.basicInterval < base.basicInterval);
-  assert.equal(jp.pierce, 2);
-  assert.equal(jp.basicSpeed, 680);
-  assert.equal(base.basicSpeed, 480);
+  assert.equal(us.basicDamage, base.basicDamage);
+  assert.equal(us.fragmentation, true);
+  assert.equal(jp.basicInterval, base.basicInterval);
+  assert.equal(jp.pierce, base.pierce);
+  assert.equal(jp.basicSpeed, base.basicSpeed);
+  assert.equal(jp.plasmaEvery, 3);
+  assert.equal(base.fragmentation, false);
+  assert.equal(base.plasmaEvery, 0);
   assert.equal(ru.basicDamage, 1.75);
   assert.ok(ru.knockback > 0);
   assert.equal(cn.bulletsPerShot, 2);
@@ -116,17 +119,21 @@ test('laboratório ativa e desativa melhorias sem duplicatas nem IDs inválidos'
   assert.deepEqual(normalizeLabUpgrades(null), []);
 });
 
-test('melhorias brasileiras e japonesas acumulam cadência; EUA e Rússia acumulam dano', () => {
+test('laboratório combina Katana, Fragmentação e os outros países sem alterar atributos básicos', () => {
   const stats = combatStatsForLoadout(['br', 'jp', 'us', 'ru', 'cn']);
-  assert.equal(stats.basicInterval, 272);
-  assert.equal(stats.basicDamage, 3.5);
-  assert.equal(stats.pierce, 2);
-  assert.equal(stats.basicSpeed, 680);
+  assert.equal(stats.basicInterval, 400);
+  assert.equal(stats.basicDamage, 1.75);
+  assert.equal(stats.pierce, 1);
+  assert.equal(stats.basicSpeed, 480);
+  assert.equal(stats.fragmentation, true);
+  assert.equal(stats.plasmaEvery, 3);
   assert.equal(stats.bulletsPerShot, 2);
   assert.equal(stats.knockback, 0.12);
   assert.equal(stats.specialCooldown, 8000);
   assert.deepEqual(combatStatsForLoadout([]), combatStatsFor(null));
   assert.deepEqual(combatStatsForLoadout(['br', 'br']), combatStatsFor('br'));
+  assert.deepEqual(combatStatsForLoadout(['jp']), combatStatsFor('jp'));
+  assert.deepEqual(combatStatsForLoadout(['us']), combatStatsFor('us'));
 });
 
 test('onda 1 ficou mais intensa sem alterar a onda zero ou o laboratório', () => {
