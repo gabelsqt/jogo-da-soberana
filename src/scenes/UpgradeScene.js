@@ -5,13 +5,25 @@ import {
   preloadRioBackdrop,
   drawRioBackdrop,
 } from '../config/scenery.js';
-import { FIRST_UPGRADES } from '../gameplay/upgrades.js';
+import {
+  normalizeCampaignState,
+  nextUpgradeOptions,
+  chooseCampaignUpgrade,
+  nextWaveAfterChoice,
+} from '../gameplay/progression.js';
 
-// Cada cartão representa apenas a PRIMEIRA melhoria daquele país.
-// O nível seguinte de cada país será incorporado em futuras versões.
+// A campanha registra quantas vezes o jogador escolheu CADA país.
+// Cada cartão oferece somente o próximo upgrade daquela linha.
 export class UpgradeScene extends Phaser.Scene {
   constructor() {
     super({ key: 'UpgradeScene' });
+  }
+
+  init(data = {}) {
+    this.campaign = normalizeCampaignState(data.campaign);
+    this.completedWave = Number.isInteger(data.completedWave)
+      ? data.completedWave : this.campaign.choices.length === 0 ? 0 : 1;
+    this.chosen = false;
   }
 
   preload() {
@@ -19,79 +31,79 @@ export class UpgradeScene extends Phaser.Scene {
   }
 
   create() {
-    // Phaser reutiliza a mesma instância da Scene entre partidas.
-    this.chosen = false;
     drawRioBackdrop(this);
-    this.add.rectangle(W / 2, H / 2, W, H, 0x030c20, 0.77).setDepth(20);
-    this.add.text(W / 2, 44, 'ESCOLHA SEU ALIADO', {
-      fontFamily: 'monospace', fontSize: '35px', fontStyle: 'bold',
-      color: '#fce9a1',
+    this.add.rectangle(W / 2, H / 2, W, H, 0x030c20, 0.84).setDepth(20);
+    this.add.text(W / 2, 41, 'ESCOLHA SEU ALIADO', {
+      fontFamily: 'monospace', fontSize: '32px',
+      fontStyle: 'bold', color: '#fce9a1',
     }).setOrigin(0.5).setDepth(22);
-    this.add.text(W / 2, 88, 'ONDA 0 CONCLUÍDA  •  UM UPGRADE PARA A ONDA 1', {
-      fontFamily: 'monospace', fontSize: '15px', color: '#b4dbef',
-    }).setOrigin(0.5).setDepth(22);
+    this.add.text(W / 2, 83,
+      'ONDA ' + this.completedWave + ' CONCLUÍDA • ESCOLHA 1 MELHORIA PARA A ONDA ' +
+        (this.completedWave + 1), {
+        fontFamily: 'monospace', fontSize: '13px', color: '#b4dbef',
+      }).setOrigin(0.5).setDepth(22);
 
-    FIRST_UPGRADES.forEach((upgrade, index) => {
+    const options = nextUpgradeOptions(this.campaign);
+    options.forEach((upgrade, index) => {
       const x = 100 + index * 190;
-      const card = this.add.rectangle(x, 285, 175, 294, 0x0d203c, 0.97)
-        .setStrokeStyle(2, upgrade.color)
-        .setDepth(23)
-        .setInteractive({ useHandCursor: true });
+      const inactive = upgrade.locked;
+      const card = this.add.rectangle(
+        x, 285, 175, 299, inactive ? 0x17202d : 0x0d203c, 0.99,
+      ).setStrokeStyle(2, inactive ? 0x596574 : upgrade.color)
+        .setDepth(23);
+      if (!inactive) card.setInteractive({ useHandCursor: true });
 
-      const texts = [
-        this.add.text(x, 160, upgrade.flag, {
-          fontFamily: 'monospace', fontSize: '29px',
-          color: '#e3f7ff', fontStyle: 'bold',
-        }).setOrigin(0.5),
-        this.add.text(x, 199, upgrade.name.toUpperCase(), {
-          fontFamily: 'monospace', fontSize: '17px',
-          color: '#e3f7ff', fontStyle: 'bold',
-        }).setOrigin(0.5),
-        this.add.text(x, 247, upgrade.title.toUpperCase(), {
-          fontFamily: 'monospace', fontSize: '15px',
-          color: '#ffe7a4', fontStyle: 'bold',
-          align: 'center', wordWrap: { width: 152, useAdvancedWrap: true },
-        }).setOrigin(0.5),
-        this.add.text(x, 339, upgrade.description, {
-          fontFamily: 'monospace', fontSize: '12px',
-          color: '#d6e5f5', align: 'center',
-          wordWrap: { width: 154, useAdvancedWrap: true },
-          lineSpacing: 3,
-        }).setOrigin(0.5),
-        this.add.text(x, 408, '[ ' + (index + 1) + ' ]  ESCOLHER', {
-          fontFamily: 'monospace', fontSize: '13px',
-          color: '#98f0d2', fontStyle: 'bold',
-        }).setOrigin(0.5),
-      ];
-      texts.forEach((text) => text.setDepth(24));
-      card.on('pointerover', () => card.setFillStyle(0x1d3e5d, 1));
-      card.on('pointerout', () => card.setFillStyle(0x0d203c, 0.97));
-      card.on('pointerdown', (pointer) => {
-        if (pointer.leftButtonDown()) this.selectUpgrade(upgrade.id);
-      });
+      const label = (y, value, size, color, extra = {}) =>
+        this.add.text(x, y, value, {
+          fontFamily: 'monospace', fontSize: size,
+          align: 'center',
+          wordWrap: { width: 155, useAdvancedWrap: true },
+          color: inactive ? '#8391a0' : color, ...extra,
+        }).setOrigin(0.5).setDepth(24);
 
+      label(161, upgrade.flag, '26px', '#e3f7ff', { fontStyle: 'bold' });
+      label(193, upgrade.name.toUpperCase() + '  •  NÍVEL ' + upgrade.level,
+        '12px', '#ffffff', { fontStyle: 'bold' });
+      label(247, upgrade.title.toUpperCase(), '15px', '#ffe7a4',
+        { fontStyle: 'bold' });
+      label(338, upgrade.description, '12px', '#d6e5f5', { lineSpacing: 3 });
+      label(409, inactive ? upgrade.reason : '[ ' + (index + 1) + ' ] ESCOLHER',
+        inactive ? '11px' : '13px', inactive ? '#ffaaaa' : '#98f0d2',
+        { fontStyle: 'bold' });
 
-    });
-
-    this.add.text(W / 2, 485, 'UM GRANDE PODER EXIGE UMA GRANDE CAPACIDADE DE IMPORTAÇÃO.', {
-      fontFamily: 'monospace', fontSize: '14px',
-      color: '#aec5df',
-    }).setOrigin(0.5).setDepth(22);
-    this.input.keyboard.on('keydown', (event) => {
-      const index = Number(event.key) - 1;
-      if (event.key >= '1' && event.key <= '5' && FIRST_UPGRADES[index]) {
-        this.selectUpgrade(FIRST_UPGRADES[index].id);
+      if (!inactive) {
+        card.on('pointerover', () => card.setFillStyle(0x214661, 1));
+        card.on('pointerout', () => card.setFillStyle(0x0d203c, 0.99));
+        card.on('pointerdown', (pointer) => {
+          if (pointer.leftButtonDown()) this.selectUpgrade(upgrade.id);
+        });
       }
     });
 
-    this.add.text(W / 2, 513, 'TECLAS 1–5 OU CLIQUE NO CARTÃO', {
-      fontFamily: 'monospace', fontSize: '12px', color: '#eaf6ff',
+    const history = this.campaign.choices.length
+      ? this.campaign.choices.map((id) => id.toUpperCase()).join(' → ')
+      : 'NENHUMA';
+    this.add.text(W / 2, 484, 'ESCOLHAS ANTERIORES: ' + history, {
+      fontFamily: 'monospace', fontSize: '13px', color: '#aec5df',
     }).setOrigin(0.5).setDepth(22);
+    this.add.text(W / 2, 515,
+      'NÍVEL 2 = TORRE AUTOMÁTICA • MÁXIMO 2 TORRES • TECLAS 1–5', {
+        fontFamily: 'monospace', fontSize: '12px', color: '#eaf6ff',
+      }).setOrigin(0.5).setDepth(22);
+
+    this.input.keyboard.on('keydown', (event) => {
+      const match = /^[1-5]$/.exec(event.key);
+      if (match) this.selectUpgrade(options[Number(event.key) - 1].id);
+    });
   }
 
   selectUpgrade(id) {
     if (this.chosen) return;
+    const next = chooseCampaignUpgrade(this.campaign, id);
+    if (!next) return;
+    const mode = nextWaveAfterChoice(next);
+    if (!mode) return;
     this.chosen = true;
-    this.scene.start('GameScene', { mode: 'wave1', upgradeId: id });
+    this.scene.start('GameScene', { mode, campaign: next });
   }
 }
