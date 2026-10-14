@@ -1548,6 +1548,78 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  fireElectricFence(x, y, radius, target) {
+    // Origem sobre a borda da cúpula: não há laser global nem raio comprido.
+    const dx = target.sprite.x - x;
+    const dy = target.sprite.y - y;
+    const distance = Math.max(1, Math.hypot(dx, dy));
+    const originX = x + dx / distance * radius;
+    const originY = y + dy / distance * radius;
+    const endX = target.sprite.x;
+    const endY = target.sprite.y;
+    const arc = this.add.graphics().setDepth(50);
+    arc.lineStyle(3, 0xffeaa2, 0.95);
+    arc.beginPath();
+    arc.moveTo(originX, originY);
+    const perpX = -dy / distance;
+    const perpY = dx / distance;
+    for (let point = 1; point <= 4; point += 1) {
+      const t = point / 5;
+      const jitter = Phaser.Math.Between(-5, 5);
+      arc.lineTo(originX + (endX - originX) * t + perpX * jitter,
+        originY + (endY - originY) * t + perpY * jitter);
+    }
+    arc.lineTo(endX, endY);
+    arc.strokePath();
+    arc.lineStyle(1, 0x7bffb0, 0.75);
+    arc.lineBetween(originX, originY, endX, endY);
+    const pulse = this.add.circle(originX, originY, 5, 0xbaffc4, 0.65)
+      .setDepth(49);
+    this.tweens.add({
+      targets: arc, alpha: 0, duration: 150,
+      onComplete: () => arc.destroy(),
+    });
+    this.tweens.add({
+      targets: pulse, alpha: 0, scale: 2.5, duration: 230,
+      onComplete: () => pulse.destroy(),
+    });
+  }
+
+  updateElectricFences() {
+    if (!this.combat.electricFence) return;
+    const shields = [
+      {
+        x: CANNON.x, y: CANNON.y + 10, radius: 62,
+        shield: this.shield, last: this.electricLastFire, tower: null,
+      },
+      ...this.supportTowers.filter((tower) => tower.health > 0).map((tower) => ({
+        x: tower.x, y: tower.y + 10, radius: tower.shieldRadius,
+        shield: tower.shield, last: tower.electricLastFire, tower,
+      })),
+    ];
+    for (const dome of shields) {
+      if (dome.shield <= 0 || this.time.now - dome.last < ELECTRIC_FENCE_INTERVAL) continue;
+      // A cerca só atua próximo ao escudo, e não como uma torre de longa distância.
+      // Cada cúpula atinge no máximo uma nave por pulso, para limitar saturação.
+      let target = null;
+      for (const enemy of this.enemies) {
+        if (electricFieldReaches(
+          dome.x, dome.y, dome.radius, enemy.sprite.x, enemy.sprite.y,
+        ) && (!target || enemy.sprite.y > target.sprite.y)) target = enemy;
+      }
+      if (!target) continue;
+      if (dome.tower) dome.tower.electricLastFire = this.time.now;
+      else this.electricLastFire = this.time.now;
+      this.fireElectricFence(dome.x, dome.y, dome.radius, target);
+      target.electricSlowUntil = this.time.now + ELECTRIC_SLOW_DURATION;
+      const index = this.enemies.findIndex((enemy) => enemy.uid === target.uid);
+      if (index >= 0) {
+        // Faíscas e flash bastam: não spammar números de 0,5 a cada pulso.
+        this.impactInvader(index, ELECTRIC_FENCE_DAMAGE, 0, '#c1ffb7', false);
+      }
+    }
+  }
+
   drawShield() {
     const graphics = this.shieldGraphics;
     graphics.clear();
@@ -1559,6 +1631,27 @@ export class GameScene extends Phaser.Scene {
       graphics.beginPath();
       graphics.arc(x, y + 10, radius, Math.PI, Math.PI * 2, false);
       graphics.strokePath();
+      if (this.combat.electricFence) {
+        // Verde de cerca elétrica + cacos de vidro acompanhando a borda.
+        const cy = y + 10;
+        graphics.lineStyle(1, 0xa4faad, Math.max(0.23, fraction * 0.70));
+        graphics.beginPath();
+        graphics.arc(x, cy, radius + 2, Math.PI, Math.PI * 2, false);
+        graphics.strokePath();
+        graphics.fillStyle(0xa6f2bf, Math.max(0.3, fraction * 0.78));
+        for (let i = 1; i <= 11; i += 1) {
+          const angle = Math.PI + (i / 12) * Math.PI;
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          const gx = x + radius * cos;
+          const gy = cy + radius * sin;
+          graphics.fillTriangle(
+            gx - sin * 3, gy + cos * 3,
+            gx + sin * 3, gy - cos * 3,
+            gx + cos * 7, gy + sin * 7,
+          );
+        }
+      }
     };
     dome(CANNON.x, CANNON.y, 62, this.shield, this.shieldMax);
     for (const tower of this.supportTowers) {
@@ -1710,6 +1803,8 @@ export class GameScene extends Phaser.Scene {
     this.updateEnemyBullets(dt);
     if (this.gameOver) return;
     this.updatePlayerProjectiles(dt);
+    this.updateResidualSlashes();
+    this.updateElectricFences();
     this.updateSupportTowers(dt);
     this.updateSupportProjectiles(dt);
     this.updateBlasts();
