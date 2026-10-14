@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.11** — progressão até a **Onda 2**, com segunda escolha de país, cinco torres mecanizadas automáticas em arte provisória e novo ataque com bombardeiros/caças. Ainda **não** implementa as ondas 3–11, upgrades de nível 3–10, sprites definitivos das torres ou a traição final.
+> **Protótipo 0.12** — **Urso de Ferro com Artilharia de Choque**: mira preditiva, explosão em área, empurrão gradual, fumaça e recuo visual. Mantém a Onda 2 e as cinco torres mecanizadas. Ainda **não** implementa as ondas 3–11, upgrades de nível 3–10, sprites definitivos das torres ou a traição final.
 
 ## Jogar no computador (PowerShell)
 
@@ -56,8 +56,20 @@ Os upgrades de **nível 2** já funcionam. Os níveis 3–10 seguem indisponíve
 | Brasil | Projeto Caramelo | **Caramelo**: torre automática de tiros frequentes contra invasores próximos |
 | EUA | Águia da Liberdade I | **Águia**: mísseis que perseguem o alvo |
 | Japão | Projeto Tsuru I | **Tsuru**: laser de precisão disparado automaticamente |
-| Rússia | Urso de Ferro | **Urso**: artilharia pesada com recuo |
+| Rússia | Urso de Ferro | **Urso**: Artilharia de Choque com mira preditiva, explosão e empurrão em área |
 | China | PandaPrime I — Envio Econômico | **PandaPrime**: pares de minidrones perseguidores |
+
+### Urso de Ferro — Artilharia de Choque
+
+O Urso agora funciona de modo diferente das outras torres:
+- Dispara a cada **2 segundos**, dentro de **600 px** de alcance; o tiro é pesado, mas não teleguiado.
+- Estima a velocidade atual do alvo e tenta antecipar seu movimento. O projétil também explode se acertar outro inimigo pelo caminho.
+- Explode no impacto ou no ponto previsto, com **85 px de raio**: **3,7 de dano** no centro e **2,4 de dano** mais perto da borda.
+- Aplica **empurrão amortecido** às naves que sobrevivem; evita o teleporte visual que ocorria com o recuo anterior.
+- Tem rastro de fumaça, pequeno recuo da torre ao disparar e tremor discreto da câmera quando a bomba explode.
+- A explosão também intercepta projéteis hostis próximos.
+
+O Urso é intencionalmente diferente da **Fragmentação americana**: atira muito mais lentamente, mas controla uma área com explosões mais fortes e empurrão. Os atributos são provisórios e serão ajustados com os testes.
 
 As torres aparecem como **formas coloridas com letras**, ainda sem sprites definitivos. Ocupam uma de duas posições (esquerda e direita), **possuem vida e escudo próprios com regeneração** e podem ser destruídas sem que o jogador perca imediatamente. A destruição do **canhão central** continua sendo a condição de derrota.
 
@@ -125,6 +137,7 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - `src/gameplay/upgrades.js` — primeiros efeitos reais das melhorias.
 - `src/gameplay/progression.js` — histórico das escolhas de cada país, upgrades nível 2, bloqueios e transições de ondas.
 - `src/gameplay/towers.js` — cinco perfis de torres, suas armas, alcance e aquisição de alvos.
+- `src/gameplay/shockArtillery.js` — mira preditiva, colisão contínua, dano da explosão e deslocamento amortecido do Urso.
 - `src/gameplay/enemies.js` — definições dos cinco tipos, níveis de dificuldade, matemática do círculo, fileira e movimento suave da Nave-Mãe.
 - `src/gameplay/waves.js` — agenda das Ondas 0, 1, 2 e dos laboratórios.
 - `src/gameplay/combat.js` e `src/gameplay/specialBlast.js` — regras matemáticas de mira, dano e explosão persistente.
