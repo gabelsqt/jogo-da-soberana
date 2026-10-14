@@ -1280,6 +1280,7 @@ export class GameScene extends Phaser.Scene {
 
     // A lâmina atravessa toda a linha do tiro, independentemente do HP.
     // Cada nave sofre dano uma única vez por pulso.
+    const initialHitIds = new Set();
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
       if (laserHitsTarget(
@@ -1287,6 +1288,7 @@ export class GameScene extends Phaser.Scene {
         enemy.sprite.x, enemy.sprite.y,
         PLASMA_HALF_WIDTH, enemyContactRadius(enemy.type),
       )) {
+        initialHitIds.add(enemy.uid);
         this.impactInvader(i, PLASMA_DAMAGE, 0, '#e9aaff');
       }
     }
@@ -1295,6 +1297,9 @@ export class GameScene extends Phaser.Scene {
       if (laserHitsTarget(
         startX, startY, endX, endY, bullet.sprite.x, bullet.sprite.y, PLASMA_HALF_WIDTH, 7,
       )) this.removeEnemyBullet(i);
+    }
+    if (this.combat.residualSlash) {
+      this.createResidualSlash(startX, startY, endX, endY, initialHitIds);
     }
 
     // Três traços luminosos sobrepostos criam uma espada de plasma bem visível.
@@ -1311,21 +1316,88 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  explodeFragments(x, y, directTargetId) {
+  createResidualSlash(x1, y1, x2, y2, initialHitIds = new Set()) {
+    const trail = this.add.graphics().setDepth(47);
+    trail.lineStyle(15, 0x8e51f2, 0.14);
+    trail.lineBetween(x1, y1, x2, y2);
+    trail.lineStyle(4, 0xf6b5ff, 0.75);
+    trail.lineBetween(x1, y1, x2, y2);
+    this.residualSlashes.push({
+      graphics: trail, x1, y1, x2, y2,
+      bornAt: this.time.now, hitIds: new Set(initialHitIds),
+    });
+  }
+
+  clearResidualSlashes() {
+    for (const slash of this.residualSlashes ?? []) slash.graphics.destroy();
+    if (this.residualSlashes) this.residualSlashes.length = 0;
+  }
+
+  updateResidualSlashes() {
+    for (let i = this.residualSlashes.length - 1; i >= 0; i -= 1) {
+      const slash = this.residualSlashes[i];
+      const age = this.time.now - slash.bornAt;
+      if (age >= RESIDUAL_DURATION) {
+        slash.graphics.destroy();
+        this.residualSlashes.splice(i, 1);
+        continue;
+      }
+      slash.graphics.setAlpha(Math.max(0, 1 - age / RESIDUAL_DURATION));
+      for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
+        const enemy = this.enemies[j];
+        if (slash.hitIds.has(enemy.uid)) continue;
+        if (!laserHitsTarget(
+          slash.x1, slash.y1, slash.x2, slash.y2,
+          enemy.sprite.x, enemy.sprite.y,
+          RESIDUAL_HALF_WIDTH, enemyContactRadius(enemy.type),
+        )) continue;
+        slash.hitIds.add(enemy.uid);
+        this.impactInvader(j, RESIDUAL_DAMAGE, 0, '#e5a3ff', false);
+      }
+    }
+  }
+
+  explodeCollateral(x, y) {
+    // Um único estouro extra por bala de Fragmentação; nunca dispara outra
+    // explosão de Dano Colateral ao matar novos inimigos nesta segunda área.
+    for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
+      const enemy = this.enemies[i];
+      if (fragmentHitsTarget(
+        x, y, enemy.sprite.x, enemy.sprite.y,
+        enemyContactRadius(enemy.type), COLLATERAL_RADIUS,
+      )) this.impactInvader(i, COLLATERAL_DAMAGE, 0, '#ffd59b', false);
+    }
+    const ring = this.add.circle(x, y, COLLATERAL_RADIUS, 0xffa052, 0.22)
+      .setStrokeStyle(3, 0xffedac, 0.9).setScale(0.1).setDepth(46);
+    this.tweens.add({
+      targets: ring, scale: 1, alpha: 0, duration: 280,
+      onComplete: () => ring.destroy(),
+    });
+  }
+
+  explodeFragments(x, y, directTargetId, firstDestroyed = null) {
     // Fragmentação só é disparada ao acertar um alvo, nunca ao expirar no céu.
     // O inimigo atingido já sofreu o impacto direto; o raio pega os vizinhos.
+    let casualty = firstDestroyed;
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
       if (enemy.uid === directTargetId) continue;
       if (fragmentHitsTarget(
         x, y, enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type),
-      )) this.impactInvader(i, FRAGMENT_DAMAGE, 0, '#90cfff');
+      )) {
+        const position = { x: enemy.sprite.x, y: enemy.sprite.y };
+        const killed = this.impactInvader(i, FRAGMENT_DAMAGE, 0, '#90cfff');
+        if (killed && !casualty) casualty = position;
+      }
     }
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
       const shot = this.enemyBullets[i];
       if (fragmentHitsTarget(x, y, shot.sprite.x, shot.sprite.y, 8)) {
         this.removeEnemyBullet(i);
       }
+    }
+    if (this.combat.collateral && casualty) {
+      this.explodeCollateral(casualty.x, casualty.y);
     }
     const blast = this.add.circle(x, y, FRAGMENT_RADIUS, 0x75aeff, 0.22)
       .setStrokeStyle(4, 0xe2f2ff, 0.92).setScale(0.20).setDepth(43);
@@ -1481,9 +1553,17 @@ export class GameScene extends Phaser.Scene {
           } else {
             const directTargetId = enemy.uid;
             bullet.hitEnemyIds.add(directTargetId);
-            this.impactInvader(j, bullet.damage, bullet.knockback, bullet.impactColor);
+            const deathPosition = { x: enemy.sprite.x, y: enemy.sprite.y };
+            const knockback = this.combat.strategicRecoil && bullet.knockback > 0
+              ? strategicKnockback(bullet.knockback, enemy.sprite.y)
+              : bullet.knockback;
+            const destroyed = this.impactInvader(
+              j, bullet.damage, knockback, bullet.impactColor,
+              true, this.combat.strategicRecoil ? 720 : 400,
+            );
             if (bullet.fragmentation) {
-              this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId);
+              this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
+                destroyed ? deathPosition : null);
               remove = true;
             } else {
               bullet.pierceLeft -= 1;
