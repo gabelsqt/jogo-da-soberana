@@ -9,7 +9,7 @@ export const SECOND_UPGRADES = {
   br: { title: 'Projeto Caramelo', description: 'Instala um vira-lata mecanizado que atira automaticamente nos invasores.', tower: true },
   us: { title: 'Águia da Liberdade I', description: 'Instala águia mecanizada que dispara mísseis teleguiados.', tower: true },
   jp: { title: 'Projeto Tsuru I', description: 'Instala grou japonês mecanizado com laser automático de precisão.', tower: true },
-  ru: { title: 'Urso de Ferro', description: 'Instala urso mecanizado com artilharia pesada e recuo.', tower: true },
+  ru: { title: 'Urso de Ferro', description: 'Instala urso com artilharia preditiva: explosão de choque e empurrão em área.', tower: true },
   cn: { title: 'PandaPrime I — Envio Econômico', description: 'Instala panda mecanizado que envia minidrones perseguidores.', tower: true },
 };
 
