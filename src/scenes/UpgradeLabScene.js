@@ -65,6 +65,12 @@ export class UpgradeLabScene extends Phaser.Scene {
       this.cards.push({ card, status, upgrade });
     });
 
+    this.statsPreview = this.add.text(W / 2, 433, '', {
+      fontFamily: 'monospace', fontSize: '13px',
+      color: '#fce4b4', backgroundColor: '#10243dde',
+      padding: { x: 10, y: 6 },
+    }).setOrigin(0.5).setDepth(4);
+
     addMenuButton(this, {
       x: 268, y: 469, width: 290, height: 48,
       text: 'ZERAR MELHORIAS [0]', onClick: () => this.clearUpgrades(), depth: 4,
@@ -113,6 +119,14 @@ export class UpgradeLabScene extends Phaser.Scene {
       status.setText(active ? '[ ATIVO ]' : '[ ATIVAR ]');
       status.setColor(active ? '#a4ffe0' : '#9abfd5');
     }
+    const stats = this.scene.get('GameScene').combat;
+    this.statsPreview.setText(
+      'TIROS ' + (1000 / stats.basicInterval).toFixed(1) + '/s' +
+      '   DANO ' + stats.basicDamage.toFixed(2) +
+      '   VEL ' + stats.basicSpeed +
+      '   PERF ' + stats.pierce +
+      '   PROJ ' + stats.bulletsPerShot,
+    );
   }
 
   closeLab() {
