@@ -1,18 +1,41 @@
-// Cenário fixo do Rio, compartilhado pelo menu, jogo e seleção de upgrades.
-// Coloque a imagem enviada pelo usuário em:
-// public/assets/cenario/rio_fundo_fixo.png
+// Cenário fixo do Rio, compartilhado por menu, jogo e escolhas de upgrades.
+// Arte fornecida: public/assets/cenario/rio_fundo_fixo.png
 export const RIO_BACKGROUND_KEY = 'rio_fundo_fixo';
 export const RIO_BACKGROUND_FILE = 'rio_fundo_fixo.png';
 export const GAME_WIDTH = 960;
 export const GAME_HEIGHT = 540;
 
+// Fallback temporário: o GitHub só aceita uploads de imagem binária via Git
+// local; sem o PNG, o protótipo deve continuar funcionando normalmente.
+// Quando o PNG estiver no repositório, SOMENTE a imagem fixa será desenhada.
+const LEGACY_SKY_LAYERS = [
+  '01_ceu_noturno_estrelado',
+  '02_lua_e_nuvens',
+  '03_montanhas_distantes',
+  '04_baia_e_reflexos',
+  '05_pao_de_acucar_e_ilhas',
+  '06_cristo_redentor_e_morro',
+  '07_horizonte_urbano',
+  '08_primeiro_plano_telhados',
+];
+
 export function preloadRioBackdrop(scene) {
   scene.load.setPath('assets/cenario');
   scene.load.image(RIO_BACKGROUND_KEY, RIO_BACKGROUND_FILE);
+  // O fallback evita uma tela vazia até o usuário importar a imagem fornecida.
+  LEGACY_SKY_LAYERS.forEach((name) => scene.load.image(name, `${name}.png`));
 }
 
 export function drawRioBackdrop(scene) {
-  return scene.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, RIO_BACKGROUND_KEY)
-    .setDisplaySize(GAME_WIDTH, GAME_HEIGHT)
-    .setDepth(0);
+  if (scene.textures.exists(RIO_BACKGROUND_KEY)) {
+    return scene.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, RIO_BACKGROUND_KEY)
+      .setDisplaySize(GAME_WIDTH, GAME_HEIGHT)
+      .setDepth(0);
+  }
+
+  // Só em instalações que ainda não receberam rio_fundo_fixo.png.
+  return LEGACY_SKY_LAYERS.map((name, depth) =>
+    scene.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, name)
+      .setDisplaySize(GAME_WIDTH, GAME_HEIGHT)
+      .setDepth(depth));
 }
