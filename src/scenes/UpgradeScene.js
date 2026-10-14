@@ -87,7 +87,7 @@ export class UpgradeScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '13px', color: '#aec5df',
     }).setOrigin(0.5).setDepth(22);
     this.add.text(W / 2, 515,
-      'NÍVEL 2 = TORRE AUTOMÁTICA • MÁXIMO 2 TORRES • TECLAS 1–5', {
+      'NÍVEL 2 = MELHORIA DO PAÍS • NÍVEL 3 = 1ª TORRE • MÁXIMO 2 TORRES', {
         fontFamily: 'monospace', fontSize: '12px', color: '#eaf6ff',
       }).setOrigin(0.5).setDepth(22);
 
