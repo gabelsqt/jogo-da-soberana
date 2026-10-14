@@ -1,0 +1,18 @@
+{
+  "name": "jogo-da-soberana",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Jogo arcade brasileiro de defesa antiaérea para a Soberana Game Jam.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build --base=./",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  }
+}
