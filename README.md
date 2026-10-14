@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.12** — **Urso de Ferro com Artilharia de Choque**: mira preditiva, explosão em área, empurrão gradual, fumaça e recuo visual. Mantém a Onda 2 e as cinco torres mecanizadas. Ainda **não** implementa as ondas 3–11, upgrades de nível 3–10, sprites definitivos das torres ou a traição final.
+> **Protótipo 0.13** — cinco **upgrades de nível 2** jogáveis e sem novas torres; a primeira torre agora pertence ao **nível 3** de cada país, e a segunda permanece planejada para o **nível 7**. A campanha continua jogável até a Onda 2. Para testar as torres mecanizadas, use o laboratório. Ainda não há Ondas 3–11, segunda torre, sprites finais nem reviravolta.
 
 ## Jogar no computador (PowerShell)
 
@@ -32,7 +32,7 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 2. **Onda 0:** contagem regressiva **3, 2, 1** antes de começar; **32 invasores Tipo 1** (20 em sequência, a cada 1,28 s, mais três grupos simultâneos de 3, 4 e 5). O primeiro aparece 0,25 s após a contagem; continua sendo possível perder.
 3. Após concluir a Onda 0, aparecem cinco cartões para escolher **um upgrade inicial**.
 4. **Onda 1:** nova contagem **3, 2, 1**; são **70 inimigos**: 32 invasores básicos em sequência (a cada 0,96 s), grupos simultâneos com 3, 4 e 5 básicos, dois trios Tipo 2, um ataque circular de dez Tipo 2 avançados e uma **fileira final de dez OVNIs Tipo 1**, ocupando a largura do céu. A onda só termina depois que todas as ameaças são neutralizadas.
-5. Ao vencer a Onda 1, surge a **segunda escolha de país**. Cada cartão mostra apenas o próximo upgrade disponível daquele país: se escolher o mesmo país duas vezes, instala seu animal mecanizado de nível 2; se mudar de país, recebe o upgrade inicial do novo aliado.
+5. Ao vencer a Onda 1, surge a **segunda escolha de país**. Cada cartão oferece o próximo upgrade daquele país: se repetir um país, ganha sua **melhoria de nível 2**, SEM instalar torre; se mudar de país, recebe o primeiro upgrade do novo aliado. O escudo elétrico brasileiro, por exemplo, pode ser testado escolhendo Brasil duas vezes.
 6. **Onda 2:** contagem regressiva 3–2–1, 80 inimigos programados com bombardeiros (Tipo 3) e caças relâmpago (Tipo 4), além dos básicos e formações. Termina em uma tela de conclusão provisória; as Ondas 3–11 virão depois.
 7. **Testar inimigos**, no menu inicial, apresenta os Tipos 2–5 e seus padrões.
 8. **Testar upgrades** abre laboratório independente e agora permite testar também as cinco torres sem passar pelas ondas.
@@ -47,11 +47,23 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 | Rússia | Camarada Canhão | +75% de dano, aplica **recuo gradual** aos inimigos em mergulho (em vez de saltar a posição) |
 | China | AliExplode — Frete Grátis | Dois projéteis simultâneos com pequena dispersão |
 
-Os upgrades de **nível 2** já funcionam. Os níveis 3–10 seguem indisponíveis até serem implementados; o jogo não promete efeitos que ainda não existem.
+Os upgrades de **nível 2** já funcionam. O nível 3 foi definido para liberar a **primeira torre**, mas a terceira escolha de campanha e a Onda 3 ainda não estão disponíveis; níveis 4–10 seguem em planejamento.
 
-## Segundos upgrades — torres mecanizadas
+## Cinco upgrades de nível 2 (v0.13)
 
-| País | Segundo upgrade | Torre provisória e efeito |
+| País | Melhoria | Efeito jogável |
+| --- | --- | --- |
+| Brasil | **Minha Casa, Meu Escudo** | Cacos de vidro e cerca elétrica em todos os escudos instalados, inclusive de torres estrangeiras; choque de proximidade de 0,5 de dano, pulso por cúpula a cada 250 ms e lentidão temporária de 10% |
+| EUA | **Dano Colateral** | Quando a Fragmentação destrói um OVNI, ocorre UMA explosão secundária de raio 50 px e 0,75 de dano, sem reações em cadeia |
+| Japão | **Corte Residual** | Após a Katana de Plasma, fica um rastro violeta por 0,6 s; causa 1 de dano uma única vez a quem o atravessa e ainda não foi atingido pelo corte original |
+| Rússia | **Recuo Estratégico** | O tiro do Camarada Canhão empurra progressivamente mais perto da base, com até duas vezes o impulso e amortecimento gradual |
+| China | **Compre 2, Leve 3** | A cada cinco rajadas, o canhão atira um terceiro projétil; aparece o aviso visual “GRÁTIS!” |
+
+Os valores são parâmetros provisórios para playtest, não balanceamento final. As linhas de escudo do Brasil só descarregam com escudo ativo, não criam barreira em posições vazias e não consomem energia ao atacar.
+
+## Terceiros upgrades — primeiras torres mecanizadas (testáveis no laboratório)
+
+| País | Terceiro upgrade | Torre provisória e efeito |
 | --- | --- | --- |
 | Brasil | Projeto Caramelo | **Caramelo**: torre automática de tiros frequentes contra invasores próximos |
 | EUA | Águia da Liberdade I | **Águia**: mísseis que perseguem o alvo |
@@ -77,11 +89,12 @@ O limite global é de **duas torres instaladas**. Se futuramente as duas posiç�
 
 ## Laboratório de upgrades
 
-No menu inicial, clique em **TESTAR UPGRADES [U]**. O jogo abre um campo de testes pausado, com cinco cartões que representam apenas os upgrades de nível 1 atualmente funcionais.
+No menu inicial, clique em **TESTAR UPGRADES [U]**. O jogo abre um campo de testes pausado, com cinco cartões. Um seletor no alto do painel permite alternar entre os **níveis 1 e 2** (também pela tecla **N**).
 
-- Clique em qualquer cartão ou use **1–5** para alternar cada melhoria entre ativa e desativada. É possível deixar várias ativas e testar combinações.
-- Clique em **ZERAR MELHORIAS [0]** para voltar ao canhão sem upgrades ou torres.
-- **Teclas 1–5 no painel:** ativam os upgrades básicos de cada país. **Shift+1–5:** instalam ou retiram as torres correspondentes, até duas simultâneas, independentemente dos upgrades básicos. Essas escolhas são apenas para testes e não alteram a campanha.
+- Clique em um cartão ou use **1–5** para alternar a melhoria do nível mostrado na aba. **N** ou clique no seletor superior para mudar entre **NÍVEL 1** e **NÍVEL 2**.
+- Ao ativar um nível 2 no laboratório, o nível 1 do mesmo país é ligado automaticamente. Desativar o nível 1 retira também o nível 2 dependente.
+- Clique em **ZERAR MELHORIAS [0]** para voltar ao canhão sem upgrades nem torres.
+- **Shift+1–5 no painel** instala ou retira os animais correspondentes, até duas torres simultâneas, para testá-los **antes de a Onda 3 existir**. O laboratório não altera a campanha.
 - Clique em **VOLTAR AO CAMPO [U]**, pressione **U** ou **Esc** para retornar ao combate com a configuração escolhida.
 - No campo, pressione **1–5** para gerar os inimigos Tipos 1–5 (2 gera um trio); **Shift+1** gera uma fileira de dez Tipo 1; **Shift+2** gera **dez Tipo 2 circulando em órbita antes de parar e mergulhar**; **Shift+3/4/5** gera as variantes de nível 2. **C** limpa os inimigos e projéteis; **U** reabre o painel.
 - Há **barras de vida** nos inimigos resistentes e **números flutuantes de dano** ao acertar. As melhorias têm cores de disparo próprias; o Japão solta uma lâmina violeta de plasma a cada três tiros básicos e os EUA produzem uma explosão azul de fragmentação ao atingir naves.
@@ -124,7 +137,7 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - **U (no menu):** entrar no laboratório de upgrades.
 - **U (no laboratório de upgrades):** abrir/fechar o painel para alterar melhorias instantaneamente.
 - **1–5 (qualquer laboratório em combate):** gerar inimigos de nível 1; **Shift+1–5** gera nível 2 (Shift+1 = fileira; Shift+2 = círculo com dez naves); **C** limpa o campo.
-- **1–5 (painel do laboratório):** ativar/desativar os cinco upgrades básicos; **Shift+1–5** instala/remove a torre do respectivo país; **0** zera upgrades e torres.
+- **1–5 (painel do laboratório):** ativar/desativar o nível 1 ou 2 do país, conforme a aba; **N** troca a aba; **Shift+1–5** instala/remove a torre do respectivo país; **0** zera todos os upgrades e torres.
 - **Clique nos cartões:** escolher aliado após a Onda 0.
 
 ## Estrutura técnica
@@ -135,7 +148,8 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - `src/scenes/UpgradeLabScene.js` — painel de upgrades acumuláveis e substituíveis em campo de teste.
 - `src/scenes/PauseScene.js` — pausa, reinício e menu.
 - `src/gameplay/upgrades.js` — primeiros efeitos reais das melhorias.
-- `src/gameplay/progression.js` — histórico das escolhas de cada país, upgrades nível 2, bloqueios e transições de ondas.
+- `src/gameplay/progression.js` — histórico das escolhas por país, nível 2 sem torres, primeiras torres no nível 3, bloqueios e transições de ondas.
+- `src/gameplay/secondUpgrades.js` — cinco melhorias de nível 2, parâmetros de alcance e regras puras de dano, recuo e promoções.
 - `src/gameplay/towers.js` — cinco perfis de torres, suas armas, alcance e aquisição de alvos.
 - `src/gameplay/shockArtillery.js` — mira preditiva, colisão contínua, dano da explosão e deslocamento amortecido do Urso.
 - `src/gameplay/enemies.js` — definições dos cinco tipos, níveis de dificuldade, matemática do círculo, fileira e movimento suave da Nave-Mãe.
