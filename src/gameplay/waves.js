@@ -3,6 +3,15 @@
 // as ondas e upgrades restantes já foram desenvolvidos.
 const wave0Times = [600, 2400, 4400, 6300, 9500, 12200, 15300, 18600, 22000, 25000];
 
+export const WAVE_COUNTDOWN_SECONDS = 3;
+
+// Antes da onda há 3, 2, 1. O relógio de inimigos só começa no fim.
+export function countdownNumberAt(elapsedMs) {
+  if (elapsedMs < 0 || elapsedMs >= WAVE_COUNTDOWN_SECONDS * 1000) return null;
+  return WAVE_COUNTDOWN_SECONDS - Math.floor(elapsedMs / 1000);
+}
+
+
 export const MODES = {
   wave0: { title: 'ONDA 0', minDuration: 30000 },
   wave1: { title: 'ONDA 1', minDuration: 39500 },
