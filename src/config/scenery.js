@@ -1,3 +1,5 @@
+import { assetUrl, isSingleFileBuild, hasEmbeddedAsset } from './assetUrl.js';
+
 // Cenário fixo do Rio, compartilhado por menu, jogo e escolhas de upgrades.
 // Arte fornecida: public/assets/cenario/rio_fundo_fixo.png
 export const RIO_BACKGROUND_KEY = 'rio_fundo_fixo';
@@ -20,10 +22,20 @@ const LEGACY_SKY_LAYERS = [
 ];
 
 export function preloadRioBackdrop(scene) {
-  scene.load.setPath('assets/cenario');
-  scene.load.image(RIO_BACKGROUND_KEY, RIO_BACKGROUND_FILE);
-  // O fallback evita uma tela vazia até o usuário importar a imagem fornecida.
-  LEGACY_SKY_LAYERS.forEach((name) => scene.load.image(name, `${name}.png`));
+  // Usar paths completos com setPath('') também suporta imagens data:,
+  // sem pedidos HTTP adicionais na exportação single-file para itch.io.
+  scene.load.setPath('');
+  const fixedPath = `assets/cenario/${RIO_BACKGROUND_FILE}`;
+  if (!isSingleFileBuild() || hasEmbeddedAsset(fixedPath)) {
+    scene.load.image(RIO_BACKGROUND_KEY, assetUrl(fixedPath));
+  }
+
+  // No HTML único, se a imagem nova estiver embutida, as antigas camadas
+  // não precisam ser carregadas. O build web normal conserva o fallback.
+  if (!isSingleFileBuild() || !hasEmbeddedAsset(fixedPath)) {
+    LEGACY_SKY_LAYERS.forEach((name) =>
+      scene.load.image(name, assetUrl(`assets/cenario/${name}.png`)));
+  }
 }
 
 export function drawRioBackdrop(scene) {
