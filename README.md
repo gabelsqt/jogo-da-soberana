@@ -2,7 +2,7 @@
 
 Protótipo do jogo de defesa antiaérea em pixel art ambientado no Rio de Janeiro. Inspirado por **Missile Command** e **Utopia Must Fall**.
 
-> Estado: **protótipo 0.3** (menus, trajetórias inimigas, arco de tiro e derrota na Onda 0). Ainda não inclui o sistema de cinco países, os 50 upgrades ou a Onda 11.
+> Estado: **protótipo 0.4** (menus, trajetórias inimigas, tiro especial persistente e derrota na Onda 0). Ainda não inclui o sistema de cinco países, os 50 upgrades ou a Onda 11.
 
 ## Executar localmente
 
@@ -35,7 +35,7 @@ Para o itch.io, compacte **o conteúdo da pasta `dist/`** (não a pasta em si) e
 
 - **Mouse:** mira apenas no arco superior (de 15° a 165° em relação à horizontal direita).
 - **Botão esquerdo pressionado:** dispara continuamente (2 tiros por segundo).
-- **Botão direito:** bomba de pulso básica (recarga de 8 segundos).
+- **Botão direito:** explosão defensiva de área: cresce até 110 px de raio, protege por 3 segundos e elimina OVNIs que entrem depois; recarga de 8 segundos.
 - **Esc ou P:** abre/fecha o menu de pausa (também há um botão no topo da tela).
 - **R:** reinicia a demonstração.
 - **Enter (menu principal):** começa a jogar.
@@ -51,6 +51,7 @@ Para o itch.io, compacte **o conteúdo da pasta `dist/`** (não a pasta em si) e
 - Onda 0 tutorial com duração mínima de 30 segundos e dez inimigos fáceis, surgindo gradualmente. Termina quando todos os dez já apareceram e não há inimigos vivos.
 - Os OVNIs fazem curvas até o escudo de uma estrutura, em vez de descer em linha reta. Sem animais construídos, atacam somente o canhão.
 - O arco de tiro do canhão é limitado à metade superior, com 15° de margem acima das laterais; projéteis seguem o cano.
+- A arma especial funciona como um campo de interceptação inspirado em *Missile Command*: expande por 0,45s, mantém o raio máximo por aproximadamente 2,05s e se retrai nos últimos 0,5s. Inimigos presentes **ou que entrarem depois** são destruídos.
 - Escudo provisório do canhão central (80 pontos), danos por colisão (46) e regeneração lenta (3,5 por segundo após 4 segundos sem danos).
 - É possível perder a Onda 0 por inação; ao destruir o canhão, surge a tela de **Derrota** com opções de reiniciar ou ir ao menu.
 
@@ -69,6 +70,7 @@ jogo-da-soberana/
     ├── config/scenery.js       # configurações do cenário do Rio
     ├── ui/menuButton.js        # botões compartilhados
     ├── gameplay/combat.js      # mira, alvos, rotas e dano
+    ├── gameplay/specialBlast.js # lógica do campo persistente de explosão
     └── scenes/                  # menu, Onda 0 e pausa
         ├── MenuScene.js
         ├── GameScene.js
