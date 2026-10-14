@@ -285,6 +285,185 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  createSupportTowers() {
+    const selected = this.mode === 'upgradeLab'
+      ? this.labTowerIds : activeTowerCountries(this.campaign);
+    this.installSupportTowerSet(selected);
+  }
+
+  installSupportTowerSet(countryIds) {
+    for (const tower of this.supportTowers) tower.sprite.destroy();
+    for (const bullet of this.supportProjectiles) bullet.sprite.destroy();
+    this.supportProjectiles.length = 0;
+    this.supportTowers.length = 0;
+
+    countryIds.slice(0, SUPPORT_TOWER_POSITIONS.length).forEach((id, index) => {
+      const definition = towerDefinition(id);
+      if (!definition) return;
+      const position = SUPPORT_TOWER_POSITIONS[index];
+      const { x, y } = position;
+
+      // Placeholders de arte, separados do cenário: silhueta metálica e sigla.
+      const sprite = this.add.container(x, y - 12).setDepth(26);
+      const base = this.add.rectangle(0, 22, 64, 17, 0x263e52)
+        .setStrokeStyle(2, 0x94b5c4);
+      const hull = this.add.rectangle(0, 0, 39, 32, definition.color)
+        .setStrokeStyle(2, 0xf4faff);
+      const visor = this.add.rectangle(0, -7, 23, 6, 0x1a2e42);
+      const glyph = this.add.text(0, 6, definition.glyph, {
+        fontFamily: 'monospace', fontSize: '19px',
+        color: '#091c32', fontStyle: 'bold',
+      }).setOrigin(0.5);
+      const name = this.add.text(0, 36, definition.label, {
+        fontFamily: 'monospace', fontSize: '9px',
+        color: '#f4faff', fontStyle: 'bold',
+        backgroundColor: '#142438dd', padding: { x: 3, y: 2 },
+      }).setOrigin(0.5);
+      sprite.add([base, hull, visor, glyph, name]);
+
+      this.supportTowers.push({
+        id: 'tower-' + id, countryId: id,
+        definition, x, y, shieldRadius: 46,
+        sprite,
+        health: definition.healthMax,
+        healthMax: definition.healthMax,
+        shield: definition.shieldMax,
+        shieldMax: definition.shieldMax,
+        lastDamageAt: -10000,
+        lastAttackAt: -definition.interval,
+      });
+    });
+    this.drawShield();
+  }
+
+  setLabTowers(ids) {
+    if (this.mode !== 'upgradeLab') return false;
+    const chosen = [...new Set(ids)].filter((id) => towerDefinition(id));
+    if (chosen.length > SUPPORT_TOWER_POSITIONS.length) return false;
+    this.labTowerIds = chosen;
+    this.installSupportTowerSet(this.labTowerIds);
+    return true;
+  }
+
+  toggleLabTower(id) {
+    if (this.mode !== 'upgradeLab' || !towerDefinition(id)) return false;
+    const chosen = this.labTowerIds.includes(id)
+      ? this.labTowerIds.filter((item) => item !== id)
+      : [...this.labTowerIds, id];
+    if (!canInstallTower(this.labTowerIds, id)) return false;
+    return this.setLabTowers(chosen);
+  }
+
+  updateSupportTowers(dt) {
+    for (const tower of this.supportTowers) {
+      if (tower.health <= 0) continue;
+      if (this.time.now - tower.lastAttackAt < tower.definition.interval) continue;
+      const enemy = chooseTowerAttackTarget(
+        tower.x, tower.y - 22, this.enemies, tower.definition.range,
+      );
+      if (!enemy) continue;
+      tower.lastAttackAt = this.time.now;
+      this.fireTowerWeapon(tower, enemy);
+    }
+  }
+
+  fireTowerWeapon(tower, enemy) {
+    const weapon = tower.definition;
+    const fromX = tower.x;
+    const fromY = tower.y - 35;
+
+    if (weapon.type === 'laser') {
+      const beam = this.add.graphics().setDepth(41);
+      beam.lineStyle(11, 0x996af1, 0.22);
+      beam.lineBetween(fromX, fromY, enemy.sprite.x, enemy.sprite.y);
+      beam.lineStyle(3, 0xedc4ff, 1);
+      beam.lineBetween(fromX, fromY, enemy.sprite.x, enemy.sprite.y);
+      this.tweens.add({
+        targets: beam, alpha: 0, duration: 260,
+        onComplete: () => beam.destroy(),
+      });
+      const index = this.enemies.findIndex((item) => item.uid === enemy.uid);
+      if (index >= 0) this.impactInvader(index, weapon.damage, 0, '#e6b1ff');
+      return;
+    }
+
+    const count = weapon.count ?? 1;
+    for (let i = 0; i < count; i += 1) {
+      const x = fromX + (i - (count - 1) / 2) * 18;
+      const y = fromY;
+      const dx = enemy.sprite.x - x;
+      const dy = enemy.sprite.y - y;
+      const distance = Math.max(1, Math.hypot(dx, dy));
+      const guided = weapon.type === 'missile' || weapon.type === 'drone';
+      const bullet = weapon.type === 'shell'
+        ? this.add.rectangle(x, y, 12, 14, weapon.color).setStrokeStyle(2, 0xffffff)
+        : this.add.circle(x, y, weapon.type === 'bullet' ? 4 : 6, weapon.color)
+          .setStrokeStyle(1, 0xffffff, 0.85);
+      bullet.setDepth(40);
+      this.supportProjectiles.push({
+        sprite: bullet,
+        targetId: enemy.uid,
+        guided, age: 0, speed: weapon.speed, weapon,
+        vx: dx / distance * weapon.speed,
+        vy: dy / distance * weapon.speed,
+      });
+    }
+  }
+
+  updateSupportProjectiles(dt) {
+    for (let i = this.supportProjectiles.length - 1; i >= 0; i -= 1) {
+      const shot = this.supportProjectiles[i];
+      shot.age += dt;
+      if (shot.guided) {
+        let target = this.enemies.find((enemy) => enemy.uid === shot.targetId);
+        if (!target) {
+          target = chooseTowerAttackTarget(
+            shot.sprite.x, shot.sprite.y, this.enemies, 850,
+          );
+          if (target) shot.targetId = target.uid;
+        }
+        if (target) {
+          const dx = target.sprite.x - shot.sprite.x;
+          const dy = target.sprite.y - shot.sprite.y;
+          const distance = Math.max(1, Math.hypot(dx, dy));
+          // Acompanhamento suave, sem teleportar mísseis ao mudar de alvo.
+          const smooth = Math.min(1, 8 * dt);
+          shot.vx = Phaser.Math.Linear(shot.vx, dx / distance * shot.speed, smooth);
+          shot.vy = Phaser.Math.Linear(shot.vy, dy / distance * shot.speed, smooth);
+        }
+      }
+      shot.sprite.x += shot.vx * dt;
+      shot.sprite.y += shot.vy * dt;
+
+      let hit = false;
+      for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
+        const enemy = this.enemies[j];
+        if (Phaser.Math.Distance.Between(
+          shot.sprite.x, shot.sprite.y, enemy.sprite.x, enemy.sprite.y,
+        ) > enemyContactRadius(enemy.type) + 7) continue;
+        this.impactInvader(
+          j, shot.weapon.damage, shot.weapon.knockback ?? 0, '#fff3b9',
+        );
+        const flash = this.add.circle(
+          shot.sprite.x, shot.sprite.y, shot.weapon.type === 'shell' ? 20 : 12,
+          shot.weapon.color, 0.45,
+        ).setDepth(44);
+        this.tweens.add({
+          targets: flash, alpha: 0, scale: 1.8, duration: 180,
+          onComplete: () => flash.destroy(),
+        });
+        hit = true;
+        break;
+      }
+      if (hit || shot.age > 5 ||
+          shot.sprite.x < -40 || shot.sprite.x > W + 40 ||
+          shot.sprite.y < -40 || shot.sprite.y > H + 40) {
+        shot.sprite.destroy();
+        this.supportProjectiles.splice(i, 1);
+      }
+    }
+  }
+
   createTurret() {
     const x = CANNON.x;
     const y = CANNON.y;
