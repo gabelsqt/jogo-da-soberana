@@ -5,7 +5,10 @@ import {
   combatStatsForLoadout, normalizeLabUpgrades, toggleLabUpgrade,
 } from '../src/gameplay/upgrades.js';
 import { ENEMY_TYPES, enemyDefinition, enemyContactRadius } from '../src/gameplay/enemies.js';
-import { MODES, getWaveEvents, waveIsFinished } from '../src/gameplay/waves.js';
+import {
+  MODES, getWaveEvents, waveIsFinished,
+  WAVE_COUNTDOWN_SECONDS, countdownNumberAt,
+} from '../src/gameplay/waves.js';
 
 test('cinco opções de upgrade independentes, uma por país', () => {
   assert.deepEqual(FIRST_UPGRADES.map((u) => u.id), ['br', 'us', 'jp', 'ru', 'cn']);
@@ -137,4 +140,16 @@ test('onda 1 ficou mais intensa sem alterar a onda zero ou o laboratório', () =
   const regular = wave1.filter((e) => e.type === 1 && !e.pattern);
   assert.ok(regular.every((e, i) => i === 0 || e.at - regular[i - 1].at <= 1600));
   assert.ok(lab.some((e) => e.type === 5));
+});
+
+test('contagem regressiva da onda exibe 3, 2, 1 e só termina após três segundos', () => {
+  assert.equal(WAVE_COUNTDOWN_SECONDS, 3);
+  assert.equal(countdownNumberAt(0), 3);
+  assert.equal(countdownNumberAt(999), 3);
+  assert.equal(countdownNumberAt(1000), 2);
+  assert.equal(countdownNumberAt(1999), 2);
+  assert.equal(countdownNumberAt(2000), 1);
+  assert.equal(countdownNumberAt(2999), 1);
+  assert.equal(countdownNumberAt(3000), null);
+  assert.equal(countdownNumberAt(-1), null);
 });
