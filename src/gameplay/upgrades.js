@@ -8,13 +8,13 @@ export const FIRST_UPGRADES = [
   },
   {
     id: 'us', name: 'EUA', flag: 'US', color: 0x477dc4,
-    title: 'Balas da Liberdade',
-    description: 'Tiros básicos causam o dobro de dano.',
+    title: 'Munição de Fragmentação',
+    description: 'Ao acertar, cada projétil explode e danifica outros invasores próximos.'
   },
   {
     id: 'jp', name: 'Japão', flag: 'JP', color: 0xd85c78,
-    title: 'Protocolo Otaku',
-    description: 'Tiros mais rápidos que atravessam até dois inimigos.',
+    title: 'Katana de Plasma',
+    description: 'A cada 3 disparos, uma lâmina de energia corta todos os inimigos em linha.'
   },
   {
     id: 'ru', name: 'Rússia', flag: 'RU', color: 0xc94d4d,
@@ -38,18 +38,16 @@ export function combatStatsFor(upgradeId) {
     basicSpeed: 480,
     basicDamage: 1,
     pierce: 1,
+    fragmentation: false,
+    plasmaEvery: 0,
     knockback: 0,
     bulletsPerShot: 1,
     specialCooldown: 8000,
   };
   switch (upgradeId) {
     case 'br': stats.basicInterval = 400; break;
-    case 'us': stats.basicDamage = 2; break;
-    case 'jp':
-      stats.basicInterval = 340;
-      stats.basicSpeed = 680;
-      stats.pierce = 2;
-      break;
+    case 'us': stats.fragmentation = true; break;
+    case 'jp': stats.plasmaEvery = 3; break;
     case 'ru':
       stats.basicDamage = 1.75;
       stats.knockback = 0.12;
@@ -83,12 +81,10 @@ export function combatStatsForLoadout(ids = []) {
         stats.basicInterval *= 0.8;
         break;
       case 'us':
-        stats.basicDamage *= 2;
+        stats.fragmentation = true;
         break;
       case 'jp':
-        stats.basicInterval *= 0.68;
-        stats.basicSpeed = Math.max(stats.basicSpeed, 680);
-        stats.pierce = Math.max(stats.pierce, 2);
+        stats.plasmaEvery = 3;
         break;
       case 'ru':
         stats.basicDamage *= 1.75;
