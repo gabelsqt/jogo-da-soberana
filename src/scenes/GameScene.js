@@ -39,11 +39,12 @@ import {
   predictShockImpact, segmentHitsCircle, shockBlastDamage, advanceShockOffset,
 } from '../gameplay/shockArtillery.js';
 import {
-  ELECTRIC_FENCE_DAMAGE, ELECTRIC_FENCE_INTERVAL, ELECTRIC_FENCE_RADIUS_BONUS,
+  ELECTRIC_FENCE_DAMAGE, ELECTRIC_FENCE_RADIUS_BONUS,
   ELECTRIC_SLOW_FACTOR, ELECTRIC_SLOW_DURATION,
   COLLATERAL_RADIUS, COLLATERAL_DAMAGE,
   RESIDUAL_DURATION, RESIDUAL_DAMAGE, RESIDUAL_HALF_WIDTH,
-  electricFieldReaches, applySecondUpgradeStats, normalizeSecondUpgradeIds,
+  electricFieldReaches, canFireElectricFence,
+  applySecondUpgradeStats, normalizeSecondUpgradeIds,
   strategicKnockback, strategicRecoilIntensity, vacuumRiftAppearance,
 } from '../gameplay/secondUpgrades.js';
 import {
@@ -1746,7 +1747,7 @@ export class GameScene extends Phaser.Scene {
       })),
     ];
     for (const dome of shields) {
-      if (dome.shield <= 0 || this.time.now - dome.last < ELECTRIC_FENCE_INTERVAL) continue;
+      if (!canFireElectricFence(dome.last, this.time.now, dome.shield)) continue;
       // A cerca só atua próximo ao escudo, e não como uma torre de longa distância.
       // Cada cúpula atinge no máximo uma nave por pulso, para limitar saturação.
       let target = null;
