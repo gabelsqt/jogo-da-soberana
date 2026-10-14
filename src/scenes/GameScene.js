@@ -26,6 +26,17 @@ import {
   MODES, getWaveEvents, waveIsFinished, WAVE_COUNTDOWN_SECONDS,
 } from '../gameplay/waves.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import {
+  PLASMA_EVERY_SHOTS,
+  PLASMA_DAMAGE,
+  PLASMA_HALF_WIDTH,
+  PLASMA_RANGE,
+  FRAGMENT_RADIUS,
+  FRAGMENT_DAMAGE,
+  isPlasmaShot,
+  laserHitsTarget,
+  fragmentHitsTarget,
+} from '../gameplay/weaponEffects.js';
 
 const W = 960;
 const H = 540;
@@ -64,6 +75,8 @@ export class GameScene extends Phaser.Scene {
     this.combat = combatStatsForLoadout(this.upgradeIds);
     // Não exige espera para experimentar a nova cadência ao retornar ao campo.
     this.lastBasicFire = this.time.now - this.combat.basicInterval;
+    // Testes recomeçam com uma carga previsível após trocar de país.
+    this.basicShotCount = 0;
   }
 
   toggleUpgradeForLab(id) {
@@ -123,6 +136,7 @@ export class GameScene extends Phaser.Scene {
     this.eventsSpawned = 0;
     this.waveEvents = getWaveEvents(this.mode);
     this.lastBasicFire = -this.combat.basicInterval;
+    this.basicShotCount = 0;
     this.lastSpecialFire = -this.combat.specialCooldown;
     this.tutorialComplete = false;
     this.gameOver = false;
@@ -780,7 +794,79 @@ export class GameScene extends Phaser.Scene {
     for (const firingAngle of shotAngles(angle, this.combat.bulletsPerShot)) {
       this.createProjectile(firingAngle, false);
     }
+    this.basicShotCount += 1;
+    if (isPlasmaShot(this.basicShotCount, this.combat.plasmaEvery > 0)) {
+      this.firePlasmaKatana(angle);
+    }
     this.showMuzzleFlash(angle);
+  }
+
+  firePlasmaKatana(angle) {
+    const startX = CANNON.x + Math.cos(angle) * 32;
+    const startY = CANNON.y + Math.sin(angle) * 32;
+    const endX = startX + Math.cos(angle) * PLASMA_RANGE;
+    const endY = startY + Math.sin(angle) * PLASMA_RANGE;
+
+    // A lâmina atravessa toda a linha do tiro, independentemente do HP.
+    // Cada nave sofre dano uma única vez por pulso.
+    for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
+      const enemy = this.enemies[i];
+      if (laserHitsTarget(
+        startX, startY, endX, endY,
+        enemy.sprite.x, enemy.sprite.y,
+        PLASMA_HALF_WIDTH, enemyContactRadius(enemy.type),
+      )) {
+        this.impactInvader(i, PLASMA_DAMAGE, 0, '#e9aaff');
+      }
+    }
+    for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
+      const bullet = this.enemyBullets[i];
+      if (laserHitsTarget(
+        startX, startY, endX, endY, bullet.sprite.x, bullet.sprite.y, PLASMA_HALF_WIDTH, 7,
+      )) this.removeEnemyBullet(i);
+    }
+
+    // Três traços luminosos sobrepostos criam uma espada de plasma bem visível.
+    const beam = this.add.graphics().setDepth(48);
+    beam.lineStyle(26, 0x7f43c7, 0.18);
+    beam.lineBetween(startX, startY, endX, endY);
+    beam.lineStyle(11, 0xdb81ff, 0.84);
+    beam.lineBetween(startX, startY, endX, endY);
+    beam.lineStyle(3, 0xffffff, 1);
+    beam.lineBetween(startX, startY, endX, endY);
+    this.tweens.add({
+      targets: beam, alpha: 0, duration: 280,
+      onComplete: () => beam.destroy(),
+    });
+  }
+
+  explodeFragments(x, y, directTargetId) {
+    // Fragmentação só é disparada ao acertar um alvo, nunca ao expirar no céu.
+    // O inimigo atingido já sofreu o impacto direto; o raio pega os vizinhos.
+    for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
+      const enemy = this.enemies[i];
+      if (enemy.uid === directTargetId) continue;
+      if (fragmentHitsTarget(
+        x, y, enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type),
+      )) this.impactInvader(i, FRAGMENT_DAMAGE, 0, '#90cfff');
+    }
+    for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
+      const shot = this.enemyBullets[i];
+      if (fragmentHitsTarget(x, y, shot.sprite.x, shot.sprite.y, 8)) {
+        this.removeEnemyBullet(i);
+      }
+    }
+    const blast = this.add.circle(x, y, FRAGMENT_RADIUS, 0x75aeff, 0.22)
+      .setStrokeStyle(4, 0xe2f2ff, 0.92).setScale(0.20).setDepth(43);
+    const spark = this.add.circle(x, y, 10, 0xffffff, 0.90).setDepth(44);
+    this.tweens.add({
+      targets: blast, scale: 1, alpha: 0, duration: 340,
+      onComplete: () => blast.destroy(),
+    });
+    this.tweens.add({
+      targets: spark, scale: 2.6, alpha: 0, duration: 160,
+      onComplete: () => spark.destroy(),
+    });
   }
 
   shootSpecial(pointer) {
