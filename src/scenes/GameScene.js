@@ -6,6 +6,8 @@ import {
   positionOnRoute,
   routeLength,
   applyShieldedHit,
+  applyRecoilImpulse,
+  advanceRouteWithRecoil,
 } from '../gameplay/combat.js';
 import {
   specialBlastRadius,
@@ -115,6 +117,7 @@ export class GameScene extends Phaser.Scene {
     this.nextEnemyId = 1;
     this.nextBlastId = 1;
     this.elapsed = 0;
+    this.countdownActive = false;
     this.eventsSpawned = 0;
     this.waveEvents = getWaveEvents(this.mode);
     this.lastBasicFire = -this.combat.basicInterval;
@@ -140,13 +143,11 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
     this.input.keyboard.on('keydown-P', () => this.pauseGame());
 
-    this.waveEvents.forEach((event) => {
-      this.time.delayedCall(event.at, () => {
-        if (this.tutorialComplete) return;
-        this.eventsSpawned += 1;
-        this.spawnWaveEvent(event);
-      });
-    });
+    if (this.mode === 'wave0' || this.mode === 'wave1') {
+      this.startWaveCountdown();
+    } else {
+      this.scheduleWaveEvents();
+    }
 
     if (this.mode === 'upgradeLab') {
       // Alvos de treino misturam resistentes e frágeis: dano, perfuração e
@@ -202,6 +203,47 @@ export class GameScene extends Phaser.Scene {
         if (this.scene.isActive('GameScene')) this.clearTestEnemies();
       });
     }
+  }
+
+  scheduleWaveEvents() {
+    this.waveEvents.forEach((event) => {
+      this.time.delayedCall(event.at, () => {
+        if (this.tutorialComplete) return;
+        this.eventsSpawned += 1;
+        this.spawnWaveEvent(event);
+      });
+    });
+  }
+
+  startWaveCountdown() {
+    // Os timers e a dificuldade da onda só começam depois do 3, 2, 1.
+    // São relógios do próprio Phaser: pausar congela também a contagem.
+    this.countdownActive = true;
+    this.statusText.setText('PREPARE-SE');
+    const shade = this.add.rectangle(W / 2, H / 2, W, H, 0x030b1e, 0.62)
+      .setDepth(115);
+    const title = this.add.text(W / 2, 170, MODES[this.mode].title, {
+      fontFamily: 'monospace', fontSize: '32px', fontStyle: 'bold',
+      color: '#f6dfa2', stroke: '#06152d', strokeThickness: 4,
+    }).setOrigin(0.5).setDepth(116);
+    const number = this.add.text(W / 2, 272, '3', {
+      fontFamily: 'monospace', fontSize: '100px', fontStyle: 'bold',
+      color: '#a9f6e2', stroke: '#062b41', strokeThickness: 8,
+    }).setOrigin(0.5).setDepth(117);
+    const tip = this.add.text(W / 2, 356, 'PREPARE A DEFESA!', {
+      fontFamily: 'monospace', fontSize: '19px', color: '#f1f7ff',
+    }).setOrigin(0.5).setDepth(116);
+    const countdownItems = [shade, title, number, tip];
+
+    for (let n = 2; n >= 1; n -= 1) {
+      this.time.delayedCall((3 - n) * 1000, () => number.setText(String(n)));
+    }
+    this.time.delayedCall(3000, () => {
+      countdownItems.forEach((object) => object.destroy());
+      this.countdownActive = false;
+      this.elapsed = 0;
+      this.scheduleWaveEvents();
+    });
   }
 
   createTurret() {
@@ -385,6 +427,7 @@ export class GameScene extends Phaser.Scene {
       hp: definition.hp,
       maxHp: definition.hp,
       speed: definition.speed,
+      recoilSpeed: 0,
       phase: 'dive',
       age: 0,
       phaseAge: 0,
@@ -423,7 +466,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   moveAlongRoute(enemy, dt) {
-    enemy.progress = Math.min(1, enemy.progress + enemy.speed * dt / enemy.pathLength);
+    const result = advanceRouteWithRecoil(
+      enemy.progress, enemy.speed, enemy.recoilSpeed, enemy.pathLength, dt,
+    );
+    enemy.progress = result.progress;
+    enemy.recoilSpeed = result.recoilSpeed;
     const position = positionOnRoute(enemy.route, enemy.progress);
     enemy.sprite.setPosition(position.x, position.y);
     return enemy.progress >= 1;
@@ -698,7 +745,9 @@ export class GameScene extends Phaser.Scene {
         if (enemy.box?.active) enemy.box.setFillStyle(enemy.definition.color);
         else enemy.sprite.setTint(enemy.level > 1 ? 0xffd5a0 : 0xffffff);
       });
-      if (enemy.phase === 'dive') enemy.progress = Math.max(0, enemy.progress - knockback);
+      if (enemy.phase === 'dive' && knockback > 0) {
+        enemy.recoilSpeed = applyRecoilImpulse(enemy.recoilSpeed, knockback);
+      }
     }
   }
 
@@ -1044,6 +1093,8 @@ export class GameScene extends Phaser.Scene {
       if (!this.gameOver) this.updateBlasts();
       return;
     }
+    // Sem disparos, movimentação ou cronômetro de onda antes do "1".
+    if (this.countdownActive) return;
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += delta;
     const pointer = this.input.activePointer;
