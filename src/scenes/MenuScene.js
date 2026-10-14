@@ -47,30 +47,37 @@ export class MenuScene extends Phaser.Scene {
 
     const startGame = () => this.scene.start('GameScene', { mode: 'wave0' });
     const testEnemies = () => this.scene.start('GameScene', { mode: 'lab' });
+    const testUpgrades = () => this.scene.start('GameScene', { mode: 'upgradeLab' });
     addMenuButton(this, {
-      x: W / 2, y: 250, text: '▶  COMEÇAR', onClick: startGame, primary: true,
+      x: W / 2, y: 229, text: '▶  COMEÇAR', onClick: startGame, primary: true,
       depth: 23,
     });
 
     addMenuButton(this, {
-      x: W / 2, y: 318, width: 300,
+      x: W / 2, y: 288, width: 300,
       text: 'TESTAR INIMIGOS [T]', onClick: testEnemies, depth: 23,
     });
 
-    this.add.text(W / 2, 385,
+    addMenuButton(this, {
+      x: W / 2, y: 347, width: 320,
+      text: 'TESTAR UPGRADES [U]', onClick: testUpgrades, depth: 23,
+    });
+
+    this.add.text(W / 2, 413,
       'MOUSE: MIRAR    ESQUERDO: ATIRAR    DIREITO: ESPECIAL', {
         fontFamily: 'monospace', fontSize: '13px', color: '#e0ecfa',
       }).setOrigin(0.5).setDepth(22);
 
-    this.add.text(W / 2, 412, 'ESC OU P: PAUSAR     R: REINICIAR', {
+    this.add.text(W / 2, 442, 'ESC OU P: PAUSAR     R: REINICIAR', {
       fontFamily: 'monospace', fontSize: '13px', color: '#9fc1dd',
     }).setOrigin(0.5).setDepth(22);
 
-    this.add.text(W / 2, 460, 'PRESSIONE ENTER PARA COMEÇAR', {
+    this.add.text(W / 2, 497, 'PRESSIONE ENTER PARA COMEÇAR', {
       fontFamily: 'monospace', fontSize: '13px', color: '#f5e69b',
     }).setOrigin(0.5).setDepth(22);
 
     this.input.keyboard.on('keydown-ENTER', startGame);
     this.input.keyboard.on('keydown-T', testEnemies);
+    this.input.keyboard.on('keydown-U', testUpgrades);
   }
 }
