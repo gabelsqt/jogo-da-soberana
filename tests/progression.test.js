@@ -7,7 +7,7 @@ import {
 import { ENEMY_TYPES, enemyDefinition, enemyContactRadius } from '../src/gameplay/enemies.js';
 import {
   MODES, getWaveEvents, waveIsFinished,
-  WAVE_COUNTDOWN_SECONDS, countdownNumberAt,
+  WAVE_COUNTDOWN_SECONDS, countdownNumberAt, scheduledEnemyCount,
 } from '../src/gameplay/waves.js';
 
 test('cinco opções de upgrade independentes, uma por país', () => {
@@ -69,10 +69,13 @@ test('cinco inimigos possuem HP e dimensões distintos, tipos 2-5 quadrados colo
 });
 
 test('onda zero, onda um e laboratório possuem programação distinta', () => {
-  assert.equal(getWaveEvents('wave0').length, 10);
+  assert.equal(getWaveEvents('wave0').length, 23);
+  assert.equal(scheduledEnemyCount(getWaveEvents('wave0')), 32);
   const wave1 = getWaveEvents('wave1');
   assert.ok(wave1.some((e) => e.type === 2 && e.group));
-  assert.equal(wave1.filter((e) => e.type === 1 && !e.pattern).length, 18);
+  assert.equal(wave1.filter((e) => e.type === 1 && !e.pattern).length, 32);
+  assert.equal(scheduledEnemyCount(wave1), 70);
+  assert.deepEqual(wave1.filter((e) => e.pattern === 'spread').map((e) => e.count), [3, 4, 5]);
   assert.ok(wave1.some((e) => e.type === 2 && e.level === 2 && e.pattern === 'orbit' && e.count === 10));
   assert.ok(wave1.some((e) => e.type === 2 && e.group && e.level === 2));
   const finale = wave1.find((e) => e.pattern === 'line');
@@ -136,16 +139,24 @@ test('laboratório combina Katana, Fragmentação e os outros países sem altera
   assert.deepEqual(combatStatsForLoadout(['us']), combatStatsFor('us'));
 });
 
-test('onda 1 ficou mais intensa sem alterar a onda zero ou o laboratório', () => {
+test('ondas 0 e 1 começam cedo, têm pressão contínua e grupos simultâneos', () => {
   const wave0 = getWaveEvents('wave0');
   const wave1 = getWaveEvents('wave1');
   const lab = getWaveEvents('lab');
-  assert.equal(wave0.length, 10);
-  assert.ok(wave1.length > wave0.length);
+  assert.equal(wave0[0].at, 250);
+  assert.equal(wave1[0].at, 250);
+  assert.equal(scheduledEnemyCount(wave0), 32);
+  assert.equal(scheduledEnemyCount(wave1), 70);
+  assert.ok(scheduledEnemyCount(wave1) > scheduledEnemyCount(wave0));
+  assert.deepEqual(wave0.filter((e) => e.pattern === 'spread').map((e) => e.count), [3, 4, 5]);
   assert.ok(wave1.some((e) => e.pattern === 'line' && e.count === 10));
   assert.ok(wave1.some((e) => e.pattern === 'orbit' && e.count === 10));
-  const regular = wave1.filter((e) => e.type === 1 && !e.pattern);
-  assert.ok(regular.every((e, i) => i === 0 || e.at - regular[i - 1].at <= 1600));
+  const basic0 = wave0.filter((e) => e.type === 1 && !e.pattern);
+  const basic1 = wave1.filter((e) => e.type === 1 && !e.pattern);
+  assert.equal(basic0.length, 20);
+  assert.equal(basic1.length, 32);
+  assert.ok(basic0.every((e, i) => i === 0 || e.at - basic0[i - 1].at === 1280));
+  assert.ok(basic1.every((e, i) => i === 0 || e.at - basic1[i - 1].at === 960));
   assert.ok(lab.some((e) => e.type === 5));
 });
 
@@ -159,4 +170,19 @@ test('contagem regressiva da onda exibe 3, 2, 1 e só termina após três segund
   assert.equal(countdownNumberAt(2999), 1);
   assert.equal(countdownNumberAt(3000), null);
   assert.equal(countdownNumberAt(-1), null);
+});
+
+test('grupos contam OVNIs reais sem alterar o número de eventos programados', () => {
+  const wave0 = getWaveEvents('wave0');
+  const wave1 = getWaveEvents('wave1');
+  assert.equal(wave0.length, 23);
+  assert.equal(wave1.length, 39);
+  assert.equal(scheduledEnemyCount(wave0), 32);
+  assert.equal(scheduledEnemyCount(wave1), 70);
+  assert.equal(scheduledEnemyCount([]), 0);
+  assert.equal(scheduledEnemyCount([
+    { type: 1 }, { type: 1, pattern: 'spread', count: 4 },
+    { type: 2, group: true }, { type: 2, pattern: 'orbit', count: 10 },
+    { type: 1, pattern: 'line', count: 10 },
+  ]), 28);
 });
