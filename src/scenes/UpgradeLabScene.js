@@ -15,6 +15,8 @@ export class UpgradeLabScene extends Phaser.Scene {
 
   init(data = {}) {
     this.selectedIds = Array.isArray(data.selectedIds) ? [...data.selectedIds] : [];
+    this.selectedTowerIds = Array.isArray(data.selectedTowerIds)
+      ? [...data.selectedTowerIds] : [];
   }
 
   create() {
@@ -53,7 +55,8 @@ export class UpgradeLabScene extends Phaser.Scene {
       label(207, upgrade.title.toUpperCase(), '15px', '#ffe9b5', { fontStyle: 'bold' });
       label(298, upgrade.description, '12px', '#d3e2ef', { lineSpacing: 3 });
 
-      const status = label(375, '', '16px', '#9affd8', { fontStyle: 'bold' });
+      const status = label(370, '', '15px', '#9affd8', { fontStyle: 'bold' });
+      const towerStatus = label(396, '', '11px', '#8ce0ff', { fontStyle: 'bold' });
       const toggle = () => this.toggleUpgrade(upgrade.id);
       card.on('pointerdown', (pointer) => {
         if (pointer.leftButtonDown()) toggle();
@@ -62,7 +65,7 @@ export class UpgradeLabScene extends Phaser.Scene {
       card.on('pointerout', () => card.setFillStyle(
         this.selectedIds.includes(upgrade.id) ? 0x23483f : 0x0b1d34, 0.99,
       ));
-      this.cards.push({ card, status, upgrade });
+      this.cards.push({ card, status, towerStatus, upgrade });
     });
 
     this.statsPreview = this.add.text(W / 2, 433, '', {
@@ -81,16 +84,18 @@ export class UpgradeLabScene extends Phaser.Scene {
       text: '▶ VOLTAR AO CAMPO [U]', onClick: () => this.closeLab(), primary: true,
       depth: 4, fontSize: '16px',
     });
-    this.add.text(W / 2, 516, 'TECLAS 1–5: ATIVAR MELHORIAS | ESC: FECHAR', {
+    this.add.text(W / 2, 516, '1–5: UPGRADE 1  •  SHIFT+1–5: TORRE  •  MÁXIMO 2 TORRES', {
       fontFamily: 'monospace', fontSize: '12px', color: '#9abfd5',
     }).setOrigin(0.5).setDepth(4);
 
     this.input.keyboard.on('keydown', (event) => {
       if (event.key === '0') this.clearUpgrades();
-      if (event.key >= '1' && event.key <= '5') {
-        const chosen = FIRST_UPGRADES[Number(event.key) - 1];
-        if (chosen) this.toggleUpgrade(chosen.id);
-      }
+      const match = /^(?:Digit|Numpad)([1-5])$/.exec(event.code || '');
+      if (!match) return;
+      const chosen = FIRST_UPGRADES[Number(match[1]) - 1];
+      if (!chosen) return;
+      if (event.shiftKey) this.toggleTower(chosen.id);
+      else this.toggleUpgrade(chosen.id);
     });
     this.input.keyboard.on('keydown-U', () => this.closeLab());
     this.input.keyboard.on('keydown-ESC', () => this.closeLab());
@@ -107,17 +112,33 @@ export class UpgradeLabScene extends Phaser.Scene {
   clearUpgrades() {
     const gameScene = this.scene.get('GameScene');
     gameScene.setUpgradesForLab([]);
+    gameScene.setLabTowers([]);
     this.selectedIds = [];
+    this.selectedTowerIds = [];
+    this.refreshCards();
+  }
+
+  toggleTower(id) {
+    const gameScene = this.scene.get('GameScene');
+    if (!gameScene.toggleLabTower(id)) {
+      this.statsPreview.setText('MÁXIMO 2 TORRES • DESATIVE UMA PARA INSTALAR OUTRA');
+      return;
+    }
+    this.selectedTowerIds = [...gameScene.labTowerIds];
     this.refreshCards();
   }
 
   refreshCards() {
-    for (const { card, status, upgrade } of this.cards) {
+    for (const { card, status, towerStatus, upgrade } of this.cards) {
       const active = this.selectedIds.includes(upgrade.id);
       card.setFillStyle(active ? 0x23483f : 0x0b1d34, 0.99);
       card.setStrokeStyle(active ? 4 : 2, active ? 0x9affd8 : upgrade.color);
       status.setText(active ? '[ ATIVO ]' : '[ ATIVAR ]');
       status.setColor(active ? '#a4ffe0' : '#9abfd5');
+      const installed = this.selectedTowerIds.includes(upgrade.id);
+      towerStatus.setText(installed ? 'TORRE INSTALADA' : 'SHIFT+' +
+        (FIRST_UPGRADES.indexOf(upgrade) + 1) + ': TORRE');
+      towerStatus.setColor(installed ? '#a4ffe0' : '#86b7d3');
     }
     const stats = this.scene.get('GameScene').combat;
     this.statsPreview.setText(
@@ -125,7 +146,8 @@ export class UpgradeLabScene extends Phaser.Scene {
       '   DANO ' + stats.basicDamage.toFixed(2) +
       '   PROJ ' + stats.bulletsPerShot +
       '   FRAG ' + (stats.fragmentation ? '78px' : 'NÃO') +
-      '   KATANA ' + (stats.plasmaEvery ? 'A CADA 3 TIROS' : 'NÃO'),
+      '   KATANA ' + (stats.plasmaEvery ? 'A CADA 3 TIROS' : 'NÃO') +
+      '   TORRES ' + this.selectedTowerIds.length + '/2',
     );
   }
 
