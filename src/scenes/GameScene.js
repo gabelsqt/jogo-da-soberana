@@ -39,11 +39,12 @@ import {
   predictShockImpact, segmentHitsCircle, shockBlastDamage, advanceShockOffset,
 } from '../gameplay/shockArtillery.js';
 import {
-  ELECTRIC_FENCE_DAMAGE, ELECTRIC_FENCE_INTERVAL, ELECTRIC_SLOW_FACTOR,
-  ELECTRIC_SLOW_DURATION, COLLATERAL_RADIUS, COLLATERAL_DAMAGE,
+  ELECTRIC_FENCE_DAMAGE, ELECTRIC_FENCE_INTERVAL, ELECTRIC_FENCE_RADIUS_BONUS,
+  ELECTRIC_SLOW_FACTOR, ELECTRIC_SLOW_DURATION,
+  COLLATERAL_RADIUS, COLLATERAL_DAMAGE,
   RESIDUAL_DURATION, RESIDUAL_DAMAGE, RESIDUAL_HALF_WIDTH,
   electricFieldReaches, applySecondUpgradeStats, normalizeSecondUpgradeIds,
-  promotionProjectileCount, strategicKnockback,
+  strategicKnockback, strategicRecoilIntensity, vacuumRiftAppearance,
 } from '../gameplay/secondUpgrades.js';
 import {
   PLASMA_EVERY_SHOTS,
@@ -1246,30 +1247,15 @@ export class GameScene extends Phaser.Scene {
     if (this.time.now - this.lastBasicFire < this.combat.basicInterval) return;
     this.lastBasicFire = this.time.now;
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
-    const shotNumber = this.basicShotCount + 1;
-    const count = this.combat.promoEvery
-      ? promotionProjectileCount(this.combat.bulletsPerShot, shotNumber, this.combat.promoEvery)
-      : this.combat.bulletsPerShot;
-    for (const firingAngle of shotAngles(angle, count)) {
+    // O segundo upgrade da China adiciona um terceiro tiro em TODA rajada.
+    for (const firingAngle of shotAngles(angle, this.combat.bulletsPerShot)) {
       this.createProjectile(firingAngle, false);
     }
-    this.basicShotCount = shotNumber;
-    if (count > this.combat.bulletsPerShot) this.showPromoFlash();
+    this.basicShotCount += 1;
     if (isPlasmaShot(this.basicShotCount, this.combat.plasmaEvery > 0)) {
       this.firePlasmaKatana(angle);
     }
     this.showMuzzleFlash(angle);
-  }
-
-  showPromoFlash() {
-    const label = this.add.text(CANNON.x, CANNON.y - 76, 'GRÁTIS!', {
-      fontFamily: 'monospace', fontSize: '17px', fontStyle: 'bold',
-      color: '#ffed92', stroke: '#34210a', strokeThickness: 3,
-    }).setOrigin(0.5).setDepth(55);
-    this.tweens.add({
-      targets: label, y: label.y - 19, alpha: 0, duration: 450,
-      onComplete: () => label.destroy(),
-    });
   }
 
   firePlasmaKatana(angle) {
@@ -1669,11 +1655,13 @@ export class GameScene extends Phaser.Scene {
     if (!this.combat.electricFence) return;
     const shields = [
       {
-        x: CANNON.x, y: CANNON.y + 10, radius: 62,
+        x: CANNON.x, y: CANNON.y + 10,
+        radius: 62 + ELECTRIC_FENCE_RADIUS_BONUS,
         shield: this.shield, last: this.electricLastFire, tower: null,
       },
       ...this.supportTowers.filter((tower) => tower.health > 0).map((tower) => ({
-        x: tower.x, y: tower.y + 10, radius: tower.shieldRadius,
+        x: tower.x, y: tower.y + 10,
+        radius: tower.shieldRadius + ELECTRIC_FENCE_RADIUS_BONUS,
         shield: tower.shield, last: tower.electricLastFire, tower,
       })),
     ];
@@ -1705,26 +1693,29 @@ export class GameScene extends Phaser.Scene {
     graphics.clear();
     const dome = (x, y, radius, shield, max) => {
       if (shield <= 0) return;
+      // A melhoria brasileira AUMENTA visualmente a cúpula e sua faixa
+      // de detecção, sem alterar a resistência total (HP) do escudo.
+      const drawRadius = radius + (this.combat.electricFence ? ELECTRIC_FENCE_RADIUS_BONUS : 0);
       const fraction = shield / max;
       const color = fraction > 0.6 ? 0x70e6ec : fraction > 0.3 ? 0xf4c15e : 0xf06c77;
       graphics.lineStyle(3, color, Math.max(0.35, fraction));
       graphics.beginPath();
-      graphics.arc(x, y + 10, radius, Math.PI, Math.PI * 2, false);
+      graphics.arc(x, y + 10, drawRadius, Math.PI, Math.PI * 2, false);
       graphics.strokePath();
       if (this.combat.electricFence) {
         // Verde de cerca elétrica + cacos de vidro acompanhando a borda.
         const cy = y + 10;
         graphics.lineStyle(1, 0xa4faad, Math.max(0.23, fraction * 0.70));
         graphics.beginPath();
-        graphics.arc(x, cy, radius + 2, Math.PI, Math.PI * 2, false);
+        graphics.arc(x, cy, drawRadius + 2, Math.PI, Math.PI * 2, false);
         graphics.strokePath();
         graphics.fillStyle(0xa6f2bf, Math.max(0.3, fraction * 0.78));
         for (let i = 1; i <= 11; i += 1) {
           const angle = Math.PI + (i / 12) * Math.PI;
           const cos = Math.cos(angle);
           const sin = Math.sin(angle);
-          const gx = x + radius * cos;
-          const gy = cy + radius * sin;
+          const gx = x + drawRadius * cos;
+          const gy = cy + drawRadius * sin;
           graphics.fillTriangle(
             gx - sin * 3, gy + cos * 3,
             gx + sin * 3, gy - cos * 3,
