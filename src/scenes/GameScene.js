@@ -8,6 +8,12 @@ import {
   applyShieldedHit,
 } from '../gameplay/combat.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import {
+  SPECIAL_BLAST_DURATION,
+  SPECIAL_BLAST_MAX_RADIUS,
+  specialBlastRadius,
+  blastCatchesTarget,
+} from '../gameplay/specialBlast.js';
 
 const W = 960;
 const H = 540;
@@ -56,6 +62,7 @@ export class GameScene extends Phaser.Scene {
 
     this.enemies = [];
     this.projectiles = [];
+    this.specialBlasts = [];
     this.elapsed = 0;
     this.enemiesSpawned = 0;
     this.lastBasicFire = -BASE_FIRE_INTERVAL;
@@ -232,22 +239,56 @@ export class GameScene extends Phaser.Scene {
   }
 
   explode(x, y) {
-    const blastRadius = 72;
-    const flash = this.add.circle(x, y, 9, 0x75f3ff, 0.4)
-      .setStrokeStyle(3, 0xc7ffff)
-      .setDepth(39);
-    this.tweens.add({
-      targets: flash,
-      radius: blastRadius,
-      alpha: 0,
-      duration: 190,
-      onComplete: () => flash.destroy(),
+    // O campo permanece por 3 segundos. Não é só uma animação:
+    // inimigos que entrarem depois também são eliminados.
+    this.specialBlasts.push({
+      x, y,
+      bornAt: this.time.now,
+      graphics: this.add.graphics().setDepth(39),
     });
-    for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
-      const enemy = this.enemies[i];
-      if (Phaser.Math.Distance.Between(enemy.sprite.x, enemy.sprite.y, x, y) < blastRadius) {
-        this.impactInvader(i);
+  }
+
+  isEnemyInsideBlast(enemy) {
+    return this.specialBlasts.some((blast) => blastCatchesTarget(
+      blast.x, blast.y, this.time.now - blast.bornAt,
+      enemy.sprite.x, enemy.sprite.y,
+      18, // raio aproximado de colisão do OVNI
+    ));
+  }
+
+  updateBlasts() {
+    // Desenha usando o mesmo raio usado na colisão: o círculo visível protege
+    // exatamente a região de combate, inclusive contra futuras aproximações.
+    for (let i = this.specialBlasts.length - 1; i >= 0; i -= 1) {
+      const blast = this.specialBlasts[i];
+      const age = this.time.now - blast.bornAt;
+      if (age >= SPECIAL_BLAST_DURATION) {
+        blast.graphics.destroy();
+        this.specialBlasts.splice(i, 1);
+        continue;
       }
+
+      const radius = specialBlastRadius(age);
+      const pulse = 0.5 + 0.5 * Math.sin(age / 105);
+      const fade = Math.min(1, (SPECIAL_BLAST_DURATION - age) / 500);
+      const gfx = blast.graphics;
+      gfx.clear();
+
+      // Núcleo translucido, contorno brilhante e anel interno pulsante.
+      // O fundo permanece visível durante a proteção.
+      gfx.fillStyle(0x4deaff, 0.16 * fade);
+      gfx.fillCircle(blast.x, blast.y, radius);
+      gfx.lineStyle(3, 0xa8ffff, (0.82 + pulse * 0.18) * fade);
+      gfx.strokeCircle(blast.x, blast.y, radius);
+      gfx.lineStyle(1, 0x5bbfe9, (0.38 + pulse * 0.28) * fade);
+      gfx.strokeCircle(blast.x, blast.y, radius * 0.76);
+      gfx.fillStyle(0xd4ffff, (0.45 + pulse * 0.4) * fade);
+      gfx.fillCircle(blast.x, blast.y, Math.max(3, radius * 0.07));
+    }
+
+    // Também elimina os OVNIs que já estavam dentro quando a bomba detonou.
+    for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
+      if (this.isEnemyInsideBlast(this.enemies[i])) this.impactInvader(i);
     }
   }
 
@@ -349,6 +390,12 @@ export class GameScene extends Phaser.Scene {
       const position = positionOnRoute(enemy.route, enemy.progress);
       enemy.sprite.setPosition(position.x, position.y);
 
+      // Verifica a barreira antes do impacto com o escudo ou canhão.
+      if (this.isEnemyInsideBlast(enemy)) {
+        this.impactInvader(i);
+        continue;
+      }
+
       if (enemy.progress >= 1) {
         enemy.sprite.destroy();
         this.enemies.splice(i, 1);
@@ -389,6 +436,8 @@ export class GameScene extends Phaser.Scene {
         this.projectiles.splice(i, 1);
       }
     }
+
+    this.updateBlasts();
 
     if (this.time.now - this.lastDamageAt > SHIELD_REGEN_DELAY && this.shield < this.shieldMax) {
       this.shield = Math.min(this.shieldMax, this.shield + SHIELD_REGEN_RATE * dt);
