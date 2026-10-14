@@ -10,7 +10,6 @@ import {
 import { addMenuButton } from '../ui/menuButton.js';
 import {
   SPECIAL_BLAST_DURATION,
-  SPECIAL_BLAST_MAX_RADIUS,
   specialBlastRadius,
   blastCatchesTarget,
 } from '../gameplay/specialBlast.js';
@@ -362,7 +361,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time, delta) {
-    if (this.tutorialComplete) return;
+    // Deixa a última explosão terminar sua animação mesmo após a vitória
+    // (antes, o update congelava o círculo no último frame).
+    if (this.tutorialComplete) {
+      if (!this.gameOver) this.updateBlasts();
+      return;
+    }
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += delta;
     const pointer = this.input.activePointer;
