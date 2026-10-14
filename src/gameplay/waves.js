@@ -7,9 +7,12 @@ export const MODES = {
   wave0: { title: 'ONDA 0', minDuration: 30000 },
   wave1: { title: 'ONDA 1', minDuration: 34000 },
   lab: { title: 'TESTE DE INIMIGOS', minDuration: 36000 },
+  upgradeLab: { title: 'LAB DE UPGRADES', minDuration: Infinity },
 };
 
 export function getWaveEvents(mode) {
+  // Laboratório livre: inimigos aparecem por timer próprio e nunca acaba a onda.
+  if (mode === 'upgradeLab') return [];
   if (mode === 'wave0') {
     return wave0Times.map((at, index) => ({ at, type: 1, index }));
   }
@@ -36,6 +39,7 @@ export function getWaveEvents(mode) {
 }
 
 export function waveIsFinished({ mode, elapsed, spawned, scheduled, enemies, hostileShots }) {
+  if (mode === 'upgradeLab') return false;
   return elapsed >= MODES[mode].minDuration
     && spawned === scheduled
     && enemies === 0
