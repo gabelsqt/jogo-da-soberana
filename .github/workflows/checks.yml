@@ -17,5 +17,12 @@ jobs:
         run: npm install
       - name: Verificar regras de combate e progressão
         run: npm test
-      - name: Compilar jogo para navegador
-        run: npm run build
+      - name: Compilar jogo e exportar HTML único para itch.io
+        run: npm run build:itch
+      - name: Verificar arquivo publicável
+        run: |
+          test -s itch-build/index.html
+          if grep -E -q 'src=["\x27]\./assets/index-.*\.js' itch-build/index.html; then
+            echo "Ainda há referência a JS externo no HTML único"
+            exit 1
+          fi
