@@ -4,6 +4,30 @@ Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, insp
 
 > **Protótipo 0.14** — ajustes de playtest dos cinco upgrades de nível 2: escudos brasileiros maiores e choque com recarga, Dano Colateral ampliado, Corte Residual como fenda de vácuo turquesa duradoura, impacto russo mais expressivo e três tiros chineses em todas as rajadas. A primeira torre segue no **nível 3** (somente laboratório até a Onda 3 existir); a segunda permanece prevista para o **nível 7**. A campanha ainda termina na Onda 2.
 
+## Novo cenário fixo do Rio
+
+O menu, a tela de escolha e o combate agora usam **uma única imagem fixa** como plano de fundo, no lugar das oito camadas originais. A nova arte foi fornecida pelo criador e deve ser copiada para:
+
+```
+public/assets/cenario/rio_fundo_fixo.png
+```
+
+A imagem é carregada pela função compartilhada em `src/config/scenery.js`; `src/scenes/GameScene.js` reutiliza esse carregador. A proporção é adaptada ao canvas **960 × 540**. Até o novo arquivo PNG ser inserido no repositório, o jogo usa temporariamente as antigas oito camadas como **fallback** para evitar tela vazia. Quando o arquivo existir, **somente a imagem nova é desenhada**.
+
+Para incluir a arte no GitHub a partir de um ZIP com o caminho correto:
+
+```powershell
+cd "$HOME\Projects\jogo-da-soberana"
+git pull
+Expand-Archive "$HOME\Downloads\soberania-cenario-fixo.zip" -DestinationPath . -Force
+git add public/assets/cenario/rio_fundo_fixo.png
+git commit -m "Adiciona cenário fixo do Rio"
+git push
+npm.cmd run dev
+```
+
+O ZIP acima acompanha a entrega do novo cenário no chat. Antes de atualizar o itch.io, faça `npm.cmd run build` e compacte o **conteúdo** de `dist` como de costume.
+
 ## Jogar no computador (PowerShell)
 
 Requisitos: Node.js 20+ e Git.
