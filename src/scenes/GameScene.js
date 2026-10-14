@@ -12,9 +12,12 @@ import {
   blastCatchesTarget,
   SPECIAL_BLAST_DURATION,
 } from '../gameplay/specialBlast.js';
-import { ENEMY_TYPES, ENEMY_SHOT_COLOR, enemyDefinition, enemyContactRadius } from '../gameplay/enemies.js';
 import {
-  getFirstUpgrade, combatStatsFor, shotAngles,
+  ENEMY_SHOT_COLOR, enemyStats, enemyContactRadius,
+  lineFormationX, orbitalFormationPosition, bossCruiseX,
+} from '../gameplay/enemies.js';
+import {
+  getFirstUpgrade, combatStatsFor, shotAngles, shotVisualFor,
   combatStatsForLoadout, normalizeLabUpgrades, toggleLabUpgrade,
 } from '../gameplay/upgrades.js';
 import { MODES, getWaveEvents, waveIsFinished } from '../gameplay/waves.js';
@@ -261,52 +264,91 @@ export class GameScene extends Phaser.Scene {
     this.setRoute(enemy, target.x, target.y);
   }
 
-  makeEnemyVisual(type, x, y) {
+  makeEnemyVisual(type, x, y, level = 1) {
     if (type === 1) {
-      return {
-        sprite: this.add.sprite(x, y, 'tipo1_1')
-          .setDisplaySize(62, 72).setDepth(18).play('tipo1_voo'),
-        box: null,
-      };
+      const sprite = this.add.sprite(x, y, 'tipo1_1')
+        .setDisplaySize(62, 72).setDepth(18).play('tipo1_voo');
+      if (level > 1) sprite.setTint(0xffd5a0);
+      return { sprite, box: null };
     }
-    const definition = enemyDefinition(type);
+    const definition = enemyStats(type, level);
     const sprite = this.add.container(x, y).setDepth(19);
     const box = this.add.rectangle(0, 0, definition.width, definition.height, definition.color)
-      .setStrokeStyle(2, 0xf7efff);
-    const label = this.add.text(0, 0, String(type), {
-      fontFamily: 'monospace', fontSize: type === 5 ? '25px' : '17px',
+      .setStrokeStyle(level > 1 ? 3 : 2, level > 1 ? 0xffd26e : 0xf7efff);
+    const label = this.add.text(0, 0, String(type) + (level > 1 ? ' II' : ''), {
+      fontFamily: 'monospace', fontSize: type === 5 ? '24px' : (level > 1 ? '12px' : '17px'),
       fontStyle: 'bold', color: '#091323',
     }).setOrigin(0.5);
     sprite.add([box, label]);
     return { sprite, box };
   }
 
+  showAttackWarning(message) {
+    const label = this.add.text(W / 2, 143, message, {
+      fontFamily: 'monospace', fontSize: '19px',
+      fontStyle: 'bold', color: '#ffcf83',
+      backgroundColor: '#2c1420dd', padding: { x: 10, y: 7 },
+    }).setOrigin(0.5).setDepth(110);
+    this.tweens.add({
+      targets: label, alpha: 0, y: 120,
+      delay: 1200, duration: 650,
+      onComplete: () => label.destroy(),
+    });
+  }
+
   spawnWaveEvent(event) {
-    if (event.type === 2 && event.group) {
-      const center = Phaser.Math.Between(300, 650);
-      for (let i = 0; i < 3; i += 1) this.spawnEnemy(2, { center, formationIndex: i });
+    const level = event.level ?? 1;
+    if (event.pattern === 'line' && event.type === 1) {
+      const count = event.count ?? 10;
+      this.showAttackWarning('ALERTA! UMA FRENTE DE OVNIS!');
+      for (let i = 0; i < count; i += 1) {
+        this.spawnEnemy(1, { level, x: lineFormationX(i, count, W, 48) });
+      }
       return;
     }
-    this.spawnEnemy(event.type);
+    if (event.pattern === 'orbit' && event.type === 2) {
+      const count = event.count ?? 10;
+      const center = W / 2;
+      this.showAttackWarning('ESQUADRÃO EM ÓRBITA • NÍVEL 2');
+      for (let i = 0; i < count; i += 1) {
+        this.spawnEnemy(2, {
+          level: 2, pattern: 'orbit',
+          center, formationIndex: i, formationCount: count,
+        });
+      }
+      return;
+    }
+    if (event.type === 2 && event.group) {
+      const center = Phaser.Math.Between(300, 650);
+      for (let i = 0; i < 3; i += 1) {
+        this.spawnEnemy(2, { level, center, formationIndex: i });
+      }
+      return;
+    }
+    this.spawnEnemy(event.type, { level });
   }
 
   spawnEnemy(type, options = {}) {
-    const definition = enemyDefinition(type);
+    const level = options.level ?? 1;
+    const definition = enemyStats(type, level);
     const index = options.formationIndex ?? 1;
+    const orbiting = type === 2 && options.pattern === 'orbit';
+    const groupCount = options.formationCount ?? 3;
+    const center = options.center ?? W / 2;
     const startX = type === 5 ? W / 2 :
       type === 4 ? (Phaser.Math.Between(0, 1) ? -64 : W + 64) :
-      type === 2 ? (options.center ?? 480) + (index - 1) * 83 :
+      type === 2 ? center + (orbiting ? (index - (groupCount - 1) / 2) * 60 : (index - 1) * 83) :
       options.x ?? Phaser.Math.Between(120, W - 120);
     const startY = type === 4 ? Phaser.Math.Between(120, 180) :
-      type === 2 ? -45 - Math.abs(index - 1) * 22 : -65;
-    const visual = this.makeEnemyVisual(type, startX, startY);
+      type === 2 ? -45 - Math.abs(index - (orbiting ? (groupCount - 1) / 2 : 1)) * 7 : -65;
+    const visual = this.makeEnemyVisual(type, startX, startY, level);
     const enemy = {
       uid: this.nextEnemyId++,
-      type,
-      definition,
+      type, level, definition,
       sprite: visual.sprite,
       box: visual.box,
       hp: definition.hp,
+      maxHp: definition.hp,
       speed: definition.speed,
       phase: 'dive',
       age: 0,
@@ -319,11 +361,19 @@ export class GameScene extends Phaser.Scene {
 
     if (type === 1) {
       this.assignInvaderTarget(enemy, enemy.target);
+    } else if (type === 2 && orbiting) {
+      enemy.phase = 'orbit';
+      enemy.orbitIndex = index;
+      enemy.orbitCount = groupCount;
+      enemy.orbitCenterX = center;
+      enemy.orbitCenterY = 162;
+      enemy.orbitEntryX = startX;
+      enemy.orbitEntryY = startY;
     } else if (type === 2) {
       enemy.phase = 'formation';
-      enemy.formationX = (options.center ?? 480) + (index - 1) * 38;
+      enemy.formationX = center + (index - 1) * 38;
       enemy.formationY = 143 + Math.abs(index - 1) * 21;
-      enemy.formationWait = 2600 + index * 650;
+      enemy.formationWait = 2.6 + index * 0.65;
     } else if (type === 3) {
       enemy.phase = 'approach';
       this.setRoute(enemy, Phaser.Math.Between(235, 725), Phaser.Math.Between(170, 220));
