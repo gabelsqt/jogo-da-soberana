@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.5** — Onda 0, primeira seleção de aliados, Onda 1 e laboratório com inimigos Tipos 1–5. Ainda **não** implementa as ondas 2–11, os upgrades de nível 2–10, as torres dos animais nem a traição final.
+> **Protótipo 0.6** — Onda 0, primeira seleção de aliados, Onda 1, laboratório de inimigos Tipos 1–5 e laboratório livre de upgrades. Ainda **não** implementa as ondas 2–11, os upgrades de nível 2–10, as torres dos animais nem a traição final.
 
 ## Jogar no computador (PowerShell)
 
@@ -34,6 +34,7 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 4. **Onda 1:** começa do zero com o upgrade escolhido, invasores básicos e duas prévias de esquadrões Tipo 2.
 5. Ao vencer, surge o painel de conclusão com acesso ao **laboratório de inimigos** ou ao menu.
 6. **Testar inimigos**, disponível também no menu inicial, apresenta os Tipos 2–5 sem fingir que as ondas seguintes estão completas.
+7. **Testar upgrades** abre um laboratório independente, sem ondas nem derrota: ative/desative livremente as cinco primeiras melhorias e experimente combinações.
 
 ## Cinco upgrades iniciais
 
@@ -46,6 +47,20 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 | China | AliExplode — Frete Grátis | Dois projéteis simultâneos com pequena dispersão |
 
 Os upgrades posteriores e o limite de duas torres de animais serão implementados numa etapa própria, seguindo o GDD.
+
+## Laboratório de upgrades
+
+No menu inicial, clique em **TESTAR UPGRADES [U]**. O jogo abre um campo de testes pausado, com cinco cartões que representam apenas os upgrades de nível 1 atualmente funcionais.
+
+- Clique em qualquer cartão ou use **1–5** para alternar cada melhoria entre ativa e desativada. É possível deixar várias ativas e testar combinações.
+- Clique em **ZERAR MELHORIAS [0]** para voltar ao canhão padrão.
+- Clique em **VOLTAR AO CAMPO [U]**, pressione **U** ou **Esc** para retornar ao combate com a configuração escolhida.
+- No campo, pressione **1–5** para gerar os inimigos Tipos 1–5 (2 gera um esquadrão de formação); **C** limpa os inimigos e projéteis; **U** reabre o painel.
+- Um invasor Tipo 1 aparece automaticamente a cada 2,7 segundos, desde que haja menos de dez em campo.
+- O canhão é indestrutível apenas neste laboratório, para não interromper os testes. A regeneração do escudo continua visível.
+- **R** reinicia o campo de teste mantendo a combinação de melhorias.
+
+Esse modo é **separado da campanha**: não consome escolhas, não habilita níveis futuros e não altera a progressão da Onda 0 / Onda 1.
 
 ## Inimigos
 
@@ -65,14 +80,19 @@ Os upgrades posteriores e o limite de duas torres de animais serão implementado
 - **Esc ou P:** pausar/retomar.
 - **R:** reinicia o modo atual, preservando o upgrade escolhido na Onda 1.
 - **Enter:** começar pelo menu.
-- **T:** entrar no laboratório pelo menu.
+- **T:** entrar no laboratório de inimigos pelo menu.
+- **U (no menu):** entrar no laboratório de upgrades.
+- **U (no laboratório de upgrades):** abrir/fechar o painel para alterar melhorias instantaneamente.
+- **1–5 (laboratório em combate):** gerar inimigos específicos; **C** limpa o campo.
+- **1–5 (painel do laboratório):** ativar ou desativar os cinco upgrades disponíveis; **0** zera.
 - **Clique nos cartões:** escolher aliado após a Onda 0.
 
 ## Estrutura técnica
 
 - `src/scenes/MenuScene.js` — menu inicial e laboratório.
 - `src/scenes/GameScene.js` — Onda 0, Onda 1, laboratório e combate.
-- `src/scenes/UpgradeScene.js` — cinco cartões de escolha.
+- `src/scenes/UpgradeScene.js` — cinco cartões de escolha na campanha.
+- `src/scenes/UpgradeLabScene.js` — painel de upgrades acumuláveis e substituíveis em campo de teste.
 - `src/scenes/PauseScene.js` — pausa, reinício e menu.
 - `src/gameplay/upgrades.js` — primeiros efeitos reais das melhorias.
 - `src/gameplay/enemies.js` — definições dos cinco tipos.
