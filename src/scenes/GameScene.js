@@ -1303,15 +1303,60 @@ export class GameScene extends Phaser.Scene {
   }
 
   createResidualSlash(x1, y1, x2, y2, initialHitIds = new Set()) {
+    // A Katana roxa abre uma FENDA turquesa com centro escuro. A fenda
+    // se alarga progressivamente e depois se fecha, não é só outro laser.
     const trail = this.add.graphics().setDepth(47);
-    trail.lineStyle(15, 0x8e51f2, 0.14);
-    trail.lineBetween(x1, y1, x2, y2);
-    trail.lineStyle(4, 0xf6b5ff, 0.75);
-    trail.lineBetween(x1, y1, x2, y2);
     this.residualSlashes.push({
       graphics: trail, x1, y1, x2, y2,
       bornAt: this.time.now, hitIds: new Set(initialHitIds),
     });
+  }
+
+  drawVacuumRift(slash, age) {
+    const { width, alpha } = vacuumRiftAppearance(age);
+    const graphics = slash.graphics;
+    graphics.clear();
+    if (alpha <= 0 || width <= 0) return;
+    graphics.setAlpha(alpha);
+
+    const dx = slash.x2 - slash.x1;
+    const dy = slash.y2 - slash.y1;
+    const length = Math.max(1, Math.hypot(dx, dy));
+    const nx = -dy / length;
+    const ny = dx / length;
+
+    // Halo de pressão, bordas azul-turquesa e vazio central.
+    graphics.lineStyle(width * 2 + 18, 0x18d7d8, 0.12);
+    graphics.lineBetween(slash.x1, slash.y1, slash.x2, slash.y2);
+    graphics.lineStyle(width * 2 + 7, 0x298cbd, 0.33);
+    graphics.lineBetween(slash.x1, slash.y1, slash.x2, slash.y2);
+    graphics.lineStyle(Math.max(2, width * 2), 0x020a19, 0.95);
+    graphics.lineBetween(slash.x1, slash.y1, slash.x2, slash.y2);
+
+    for (const direction of [-1, 1]) {
+      const edgeX = nx * width * direction;
+      const edgeY = ny * width * direction;
+      graphics.lineStyle(2.7, 0x8bfff2, 0.95);
+      graphics.lineBetween(
+        slash.x1 + edgeX, slash.y1 + edgeY,
+        slash.x2 + edgeX, slash.y2 + edgeY,
+      );
+    }
+
+    // Fissuras curtas e intermitentes atravessam a abertura.
+    for (let i = 1; i <= 8; i += 1) {
+      const t = i / 9;
+      const flicker = Math.sin(age * 0.018 + i * 2.4);
+      if (flicker < -0.35) continue;
+      const centerX = slash.x1 + dx * t;
+      const centerY = slash.y1 + dy * t;
+      const sparkWidth = width * (0.25 + 0.4 * Math.max(0, flicker));
+      graphics.lineStyle(1.8, 0xd4fff6, 0.55 + 0.4 * Math.max(0, flicker));
+      graphics.lineBetween(
+        centerX - nx * sparkWidth, centerY - ny * sparkWidth,
+        centerX + nx * sparkWidth, centerY + ny * sparkWidth,
+      );
+    }
   }
 
   clearResidualSlashes() {
@@ -1328,7 +1373,7 @@ export class GameScene extends Phaser.Scene {
         this.residualSlashes.splice(i, 1);
         continue;
       }
-      slash.graphics.setAlpha(Math.max(0, 1 - age / RESIDUAL_DURATION));
+      this.drawVacuumRift(slash, age);
       for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
         const enemy = this.enemies[j];
         if (slash.hitIds.has(enemy.uid)) continue;
@@ -1492,6 +1537,38 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  showStrategicRecoilImpact(x, y) {
+    const intensity = strategicRecoilIntensity(y);
+    const radius = 12 + intensity * 33;
+    const graphic = this.add.graphics().setPosition(x, y).setDepth(53);
+    // O anel cresce com a potência de recuo: vermelho suave no alto da tela,
+    // explosão branco-laranja e estilhaços nas regiões próximas ao chão.
+    graphic.lineStyle(2 + intensity * 3.5, 0xff8a59, 0.73 + intensity * 0.27);
+    graphic.strokeCircle(0, 0, radius);
+    graphic.lineStyle(1.5 + intensity * 2, 0xfff2d1, 0.65 + intensity * 0.30);
+    graphic.strokeCircle(0, 0, radius * 0.54);
+    graphic.fillStyle(0xffe3ac, 0.32 + intensity * 0.38);
+    graphic.fillCircle(0, 0, 3 + intensity * 6);
+    const rays = 4 + Math.round(intensity * 9);
+    for (let i = 0; i < rays; i += 1) {
+      const angle = (i * Math.PI * 2) / rays + Math.sin(i * 7.3) * 0.17;
+      const dx = Math.cos(angle);
+      const dy = Math.sin(angle);
+      graphic.lineStyle(1.5 + intensity * 1.5,
+        i % 3 === 0 ? 0xffffff : 0xffab76, 0.70 + intensity * 0.30);
+      graphic.lineBetween(
+        dx * (radius + 3), dy * (radius + 3),
+        dx * (radius + 7 + intensity * 19),
+        dy * (radius + 7 + intensity * 19),
+      );
+    }
+    this.tweens.add({
+      targets: graphic, alpha: 0, scale: 1.45 + intensity * 0.65,
+      duration: 240 + intensity * 160, ease: 'Cubic.easeOut',
+      onComplete: () => graphic.destroy(),
+    });
+  }
+
   updatePlayerProjectiles(dt) {
     for (let i = this.projectiles.length - 1; i >= 0; i -= 1) {
       const bullet = this.projectiles[i];
@@ -1547,6 +1624,9 @@ export class GameScene extends Phaser.Scene {
               j, bullet.damage, knockback, bullet.impactColor,
               true, this.combat.strategicRecoil ? 720 : 400,
             );
+            if (this.combat.strategicRecoil && bullet.knockback > 0) {
+              this.showStrategicRecoilImpact(deathPosition.x, deathPosition.y);
+            }
             if (bullet.fragmentation) {
               this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
                 destroyed ? deathPosition : null);
