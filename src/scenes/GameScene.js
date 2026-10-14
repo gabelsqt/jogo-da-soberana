@@ -22,7 +22,9 @@ import {
   getFirstUpgrade, combatStatsFor, shotAngles, shotVisualFor,
   combatStatsForLoadout, normalizeLabUpgrades, toggleLabUpgrade,
 } from '../gameplay/upgrades.js';
-import { MODES, getWaveEvents, waveIsFinished } from '../gameplay/waves.js';
+import {
+  MODES, getWaveEvents, waveIsFinished, WAVE_COUNTDOWN_SECONDS,
+} from '../gameplay/waves.js';
 import { addMenuButton } from '../ui/menuButton.js';
 
 const W = 960;
@@ -226,7 +228,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '32px', fontStyle: 'bold',
       color: '#f6dfa2', stroke: '#06152d', strokeThickness: 4,
     }).setOrigin(0.5).setDepth(116);
-    const number = this.add.text(W / 2, 272, '3', {
+    const number = this.add.text(W / 2, 272, String(WAVE_COUNTDOWN_SECONDS), {
       fontFamily: 'monospace', fontSize: '100px', fontStyle: 'bold',
       color: '#a9f6e2', stroke: '#062b41', strokeThickness: 8,
     }).setOrigin(0.5).setDepth(117);
@@ -235,10 +237,12 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(116);
     const countdownItems = [shade, title, number, tip];
 
-    for (let n = 2; n >= 1; n -= 1) {
-      this.time.delayedCall((3 - n) * 1000, () => number.setText(String(n)));
+    for (let n = WAVE_COUNTDOWN_SECONDS - 1; n >= 1; n -= 1) {
+      this.time.delayedCall((WAVE_COUNTDOWN_SECONDS - n) * 1000, () => {
+        number.setText(String(n));
+      });
     }
-    this.time.delayedCall(3000, () => {
+    this.time.delayedCall(WAVE_COUNTDOWN_SECONDS * 1000, () => {
       countdownItems.forEach((object) => object.destroy());
       this.countdownActive = false;
       this.elapsed = 0;
