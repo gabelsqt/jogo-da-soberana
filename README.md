@@ -33,7 +33,7 @@ Para o itch.io, compacte **o conteúdo da pasta `dist/`** (não a pasta em si) e
 - Camadas do cenário noturno carioca.
 - Canhão central desenhado provisoriamente com formas geométricas.
 - Invasor alienígena Tipo 1 com quatro quadros de animação.
-- Onda 0 tutorial de cerca de 10 segundos e quatro inimigos fáceis.
+- Onda 0 tutorial com duração mínima de 30 segundos e dez inimigos fáceis, surgindo gradualmente. Termina quando todos os dez já apareceram e não há inimigos vivos.
 - Escudo provisório do canhão central, danos e regeneração.
 - Fim de jogo quando o canhão central é destruído.
 
