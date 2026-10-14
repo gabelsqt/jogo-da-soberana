@@ -71,7 +71,7 @@ export class UpgradeScene extends Phaser.Scene {
       this.input.keyboard.on('keydown-' + (index + 1), () => this.selectUpgrade(upgrade.id));
     });
 
-    this.add.text(W / 2, 485, 'AS ESCOLHAS ESTRANGEIRAS COBRAM SEU PREÇO. OU NÃO.', {
+    this.add.text(W / 2, 485, 'UM GRANDE PODER EXIGE UMA GRANDE CAPACIDADE DE IMPORTAÇÃO.', {
       fontFamily: 'monospace', fontSize: '14px',
       color: '#aec5df',
     }).setOrigin(0.5).setDepth(22);
