@@ -4,6 +4,7 @@ import {
   GAME_HEIGHT as H,
 } from '../config/scenery.js';
 import { FIRST_UPGRADES } from '../gameplay/upgrades.js';
+import { SECOND_UPGRADES } from '../gameplay/secondUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 
 // Painel de laboratório: sobrepõe o combate pausado, permitindo testar
@@ -15,6 +16,9 @@ export class UpgradeLabScene extends Phaser.Scene {
 
   init(data = {}) {
     this.selectedIds = Array.isArray(data.selectedIds) ? [...data.selectedIds] : [];
+    this.selectedSecondIds = Array.isArray(data.selectedSecondIds)
+      ? [...data.selectedSecondIds] : [];
+    this.displayLevel = 1;
     this.selectedTowerIds = Array.isArray(data.selectedTowerIds)
       ? [...data.selectedTowerIds] : [];
   }
@@ -36,6 +40,15 @@ export class UpgradeLabScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '12px', color: '#bee0f4',
     }).setOrigin(0.5).setDepth(3);
 
+    this.levelSwitch = this.add.text(W / 2, 108, '', {
+      fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold',
+      color: '#96ffce', backgroundColor: '#16364add',
+      padding: { x: 11, y: 4 },
+    }).setOrigin(0.5).setDepth(5).setInteractive({ useHandCursor: true });
+    this.levelSwitch.on('pointerdown', (pointer) => {
+      if (pointer.leftButtonDown()) this.switchDisplayLevel();
+    });
+
     this.cards = [];
     FIRST_UPGRADES.forEach((upgrade, index) => {
       const x = 99 + index * 190;
@@ -52,8 +65,10 @@ export class UpgradeLabScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(4);
 
       label(143, upgrade.flag + ' • ' + upgrade.name.toUpperCase(), '20px', '#f4fbff', { fontStyle: 'bold' });
-      label(207, upgrade.title.toUpperCase(), '15px', '#ffe9b5', { fontStyle: 'bold' });
-      label(298, upgrade.description, '12px', '#d3e2ef', { lineSpacing: 3 });
+      const titleLabel = label(207, upgrade.title.toUpperCase(), '15px', '#ffe9b5',
+        { fontStyle: 'bold' });
+      const descriptionLabel = label(298, upgrade.description, '12px', '#d3e2ef',
+        { lineSpacing: 3 });
 
       const status = label(370, '', '15px', '#9affd8', { fontStyle: 'bold' });
       const towerStatus = label(396, '', '11px', '#8ce0ff', { fontStyle: 'bold' });
@@ -63,9 +78,10 @@ export class UpgradeLabScene extends Phaser.Scene {
       });
       card.on('pointerover', () => card.setFillStyle(0x214160, 1));
       card.on('pointerout', () => card.setFillStyle(
-        this.selectedIds.includes(upgrade.id) ? 0x23483f : 0x0b1d34, 0.99,
+        (this.displayLevel === 1 ? this.selectedIds : this.selectedSecondIds)
+          .includes(upgrade.id) ? 0x23483f : 0x0b1d34, 0.99,
       ));
-      this.cards.push({ card, status, towerStatus, upgrade });
+      this.cards.push({ card, status, towerStatus, upgrade, titleLabel, descriptionLabel });
     });
 
     this.statsPreview = this.add.text(W / 2, 433, '', {
@@ -84,12 +100,13 @@ export class UpgradeLabScene extends Phaser.Scene {
       text: '▶ VOLTAR AO CAMPO [U]', onClick: () => this.closeLab(), primary: true,
       depth: 4, fontSize: '16px',
     });
-    this.add.text(W / 2, 516, '1–5: UPGRADE 1  •  SHIFT+1–5: TORRE  •  MÁXIMO 2 TORRES', {
+    this.add.text(W / 2, 516, '1–5: NÍVEL DA ABA  •  N: TROCAR NÍVEL  •  SHIFT+1–5: TORRE', {
       fontFamily: 'monospace', fontSize: '12px', color: '#9abfd5',
     }).setOrigin(0.5).setDepth(4);
 
     this.input.keyboard.on('keydown', (event) => {
       if (event.key === '0') this.clearUpgrades();
+      if (event.code === 'KeyN' && !event.repeat) this.switchDisplayLevel();
       const match = /^(?:Digit|Numpad)([1-5])$/.exec(event.code || '');
       if (!match) return;
       const chosen = FIRST_UPGRADES[Number(match[1]) - 1];
@@ -102,10 +119,17 @@ export class UpgradeLabScene extends Phaser.Scene {
     this.refreshCards();
   }
 
+  switchDisplayLevel() {
+    this.displayLevel = this.displayLevel === 1 ? 2 : 1;
+    this.refreshCards();
+  }
+
   toggleUpgrade(id) {
     const gameScene = this.scene.get('GameScene');
-    gameScene.toggleUpgradeForLab(id);
+    if (this.displayLevel === 1) gameScene.toggleUpgradeForLab(id);
+    else gameScene.toggleSecondUpgradeForLab(id);
     this.selectedIds = [...gameScene.upgradeIds];
+    this.selectedSecondIds = [...gameScene.labSecondIds];
     this.refreshCards();
   }
 
@@ -114,6 +138,7 @@ export class UpgradeLabScene extends Phaser.Scene {
     gameScene.setUpgradesForLab([]);
     gameScene.setLabTowers([]);
     this.selectedIds = [];
+    this.selectedSecondIds = [];
     this.selectedTowerIds = [];
     this.refreshCards();
   }
@@ -129,8 +154,15 @@ export class UpgradeLabScene extends Phaser.Scene {
   }
 
   refreshCards() {
-    for (const { card, status, towerStatus, upgrade } of this.cards) {
-      const active = this.selectedIds.includes(upgrade.id);
+    this.levelSwitch.setText(
+      'EXIBINDO NÍVEL ' + this.displayLevel + '  ◀  CLIQUE OU PRESSIONE N PARA ALTERNAR  ▶',
+    );
+    for (const { card, status, towerStatus, upgrade, titleLabel, descriptionLabel } of this.cards) {
+      const effect = this.displayLevel === 1 ? upgrade : SECOND_UPGRADES[upgrade.id];
+      titleLabel.setText(effect.title.toUpperCase());
+      descriptionLabel.setText(effect.description);
+      const active = (this.displayLevel === 1
+        ? this.selectedIds : this.selectedSecondIds).includes(upgrade.id);
       card.setFillStyle(active ? 0x23483f : 0x0b1d34, 0.99);
       card.setStrokeStyle(active ? 4 : 2, active ? 0x9affd8 : upgrade.color);
       status.setText(active ? '[ ATIVO ]' : '[ ATIVAR ]');
@@ -147,6 +179,8 @@ export class UpgradeLabScene extends Phaser.Scene {
       '   PROJ ' + stats.bulletsPerShot +
       '   FRAG ' + (stats.fragmentation ? '78px' : 'NÃO') +
       '   KATANA ' + (stats.plasmaEvery ? 'A CADA 3 TIROS' : 'NÃO') +
+      '   N2 ' + (this.selectedSecondIds.length
+        ? this.selectedSecondIds.map((id) => id.toUpperCase()).join('+') : 'NÃO') +
       '   TORRES ' + this.selectedTowerIds.length + '/2',
     );
   }
