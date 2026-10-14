@@ -35,6 +35,7 @@ export function getFirstUpgrade(id) {
 export function combatStatsFor(upgradeId) {
   const stats = {
     basicInterval: 500,
+    basicSpeed: 480,
     basicDamage: 1,
     pierce: 1,
     knockback: 0,
@@ -46,6 +47,7 @@ export function combatStatsFor(upgradeId) {
     case 'us': stats.basicDamage = 2; break;
     case 'jp':
       stats.basicInterval = 340;
+      stats.basicSpeed = 680;
       stats.pierce = 2;
       break;
     case 'ru':
@@ -85,6 +87,7 @@ export function combatStatsForLoadout(ids = []) {
         break;
       case 'jp':
         stats.basicInterval *= 0.68;
+        stats.basicSpeed = Math.max(stats.basicSpeed, 680);
         stats.pierce = Math.max(stats.pierce, 2);
         break;
       case 'ru':
@@ -110,6 +113,28 @@ export function shotAngles(aimAngle, bulletsPerShot) {
   // A dispersão também respeita os limites físicos do canhão.
   return Array.from({ length: bulletsPerShot }, (_, i) => Math.max(
     minAngle,
-    Math.min(maxAngle, aimAngle + (i - (bulletsPerShot - 1) / 2) * 0.10),
+    Math.min(maxAngle, aimAngle + (i - (bulletsPerShot - 1) / 2) * 0.19),
   ));
+}
+
+// Retorno visual imediato: cores e silhuetas ajudam a identificar a
+// diferença mesmo com inimigos frágeis, que morreriam com qualquer upgrade.
+export function shotVisualFor(ids = []) {
+  const selected = new Set(normalizeLabUpgrades(ids));
+  if (selected.has('jp')) return {
+    color: 0xe997ff, impactColor: '#e997ff', width: 4, length: 20,
+  };
+  if (selected.has('ru')) return {
+    color: 0xff846b, impactColor: '#ffbc8a', width: 9, length: 14,
+  };
+  if (selected.has('us')) return {
+    color: 0x79b9ff, impactColor: '#9dd7ff', width: 8, length: 15,
+  };
+  if (selected.has('br')) return {
+    color: 0x75f2a0, impactColor: '#9fffc7', width: 5, length: 12,
+  };
+  if (selected.has('cn')) return {
+    color: 0xffdf72, impactColor: '#ffe6a0', width: 6, length: 14,
+  };
+  return { color: 0xffe29b, impactColor: '#ffe29b', width: 5, length: 11 };
 }
