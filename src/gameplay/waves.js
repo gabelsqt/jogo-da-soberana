@@ -23,6 +23,9 @@ export function getWaveEvents(mode) {
     // Prévia do Tipo 2: um esquadrão de cada vez entra em formação e mergulha.
     events.push({ at: 9000, type: 2, group: true });
     events.push({ at: 23500, type: 2, group: true });
+    // O encerramento agora é um ataque de saturação: uma fileira atravessa
+    // praticamente toda a largura do céu.
+    events.push({ at: 31000, type: 1, level: 2, pattern: 'line', count: 10 });
     return events.sort((a, b) => a.at - b.at);
   }
   if (mode === 'lab') {
@@ -30,9 +33,11 @@ export function getWaveEvents(mode) {
       { at: 800, type: 2, group: true },
       { at: 3900, type: 1 },
       { at: 5500, type: 3 },
-      { at: 11000, type: 3 },
-      { at: 15100, type: 4 },
+      { at: 11000, type: 3, level: 2 },
+      { at: 15100, type: 4, level: 2 },
       { at: 21200, type: 5 },
+      // Comparação direta entre o trio básico e os dez em círculo.
+      { at: 28000, type: 2, level: 2, pattern: 'orbit', count: 10 },
     ];
   }
   throw new Error(`Modo desconhecido: ${mode}`);
