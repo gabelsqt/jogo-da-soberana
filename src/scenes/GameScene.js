@@ -27,7 +27,7 @@ import {
 } from '../gameplay/waves.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import {
-  normalizeCampaignState, unlockedFirstUpgrades,
+  normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries,
 } from '../gameplay/progression.js';
 import {
@@ -38,6 +38,13 @@ import {
   SHOCK_BLAST_RADIUS, SHOCK_KNOCKBACK,
   predictShockImpact, segmentHitsCircle, shockBlastDamage, advanceShockOffset,
 } from '../gameplay/shockArtillery.js';
+import {
+  ELECTRIC_FENCE_DAMAGE, ELECTRIC_FENCE_INTERVAL, ELECTRIC_SLOW_FACTOR,
+  ELECTRIC_SLOW_DURATION, COLLATERAL_RADIUS, COLLATERAL_DAMAGE,
+  RESIDUAL_DURATION, RESIDUAL_DAMAGE, RESIDUAL_HALF_WIDTH,
+  electricFieldReaches, applySecondUpgradeStats, normalizeSecondUpgradeIds,
+  promotionProjectileCount, strategicKnockback,
+} from '../gameplay/secondUpgrades.js';
 import {
   PLASMA_EVERY_SHOTS,
   PLASMA_DAMAGE,
@@ -72,38 +79,65 @@ export class GameScene extends Phaser.Scene {
     this.upgradeId = this.campaign.choices.at(-1) ?? null;
     this.upgradeIds = this.mode === 'upgradeLab'
       ? normalizeLabUpgrades(data.upgradeIds) : [];
+    this.labSecondIds = this.mode === 'upgradeLab'
+      ? normalizeSecondUpgradeIds(data.labSecondIds)
+        .filter((id) => this.upgradeIds.includes(id)) : [];
     this.labTowerIds = this.mode === 'upgradeLab'
       ? [...new Set(Array.isArray(data.labTowerIds) ? data.labTowerIds : [])]
         .filter((id) => towerDefinition(id)).slice(0, 2)
       : [];
     const firstUpgrades = unlockedFirstUpgrades(this.campaign);
-    this.combat = this.mode === 'upgradeLab'
+    const firstStats = this.mode === 'upgradeLab'
       ? combatStatsForLoadout(this.upgradeIds)
       : combatStatsForLoadout(firstUpgrades);
+    this.combat = applySecondUpgradeStats(firstStats,
+      this.mode === 'upgradeLab' ? this.labSecondIds : unlockedSecondUpgrades(this.campaign));
   }
 
   getRunOptions() {
     if (this.mode === 'upgradeLab') {
       return {
         mode: this.mode, upgradeIds: [...this.upgradeIds],
+        labSecondIds: [...this.labSecondIds],
         labTowerIds: [...this.labTowerIds],
       };
     }
     return { mode: this.mode, campaign: normalizeCampaignState(this.campaign) };
   }
 
+  refreshLabStats() {
+    this.combat = applySecondUpgradeStats(
+      combatStatsForLoadout(this.upgradeIds), this.labSecondIds,
+    );
+    this.lastBasicFire = this.time.now - this.combat.basicInterval;
+    this.basicShotCount = 0;
+    if (!this.combat.residualSlash) this.clearResidualSlashes();
+  }
+
   setUpgradesForLab(ids) {
     if (this.mode !== 'upgradeLab') return;
     this.upgradeIds = normalizeLabUpgrades(ids);
-    this.combat = combatStatsForLoadout(this.upgradeIds);
-    // Não exige espera para experimentar a nova cadência ao retornar ao campo.
-    this.lastBasicFire = this.time.now - this.combat.basicInterval;
-    // Testes recomeçam com uma carga previsível após trocar de país.
-    this.basicShotCount = 0;
+    this.labSecondIds = this.labSecondIds.filter((id) => this.upgradeIds.includes(id));
+    this.refreshLabStats();
   }
 
   toggleUpgradeForLab(id) {
     this.setUpgradesForLab(toggleLabUpgrade(this.upgradeIds, id));
+  }
+
+  setSecondUpgradesForLab(ids) {
+    if (this.mode !== 'upgradeLab') return;
+    this.labSecondIds = normalizeSecondUpgradeIds(ids);
+    // Ativar o nível 2 também ativa o nível 1 exigido para o mesmo país.
+    this.upgradeIds = normalizeLabUpgrades([...this.upgradeIds, ...this.labSecondIds]);
+    this.refreshLabStats();
+  }
+
+  toggleSecondUpgradeForLab(id) {
+    if (this.mode !== 'upgradeLab') return;
+    this.setSecondUpgradesForLab(this.labSecondIds.includes(id)
+      ? this.labSecondIds.filter((selected) => selected !== id)
+      : [...this.labSecondIds, id]);
   }
 
   openUpgradeLab() {
@@ -111,6 +145,7 @@ export class GameScene extends Phaser.Scene {
     this.scene.pause();
     this.scene.launch('UpgradeLabScene', {
       selectedIds: [...this.upgradeIds], selectedTowerIds: [...this.labTowerIds],
+      selectedSecondIds: [...this.labSecondIds],
     });
   }
 
@@ -120,6 +155,7 @@ export class GameScene extends Phaser.Scene {
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) this.removeEnemyBullet(i);
     for (const bullet of this.projectiles) bullet.sprite.destroy();
     this.projectiles.length = 0;
+    this.clearResidualSlashes();
     for (const blast of this.specialBlasts) blast.graphics.destroy();
     this.specialBlasts.length = 0;
     for (const bullet of this.supportProjectiles) bullet.sprite.destroy();
@@ -157,6 +193,8 @@ export class GameScene extends Phaser.Scene {
     this.specialBlasts = [];
     this.supportTowers = [];
     this.supportProjectiles = [];
+    this.residualSlashes = [];
+    this.electricLastFire = -Infinity;
     this.nextEnemyId = 1;
     this.nextBlastId = 1;
     this.elapsed = 0;
@@ -348,6 +386,7 @@ export class GameScene extends Phaser.Scene {
         shieldMax: definition.shieldMax,
         lastDamageAt: -10000,
         lastAttackAt: -definition.interval,
+        electricLastFire: -Infinity,
       });
     });
     this.drawShield();
@@ -832,6 +871,7 @@ export class GameScene extends Phaser.Scene {
       maxHp: definition.hp,
       speed: definition.speed,
       recoilSpeed: 0,
+      electricSlowUntil: -1,
       velocityX: 0,
       velocityY: 0,
       shockOffset: { x: 0, y: 0, vx: 0, vy: 0 },
@@ -873,8 +913,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   moveAlongRoute(enemy, dt) {
+    const slow = this.time.now < enemy.electricSlowUntil ? ELECTRIC_SLOW_FACTOR : 1;
     const result = advanceRouteWithRecoil(
-      enemy.progress, enemy.speed, enemy.recoilSpeed, enemy.pathLength, dt,
+      enemy.progress, enemy.speed * slow, enemy.recoilSpeed, enemy.pathLength, dt,
     );
     enemy.progress = result.progress;
     enemy.recoilSpeed = result.recoilSpeed;
@@ -966,7 +1007,8 @@ export class GameScene extends Phaser.Scene {
           this.assignInvaderTarget(enemy, enemy.target);
         }
       } else if (enemy.phase === 'flyby') {
-        enemy.sprite.x += enemy.direction * enemy.speed * dt;
+        const slow = this.time.now < enemy.electricSlowUntil ? ELECTRIC_SLOW_FACTOR : 1;
+        enemy.sprite.x += enemy.direction * enemy.speed * slow * dt;
         if ((enemy.direction > 0 && enemy.sprite.x >= W + 55) ||
             (enemy.direction < 0 && enemy.sprite.x <= -55)) {
           enemy.phase = 'swoop1';
@@ -1158,12 +1200,14 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  impactInvader(index, damage = 1, knockback = 0, hitColor = '#ffe09f') {
+  impactInvader(index, damage = 1, knockback = 0, hitColor = '#ffe09f',
+    showNumber = true, maxRecoil = 400) {
     const enemy = this.enemies[index];
-    if (!enemy) return;
-    this.popHitNumber(enemy.sprite.x, enemy.sprite.y, damage, hitColor);
+    if (!enemy) return false;
+    if (showNumber) this.popHitNumber(enemy.sprite.x, enemy.sprite.y, damage, hitColor);
     enemy.hp -= damage;
-    if (enemy.hp <= 0) {
+    const killed = enemy.hp <= 0;
+    if (killed) {
       this.removeEnemy(index);
     } else {
       if (enemy.box) enemy.box.setFillStyle(0xffffff);
@@ -1174,9 +1218,10 @@ export class GameScene extends Phaser.Scene {
         else enemy.sprite.setTint(enemy.level > 1 ? 0xffd5a0 : 0xffffff);
       });
       if (enemy.phase === 'dive' && knockback > 0) {
-        enemy.recoilSpeed = applyRecoilImpulse(enemy.recoilSpeed, knockback);
+        enemy.recoilSpeed = applyRecoilImpulse(enemy.recoilSpeed, knockback, maxRecoil);
       }
     }
+    return killed;
   }
 
   activeUpgradeIds() {
@@ -1201,14 +1246,30 @@ export class GameScene extends Phaser.Scene {
     if (this.time.now - this.lastBasicFire < this.combat.basicInterval) return;
     this.lastBasicFire = this.time.now;
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
-    for (const firingAngle of shotAngles(angle, this.combat.bulletsPerShot)) {
+    const shotNumber = this.basicShotCount + 1;
+    const count = this.combat.promoEvery
+      ? promotionProjectileCount(this.combat.bulletsPerShot, shotNumber, this.combat.promoEvery)
+      : this.combat.bulletsPerShot;
+    for (const firingAngle of shotAngles(angle, count)) {
       this.createProjectile(firingAngle, false);
     }
-    this.basicShotCount += 1;
+    this.basicShotCount = shotNumber;
+    if (count > this.combat.bulletsPerShot) this.showPromoFlash();
     if (isPlasmaShot(this.basicShotCount, this.combat.plasmaEvery > 0)) {
       this.firePlasmaKatana(angle);
     }
     this.showMuzzleFlash(angle);
+  }
+
+  showPromoFlash() {
+    const label = this.add.text(CANNON.x, CANNON.y - 76, 'GRÁTIS!', {
+      fontFamily: 'monospace', fontSize: '17px', fontStyle: 'bold',
+      color: '#ffed92', stroke: '#34210a', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(55);
+    this.tweens.add({
+      targets: label, y: label.y - 19, alpha: 0, duration: 450,
+      onComplete: () => label.destroy(),
+    });
   }
 
   firePlasmaKatana(angle) {
