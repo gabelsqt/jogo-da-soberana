@@ -8,6 +8,7 @@ export function addMenuButton(scene, {
   onClick,
   primary = false,
   fontSize = '19px',
+  depth = 10,
 }) {
   const defaultColor = primary ? 0x174856 : 0x101e35;
   const hoverColor = primary ? 0x286f78 : 0x1f3554;
@@ -15,6 +16,7 @@ export function addMenuButton(scene, {
 
   const background = scene.add.rectangle(x, y, width, height, defaultColor, 0.96)
     .setStrokeStyle(2, outlineColor)
+    .setDepth(depth)
     .setInteractive({ useHandCursor: true });
 
   const label = scene.add.text(x, y, text, {
@@ -22,7 +24,7 @@ export function addMenuButton(scene, {
     fontSize,
     color: '#f3f9ff',
     fontStyle: 'bold',
-  }).setOrigin(0.5);
+  }).setOrigin(0.5).setDepth(depth + 1);
 
   background.on('pointerover', () => {
     background.setFillStyle(hoverColor, 1);
