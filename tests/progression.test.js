@@ -28,6 +28,8 @@ test('as cinco primeiras melhorias alteram o combate como prometido', () => {
   assert.equal(us.basicDamage, 2);
   assert.ok(jp.basicInterval < base.basicInterval);
   assert.equal(jp.pierce, 2);
+  assert.equal(jp.basicSpeed, 680);
+  assert.equal(base.basicSpeed, 480);
   assert.equal(ru.basicDamage, 1.75);
   assert.ok(ru.knockback > 0);
   assert.equal(cn.bulletsPerShot, 2);
@@ -64,7 +66,10 @@ test('onda zero, onda um e laboratório possuem programação distinta', () => {
   assert.equal(getWaveEvents('wave0').length, 10);
   const wave1 = getWaveEvents('wave1');
   assert.ok(wave1.some((e) => e.type === 2 && e.group));
-  assert.equal(wave1.filter((e) => e.type === 1).length, 12);
+  assert.equal(wave1.filter((e) => e.type === 1 && !e.pattern).length, 12);
+  const finale = wave1.find((e) => e.pattern === 'line');
+  assert.ok(finale && finale.type === 1 && finale.count === 10 && finale.level === 2);
+  assert.ok(finale.at > wave1.filter((e) => e.pattern !== 'line').at(-1).at);
   const lab = getWaveEvents('lab');
   assert.deepEqual([...new Set(lab.map((e) => e.type))].sort(), [1, 2, 3, 4, 5]);
   for (const mode of Object.keys(MODES)) {
@@ -111,6 +116,7 @@ test('melhorias brasileiras e japonesas acumulam cadência; EUA e Rússia acumul
   assert.equal(stats.basicInterval, 272);
   assert.equal(stats.basicDamage, 3.5);
   assert.equal(stats.pierce, 2);
+  assert.equal(stats.basicSpeed, 680);
   assert.equal(stats.bulletsPerShot, 2);
   assert.equal(stats.knockback, 0.12);
   assert.equal(stats.specialCooldown, 8000);
