@@ -393,6 +393,14 @@ export class GameScene extends Phaser.Scene {
 
   spawnWaveEvent(event) {
     const level = event.level ?? 1;
+    if (event.pattern === 'spread' && event.type === 1) {
+      // Rajada simultânea, distribuída pelo céu para forçar múltiplas decisões.
+      const count = event.count ?? 3;
+      for (let i = 0; i < count; i += 1) {
+        this.spawnEnemy(1, { level, x: lineFormationX(i, count, W, 130) });
+      }
+      return;
+    }
     if (event.pattern === 'line' && event.type === 1) {
       const count = event.count ?? 10;
       this.showAttackWarning('ALERTA! UMA FRENTE DE OVNIS!');
@@ -435,7 +443,8 @@ export class GameScene extends Phaser.Scene {
       type === 2 ? center + (orbiting ? (index - (groupCount - 1) / 2) * 60 : (index - 1) * 83) :
       options.x ?? Phaser.Math.Between(120, W - 120);
     const startY = type === 4 ? Phaser.Math.Between(120, 180) :
-      type === 2 ? -45 - Math.abs(index - (orbiting ? (groupCount - 1) / 2 : 1)) * 7 : -65;
+      type === 2 ? -45 - Math.abs(index - (orbiting ? (groupCount - 1) / 2 : 1)) * 7 :
+      type === 1 ? -28 : -65;
     const visual = this.makeEnemyVisual(type, startX, startY, level);
     const enemy = {
       uid: this.nextEnemyId++,
