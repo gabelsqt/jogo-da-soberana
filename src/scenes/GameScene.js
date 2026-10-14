@@ -35,6 +35,10 @@ import {
   towerDefinition, chooseTowerAttackTarget, canInstallTower,
 } from '../gameplay/towers.js';
 import {
+  SHOCK_BLAST_RADIUS, SHOCK_KNOCKBACK,
+  predictShockImpact, segmentHitsCircle, shockBlastDamage, advanceShockOffset,
+} from '../gameplay/shockArtillery.js';
+import {
   PLASMA_EVERY_SHOTS,
   PLASMA_DAMAGE,
   PLASMA_HALF_WIDTH,
@@ -660,6 +664,9 @@ export class GameScene extends Phaser.Scene {
       maxHp: definition.hp,
       speed: definition.speed,
       recoilSpeed: 0,
+      velocityX: 0,
+      velocityY: 0,
+      shockOffset: { x: 0, y: 0, vx: 0, vy: 0 },
       phase: 'dive',
       age: 0,
       phaseAge: 0,
@@ -711,6 +718,13 @@ export class GameScene extends Phaser.Scene {
   updateEnemies(dt) {
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      // Desfaz o deslocamento visual anterior para não interferir no percurso
+      // calculado pela nave (incluindo curvas, voos rasantes e órbitas).
+      const previousShock = enemy.shockOffset;
+      enemy.sprite.x -= previousShock.x;
+      enemy.sprite.y -= previousShock.y;
+      const previousX = enemy.sprite.x;
+      const previousY = enemy.sprite.y;
       enemy.age += dt;
       enemy.phaseAge += dt;
 
@@ -866,6 +880,20 @@ export class GameScene extends Phaser.Scene {
           continue;
         }
       }
+
+      // Estima velocidade real para a mira preditiva (sem incluir recuo visual).
+      const instantVx = Phaser.Math.Clamp(
+        (enemy.sprite.x - previousX) / Math.max(dt, 0.001), -330, 330,
+      );
+      const instantVy = Phaser.Math.Clamp(
+        (enemy.sprite.y - previousY) / Math.max(dt, 0.001), -330, 330,
+      );
+      const smooth = Math.min(1, dt * 10);
+      enemy.velocityX = Phaser.Math.Linear(enemy.velocityX, instantVx, smooth);
+      enemy.velocityY = Phaser.Math.Linear(enemy.velocityY, instantVy, smooth);
+      enemy.shockOffset = advanceShockOffset(previousShock, dt);
+      enemy.sprite.x += enemy.shockOffset.x;
+      enemy.sprite.y += enemy.shockOffset.y;
 
       // Bombas de pulso são barreiras: inimigos entram nelas durante o movimento.
       this.hitEnemyWithBlast(i);
