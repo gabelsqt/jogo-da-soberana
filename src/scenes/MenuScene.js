@@ -48,7 +48,8 @@ export class MenuScene extends Phaser.Scene {
     const startGame = () => this.scene.start('GameScene');
     addMenuButton(this, {
       x: W / 2, y: 281, text: '▶  COMEÇAR', onClick: startGame, primary: true,
-    }).setDepth(23);
+      depth: 23,
+    });
 
     this.add.text(W / 2, 343,
       'MOUSE: MIRAR    ESQUERDO: ATIRAR    DIREITO: ESPECIAL', {
