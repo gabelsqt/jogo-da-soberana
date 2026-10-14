@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.10** — maior densidade nas Ondas 0 e 1, com inimigos surgindo mais cedo, intervalos curtos e rajadas simultâneas; mantém a Katana de Plasma, Fragmentação e demais upgrades. Ainda **não** implementa as ondas 2–11, os upgrades de nível 2–10, as torres dos animais nem a traição final.
+> **Protótipo 0.11** — progressão até a **Onda 2**, com segunda escolha de país, cinco torres mecanizadas automáticas em arte provisória e novo ataque com bombardeiros/caças. Ainda **não** implementa as ondas 3–11, upgrades de nível 3–10, sprites definitivos das torres ou a traição final.
 
 ## Jogar no computador (PowerShell)
 
@@ -32,9 +32,10 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 2. **Onda 0:** contagem regressiva **3, 2, 1** antes de começar; **32 invasores Tipo 1** (20 em sequência, a cada 1,28 s, mais três grupos simultâneos de 3, 4 e 5). O primeiro aparece 0,25 s após a contagem; continua sendo possível perder.
 3. Após concluir a Onda 0, aparecem cinco cartões para escolher **um upgrade inicial**.
 4. **Onda 1:** nova contagem **3, 2, 1**; são **70 inimigos**: 32 invasores básicos em sequência (a cada 0,96 s), grupos simultâneos com 3, 4 e 5 básicos, dois trios Tipo 2, um ataque circular de dez Tipo 2 avançados e uma **fileira final de dez OVNIs Tipo 1**, ocupando a largura do céu. A onda só termina depois que todas as ameaças são neutralizadas.
-5. Ao vencer, surge o painel de conclusão com acesso ao **laboratório de inimigos** ou ao menu.
-6. **Testar inimigos**, disponível também no menu inicial, apresenta os Tipos 2–5 sem fingir que as ondas seguintes estão completas.
-7. **Testar upgrades** abre um laboratório independente, sem ondas nem derrota: ative/desative livremente as cinco primeiras melhorias e experimente combinações.
+5. Ao vencer a Onda 1, surge a **segunda escolha de país**. Cada cartão mostra apenas o próximo upgrade disponível daquele país: se escolher o mesmo país duas vezes, instala seu animal mecanizado de nível 2; se mudar de país, recebe o upgrade inicial do novo aliado.
+6. **Onda 2:** contagem regressiva 3–2–1, 80 inimigos programados com bombardeiros (Tipo 3) e caças relâmpago (Tipo 4), além dos básicos e formações. Termina em uma tela de conclusão provisória; as Ondas 3–11 virão depois.
+7. **Testar inimigos**, no menu inicial, apresenta os Tipos 2–5 e seus padrões.
+8. **Testar upgrades** abre laboratório independente e agora permite testar também as cinco torres sem passar pelas ondas.
 
 ## Cinco upgrades iniciais
 
@@ -46,14 +47,29 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 | Rússia | Camarada Canhão | +75% de dano, aplica **recuo gradual** aos inimigos em mergulho (em vez de saltar a posição) |
 | China | AliExplode — Frete Grátis | Dois projéteis simultâneos com pequena dispersão |
 
-Os upgrades posteriores e o limite de duas torres de animais serão implementados numa etapa própria, seguindo o GDD.
+Os upgrades de **nível 2** já funcionam. Os níveis 3–10 seguem indisponíveis até serem implementados; o jogo não promete efeitos que ainda não existem.
+
+## Segundos upgrades — torres mecanizadas
+
+| País | Segundo upgrade | Torre provisória e efeito |
+| --- | --- | --- |
+| Brasil | Projeto Caramelo | **Caramelo**: torre automática de tiros frequentes contra invasores próximos |
+| EUA | Águia da Liberdade I | **Águia**: mísseis que perseguem o alvo |
+| Japão | Projeto Tsuru I | **Tsuru**: laser de precisão disparado automaticamente |
+| Rússia | Urso de Ferro | **Urso**: artilharia pesada com recuo |
+| China | PandaPrime I — Envio Econômico | **PandaPrime**: pares de minidrones perseguidores |
+
+As torres aparecem como **formas coloridas com letras**, ainda sem sprites definitivos. Ocupam uma de duas posições (esquerda e direita), **possuem vida e escudo próprios com regeneração** e podem ser destruídas sem que o jogador perca imediatamente. A destruição do **canhão central** continua sendo a condição de derrota.
+
+O limite global é de **duas torres instaladas**. Se futuramente as duas posições estiverem ocupadas, um upgrade de país que instalaria uma terceira torre fica visível, mas bloqueado. Cada país acumula sua própria quantidade de escolhas, sem pular níveis.
 
 ## Laboratório de upgrades
 
 No menu inicial, clique em **TESTAR UPGRADES [U]**. O jogo abre um campo de testes pausado, com cinco cartões que representam apenas os upgrades de nível 1 atualmente funcionais.
 
 - Clique em qualquer cartão ou use **1–5** para alternar cada melhoria entre ativa e desativada. É possível deixar várias ativas e testar combinações.
-- Clique em **ZERAR MELHORIAS [0]** para voltar ao canhão padrão.
+- Clique em **ZERAR MELHORIAS [0]** para voltar ao canhão sem upgrades ou torres.
+- **Teclas 1–5 no painel:** ativam os upgrades básicos de cada país. **Shift+1–5:** instalam ou retiram as torres correspondentes, até duas simultâneas, independentemente dos upgrades básicos. Essas escolhas são apenas para testes e não alteram a campanha.
 - Clique em **VOLTAR AO CAMPO [U]**, pressione **U** ou **Esc** para retornar ao combate com a configuração escolhida.
 - No campo, pressione **1–5** para gerar os inimigos Tipos 1–5 (2 gera um trio); **Shift+1** gera uma fileira de dez Tipo 1; **Shift+2** gera **dez Tipo 2 circulando em órbita antes de parar e mergulhar**; **Shift+3/4/5** gera as variantes de nível 2. **C** limpa os inimigos e projéteis; **U** reabre o painel.
 - Há **barras de vida** nos inimigos resistentes e **números flutuantes de dano** ao acertar. As melhorias têm cores de disparo próprias; o Japão solta uma lâmina violeta de plasma a cada três tiros básicos e os EUA produzem uma explosão azul de fragmentação ao atingir naves.
@@ -61,7 +77,7 @@ No menu inicial, clique em **TESTAR UPGRADES [U]**. O jogo abre um campo de test
 - Além dos invasores básicos automáticos, surgem alvos resistentes (Tipos 2 e 3) para testar o benefício de dano elevado e perfuração.
 - Um invasor Tipo 1 aparece automaticamente a cada 2,7 segundos, desde que haja menos de dez em campo.
 - O canhão é indestrutível nos dois laboratórios para não interromper os testes. A regeneração do escudo continua visível.
-- **R** reinicia o campo de teste mantendo a combinação de melhorias.
+- **R** reinicia o campo de teste mantendo os upgrades básicos e torres instaladas.
 
 Esse modo é **separado da campanha**: não consome escolhas, não habilita níveis futuros e não altera a progressão da Onda 0 / Onda 1.
 
@@ -90,13 +106,13 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - **Botão esquerdo pressionado:** tiros básicos contínuos.
 - **Botão direito:** bomba especial que protege a área durante 3 segundos (recarga 8 segundos).
 - **Esc ou P:** pausar/retomar.
-- **R:** reinicia o modo atual, preservando o upgrade escolhido na Onda 1.
+- **R:** reinicia o modo atual, preservando o histórico de escolhas e torres da campanha.
 - **Enter:** começar pelo menu.
 - **T:** entrar no laboratório de inimigos pelo menu.
 - **U (no menu):** entrar no laboratório de upgrades.
 - **U (no laboratório de upgrades):** abrir/fechar o painel para alterar melhorias instantaneamente.
 - **1–5 (qualquer laboratório em combate):** gerar inimigos de nível 1; **Shift+1–5** gera nível 2 (Shift+1 = fileira; Shift+2 = círculo com dez naves); **C** limpa o campo.
-- **1–5 (painel do laboratório):** ativar ou desativar os cinco upgrades disponíveis; **0** zera.
+- **1–5 (painel do laboratório):** ativar/desativar os cinco upgrades básicos; **Shift+1–5** instala/remove a torre do respectivo país; **0** zera upgrades e torres.
 - **Clique nos cartões:** escolher aliado após a Onda 0.
 
 ## Estrutura técnica
@@ -107,8 +123,10 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - `src/scenes/UpgradeLabScene.js` — painel de upgrades acumuláveis e substituíveis em campo de teste.
 - `src/scenes/PauseScene.js` — pausa, reinício e menu.
 - `src/gameplay/upgrades.js` — primeiros efeitos reais das melhorias.
+- `src/gameplay/progression.js` — histórico das escolhas de cada país, upgrades nível 2, bloqueios e transições de ondas.
+- `src/gameplay/towers.js` — cinco perfis de torres, suas armas, alcance e aquisição de alvos.
 - `src/gameplay/enemies.js` — definições dos cinco tipos, níveis de dificuldade, matemática do círculo, fileira e movimento suave da Nave-Mãe.
-- `src/gameplay/waves.js` — agenda de entradas e término dos modos.
+- `src/gameplay/waves.js` — agenda das Ondas 0, 1, 2 e dos laboratórios.
 - `src/gameplay/combat.js` e `src/gameplay/specialBlast.js` — regras matemáticas de mira, dano e explosão persistente.
 - `src/gameplay/weaponEffects.js` — intervalos, alinhamento de laser e alcance da Fragmentação.
 - `tests/` — testes automatizados das regras, incluindo padrões, dificuldade, continuidade da Nave-Mãe e diferenças de upgrades.
