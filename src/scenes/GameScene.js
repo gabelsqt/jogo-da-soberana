@@ -6,8 +6,10 @@ const GROUND_Y = 505;
 const CANNON = { x: 480, y: 494 };
 const BASE_FIRE_INTERVAL = 500; // GDD: 2 disparos por segundo
 const SPECIAL_COOLDOWN = 8000;
-const TUTORIAL_MIN_DURATION = 10000;
-const INVADER_COUNT = 4;
+const TUTORIAL_MIN_DURATION = 30000;
+// Invasores chegam gradualmente para dar tempo de praticar os controles.
+const TUTORIAL_SPAWN_TIMES = [600, 2400, 4400, 6300, 9500, 12200, 15300, 18600, 22000, 25000];
+const INVADER_COUNT = TUTORIAL_SPAWN_TIMES.length;
 
 const SKY_LAYERS = [
   '01_ceu_noturno_estrelado',
@@ -75,10 +77,9 @@ export class GameScene extends Phaser.Scene {
     });
     this.input.keyboard.on('keydown-R', () => this.scene.restart());
 
-    this.time.delayedCall(600, () => this.spawnInvader());
-    this.time.delayedCall(2400, () => this.spawnInvader());
-    this.time.delayedCall(4400, () => this.spawnInvader());
-    this.time.delayedCall(6300, () => this.spawnInvader());
+    TUTORIAL_SPAWN_TIMES.forEach((delay) => {
+      this.time.delayedCall(delay, () => this.spawnInvader());
+    });
   }
 
   createTurret() {
@@ -218,9 +219,9 @@ export class GameScene extends Phaser.Scene {
     this.barrel.rotation = Phaser.Math.Angle.Between(CANNON.x, CANNON.y, pointer.x, pointer.y) + Math.PI / 2;
     if (pointer.leftButtonDown()) this.shootBasic(pointer);
 
-    if (this.elapsed < 3000) {
+    if (this.elapsed < 6500) {
       this.tutorialText.setText('Mova o mouse e segure o botão esquerdo para atirar');
-    } else if (this.elapsed < 6500) {
+    } else if (this.elapsed < 15000) {
       this.tutorialText.setText('Botão direito: tiro especial (recarga de 8 segundos)');
     } else {
       this.tutorialText.setText('Proteja o canhão central! Escudos regeneram sem dano.');
