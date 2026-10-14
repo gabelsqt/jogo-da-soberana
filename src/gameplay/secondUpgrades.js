@@ -69,6 +69,12 @@ export function applySecondUpgradeStats(base, ids = []) {
 
 // Zona semicircular: apenas naves no lado de fora ou na borda superior da
 // cúpula recebem descarga. Nenhum escudo é criado em posições vazias.
+// Uma recarga POR CÚPULA: impedir dano contínuo invisível de 60 FPS.
+// O escudo inoperante jamais eletrocuta alvos.
+export function canFireElectricFence(lastShotMs, nowMs, shield) {
+  return shield > 0 && nowMs - lastShotMs >= ELECTRIC_FENCE_INTERVAL;
+}
+
 export function electricFieldReaches(cx, cy, radius, targetX, targetY,
   extra = ELECTRIC_FENCE_EXTRA_RANGE) {
   const dx = targetX - cx;
