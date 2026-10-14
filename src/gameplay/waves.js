@@ -1,7 +1,14 @@
 // Onda 0 -> primeira escolha de upgrade -> Onda 1.
 // Laboratório é um modo independente para testar tipos 2–5 sem fingir que
 // as ondas e upgrades restantes já foram desenvolvidos.
-const wave0Times = [600, 2400, 4400, 6300, 9500, 12200, 15300, 18600, 22000, 25000];
+// Intervalos curtos e ataques simultâneos aumentam a pressão sem acelerar
+// artificialmente a movimentação de um único OVNI.
+const wave0Times = Array.from({ length: 20 }, (_, index) => 250 + index * 1280);
+const wave0Packs = [
+  { at: 7600, type: 1, pattern: 'spread', count: 3 },
+  { at: 15300, type: 1, pattern: 'spread', count: 4 },
+  { at: 23200, type: 1, pattern: 'spread', count: 5 },
+];
 
 export const WAVE_COUNTDOWN_SECONDS = 3;
 
@@ -14,7 +21,7 @@ export function countdownNumberAt(elapsedMs) {
 
 export const MODES = {
   wave0: { title: 'ONDA 0', minDuration: 30000 },
-  wave1: { title: 'ONDA 1', minDuration: 39500 },
+  wave1: { title: 'ONDA 1', minDuration: 41000 },
   lab: { title: 'TESTE DE INIMIGOS', minDuration: 36000 },
   upgradeLab: { title: 'LAB DE UPGRADES', minDuration: Infinity },
 };
@@ -23,22 +30,28 @@ export function getWaveEvents(mode) {
   // Laboratório livre: inimigos aparecem por timer próprio e nunca acaba a onda.
   if (mode === 'upgradeLab') return [];
   if (mode === 'wave0') {
-    return wave0Times.map((at, index) => ({ at, type: 1, index }));
+    const events = wave0Times.map((at, index) => ({ at, type: 1, index }));
+    return [...events, ...wave0Packs].sort((a, b) => a.at - b.at);
   }
   if (mode === 'wave1') {
-    // A primeira onda real pressiona continuamente em vez de enviar
-    // um alvo fácil a cada vários segundos. Escala de intensidade gradual:
-    // básicos -> duas formações -> círculo avançado -> frente final.
-    const events = Array.from({ length: 18 }, (_, index) => ({
-      at: 950 + index * 1510,
+    // A Onda 1 mantém mais de uma ameaça na tela praticamente o tempo todo:
+    // novos básicos a cada ~1s, rajadas espalhadas e as formações Tipo 2.
+    const events = Array.from({ length: 32 }, (_, index) => ({
+      at: 250 + index * 960,
       type: 1,
-      level: index >= 12 && index % 3 === 0 ? 2 : 1,
+      level: index >= 20 && index % 4 === 0 ? 2 : 1,
       index,
     }));
-    events.push({ at: 8400, type: 2, group: true });
-    events.push({ at: 17200, type: 2, group: true, level: 2 });
-    events.push({ at: 24500, type: 2, level: 2, pattern: 'orbit', count: 10 });
-    events.push({ at: 34000, type: 1, level: 2, pattern: 'line', count: 10 });
+    events.push(
+      { at: 6000, type: 1, pattern: 'spread', count: 3 },
+      { at: 8700, type: 2, group: true },
+      { at: 15500, type: 1, pattern: 'spread', count: 4 },
+      { at: 18300, type: 2, group: true, level: 2 },
+      { at: 25600, type: 2, level: 2, pattern: 'orbit', count: 10 },
+      { at: 27400, type: 1, level: 2, pattern: 'spread', count: 5 },
+      // Ataque final preservado: uma fileira cheia de inimigos rápidos.
+      { at: 34700, type: 1, level: 2, pattern: 'line', count: 10 },
+    );
     return events.sort((a, b) => a.at - b.at);
   }
   if (mode === 'lab') {
@@ -54,6 +67,17 @@ export function getWaveEvents(mode) {
     ];
   }
   throw new Error(`Modo desconhecido: ${mode}`);
+}
+
+
+export function scheduledEnemyCount(events) {
+  // Uma entrada da agenda pode representar vários OVNIs simultâneos.
+  return events.reduce((total, event) => {
+    if (event.pattern === 'spread' || event.pattern === 'line' ||
+        event.pattern === 'orbit') return total + event.count;
+    if (event.group && event.type === 2) return total + 3;
+    return total + 1;
+  }, 0);
 }
 
 export function waveIsFinished({ mode, elapsed, spawned, scheduled, enemies, hostileShots }) {
