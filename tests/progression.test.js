@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { FIRST_UPGRADES, combatStatsFor, shotAngles, getFirstUpgrade } from '../src/gameplay/upgrades.js';
+import {
+  FIRST_UPGRADES, combatStatsFor, shotAngles, getFirstUpgrade,
+  combatStatsForLoadout, normalizeLabUpgrades, toggleLabUpgrade,
+} from '../src/gameplay/upgrades.js';
 import { ENEMY_TYPES, enemyDefinition, enemyContactRadius } from '../src/gameplay/enemies.js';
 import { MODES, getWaveEvents, waveIsFinished } from '../src/gameplay/waves.js';
 
@@ -84,4 +87,33 @@ test('progressão só acontece com todos os eventos e ameaças encerrados', () =
   assert.equal(waveIsFinished({ ...state, hostileShots: 1 }), false);
   assert.equal(waveIsFinished({ ...state, elapsed: 20000 }), false);
   assert.equal(waveIsFinished({ ...state, spawned: 1 }), false);
+});
+
+test('laboratório de upgrades é livre, sem depender de ondas', () => {
+  assert.equal(MODES.upgradeLab.title, 'LAB DE UPGRADES');
+  assert.deepEqual(getWaveEvents('upgradeLab'), []);
+  assert.equal(waveIsFinished({
+    mode: 'upgradeLab', elapsed: 999999, spawned: 0, scheduled: 0,
+    enemies: 0, hostileShots: 0,
+  }), false);
+});
+
+test('laboratório ativa e desativa melhorias sem duplicatas nem IDs inválidos', () => {
+  assert.deepEqual(normalizeLabUpgrades(['br', 'br', 'xx', 'cn']), ['br', 'cn']);
+  assert.deepEqual(toggleLabUpgrade([], 'br'), ['br']);
+  assert.deepEqual(toggleLabUpgrade(['br', 'cn'], 'br'), ['cn']);
+  assert.deepEqual(toggleLabUpgrade(['br'], 'xx'), ['br']);
+  assert.deepEqual(normalizeLabUpgrades(null), []);
+});
+
+test('melhorias brasileiras e japonesas acumulam cadência; EUA e Rússia acumulam dano', () => {
+  const stats = combatStatsForLoadout(['br', 'jp', 'us', 'ru', 'cn']);
+  assert.equal(stats.basicInterval, 272);
+  assert.equal(stats.basicDamage, 3.5);
+  assert.equal(stats.pierce, 2);
+  assert.equal(stats.bulletsPerShot, 2);
+  assert.equal(stats.knockback, 0.12);
+  assert.equal(stats.specialCooldown, 8000);
+  assert.deepEqual(combatStatsForLoadout([]), combatStatsFor(null));
+  assert.deepEqual(combatStatsForLoadout(['br', 'br']), combatStatsFor('br'));
 });
