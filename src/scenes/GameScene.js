@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SKY_LAYERS } from '../config/scenery.js';
+import { preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import {
   restrictedAimAngle,
   availableDefenseTargets,
@@ -165,8 +165,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.setPath('assets/cenario');
-    SKY_LAYERS.forEach((name) => this.load.image(name, name + '.png'));
+    preloadRioBackdrop(this);
     this.load.setPath('assets/inimigos/tipo1');
     for (let frame = 1; frame <= 4; frame += 1) {
       this.load.image('tipo1_' + frame, 'frame_' + String(frame).padStart(2, '0') + '.png');
@@ -176,9 +175,7 @@ export class GameScene extends Phaser.Scene {
   create() {
     this.input.mouse?.disableContextMenu();
 
-    SKY_LAYERS.forEach((name, depth) => {
-      this.add.image(W / 2, H / 2, name).setDisplaySize(W, H).setDepth(depth);
-    });
+    drawRioBackdrop(this);
 
     if (!this.anims.exists('tipo1_voo')) {
       this.anims.create({
