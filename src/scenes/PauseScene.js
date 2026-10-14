@@ -28,8 +28,9 @@ export class PauseScene extends Phaser.Scene {
       this.scene.stop();
     };
     const restartGame = () => {
+      const options = this.scene.get('GameScene').getRunOptions();
       this.scene.stop('GameScene');
-      this.scene.start('GameScene');
+      this.scene.start('GameScene', options);
     };
     const returnToMenu = () => {
       this.scene.stop('GameScene');
