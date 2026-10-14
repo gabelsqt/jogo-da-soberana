@@ -376,10 +376,164 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  fireShockArtillery(tower, enemy) {
+    const weapon = tower.definition;
+    const fromX = tower.x;
+    const fromY = tower.y - 35;
+    const lead = predictShockImpact(
+      fromX, fromY, enemy.sprite.x, enemy.sprite.y,
+      enemy.velocityX, enemy.velocityY, weapon.speed,
+    );
+    // A artilharia não atira para fora da área visível ou sobre o canhão.
+    const aimX = Phaser.Math.Clamp(lead.x, 35, W - 35);
+    const aimY = Phaser.Math.Clamp(lead.y, 45, H - 95);
+    const dx = aimX - fromX;
+    const dy = aimY - fromY;
+    const distance = Math.max(1, Math.hypot(dx, dy));
+
+    const shell = this.add.circle(fromX, fromY, 9, 0xff9b49)
+      .setStrokeStyle(3, 0xffe6a7).setDepth(42);
+    this.add.circle(fromX, fromY, 17, 0xffdf89, 0.9).setDepth(43);
+    const muzzle = this.add.circle(fromX, fromY, 20, 0xffbe71, 0.7).setDepth(44);
+    this.tweens.add({
+      targets: muzzle, scale: 2, alpha: 0, duration: 150,
+      onComplete: () => muzzle.destroy(),
+    });
+
+    // O placeholder da torre sofre um recuo físico curto, com retorno suave.
+    const restY = tower.y - 12;
+    this.tweens.killTweensOf(tower.sprite);
+    tower.sprite.y = restY;
+    this.tweens.add({
+      targets: tower.sprite,
+      y: restY + 11,
+      duration: 95,
+      yoyo: true,
+      ease: 'Sine.easeOut',
+    });
+
+    this.supportProjectiles.push({
+      kind: 'shock-shell',
+      sprite: shell,
+      weapon,
+      vx: dx / distance * weapon.speed,
+      vy: dy / distance * weapon.speed,
+      aimX, aimY, age: 0, smokeTimer: 0,
+    });
+  }
+
+  makeShockSmoke(x, y) {
+    const puff = this.add.circle(x, y, Phaser.Math.Between(4, 7), 0x7a7783, 0.65)
+      .setDepth(37);
+    this.tweens.add({
+      targets: puff,
+      alpha: 0, scale: 2.2, y: y - 14,
+      duration: 490,
+      onComplete: () => puff.destroy(),
+    });
+  }
+
+  detonateShockArtillery(x, y, weapon) {
+    // Dano de área instantâneo, sem dano repetido durante a animação.
+    // A queda é suave: alvos centrais sofrem dano cheio, bordas dano reduzido.
+    for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
+      const enemy = this.enemies[i];
+      const distance = Math.hypot(enemy.sprite.x - x, enemy.sprite.y - y);
+      const damage = shockBlastDamage(
+        distance, enemyContactRadius(enemy.type), weapon.damage, SHOCK_BLAST_RADIUS,
+      );
+      if (damage <= 0) continue;
+      this.impactInvader(i, damage, SHOCK_KNOCKBACK, '#ffca83');
+      // As naves que não estão em mergulho também recebem um deslocamento
+      // amortecido; a posição normal é recuperada sem salto no frame seguinte.
+      if (enemy.sprite.active && enemy.phase !== 'dive') {
+        const dx = enemy.sprite.x - x;
+        const dy = enemy.sprite.y - y;
+        const norm = Math.max(16, Math.hypot(dx, dy));
+        enemy.shockOffset.vx += dx / norm * 260;
+        enemy.shockOffset.vy += dy / norm * 260 - 55;
+      }
+    }
+
+    // Estilhaços de choque também ajudam a limpar bombas dos bombardeiros.
+    for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
+      const hostile = this.enemyBullets[i];
+      if (Math.hypot(hostile.sprite.x - x, hostile.sprite.y - y) <= SHOCK_BLAST_RADIUS + 7) {
+        this.removeEnemyBullet(i);
+      }
+    }
+
+    const blast = this.add.circle(x, y, SHOCK_BLAST_RADIUS, 0xff8a43, 0.30)
+      .setStrokeStyle(5, 0xffdfa0, 0.95)
+      .setScale(0.12)
+      .setDepth(45);
+    const core = this.add.circle(x, y, 27, 0xffe9a8, 0.87).setDepth(46);
+    this.tweens.add({
+      targets: blast,
+      scale: 1, alpha: 0, duration: 370,
+      ease: 'Cubic.easeOut',
+      onComplete: () => blast.destroy(),
+    });
+    this.tweens.add({
+      targets: core,
+      scale: 1.9, alpha: 0, duration: 220,
+      onComplete: () => core.destroy(),
+    });
+    // Feedback curto, sem sacudir excessivamente a mira do jogador.
+    this.cameras.main.shake(100, 0.0021);
+  }
+
+  updateShockShell(shot, dt) {
+    const oldX = shot.sprite.x;
+    const oldY = shot.sprite.y;
+    const aimDistance = Math.hypot(shot.aimX - oldX, shot.aimY - oldY);
+    const step = shot.weapon.speed * dt;
+    const atDestination = aimDistance <= step + 6;
+    const nextX = atDestination ? shot.aimX : oldX + shot.vx * dt;
+    const nextY = atDestination ? shot.aimY : oldY + shot.vy * dt;
+    shot.sprite.setPosition(nextX, nextY);
+
+    shot.smokeTimer += dt;
+    if (shot.smokeTimer >= 0.065) {
+      shot.smokeTimer = 0;
+      this.makeShockSmoke(nextX, nextY);
+    }
+
+    let impactX = nextX;
+    let impactY = nextY;
+    let impact = atDestination;
+    if (!impact) {
+      for (const enemy of this.enemies) {
+        if (segmentHitsCircle(
+          oldX, oldY, nextX, nextY, enemy.sprite.x, enemy.sprite.y,
+          enemyContactRadius(enemy.type) + 9,
+        )) {
+          // Se uma nave cruzar o caminho, a bomba explode no impacto real.
+          impactX = enemy.sprite.x;
+          impactY = enemy.sprite.y;
+          impact = true;
+          break;
+        }
+      }
+    }
+    if (!impact && shot.age >= 4) {
+      impact = true;
+      impactX = Phaser.Math.Clamp(nextX, 35, W - 35);
+      impactY = Phaser.Math.Clamp(nextY, 45, H - 95);
+    }
+    if (impact) this.detonateShockArtillery(impactX, impactY, shot.weapon);
+    return impact;
+  }
+
   fireTowerWeapon(tower, enemy) {
     const weapon = tower.definition;
     const fromX = tower.x;
     const fromY = tower.y - 35;
+
+    if (weapon.type === 'shell') {
+      this.fireShockArtillery(tower, enemy);
+      return;
+    }
 
     if (weapon.type === 'laser') {
       const beam = this.add.graphics().setDepth(41);
@@ -423,6 +577,13 @@ export class GameScene extends Phaser.Scene {
     for (let i = this.supportProjectiles.length - 1; i >= 0; i -= 1) {
       const shot = this.supportProjectiles[i];
       shot.age += dt;
+      if (shot.kind === 'shock-shell') {
+        if (this.updateShockShell(shot, dt)) {
+          shot.sprite.destroy();
+          this.supportProjectiles.splice(i, 1);
+        }
+        continue;
+      }
       if (shot.guided) {
         let target = this.enemies.find((enemy) => enemy.uid === shot.targetId);
         if (!target) {
