@@ -42,3 +42,46 @@ export function enemyContactRadius(type) {
   const e = enemyDefinition(type);
   return Math.max(e.width, e.height) * 0.34;
 }
+
+
+// Níveis provisórios de dificuldade: nível 1 = comportamento básico;
+// nível 2 = padrão mais agressivo, sem trocar os sprites de placeholder.
+export function enemyStats(type, level = 1) {
+  const base = enemyDefinition(type);
+  const tier = level >= 2 ? 2 : 1;
+  const advanced = tier === 2;
+  const hpBonus = { 1: 0, 2: 1, 3: 2, 4: 1, 5: 8 };
+  return {
+    ...base,
+    level: tier,
+    hp: base.hp + (advanced ? hpBonus[type] : 0),
+    speed: Math.round(base.speed * (advanced ? 1.17 : 1)),
+    shotInterval: type === 3 ? (advanced ? 1.7 : 2.4)
+      : type === 5 ? (advanced ? 2.1 : 2.8) : null,
+    spawnInterval: type === 5 ? (advanced ? 3.0 : 4.2) : null,
+    warningDuration: type === 4 ? (advanced ? 0.85 : 1.4) : null,
+  };
+}
+
+// A fileira final e o círculo coordenado são padrões independentes dos
+// atributos de HP/velocidade (possibilita balancear cada um depois).
+export function lineFormationX(index, count, width = 960, margin = 46) {
+  if (count <= 1) return width / 2;
+  return margin + (width - 2 * margin) * index / (count - 1);
+}
+
+export function orbitalFormationPosition(centerX, centerY, index, count, age) {
+  const theta = -Math.PI / 2 + index * 2 * Math.PI / count
+    + age * (2 * Math.PI / 3.4);
+  // O centro do círculo se desloca lentamente para dar vida ao esquadrão.
+  return {
+    x: centerX + Math.sin(age * 0.85) * 50 + Math.cos(theta) * 185,
+    y: centerY + Math.sin(theta) * 62,
+  };
+}
+
+// O chefe passa do movimento vertical ao passeio horizontal sem teleporte.
+export function bossCruiseX(entryX, age, amplitude = 130) {
+  const entrance = Math.min(1, Math.max(0, age) / 1.2);
+  return entryX + Math.sin(Math.max(0, age) * 0.7) * amplitude * entrance;
+}
