@@ -1,10 +1,20 @@
 import Phaser from 'phaser';
 import { SKY_LAYERS } from '../config/scenery.js';
+import {
+  restrictedAimAngle,
+  availableDefenseTargets,
+  positionOnRoute,
+  routeLength,
+  applyShieldedHit,
+} from '../gameplay/combat.js';
+import { addMenuButton } from '../ui/menuButton.js';
 
 const W = 960;
 const H = 540;
-const GROUND_Y = 505;
 const CANNON = { x: 480, y: 494 };
+const ENEMY_IMPACT_DAMAGE = 46;
+const SHIELD_REGEN_RATE = 3.5;
+const SHIELD_REGEN_DELAY = 4000;
 const BASE_FIRE_INTERVAL = 500; // GDD: 2 disparos por segundo
 const SPECIAL_COOLDOWN = 8000;
 const TUTORIAL_MIN_DURATION = 30000;
@@ -55,6 +65,11 @@ export class GameScene extends Phaser.Scene {
     this.shield = 80;
     this.shieldMax = 80;
     this.lastDamageAt = -10000;
+    this.aimAngle = -Math.PI / 2;
+    this.gameOver = false;
+    // As torres animais serão registradas aqui quando os upgrades forem implementados.
+    // Cada torre: { id, x, y, health, shield, shieldRadius }.
+    this.supportTowers = [];
 
     // Os animais e respectivos escudos surgirão conforme os upgrades.
     this.createTurret();
@@ -117,20 +132,54 @@ export class GameScene extends Phaser.Scene {
   }
 
   pauseGame() {
-    if (this.scene.isActive('PauseScene')) return;
+    if (this.tutorialComplete || this.scene.isActive('PauseScene')) return;
     // Ao pausar a cena, os timers de spawn, o jogo e os cooldowns param juntos.
     this.scene.pause();
     this.scene.launch('PauseScene');
   }
 
+  // Mesmo sem animais, todo invasor recebe um alvo: o escudo do canhão.
+  // Quando existirem torres vivas, elas também entrarão na seleção.
+  chooseDefenseTarget() {
+    const targets = availableDefenseTargets(CANNON, this.supportTowers);
+    return targets[Phaser.Math.Between(0, targets.length - 1)];
+  }
+
+  makeInvaderRoute(x, y, target) {
+    // Ponto intermediário variável dá uma curva visível em vez de descida reta.
+    const controlX = Phaser.Math.Clamp(
+      Phaser.Math.Linear(x, target.x, 0.5) + Phaser.Math.Between(-160, 160),
+      90, W - 90,
+    );
+    const controlY = Phaser.Math.Linear(y, target.y, 0.42);
+    return {
+      x0: x, y0: y,
+      x1: controlX, y1: controlY,
+      x2: target.x, y2: target.y,
+    };
+  }
+
+  assignInvaderTarget(enemy, target) {
+    enemy.target = target;
+    enemy.route = this.makeInvaderRoute(enemy.sprite.x, enemy.sprite.y, target);
+    enemy.pathLength = routeLength(enemy.route);
+    enemy.progress = 0;
+  }
+
   spawnInvader() {
     if (this.tutorialComplete) return;
     const x = Phaser.Math.Between(130, W - 130);
-    const enemy = this.add.sprite(x, -50, 'tipo1_1')
+    const enemySprite = this.add.sprite(x, -45, 'tipo1_1')
       .setDisplaySize(62, 72)
       .setDepth(18)
       .play('tipo1_voo');
-    this.enemies.push({ sprite: enemy, hp: 1, speed: Phaser.Math.Between(34, 48) });
+    const enemy = {
+      sprite: enemySprite,
+      hp: 1,
+      speed: Phaser.Math.Between(70, 90),
+    };
+    this.assignInvaderTarget(enemy, this.chooseDefenseTarget());
+    this.enemies.push(enemy);
     this.enemiesSpawned += 1;
   }
 
@@ -138,22 +187,25 @@ export class GameScene extends Phaser.Scene {
     const now = this.time.now;
     if (now - this.lastBasicFire < BASE_FIRE_INTERVAL || this.tutorialComplete) return;
     this.lastBasicFire = now;
-    this.createProjectile(pointer.x, pointer.y, false);
+    const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
+    this.createProjectile(angle, false);
   }
 
   shootSpecial(pointer) {
     const now = this.time.now;
     if (now - this.lastSpecialFire < SPECIAL_COOLDOWN || this.tutorialComplete) return;
     this.lastSpecialFire = now;
-    this.createProjectile(pointer.x, pointer.y, true);
+    const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
+    // A bomba detona em um ponto do mesmo arco para onde o canhão realmente aponta.
+    const distance = Phaser.Math.Clamp(
+      Math.hypot(pointer.x - CANNON.x, pointer.y - CANNON.y), 140, 580,
+    );
+    this.createProjectile(angle, true, distance);
   }
 
-  createProjectile(tx, ty, special) {
-    const dx = tx - CANNON.x;
-    const dy = ty - CANNON.y;
-    const len = Math.max(1, Math.hypot(dx, dy));
-    const vx = dx / len;
-    const vy = dy / len;
+  createProjectile(angle, special, distance = 0) {
+    const vx = Math.cos(angle);
+    const vy = Math.sin(angle);
     const dot = this.add.circle(CANNON.x + vx * 29, CANNON.y + vy * 29,
       special ? 8 : 4, special ? 0x72eaf8 : 0xffe29b)
       .setDepth(35);
@@ -162,8 +214,8 @@ export class GameScene extends Phaser.Scene {
       vx: vx * (special ? 300 : 480),
       vy: vy * (special ? 300 : 480),
       special,
-      tx,
-      ty,
+      tx: special ? CANNON.x + vx * distance : null,
+      ty: special ? CANNON.y + vy * distance : null,
     });
   }
 
@@ -201,10 +253,52 @@ export class GameScene extends Phaser.Scene {
 
   damageCannon(amount) {
     this.lastDamageAt = this.time.now;
-    const remaining = Math.max(0, amount - this.shield);
-    this.shield = Math.max(0, this.shield - amount);
-    if (remaining > 0) this.cannonHealth = Math.max(0, this.cannonHealth - remaining);
-    if (this.cannonHealth === 0) this.finishTutorial('Canhão destruído! Pressione R para reiniciar.');
+    const result = applyShieldedHit(this.shield, this.cannonHealth, amount);
+    this.shield = result.shield;
+    this.cannonHealth = result.health;
+    if (this.cannonHealth === 0) this.showDefeat();
+  }
+
+  damageTarget(target, amount) {
+    if (target.kind === 'tower' && target.tower?.health > 0) {
+      const tower = target.tower;
+      const result = applyShieldedHit(tower.shield ?? 0, tower.health, amount);
+      tower.shield = result.shield;
+      tower.health = result.health;
+      if (tower.health === 0 && tower.sprite) tower.sprite.setTint(0x545966);
+      return;
+    }
+    this.damageCannon(amount);
+  }
+
+  showDefeat() {
+    if (this.tutorialComplete) return;
+    this.tutorialComplete = true;
+    this.gameOver = true;
+    this.statusText.setText('CANHÃO DESTRUÍDO');
+    this.healthText.setText('CANHÃO 0 | ESCUDO 0 | DEFESA PERDIDA');
+    this.tutorialText.setText('');
+
+    this.add.rectangle(W / 2, H / 2, W, H, 0x030714, 0.78)
+      .setDepth(120).setInteractive();
+    this.add.rectangle(W / 2, H / 2, 470, 320, 0x0a1930, 0.98)
+      .setStrokeStyle(2, 0xe16c66).setDepth(121);
+    this.add.text(W / 2, 174, 'DERROTA', {
+      fontFamily: 'monospace', fontSize: '42px',
+      color: '#ff9c8f', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(122);
+    this.add.text(W / 2, 221, 'O CANHÃO FOI DESTRUÍDO!', {
+      fontFamily: 'monospace', fontSize: '17px', color: '#ecf3ff',
+    }).setOrigin(0.5).setDepth(122);
+
+    addMenuButton(this, {
+      x: W / 2, y: 293, text: '↻  TENTAR NOVAMENTE',
+      onClick: () => this.scene.restart(), primary: true, depth: 124,
+    });
+    addMenuButton(this, {
+      x: W / 2, y: 362, text: '⌂  MENU PRINCIPAL',
+      onClick: () => this.scene.start('MenuScene'), depth: 124,
+    });
   }
 
   drawShield() {
@@ -223,7 +317,7 @@ export class GameScene extends Phaser.Scene {
     if (this.tutorialComplete) return;
     this.tutorialComplete = true;
     this.tutorialText.setText(message);
-    this.statusText.setText('TUTORIAL ENCERRADO');
+    this.statusText.setText('ONDA 0 CONCLUÍDA');
   }
 
   update(_time, delta) {
@@ -231,7 +325,8 @@ export class GameScene extends Phaser.Scene {
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += delta;
     const pointer = this.input.activePointer;
-    this.barrel.rotation = Phaser.Math.Angle.Between(CANNON.x, CANNON.y, pointer.x, pointer.y) + Math.PI / 2;
+    this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
+    this.barrel.rotation = this.aimAngle + Math.PI / 2;
     if (pointer.leftButtonDown()) this.shootBasic(pointer);
 
     if (this.elapsed < 6500) {
@@ -244,11 +339,21 @@ export class GameScene extends Phaser.Scene {
 
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
-      enemy.sprite.y += enemy.speed * dt;
-      if (enemy.sprite.y >= GROUND_Y - 9) {
+      if (enemy.target.kind === 'tower' && enemy.target.tower?.health <= 0) {
+        // Se a torre foi destruída durante o voo, redireciona para o canhão.
+        const cannonTarget = availableDefenseTargets(CANNON, this.supportTowers)[0];
+        this.assignInvaderTarget(enemy, cannonTarget);
+      }
+
+      enemy.progress = Math.min(1, enemy.progress + enemy.speed * dt / enemy.pathLength);
+      const position = positionOnRoute(enemy.route, enemy.progress);
+      enemy.sprite.setPosition(position.x, position.y);
+
+      if (enemy.progress >= 1) {
         enemy.sprite.destroy();
         this.enemies.splice(i, 1);
-        this.damageCannon(20);
+        this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE);
+        if (this.gameOver) return;
       }
     }
 
@@ -257,8 +362,12 @@ export class GameScene extends Phaser.Scene {
       bullet.sprite.x += bullet.vx * dt;
       bullet.sprite.y += bullet.vy * dt;
       let remove = false;
-      if (bullet.special && Phaser.Math.Distance.Between(bullet.sprite.x, bullet.sprite.y, bullet.tx, bullet.ty) < 12) {
-        this.explode(bullet.sprite.x, bullet.sprite.y);
+      if (bullet.special && Phaser.Math.Distance.Between(
+        bullet.sprite.x, bullet.sprite.y, bullet.tx, bullet.ty,
+      ) <= 300 * dt + 6) {
+        // Não ultrapassa o ponto da explosão entre dois frames.
+        bullet.sprite.setPosition(bullet.tx, bullet.ty);
+        this.explode(bullet.tx, bullet.ty);
         remove = true;
       }
       if (!remove) {
@@ -281,8 +390,8 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    if (this.time.now - this.lastDamageAt > 2600 && this.shield < this.shieldMax) {
-      this.shield = Math.min(this.shieldMax, this.shield + 11 * dt);
+    if (this.time.now - this.lastDamageAt > SHIELD_REGEN_DELAY && this.shield < this.shieldMax) {
+      this.shield = Math.min(this.shieldMax, this.shield + SHIELD_REGEN_RATE * dt);
     }
     this.drawShield();
     const remainingCooldown = Math.max(0, (this.lastSpecialFire + SPECIAL_COOLDOWN - this.time.now) / 1000);
