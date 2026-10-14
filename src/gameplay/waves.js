@@ -5,7 +5,7 @@ const wave0Times = [600, 2400, 4400, 6300, 9500, 12200, 15300, 18600, 22000, 250
 
 export const MODES = {
   wave0: { title: 'ONDA 0', minDuration: 30000 },
-  wave1: { title: 'ONDA 1', minDuration: 34000 },
+  wave1: { title: 'ONDA 1', minDuration: 39500 },
   lab: { title: 'TESTE DE INIMIGOS', minDuration: 36000 },
   upgradeLab: { title: 'LAB DE UPGRADES', minDuration: Infinity },
 };
@@ -17,15 +17,19 @@ export function getWaveEvents(mode) {
     return wave0Times.map((at, index) => ({ at, type: 1, index }));
   }
   if (mode === 'wave1') {
-    const events = Array.from({ length: 12 }, (_, index) => ({
-      at: 850 + index * 2300, type: 1, index,
+    // A primeira onda real pressiona continuamente em vez de enviar
+    // um alvo fácil a cada vários segundos. Escala de intensidade gradual:
+    // básicos -> duas formações -> círculo avançado -> frente final.
+    const events = Array.from({ length: 18 }, (_, index) => ({
+      at: 950 + index * 1510,
+      type: 1,
+      level: index >= 12 && index % 3 === 0 ? 2 : 1,
+      index,
     }));
-    // Prévia do Tipo 2: um esquadrão de cada vez entra em formação e mergulha.
-    events.push({ at: 9000, type: 2, group: true });
-    events.push({ at: 23500, type: 2, group: true });
-    // O encerramento agora é um ataque de saturação: uma fileira atravessa
-    // praticamente toda a largura do céu.
-    events.push({ at: 31000, type: 1, level: 2, pattern: 'line', count: 10 });
+    events.push({ at: 8400, type: 2, group: true });
+    events.push({ at: 17200, type: 2, group: true, level: 2 });
+    events.push({ at: 24500, type: 2, level: 2, pattern: 'orbit', count: 10 });
+    events.push({ at: 34000, type: 1, level: 2, pattern: 'line', count: 10 });
     return events.sort((a, b) => a.at - b.at);
   }
   if (mode === 'lab') {
