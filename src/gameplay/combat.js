@@ -53,3 +53,24 @@ export function applyShieldedHit(shield, health, amount) {
     health: Math.max(0, health - (amount - absorbed)),
   };
 }
+
+
+// Recuo físico para o upgrade russo: o impacto adiciona velocidade contrária,
+// e essa velocidade se dissipa ao longo de vários frames. Não altera a posição
+// instantaneamente, evitando o efeito visual de teleporte para trás.
+export function applyRecoilImpulse(currentRecoil, knockbackFactor) {
+  const impulse = Math.max(0, knockbackFactor) * 2400;
+  return Math.min(400, Math.max(0, currentRecoil) + impulse);
+}
+
+export function advanceRouteWithRecoil(progress, speed, recoilSpeed, pathLength, deltaSeconds) {
+  const dt = Math.max(0, deltaSeconds);
+  const remainingRecoil = Math.max(0, recoilSpeed) * Math.exp(-6 * dt);
+  const averageRecoil = (Math.max(0, recoilSpeed) + remainingRecoil) / 2;
+  return {
+    progress: Math.max(0, Math.min(1,
+      progress + (speed - averageRecoil) * dt / Math.max(1, pathLength),
+    )),
+    recoilSpeed: remainingRecoil < 0.5 ? 0 : remainingRecoil,
+  };
+}
