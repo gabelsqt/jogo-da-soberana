@@ -1842,14 +1842,21 @@ export class GameScene extends Phaser.Scene {
         (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/3'
         : this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
       const towerLabel = this.supportTowers.map((tower) => tower.definition.label).join(' + ');
+      const levelTwo = unlockedSecondUpgrades(this.campaign)
+        .map((id) => id.toUpperCase()).join(' + ');
       this.tutorialText.setText(
         'ALIADOS: ' + (history || 'NENHUM') +
+        (levelTwo ? ' | N2: ' + levelTwo : '') +
         (towerLabel ? ' | TORRE: ' + towerLabel : '') + special,
       );
     } else if (this.mode === 'upgradeLab') {
       this.tutorialText.setText('1–5: GERAR   SHIFT+1–5: NÍVEL 2   C: LIMPAR   U: UPGRADES');
       const names = this.upgradeIds.map((id) => getFirstUpgrade(id)?.flag).filter(Boolean);
-      this.labUpgradeLabel.setText('MELHORIAS: ' + (names.length ? names.join(' + ') : 'NENHUMA'));
+      const secondNames = this.labSecondIds.map((id) => id.toUpperCase()).join('+');
+      this.labUpgradeLabel.setText(
+        'MELHORIAS: ' + (names.length ? names.join(' + ') : 'NENHUMA') +
+        (secondNames ? '  |  NÍVEL 2: ' + secondNames : ''),
+      );
       const stats = this.combat;
       this.labStatsLabel.setText(
         'TIROS ' + (1000 / stats.basicInterval).toFixed(1) + '/s' +
