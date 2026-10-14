@@ -328,6 +328,14 @@ export class GameScene extends Phaser.Scene {
         color: '#f4faff', fontStyle: 'bold',
         backgroundColor: '#142438dd', padding: { x: 3, y: 2 },
       }).setOrigin(0.5);
+      if (id === 'ru') {
+        // O Urso ainda é um placeholder, mas ganha silhueta de artilharia pesada.
+        const barrel = this.add.rectangle(0, -26, 17, 48, 0x768390)
+          .setStrokeStyle(2, 0xffd7a5);
+        const muzzle = this.add.rectangle(0, -53, 27, 11, 0xc2a487)
+          .setStrokeStyle(2, 0xffe8c2);
+        sprite.add([barrel, muzzle]);
+      }
       sprite.add([base, hull, visor, glyph, name]);
 
       this.supportTowers.push({
@@ -393,7 +401,6 @@ export class GameScene extends Phaser.Scene {
 
     const shell = this.add.circle(fromX, fromY, 9, 0xff9b49)
       .setStrokeStyle(3, 0xffe6a7).setDepth(42);
-    this.add.circle(fromX, fromY, 17, 0xffdf89, 0.9).setDepth(43);
     const muzzle = this.add.circle(fromX, fromY, 20, 0xffbe71, 0.7).setDepth(44);
     this.tweens.add({
       targets: muzzle, scale: 2, alpha: 0, duration: 150,
