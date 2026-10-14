@@ -179,22 +179,25 @@ export class GameScene extends Phaser.Scene {
       this.time.delayedCall(1, () => this.openUpgradeLab());
     }
     if (this.mode === 'upgradeLab' || this.mode === 'lab') {
-      for (let type = 1; type <= 5; type += 1) {
-        this.input.keyboard.on('keydown-' + type, (event) => {
-          if (!this.scene.isActive('GameScene') || this.tutorialComplete) return;
-          const level = event.shiftKey ? 2 : 1;
-          this.spawnWaveEvent({
-            type, level,
-            group: type === 2 && level === 1,
-            pattern: level === 2 && type === 1 ? 'line'
-              : level === 2 && type === 2 ? 'orbit' : undefined,
-            count: 10,
-          });
-          if (level === 2 && type >= 3) {
-            this.showAttackWarning('TIPO ' + type + ' • NÍVEL 2');
-          }
+      this.input.keyboard.on('keydown', (event) => {
+        if (!this.scene.isActive('GameScene') || this.tutorialComplete) return;
+        // Event.code identifica a tecla física mesmo com Shift pressionado,
+        // quando event.key vira !, @, #, etc.
+        const match = /^(?:Digit|Numpad)([1-5])$/.exec(event.code || '');
+        if (!match) return;
+        const type = Number(match[1]);
+        const level = event.shiftKey ? 2 : 1;
+        this.spawnWaveEvent({
+          type, level,
+          group: type === 2 && level === 1,
+          pattern: level === 2 && type === 1 ? 'line'
+            : level === 2 && type === 2 ? 'orbit' : undefined,
+          count: 10,
         });
-      }
+        if (level === 2 && type >= 3) {
+          this.showAttackWarning('TIPO ' + type + ' • NÍVEL 2');
+        }
+      });
       this.input.keyboard.on('keydown-C', () => {
         if (this.scene.isActive('GameScene')) this.clearTestEnemies();
       });
