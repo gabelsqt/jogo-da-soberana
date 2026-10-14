@@ -2,7 +2,7 @@
 
 Protótipo do jogo de defesa antiaérea em pixel art ambientado no Rio de Janeiro. Inspirado por **Missile Command** e **Utopia Must Fall**.
 
-> Estado: **protótipo 0.1** (implementação inicial da Onda 0). Ainda não inclui o sistema de cinco países, os 50 upgrades ou a Onda 11.
+> Estado: **protótipo 0.2** (menu principal, pausa e demonstração inicial da Onda 0). Ainda não inclui o sistema de cinco países, os 50 upgrades ou a Onda 11.
 
 ## Executar localmente
 
@@ -26,10 +26,15 @@ Para o itch.io, compacte **o conteúdo da pasta `dist/`** (não a pasta em si) e
 - **Mouse:** mira.
 - **Botão esquerdo pressionado:** dispara continuamente (2 tiros por segundo).
 - **Botão direito:** bomba de pulso básica (recarga de 8 segundos).
+- **Esc ou P:** abre/fecha o menu de pausa (também há um botão no topo da tela).
 - **R:** reinicia a demonstração.
+- **Enter (menu principal):** começa a jogar.
 
 ## Protótipo atual
 
+- Menu inicial com botão **Começar** e resumo dos controles.
+- Menu de pausa com **Continuar**, **Reiniciar Onda** e **Menu principal**.
+- Pausar congela o relógio da onda, o movimento, os spawns e a recarga do tiro especial.
 - Camadas do cenário noturno carioca.
 - Canhão central desenhado provisoriamente com formas geométricas.
 - Invasor alienígena Tipo 1 com quatro quadros de animação.
@@ -48,8 +53,13 @@ jogo-da-soberana/
 │       ├── cenario/              # camadas PNG do Rio
 │       └── inimigos/tipo1/       # frames PNG da nave Tipo 1
 └── src/
-    ├── main.js                  # Phaser e configuração inicial
-    └── scenes/GameScene.js      # demonstração da Onda 0
+    ├── main.js                  # Phaser e registro de cenas
+    ├── config/scenery.js       # configurações do cenário do Rio
+    ├── ui/menuButton.js        # botões compartilhados
+    └── scenes/                  # menu, Onda 0 e pausa
+        ├── MenuScene.js
+        ├── GameScene.js
+        └── PauseScene.js
 ```
 
 ## Design e material visual
@@ -68,4 +78,4 @@ As imagens originais e a versão aprovada do inimigo Tipo 1 estão no Drive: **J
 
 ## Publicação
 
-Repositório sugerido: `jogo-da-soberana`. Crie inicialmente como **privado** no GitHub; depois podemos publicar quando estiver pronto.
+Repositório: [gabelsqt/jogo-da-soberana](https://github.com/gabelsqt/jogo-da-soberana), atualmente privado.
