@@ -129,6 +129,7 @@ export class GameScene extends Phaser.Scene {
 
     this.createTurret();
     this.shieldGraphics = this.add.graphics().setDepth(23);
+    this.enemyHealthGraphics = this.add.graphics().setDepth(27);
     this.createHud();
     this.drawShield();
 
@@ -148,7 +149,8 @@ export class GameScene extends Phaser.Scene {
     });
 
     if (this.mode === 'upgradeLab') {
-      // Alvos de treino regulares e geração manual dos cinco tipos.
+      // Alvos de treino misturam resistentes e frágeis: dano, perfuração e
+      // cadência passam a ter comparações perceptíveis no mesmo cenário.
       this.time.addEvent({
         delay: 2700,
         loop: true,
@@ -156,20 +158,46 @@ export class GameScene extends Phaser.Scene {
           if (!this.tutorialComplete && this.enemies.length < 10) this.spawnEnemy(1);
         },
       });
-      for (let type = 1; type <= 5; type += 1) {
-        this.input.keyboard.on('keydown-' + type, () => {
-          if (!this.scene.isActive('GameScene') || this.tutorialComplete) return;
-          this.spawnWaveEvent({ type, group: type === 2 });
-        });
-      }
+      this.time.addEvent({
+        delay: 6700,
+        loop: true,
+        callback: () => {
+          if (!this.tutorialComplete && this.enemies.length < 12) this.spawnEnemy(2);
+        },
+      });
+      this.time.addEvent({
+        delay: 12500,
+        loop: true,
+        callback: () => {
+          if (!this.tutorialComplete && this.enemies.length < 12) this.spawnEnemy(3);
+        },
+      });
       this.input.keyboard.on('keydown-U', () => {
         if (this.scene.isActive('GameScene')) this.openUpgradeLab();
       });
+      // Exibe a seleção logo ao entrar; ela pode ser reaberta com U.
+      this.time.delayedCall(1, () => this.openUpgradeLab());
+    }
+    if (this.mode === 'upgradeLab' || this.mode === 'lab') {
+      for (let type = 1; type <= 5; type += 1) {
+        this.input.keyboard.on('keydown-' + type, (event) => {
+          if (!this.scene.isActive('GameScene') || this.tutorialComplete) return;
+          const level = event.shiftKey ? 2 : 1;
+          this.spawnWaveEvent({
+            type, level,
+            group: type === 2 && level === 1,
+            pattern: level === 2 && type === 1 ? 'line'
+              : level === 2 && type === 2 ? 'orbit' : undefined,
+            count: 10,
+          });
+          if (level === 2 && type >= 3) {
+            this.showAttackWarning('TIPO ' + type + ' • NÍVEL 2');
+          }
+        });
+      }
       this.input.keyboard.on('keydown-C', () => {
         if (this.scene.isActive('GameScene')) this.clearTestEnemies();
       });
-      // Exibe a seleção logo ao entrar; ela pode ser reaberta com U.
-      this.time.delayedCall(1, () => this.openUpgradeLab());
     }
   }
 
@@ -198,6 +226,10 @@ export class GameScene extends Phaser.Scene {
     if (this.mode === 'upgradeLab') {
       this.labUpgradeLabel = this.add.text(14, 98, '', {
         ...font, fontSize: '13px', color: '#a5ffe7',
+        backgroundColor: '#0b1a2bcc', padding: { x: 7, y: 3 },
+      }).setDepth(102);
+      this.labStatsLabel = this.add.text(14, 124, '', {
+        ...font, fontSize: '12px', color: '#f9dcab',
         backgroundColor: '#0b1a2bcc', padding: { x: 7, y: 3 },
       }).setDepth(102);
       const labButton = this.add.rectangle(859, 69, 174, 33, 0x174c55, 0.98)
@@ -785,8 +817,8 @@ export class GameScene extends Phaser.Scene {
 
   damageCannon(amount) {
     this.lastDamageAt = this.time.now;
-    if (this.mode === 'upgradeLab') {
-      // Laboratório: escudo ainda pode sofrer dano, mas o teste não termina.
+    if (this.mode === 'upgradeLab' || this.mode === 'lab') {
+      // Laboratórios: escudo ainda pode sofrer dano, mas o teste não termina.
       this.shield = Math.max(0, this.shield - amount);
       this.cannonHealth = 100;
       return;
@@ -919,11 +951,19 @@ export class GameScene extends Phaser.Scene {
         'UPGRADE: ' + (upgrade?.title ?? 'NENHUM') + '  |  DEFENDA A CIDADE',
       );
     } else if (this.mode === 'upgradeLab') {
-      this.tutorialText.setText('1–5: GERAR INIMIGOS   C: LIMPAR   U: MELHORIAS');
+      this.tutorialText.setText('1–5: GERAR   SHIFT+1–5: NÍVEL 2   C: LIMPAR   U: UPGRADES');
       const names = this.upgradeIds.map((id) => getFirstUpgrade(id)?.flag).filter(Boolean);
-      this.labUpgradeLabel.setText('MELHORIAS ATIVAS: ' + (names.length ? names.join(' + ') : 'NENHUMA'));
+      this.labUpgradeLabel.setText('MELHORIAS: ' + (names.length ? names.join(' + ') : 'NENHUMA'));
+      const stats = this.combat;
+      this.labStatsLabel.setText(
+        'DISPAROS ' + (1000 / stats.basicInterval).toFixed(1) + '/s' +
+        '  |  DANO ' + stats.basicDamage.toFixed(2) +
+        '  |  VELOC. ' + stats.basicSpeed +
+        '  |  PERF. ' + stats.pierce +
+        '  |  PROJ. ' + stats.bulletsPerShot,
+      );
     } else {
-      this.tutorialText.setText('TESTE: 2 FORMAÇÃO · 3 BOMBAS · 4 LASER · 5 NAVE-MÃE');
+      this.tutorialText.setText('TESTE: 1–5 TIPOS   SHIFT+1–5: NÍVEL 2   C: LIMPAR');
     }
   }
 
@@ -945,6 +985,7 @@ export class GameScene extends Phaser.Scene {
     if (this.gameOver) return;
     this.updatePlayerProjectiles(dt);
     this.updateBlasts();
+    this.drawEnemyHealthBars();
 
     if (this.time.now - this.lastDamageAt > SHIELD_REGEN_DELAY && this.shield < this.shieldMax) {
       this.shield = Math.min(this.shieldMax, this.shield + SHIELD_REGEN_RATE * dt);
