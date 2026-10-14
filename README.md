@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.6** — Onda 0, primeira seleção de aliados, Onda 1, laboratório de inimigos Tipos 1–5 e laboratório livre de upgrades. Ainda **não** implementa as ondas 2–11, os upgrades de nível 2–10, as torres dos animais nem a traição final.
+> **Protótipo 0.7** — upgrades com efeitos visuais e medidores, dois níveis de dificuldade dos cinco tipos, fileira final na Onda 1 e esquadrão circular de dez inimigos Tipo 2. Ainda **não** implementa as ondas 2–11, os upgrades de nível 2–10, as torres dos animais nem a traição final.
 
 ## Jogar no computador (PowerShell)
 
@@ -31,7 +31,7 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 1. Menu inicial → **Começar**.
 2. **Onda 0:** dez invasores Tipo 1, tutorial de no mínimo 30 segundos; é possível perder se ignorá-los.
 3. Após concluir a Onda 0, aparecem cinco cartões para escolher **um upgrade inicial**.
-4. **Onda 1:** começa do zero com o upgrade escolhido, invasores básicos e duas prévias de esquadrões Tipo 2.
+4. **Onda 1:** começa do zero com o upgrade escolhido, invasores básicos, dois esquadrões Tipo 2 e uma **fileira final de dez OVNIs Tipo 1**, ocupando a largura do céu.
 5. Ao vencer, surge o painel de conclusão com acesso ao **laboratório de inimigos** ou ao menu.
 6. **Testar inimigos**, disponível também no menu inicial, apresenta os Tipos 2–5 sem fingir que as ondas seguintes estão completas.
 7. **Testar upgrades** abre um laboratório independente, sem ondas nem derrota: ative/desative livremente as cinco primeiras melhorias e experimente combinações.
@@ -55,9 +55,12 @@ No menu inicial, clique em **TESTAR UPGRADES [U]**. O jogo abre um campo de test
 - Clique em qualquer cartão ou use **1–5** para alternar cada melhoria entre ativa e desativada. É possível deixar várias ativas e testar combinações.
 - Clique em **ZERAR MELHORIAS [0]** para voltar ao canhão padrão.
 - Clique em **VOLTAR AO CAMPO [U]**, pressione **U** ou **Esc** para retornar ao combate com a configuração escolhida.
-- No campo, pressione **1–5** para gerar os inimigos Tipos 1–5 (2 gera um esquadrão de formação); **C** limpa os inimigos e projéteis; **U** reabre o painel.
+- No campo, pressione **1–5** para gerar os inimigos Tipos 1–5 (2 gera um trio); **Shift+1** gera uma fileira de dez Tipo 1; **Shift+2** gera **dez Tipo 2 circulando em órbita antes de parar e mergulhar**; **Shift+3/4/5** gera as variantes de nível 2. **C** limpa os inimigos e projéteis; **U** reabre o painel.
+- Há **barras de vida** nos inimigos resistentes e **números flutuantes de dano** ao acertar. Cada melhoria dá uma cor/formato diferente aos projéteis; o Japão aumenta também a velocidade real da munição.
+- O painel e o HUD exibem **tiros por segundo, dano, velocidade de projétil, perfuração e quantidade de tiros**, para comparar combinações de forma objetiva.
+- Além dos invasores básicos automáticos, surgem alvos resistentes (Tipos 2 e 3) para testar o benefício de dano elevado e perfuração.
 - Um invasor Tipo 1 aparece automaticamente a cada 2,7 segundos, desde que haja menos de dez em campo.
-- O canhão é indestrutível apenas neste laboratório, para não interromper os testes. A regeneração do escudo continua visível.
+- O canhão é indestrutível nos dois laboratórios para não interromper os testes. A regeneração do escudo continua visível.
 - **R** reinicia o campo de teste mantendo a combinação de melhorias.
 
 Esse modo é **separado da campanha**: não consome escolhas, não habilita níveis futuros e não altera a progressão da Onda 0 / Onda 1.
@@ -65,12 +68,17 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 ## Inimigos
 
 - **Tipo 1 — Invasor Básico:** sprite animado, 1 HP, trajetória curva para o escudo do canhão.
-- **Tipo 2 — Esquadrão de Formação:** **quadrados roxos** com 2 HP que se agrupam antes de mergulhar.
+- **Tipo 2 — Esquadrão de Formação:** **quadrados roxos**. Nível 1: trio que se posiciona antes de mergulhar. Nível 2: **dez naves giram em círculo**, param numa linha, sinalizam o ataque e depois mergulham.
 - **Tipo 3 — Bombardeiro:** **quadrado amarelo/laranja** com 6 HP; paira e atira projéteis interceptáveis (2 HP), depois mergulha.
 - **Tipo 4 — Caça Relâmpago:** **quadrado rosa/vermelho** com 4 HP; cruza a tela rapidamente, faz mergulhos e prepara um laser sinalizado.
-- **Tipo 5 — Nave-Mãe:** **quadrado ciano** grande com 24 HP; paira, dispara projéteis e gera invasores Tipo 1.
+- **Tipo 5 — Nave-Mãe:** **quadrado ciano** grande com 24 HP no nível 1; paira, dispara projéteis e gera invasores Tipo 1. A transição da descida para o voo lateral agora é suave, sem o salto horizontal; no nível 2, possui mais vida e ataques mais frequentes.
 
-**Aparência dos Tipos 2–5 é provisória:** quadrados com o número do tipo. Ainda não são sprites finais; o comportamento e o balanceamento também poderão mudar.
+**Aparência dos Tipos 2–5 é provisória:** quadrados com o número do tipo. O contorno dourado e o sufixo `II` indicam dificuldade 2. O Tipo 1 de nível 2 é levemente dourado e mais rápido. Os níveis 2 dos Tipos 3 e 4 também possuem mais vida, velocidade e, respectivamente, maior frequência de disparos e preparação mais curta para o laser. O balanceamento ainda pode mudar.
+
+### Padrões avançados
+- **Onda 1:** último evento é a fileira de dez Tipo 1, entrando simultaneamente de toda a largura da tela.
+- **Teste de inimigos:** surge automaticamente um grupo de dez Tipo 2 em órbita no final da sequência; também pode gerá-lo sob demanda.
+- **Níveis 1 e 2 de todos os tipos:** selecionáveis nos laboratórios com teclas numéricas normais ou com Shift.
 
 ## Controles
 
@@ -83,7 +91,7 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - **T:** entrar no laboratório de inimigos pelo menu.
 - **U (no menu):** entrar no laboratório de upgrades.
 - **U (no laboratório de upgrades):** abrir/fechar o painel para alterar melhorias instantaneamente.
-- **1–5 (laboratório em combate):** gerar inimigos específicos; **C** limpa o campo.
+- **1–5 (qualquer laboratório em combate):** gerar inimigos de nível 1; **Shift+1–5** gera nível 2 (Shift+1 = fileira; Shift+2 = círculo com dez naves); **C** limpa o campo.
 - **1–5 (painel do laboratório):** ativar ou desativar os cinco upgrades disponíveis; **0** zera.
 - **Clique nos cartões:** escolher aliado após a Onda 0.
 
@@ -95,10 +103,10 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - `src/scenes/UpgradeLabScene.js` — painel de upgrades acumuláveis e substituíveis em campo de teste.
 - `src/scenes/PauseScene.js` — pausa, reinício e menu.
 - `src/gameplay/upgrades.js` — primeiros efeitos reais das melhorias.
-- `src/gameplay/enemies.js` — definições dos cinco tipos.
+- `src/gameplay/enemies.js` — definições dos cinco tipos, níveis de dificuldade, matemática do círculo, fileira e movimento suave da Nave-Mãe.
 - `src/gameplay/waves.js` — agenda de entradas e término dos modos.
 - `src/gameplay/combat.js` e `src/gameplay/specialBlast.js` — regras matemáticas de mira, dano e explosão persistente.
-- `tests/` — testes automatizados das regras.
+- `tests/` — testes automatizados das regras, incluindo padrões, dificuldade, continuidade da Nave-Mãe e diferenças de upgrades.
 - `.github/workflows/checks.yml` — testes e build automáticos no GitHub.
 
 ## Documento de design
