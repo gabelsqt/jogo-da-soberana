@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.8** — contagem regressiva 3–2–1, Onda 1 mais desafiadora e recuo russo suave, mantendo os upgrades iniciais já disponíveis. Ainda **não** implementa as ondas 2–11, os upgrades de nível 2–10, as torres dos animais nem a traição final.
+> **Protótipo 0.9** — Japão e EUA ganharam habilidades distintas: Katana de Plasma (a cada 3 disparos) e Munição de Fragmentação (dano de área ao acertar). Mantém a contagem 3–2–1 e as demais melhorias. Ainda **não** implementa as ondas 2–11, os upgrades de nível 2–10, as torres dos animais nem a traição final.
 
 ## Jogar no computador (PowerShell)
 
@@ -41,8 +41,8 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 | País | Upgrade | Efeito no protótipo |
 | --- | --- | --- |
 | Brasil | Gambiarra Balística | +25% de cadência (500 ms → 400 ms) |
-| EUA | Balas da Liberdade | Dano básico duplicado |
-| Japão | Protocolo Otaku | Tiros mais rápidos, perfuram até dois alvos |
+| EUA | Munição de Fragmentação | Cada projétil que acerta um inimigo provoca uma explosão de raio 78 px, causando 1,5 de dano aos outros inimigos próximos e destruindo projéteis hostis na área |
+| Japão | Katana de Plasma | A cada três disparos básicos, solta um feixe de energia na direção da mira, atravessando todos os inimigos alinhados e causando 3 de dano a cada um |
 | Rússia | Camarada Canhão | +75% de dano, aplica **recuo gradual** aos inimigos em mergulho (em vez de saltar a posição) |
 | China | AliExplode — Frete Grátis | Dois projéteis simultâneos com pequena dispersão |
 
@@ -56,8 +56,8 @@ No menu inicial, clique em **TESTAR UPGRADES [U]**. O jogo abre um campo de test
 - Clique em **ZERAR MELHORIAS [0]** para voltar ao canhão padrão.
 - Clique em **VOLTAR AO CAMPO [U]**, pressione **U** ou **Esc** para retornar ao combate com a configuração escolhida.
 - No campo, pressione **1–5** para gerar os inimigos Tipos 1–5 (2 gera um trio); **Shift+1** gera uma fileira de dez Tipo 1; **Shift+2** gera **dez Tipo 2 circulando em órbita antes de parar e mergulhar**; **Shift+3/4/5** gera as variantes de nível 2. **C** limpa os inimigos e projéteis; **U** reabre o painel.
-- Há **barras de vida** nos inimigos resistentes e **números flutuantes de dano** ao acertar. Cada melhoria dá uma cor/formato diferente aos projéteis; o Japão aumenta também a velocidade real da munição.
-- O painel e o HUD exibem **tiros por segundo, dano, velocidade de projétil, perfuração e quantidade de tiros**, para comparar combinações de forma objetiva.
+- Há **barras de vida** nos inimigos resistentes e **números flutuantes de dano** ao acertar. As melhorias têm cores de disparo próprias; o Japão solta uma lâmina violeta de plasma a cada três tiros básicos e os EUA produzem uma explosão azul de fragmentação ao atingir naves.
+- O painel e o HUD mostram **tiros por segundo, dano, quantidade de projéteis e presença de fragmentação e Katana**. Na campanha com Japão, o HUD apresenta o contador de tiros até a próxima Katana.
 - Além dos invasores básicos automáticos, surgem alvos resistentes (Tipos 2 e 3) para testar o benefício de dano elevado e perfuração.
 - Um invasor Tipo 1 aparece automaticamente a cada 2,7 segundos, desde que haja menos de dez em campo.
 - O canhão é indestrutível nos dois laboratórios para não interromper os testes. A regeneração do escudo continua visível.
@@ -108,6 +108,7 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - `src/gameplay/enemies.js` — definições dos cinco tipos, níveis de dificuldade, matemática do círculo, fileira e movimento suave da Nave-Mãe.
 - `src/gameplay/waves.js` — agenda de entradas e término dos modos.
 - `src/gameplay/combat.js` e `src/gameplay/specialBlast.js` — regras matemáticas de mira, dano e explosão persistente.
+- `src/gameplay/weaponEffects.js` — intervalos, alinhamento de laser e alcance da Fragmentação.
 - `tests/` — testes automatizados das regras, incluindo padrões, dificuldade, continuidade da Nave-Mãe e diferenças de upgrades.
 - `.github/workflows/checks.yml` — testes e build automáticos no GitHub.
 
