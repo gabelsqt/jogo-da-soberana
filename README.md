@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.13** — cinco **upgrades de nível 2** jogáveis e sem novas torres; a primeira torre agora pertence ao **nível 3** de cada país, e a segunda permanece planejada para o **nível 7**. A campanha continua jogável até a Onda 2. Para testar as torres mecanizadas, use o laboratório. Ainda não há Ondas 3–11, segunda torre, sprites finais nem reviravolta.
+> **Protótipo 0.14** — ajustes de playtest dos cinco upgrades de nível 2: escudos brasileiros maiores e choque com recarga, Dano Colateral ampliado, Corte Residual como fenda de vácuo turquesa duradoura, impacto russo mais expressivo e três tiros chineses em todas as rajadas. A primeira torre segue no **nível 3** (somente laboratório até a Onda 3 existir); a segunda permanece prevista para o **nível 7**. A campanha ainda termina na Onda 2.
 
 ## Jogar no computador (PowerShell)
 
@@ -49,17 +49,17 @@ Para publicação no itch.io, compacte **o conteúdo de `dist/`**, não a pasta 
 
 Os upgrades de **nível 2** já funcionam. O nível 3 foi definido para liberar a **primeira torre**, mas a terceira escolha de campanha e a Onda 3 ainda não estão disponíveis; níveis 4–10 seguem em planejamento.
 
-## Cinco upgrades de nível 2 (v0.13)
+## Cinco upgrades de nível 2 (v0.14)
 
 | País | Melhoria | Efeito jogável |
 | --- | --- | --- |
-| Brasil | **Minha Casa, Meu Escudo** | Cacos de vidro e cerca elétrica em todos os escudos instalados, inclusive de torres estrangeiras; choque de proximidade de 0,5 de dano, pulso por cúpula a cada 250 ms e lentidão temporária de 10% |
-| EUA | **Dano Colateral** | Quando a Fragmentação destrói um OVNI, ocorre UMA explosão secundária de raio 50 px e 0,75 de dano, sem reações em cadeia |
-| Japão | **Corte Residual** | Após a Katana de Plasma, fica um rastro violeta por 0,6 s; causa 1 de dano uma única vez a quem o atravessa e ainda não foi atingido pelo corte original |
-| Rússia | **Recuo Estratégico** | O tiro do Camarada Canhão empurra progressivamente mais perto da base, com até duas vezes o impulso e amortecimento gradual |
-| China | **Compre 2, Leve 3** | A cada cinco rajadas, o canhão atira um terceiro projétil; aparece o aviso visual “GRÁTIS!” |
+| Brasil | **Minha Casa, Meu Escudo** | Amplia o raio de todas as cúpulas ativas em **18 px**, inclusive de torres estrangeiras; caco de vidro + cerca elétrica, choque de **1 de dano** por cúpula com **800 ms de recarga**, lentidão de 10% e faixa de ativação de 35 px |
+| EUA | **Dano Colateral** | Quando a Fragmentação destrói um OVNI, ocorre UMA explosão secundária de raio **94 px** e **0,75 de dano**, sem reações em cadeia; maior que os 78 px da Fragmentação básica |
+| Japão | **Corte Residual** | Após a Katana roxa, abre uma **fenda de vácuo** com centro escuro e bordas turquesa: ela se expande e permanece por **2,2 s**, causando **1 de dano** uma vez por alvo novo que a atravessar |
+| Rússia | **Recuo Estratégico** | Mantém até **2×** o recuo amortecido perto das defesas, agora com **anéis vermelhos de impacto e estilhaços luminosos** que ficam maiores e mais intensos quanto mais próximo do solo estiver o inimigo |
+| China | **Compre 2, Leve 3** | O canhão dispara **três projéteis em todas as rajadas**, sem contador, quinta rajada especial ou aviso “GRÁTIS!” |
 
-Os valores são parâmetros provisórios para playtest, não balanceamento final. As linhas de escudo do Brasil só descarregam com escudo ativo, não criam barreira em posições vazias e não consomem energia ao atacar.
+Os valores são parâmetros provisórios para playtest, não balanceamento final. A ampliação do raio brasileiro aumenta **o alcance da proteção visual e a zona de choque**, mas não aumenta HP do escudo nem cria novas cúpulas. As cercas só descarregam com escudo ativo, têm recarga individual por cúpula e não consomem energia ao atacar.
 
 ## Terceiros upgrades — primeiras torres mecanizadas (testáveis no laboratório)
 
