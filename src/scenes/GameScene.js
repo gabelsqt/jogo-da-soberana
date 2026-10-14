@@ -903,6 +903,7 @@ export class GameScene extends Phaser.Scene {
       damage: special ? 0 : this.combat.basicDamage,
       pierceLeft: special ? 0 : this.combat.pierce,
       knockback: special ? 0 : this.combat.knockback,
+      fragmentation: !special && this.combat.fragmentation,
       impactColor: style.impactColor,
       hitEnemyIds: new Set(),
     });
@@ -1007,10 +1008,16 @@ export class GameScene extends Phaser.Scene {
             this.explode(bullet.sprite.x, bullet.sprite.y);
             remove = true;
           } else {
-            bullet.hitEnemyIds.add(enemy.uid);
+            const directTargetId = enemy.uid;
+            bullet.hitEnemyIds.add(directTargetId);
             this.impactInvader(j, bullet.damage, bullet.knockback, bullet.impactColor);
-            bullet.pierceLeft -= 1;
-            remove = bullet.pierceLeft <= 0;
+            if (bullet.fragmentation) {
+              this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId);
+              remove = true;
+            } else {
+              bullet.pierceLeft -= 1;
+              remove = bullet.pierceLeft <= 0;
+            }
           }
           if (remove) break;
         }
@@ -1158,8 +1165,13 @@ export class GameScene extends Phaser.Scene {
       }
     } else if (this.mode === 'wave1') {
       const upgrade = getFirstUpgrade(this.upgradeId);
+      const special = this.combat.plasmaEvery
+        ? 'KATANA ' + (this.basicShotCount % PLASMA_EVERY_SHOTS) +
+          '/' + PLASMA_EVERY_SHOTS + ' (PRÓXIMO: ' +
+          (PLASMA_EVERY_SHOTS - this.basicShotCount % PLASMA_EVERY_SHOTS) + ' TIROS)'
+        : this.combat.fragmentation ? 'PROJÉTEIS EXPLODEM AO ACERTAR' : 'DEFENDA A CIDADE';
       this.tutorialText.setText(
-        'UPGRADE: ' + (upgrade?.title ?? 'NENHUM') + '  |  DEFENDA A CIDADE',
+        'UPGRADE: ' + (upgrade?.title ?? 'NENHUM') + '  |  ' + special,
       );
     } else if (this.mode === 'upgradeLab') {
       this.tutorialText.setText('1–5: GERAR   SHIFT+1–5: NÍVEL 2   C: LIMPAR   U: UPGRADES');
@@ -1167,11 +1179,12 @@ export class GameScene extends Phaser.Scene {
       this.labUpgradeLabel.setText('MELHORIAS: ' + (names.length ? names.join(' + ') : 'NENHUMA'));
       const stats = this.combat;
       this.labStatsLabel.setText(
-        'DISPAROS ' + (1000 / stats.basicInterval).toFixed(1) + '/s' +
+        'TIROS ' + (1000 / stats.basicInterval).toFixed(1) + '/s' +
         '  |  DANO ' + stats.basicDamage.toFixed(2) +
-        '  |  VELOC. ' + stats.basicSpeed +
-        '  |  PERF. ' + stats.pierce +
-        '  |  PROJ. ' + stats.bulletsPerShot,
+        '  |  FRAG ' + (stats.fragmentation ? FRAGMENT_RADIUS + 'px' : 'NÃO') +
+        '  |  KATANA ' + (stats.plasmaEvery
+          ? (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/' + PLASMA_EVERY_SHOTS : 'NÃO') +
+        '  |  PROJ ' + stats.bulletsPerShot,
       );
     } else {
       this.tutorialText.setText('TESTE: 1–5 TIPOS   SHIFT+1–5: NÍVEL 2   C: LIMPAR');
