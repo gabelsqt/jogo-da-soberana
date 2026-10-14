@@ -2,7 +2,7 @@
 
 Protótipo do jogo de defesa antiaérea em pixel art ambientado no Rio de Janeiro. Inspirado por **Missile Command** e **Utopia Must Fall**.
 
-> Estado: **protótipo 0.2** (menu principal, pausa e demonstração inicial da Onda 0). Ainda não inclui o sistema de cinco países, os 50 upgrades ou a Onda 11.
+> Estado: **protótipo 0.3** (menus, trajetórias inimigas, arco de tiro e derrota na Onda 0). Ainda não inclui o sistema de cinco países, os 50 upgrades ou a Onda 11.
 
 ## Executar localmente
 
@@ -12,6 +12,16 @@ Requisitos: Node.js 20+ e npm.
 npm install
 npm run dev
 ```
+
+No PowerShell, se o script `npm.ps1` for bloqueado, use `npm.cmd run dev`.
+
+Para executar os testes das regras do jogo:
+
+```bash
+npm test
+```
+
+No PowerShell com a mesma restrição: `npm.cmd test`.
 
 Abra a URL exibida pelo Vite. Para compilar o jogo para distribuição:
 
@@ -23,7 +33,7 @@ Para o itch.io, compacte **o conteúdo da pasta `dist/`** (não a pasta em si) e
 
 ## Controles da primeira versão
 
-- **Mouse:** mira.
+- **Mouse:** mira apenas no arco superior (de 15° a 165° em relação à horizontal direita).
 - **Botão esquerdo pressionado:** dispara continuamente (2 tiros por segundo).
 - **Botão direito:** bomba de pulso básica (recarga de 8 segundos).
 - **Esc ou P:** abre/fecha o menu de pausa (também há um botão no topo da tela).
@@ -39,8 +49,10 @@ Para o itch.io, compacte **o conteúdo da pasta `dist/`** (não a pasta em si) e
 - Canhão central desenhado provisoriamente com formas geométricas.
 - Invasor alienígena Tipo 1 com quatro quadros de animação.
 - Onda 0 tutorial com duração mínima de 30 segundos e dez inimigos fáceis, surgindo gradualmente. Termina quando todos os dez já apareceram e não há inimigos vivos.
-- Escudo provisório do canhão central, danos e regeneração.
-- Fim de jogo quando o canhão central é destruído.
+- Os OVNIs fazem curvas até o escudo de uma estrutura, em vez de descer em linha reta. Sem animais construídos, atacam somente o canhão.
+- O arco de tiro do canhão é limitado à metade superior, com 15° de margem acima das laterais; projéteis seguem o cano.
+- Escudo provisório do canhão central (80 pontos), danos por colisão (46) e regeneração lenta (3,5 por segundo após 4 segundos sem danos).
+- É possível perder a Onda 0 por inação; ao destruir o canhão, surge a tela de **Derrota** com opções de reiniciar ou ir ao menu.
 
 ## Estrutura
 
@@ -56,6 +68,7 @@ jogo-da-soberana/
     ├── main.js                  # Phaser e registro de cenas
     ├── config/scenery.js       # configurações do cenário do Rio
     ├── ui/menuButton.js        # botões compartilhados
+    ├── gameplay/combat.js      # mira, alvos, rotas e dano
     └── scenes/                  # menu, Onda 0 e pausa
         ├── MenuScene.js
         ├── GameScene.js
