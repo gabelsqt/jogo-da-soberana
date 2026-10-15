@@ -74,7 +74,7 @@ test('primeira torre aparece apenas após TERCEIRA escolha do mesmo país', () =
     const third = chooseCampaignUpgrade(before, country);
     assert.deepEqual(third.choices, [country, country, country]);
     assert.deepEqual(activeTowerCountries(third), [country]);
-    assert.equal(nextWaveAfterChoice(third), null, 'onda 3 ainda não foi aprovada/implementada');
+    assert.equal(nextWaveAfterChoice(third), 'wave3', 'terceira escolha abre Onda 3');
   }
 });
 
