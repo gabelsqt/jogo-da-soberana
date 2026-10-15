@@ -78,5 +78,7 @@ export function chooseCampaignUpgrade(state, countryId) {
 
 export function nextWaveAfterChoice(state) {
   const count = normalizeCampaignState(state).choices.length;
-  return count === 1 ? 'wave1' : count === 2 ? 'wave2' : null;
+  return count === 1 ? 'wave1'
+    : count === 2 ? 'wave2'
+      : count === 3 ? 'wave3' : null;
 }
