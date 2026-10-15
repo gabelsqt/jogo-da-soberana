@@ -228,7 +228,7 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
     this.input.keyboard.on('keydown-P', () => this.pauseGame());
 
-    if (this.mode === 'wave0' || this.mode === 'wave1' || this.mode === 'wave2') {
+    if (this.mode.startsWith('wave')) {
       this.startWaveCountdown();
     } else {
       this.scheduleWaveEvents();
@@ -816,6 +816,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   spawnWaveEvent(event) {
+    if (event.warning) this.showAttackWarning(event.warning);
     const level = event.level ?? 1;
     if (event.pattern === 'spread' && event.type === 1) {
       // Rajada simultânea, distribuída pelo céu para forçar múltiplas decisões.
@@ -1852,10 +1853,10 @@ export class GameScene extends Phaser.Scene {
     if (this.tutorialComplete) return;
     this.tutorialComplete = true;
 
-    if (this.mode === 'wave0' || this.mode === 'wave1') {
+    if (this.mode === 'wave0' || this.mode === 'wave1' || this.mode === 'wave2') {
       this.scene.start('UpgradeScene', {
         campaign: this.campaign,
-        completedWave: this.mode === 'wave0' ? 0 : 1,
+        completedWave: Number(this.mode.at(-1)),
       });
       return;
     }
@@ -1865,7 +1866,7 @@ export class GameScene extends Phaser.Scene {
       .setDepth(120).setInteractive();
     this.add.rectangle(W / 2, H / 2, 530, 332, 0x0b1c33, 0.98)
       .setStrokeStyle(2, 0x71e2b9).setDepth(121);
-    this.add.text(W / 2, 166, this.mode === 'lab' ? 'TESTE CONCLUÍDO' : 'ONDA 2 CONCLUÍDA!', {
+    this.add.text(W / 2, 166, this.mode === 'lab' ? 'TESTE CONCLUÍDO' : 'ONDA 3 CONCLUÍDA!', {
       fontFamily: 'monospace', fontSize: '32px',
       color: '#f4e3a3', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(122);
@@ -1914,7 +1915,7 @@ export class GameScene extends Phaser.Scene {
       } else {
         this.tutorialText.setText('Proteja o canhão! Escudos regeneram sem dano.');
       }
-    } else if (this.mode === 'wave1' || this.mode === 'wave2') {
+    } else if (this.mode === 'wave1' || this.mode === 'wave2' || this.mode === 'wave3') {
       const history = this.campaign.choices.map((id) => id.toUpperCase()).join(' + ');
       const special = this.combat.plasmaEvery ? ' | KATANA: ' +
         (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/3'
