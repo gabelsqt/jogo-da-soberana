@@ -1,6 +1,6 @@
-// Onda 0 -> primeira escolha de upgrade -> Onda 1.
-// Laboratório é um modo independente para testar tipos 2–5 sem fingir que
-// as ondas e upgrades restantes já foram desenvolvidos.
+// Onda 0 -> escolha 1 -> Onda 1 -> escolha 2 -> Onda 2 -> escolha 3 -> Onda 3.
+// A campanha mantém upgrades individuais por país; a primeira torre requer
+// a terceira escolha do mesmo país. O laboratório segue independente.
 // Intervalos curtos e ataques simultâneos aumentam a pressão sem acelerar
 // artificialmente a movimentação de um único OVNI.
 const wave0Times = Array.from({ length: 20 }, (_, index) => 250 + index * 1280);
@@ -23,6 +23,7 @@ export const MODES = {
   wave0: { title: 'ONDA 0', minDuration: 30000 },
   wave1: { title: 'ONDA 1', minDuration: 41000 },
   wave2: { title: 'ONDA 2', minDuration: 46000 },
+  wave3: { title: 'ONDA 3 — CÉU FECHADO', minDuration: 54000 },
   lab: { title: 'TESTE DE INIMIGOS', minDuration: 36000 },
   upgradeLab: { title: 'LAB DE UPGRADES', minDuration: Infinity },
 };
@@ -78,6 +79,43 @@ export function getWaveEvents(mode) {
       { at: 32800, type: 1, level: 2, pattern: 'spread', count: 5 },
       { at: 36600, type: 4 },
       { at: 39900, type: 1, level: 2, pattern: 'line', count: 10 },
+    );
+    return events.sort((a, b) => a.at - b.at);
+  }
+  if (mode === 'wave3') {
+    // CÉU FECHADO: ataques sobrepostos que exigem priorizar alvos.
+    // Onda deliberadamente mais longa: deixa o terceiro upgrade ser usado
+    // por mais tempo, mesmo que o jogador tenha escolhido 3 países distintos
+    // e ainda não tenha desbloqueado uma torre automática.
+    const events = Array.from({ length: 30 }, (_, index) => ({
+      at: 550 + index * 1510,
+      type: 1,
+      level: index >= 16 && index % 3 === 0 ? 2 : 1,
+      index,
+    }));
+    events.push(
+      // 1. Bombardeio inicial, com básicos ocupando o resto da tela.
+      { at: 3500, type: 3, warning: 'ALERTA! BOMBARDEIO NOS ESCUDOS!' },
+      { at: 7200, type: 1, pattern: 'spread', count: 4 },
+      { at: 9800, type: 2, group: true },
+      { at: 13300, type: 3 },
+      // 2. Formação circular + invasores laterais.
+      { at: 16000, type: 1, pattern: 'spread', count: 4 },
+      { at: 18200, type: 2, pattern: 'orbit', level: 2, count: 10 },
+      { at: 22400, type: 1, level: 2, pattern: 'spread', count: 5 },
+      // 3. Caças cruzados + bomba: avisos sequenciados para legibilidade.
+      { at: 24500, type: 4, warning: 'ATENÇÃO: ATAQUES CRUZADOS!' },
+      { at: 26800, type: 3, level: 2 },
+      { at: 29500, type: 4 },
+      { at: 30700, type: 2, group: true, level: 2 },
+      { at: 33100, type: 1, pattern: 'spread', count: 5 },
+      { at: 35200, type: 4, level: 2 },
+      { at: 38200, type: 3, level: 2 },
+      // 4. Saturação final. Bombardeiro central + linha Tipo 1 rápida.
+      { at: 40700, type: 1, level: 2, pattern: 'spread', count: 5 },
+      { at: 43000, type: 4 },
+      { at: 45100, type: 3, level: 2, warning: 'ÚLTIMA OFENSIVA!' },
+      { at: 48900, type: 1, level: 2, pattern: 'line', count: 10 },
     );
     return events.sort((a, b) => a.at - b.at);
   }
