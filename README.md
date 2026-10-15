@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.14** — ajustes de playtest dos cinco upgrades de nível 2: escudos brasileiros maiores e choque com recarga, Dano Colateral ampliado, Corte Residual como fenda de vácuo turquesa duradoura, impacto russo mais expressivo e três tiros chineses em todas as rajadas. A primeira torre segue no **nível 3** (somente laboratório até a Onda 3 existir); a segunda permanece prevista para o **nível 7**. A campanha ainda termina na Onda 2.
+> **Protótipo 0.16 — Onda 3: Céu Fechado**. A campanha agora inclui a **terceira escolha de aliado** e uma nova onda com **88 invasores**, bombardeios, formação circular, caças cruzados e linha de saturação final. A primeira torre mecanizada é finalmente desbloqueada quando o mesmo país é escolhido pela **terceira vez** (não por três escolhas diferentes). A segunda torre continua prevista para o **nível 7**, ainda não implementado. Os cinco upgrades de nível 2 permanecem inalterados.
 
 ## Novo cenário fixo do Rio
 
@@ -80,9 +80,11 @@ Para publicação no itch.io, prefira `npm.cmd run build:itch` e envie diretamen
 3. Após concluir a Onda 0, aparecem cinco cartões para escolher **um upgrade inicial**.
 4. **Onda 1:** nova contagem **3, 2, 1**; são **70 inimigos**: 32 invasores básicos em sequência (a cada 0,96 s), grupos simultâneos com 3, 4 e 5 básicos, dois trios Tipo 2, um ataque circular de dez Tipo 2 avançados e uma **fileira final de dez OVNIs Tipo 1**, ocupando a largura do céu. A onda só termina depois que todas as ameaças são neutralizadas.
 5. Ao vencer a Onda 1, surge a **segunda escolha de país**. Cada cartão oferece o próximo upgrade daquele país: se repetir um país, ganha sua **melhoria de nível 2**, SEM instalar torre; se mudar de país, recebe o primeiro upgrade do novo aliado. O escudo elétrico brasileiro, por exemplo, pode ser testado escolhendo Brasil duas vezes.
-6. **Onda 2:** contagem regressiva 3–2–1, 80 inimigos programados com bombardeiros (Tipo 3) e caças relâmpago (Tipo 4), além dos básicos e formações. Termina em uma tela de conclusão provisória; as Ondas 3–11 virão depois.
-7. **Testar inimigos**, no menu inicial, apresenta os Tipos 2–5 e seus padrões.
-8. **Testar upgrades** abre laboratório independente e agora permite testar também as cinco torres sem passar pelas ondas.
+6. **Onda 2:** contagem regressiva 3–2–1, 80 inimigos programados com bombardeiros (Tipo 3) e caças relâmpago (Tipo 4), além dos básicos e formações. Ao vencer, abre a **terceira escolha de país**.
+7. **Terceira escolha:** repetir o mesmo país três vezes desbloqueia sua **primeira torre mecanizada** (Caramelo/Águia/Tsuru/Urso/PandaPrime); escolher um país diferente concede o próximo upgrade daquela linha, sem pular níveis.
+8. **Onda 3 — Céu Fechado:** 88 inimigos programados em quatro momentos: bombardeio inicial, órbita de Tipo 2, caças Tipo 4 cruzando com bombardeiros Tipo 3 e ataque final de Tipo 1 nível 2 em linha. Duração mínima inicial de 54 s, sem chefe novo; exige priorizar ameaças mesmo sem torre. Termina em tela provisória de vitória — a Onda 4 ainda não foi criada.
+9. **Testar inimigos**, no menu inicial, apresenta os Tipos 2–5 e seus padrões.
+10. **Testar upgrades** abre laboratório independente e permite testar as cinco torres sem passar pelas ondas.
 
 ## Cinco upgrades iniciais
 
@@ -94,7 +96,7 @@ Para publicação no itch.io, prefira `npm.cmd run build:itch` e envie diretamen
 | Rússia | Camarada Canhão | +75% de dano, aplica **recuo gradual** aos inimigos em mergulho (em vez de saltar a posição) |
 | China | AliExplode — Frete Grátis | Dois projéteis simultâneos com pequena dispersão |
 
-Os upgrades de **nível 2** já funcionam. O nível 3 foi definido para liberar a **primeira torre**, mas a terceira escolha de campanha e a Onda 3 ainda não estão disponíveis; níveis 4–10 seguem em planejamento.
+Os upgrades de **nível 2** já funcionam. O **nível 3** instala a primeira torre mecanizada e já pode ser alcançado na terceira escolha da campanha, **desde que o mesmo país tenha sido escolhido três vezes**. Níveis 4–10 e a segunda torre do nível 7 seguem em planejamento.
 
 ## Cinco upgrades de nível 2 (v0.14)
 
@@ -141,7 +143,7 @@ No menu inicial, clique em **TESTAR UPGRADES [U]**. O jogo abre um campo de test
 - Clique em um cartão ou use **1–5** para alternar a melhoria do nível mostrado na aba. **N** ou clique no seletor superior para mudar entre **NÍVEL 1** e **NÍVEL 2**.
 - Ao ativar um nível 2 no laboratório, o nível 1 do mesmo país é ligado automaticamente. Desativar o nível 1 retira também o nível 2 dependente.
 - Clique em **ZERAR MELHORIAS [0]** para voltar ao canhão sem upgrades nem torres.
-- **Shift+1–5 no painel** instala ou retira os animais correspondentes, até duas torres simultâneas, para testá-los **antes de a Onda 3 existir**. O laboratório não altera a campanha.
+- **Shift+1–5 no painel** instala ou retira os animais correspondentes, até duas torres simultâneas, para testar combinações sem disputar as escolhas da campanha. O laboratório não altera a campanha.
 - Clique em **VOLTAR AO CAMPO [U]**, pressione **U** ou **Esc** para retornar ao combate com a configuração escolhida.
 - No campo, pressione **1–5** para gerar os inimigos Tipos 1–5 (2 gera um trio); **Shift+1** gera uma fileira de dez Tipo 1; **Shift+2** gera **dez Tipo 2 circulando em órbita antes de parar e mergulhar**; **Shift+3/4/5** gera as variantes de nível 2. **C** limpa os inimigos e projéteis; **U** reabre o painel.
 - Há **barras de vida** nos inimigos resistentes e **números flutuantes de dano** ao acertar. As melhorias têm cores de disparo próprias; o Japão solta uma lâmina violeta de plasma a cada três tiros básicos e os EUA produzem uma explosão azul de fragmentação ao atingir naves.
@@ -190,7 +192,7 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 ## Estrutura técnica
 
 - `src/scenes/MenuScene.js` — menu inicial e laboratório.
-- `src/scenes/GameScene.js` — Onda 0, Onda 1, laboratório e combate.
+- `src/scenes/GameScene.js` — Ondas 0–3, laboratório, torres automáticas e combate.
 - `src/scenes/UpgradeScene.js` — cinco cartões de escolha na campanha.
 - `src/scenes/UpgradeLabScene.js` — painel de upgrades acumuláveis e substituíveis em campo de teste.
 - `src/scenes/PauseScene.js` — pausa, reinício e menu.
@@ -200,7 +202,7 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - `src/gameplay/towers.js` — cinco perfis de torres, suas armas, alcance e aquisição de alvos.
 - `src/gameplay/shockArtillery.js` — mira preditiva, colisão contínua, dano da explosão e deslocamento amortecido do Urso.
 - `src/gameplay/enemies.js` — definições dos cinco tipos, níveis de dificuldade, matemática do círculo, fileira e movimento suave da Nave-Mãe.
-- `src/gameplay/waves.js` — agenda das Ondas 0, 1, 2 e dos laboratórios.
+- `src/gameplay/waves.js` — agenda das Ondas 0–3 (incluindo ataques cruzados) e dos laboratórios.
 - `src/gameplay/combat.js` e `src/gameplay/specialBlast.js` — regras matemáticas de mira, dano e explosão persistente.
 - `src/gameplay/weaponEffects.js` — intervalos, alinhamento de laser e alcance da Fragmentação.
 - `tests/` — testes automatizados das regras, incluindo padrões, dificuldade, continuidade da Nave-Mãe e diferenças de upgrades.
