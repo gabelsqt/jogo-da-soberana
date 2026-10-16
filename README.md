@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.16 — Onda 3: Céu Fechado**. A campanha agora inclui a **terceira escolha de aliado** e uma nova onda com **88 invasores**, bombardeios, formação circular, caças cruzados e linha de saturação final. A primeira torre mecanizada é finalmente desbloqueada quando o mesmo país é escolhido pela **terceira vez** (não por três escolhas diferentes). A segunda torre continua prevista para o **nível 7**, ainda não implementado. Os cinco upgrades de nível 2 permanecem inalterados.
+> **Protótipo 0.17 — Mira do tiro especial.** O disparo de botão direito agora tem um alvo semitransparente que acompanha a posição possível de impacto, respeitando o arco e o alcance do canhão. O tiro especial detona **exatamente no alvo**, sem explodir antes ao atravessar inimigos ou projéteis. A mira fica apagada durante a recarga e some fora do campo de jogo, na contagem inicial e no encerramento. Mantém a **Onda 3: Céu Fechado**, os 88 invasores e a primeira torre no nível 3 do país.
 
 ## Novo cenário fixo do Rio
 
@@ -178,7 +178,8 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 
 - **Mouse:** mira do canhão (arco superior, limitado a 15° acima das laterais).
 - **Botão esquerdo pressionado:** tiros básicos contínuos.
-- **Botão direito:** bomba especial que protege a área durante 3 segundos (recarga 8 segundos).
+- **Mira circular azul semitransparente:** acompanha o mouse e marca o ponto exato de detonação do tiro especial, incluindo os limites de direção (15°) e alcance (140–580 px). Fica mais apagada durante a recarga e desaparece ao sair da tela do jogo.
+- **Botão direito:** lança a bomba especial **até a mira indicada**, onde explode e protege a área durante 3 segundos (recarga 8 segundos). A bomba não explode antes por contato direto com naves ou tiros inimigos durante o voo; a explosão no ponto marcado ainda atinge essas ameaças.
 - **Esc ou P:** pausar/retomar.
 - **R:** reinicia o modo atual, preservando o histórico de escolhas e torres da campanha.
 - **Enter:** começar pelo menu.
