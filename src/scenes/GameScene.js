@@ -1634,13 +1634,9 @@ export class GameScene extends Phaser.Scene {
           if (Phaser.Math.Distance.Between(
             bullet.sprite.x, bullet.sprite.y, hostile.sprite.x, hostile.sprite.y,
           ) >= 16) continue;
-          if (bullet.special) {
-            this.explode(bullet.sprite.x, bullet.sprite.y);
-          } else {
-            hostile.hp -= bullet.damage;
-            if (hostile.hp <= 0) this.removeEnemyBullet(j);
-            else hostile.sprite.setFillStyle(0xfff5d0);
-          }
+          hostile.hp -= bullet.damage;
+          if (hostile.hp <= 0) this.removeEnemyBullet(j);
+          else hostile.sprite.setFillStyle(0xfff5d0);
           remove = true;
           break;
         }
@@ -1655,31 +1651,26 @@ export class GameScene extends Phaser.Scene {
             bullet.sprite.x, bullet.sprite.y, enemy.sprite.x, enemy.sprite.y,
           ) >= enemyContactRadius(enemy.type) + 7) continue;
 
-          if (bullet.special) {
-            this.explode(bullet.sprite.x, bullet.sprite.y);
+          const directTargetId = enemy.uid;
+          bullet.hitEnemyIds.add(directTargetId);
+          const deathPosition = { x: enemy.sprite.x, y: enemy.sprite.y };
+          const knockback = this.combat.strategicRecoil && bullet.knockback > 0
+            ? strategicKnockback(bullet.knockback, enemy.sprite.y)
+            : bullet.knockback;
+          const destroyed = this.impactInvader(
+            j, bullet.damage, knockback, bullet.impactColor,
+            true, this.combat.strategicRecoil ? 720 : 400,
+          );
+          if (this.combat.strategicRecoil && bullet.knockback > 0) {
+            this.showStrategicRecoilImpact(deathPosition.x, deathPosition.y);
+          }
+          if (bullet.fragmentation) {
+            this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
+              destroyed ? deathPosition : null);
             remove = true;
           } else {
-            const directTargetId = enemy.uid;
-            bullet.hitEnemyIds.add(directTargetId);
-            const deathPosition = { x: enemy.sprite.x, y: enemy.sprite.y };
-            const knockback = this.combat.strategicRecoil && bullet.knockback > 0
-              ? strategicKnockback(bullet.knockback, enemy.sprite.y)
-              : bullet.knockback;
-            const destroyed = this.impactInvader(
-              j, bullet.damage, knockback, bullet.impactColor,
-              true, this.combat.strategicRecoil ? 720 : 400,
-            );
-            if (this.combat.strategicRecoil && bullet.knockback > 0) {
-              this.showStrategicRecoilImpact(deathPosition.x, deathPosition.y);
-            }
-            if (bullet.fragmentation) {
-              this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
-                destroyed ? deathPosition : null);
-              remove = true;
-            } else {
-              bullet.pierceLeft -= 1;
-              remove = bullet.pierceLeft <= 0;
-            }
+            bullet.pierceLeft -= 1;
+            remove = bullet.pierceLeft <= 0;
           }
           if (remove) break;
         }
