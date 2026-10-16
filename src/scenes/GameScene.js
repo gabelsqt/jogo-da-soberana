@@ -807,7 +807,9 @@ export class GameScene extends Phaser.Scene {
     const sprite = this.add.container(x, y).setDepth(19);
     const box = this.add.rectangle(0, 0, definition.width, definition.height, definition.color)
       .setStrokeStyle(level > 1 ? 3 : 2, level >= 3 ? 0xffffff : level > 1 ? 0xffd26e : 0xf7efff);
-    const label = this.add.text(0, 0, String(type) + (level >= 3 ? ' III' : level > 1 ? ' II' : ''), {
+    // O nível III+ é comunicado pela cor: manter apenas o número do tipo
+    // evita rótulos grandes fora da hitbox das naves de formação.
+    const label = this.add.text(0, 0, String(type) + (level === 2 ? ' II' : ''), {
       fontFamily: 'monospace', fontSize: type === 5 ? '24px' : (level > 1 ? '12px' : '17px'),
       fontStyle: 'bold', color: '#091323',
     }).setOrigin(0.5);
