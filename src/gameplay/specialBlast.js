@@ -1,3 +1,5 @@
+import { restrictedAimAngle } from './combat.js';
+
 // Zona de explosão persistente do tiro especial, inspirada no Missile Command.
 // Mantida como regra pura para que o dano e o efeito visual usem o mesmo raio.
 export const SPECIAL_BLAST_DURATION = 3000;      // 3 segundos no total
@@ -23,4 +25,24 @@ export function blastCatchesTarget(blastX, blastY, ageMs, targetX, targetY, targ
   if (ageMs < 0 || ageMs >= SPECIAL_BLAST_DURATION) return false;
   const radius = specialBlastRadius(ageMs) + targetRadius;
   return Math.hypot(targetX - blastX, targetY - blastY) <= radius;
+}
+
+// A mira e o disparo especial usam a MESMA regra de restrição do canhão.
+// A marca mostra o ponto real da detonação, mesmo se o mouse estiver muito
+// perto, além do alcance máximo ou fora do arco de disparo permitido.
+export const SPECIAL_MIN_DISTANCE = 140;
+export const SPECIAL_MAX_DISTANCE = 580;
+
+export function specialTargetPoint(cannonX, cannonY, pointerX, pointerY) {
+  const angle = restrictedAimAngle(cannonX, cannonY, pointerX, pointerY);
+  const rawDistance = Math.hypot(pointerX - cannonX, pointerY - cannonY);
+  const distance = Math.max(
+    SPECIAL_MIN_DISTANCE, Math.min(SPECIAL_MAX_DISTANCE, rawDistance),
+  );
+  return {
+    x: cannonX + Math.cos(angle) * distance,
+    y: cannonY + Math.sin(angle) * distance,
+    angle,
+    distance,
+  };
 }
