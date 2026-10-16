@@ -12,9 +12,9 @@ export const FIRST_UPGRADES = [
     description: 'Ao acertar, cada projétil explode e danifica outros invasores próximos.'
   },
   {
-    id: 'jp', name: 'Japão', flag: 'JP', color: 0xd85c78,
-    title: 'Katana de Plasma',
-    description: 'A cada 3 disparos, uma lâmina de energia corta todos os inimigos em linha.'
+    id: 'jp', name: 'Coreia do Sul', shortName: 'Coreia', flag: 'KR', color: 0xd85c78,
+    title: 'Lightstick Tático',
+    description: 'A cada 3 disparos, um feixe violeta atravessa todos os inimigos alinhados.'
   },
   {
     id: 'ru', name: 'Rússia', flag: 'RU', color: 0xc94d4d,
