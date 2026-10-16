@@ -796,17 +796,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   makeEnemyVisual(type, x, y, level = 1) {
+    const definition = enemyStats(type, level);
     if (type === 1) {
       const sprite = this.add.sprite(x, y, 'tipo1_1')
         .setDisplaySize(62, 72).setDepth(18).play('tipo1_voo');
-      if (level > 1) sprite.setTint(0xffd5a0);
+      if (level > 1) sprite.setTint(definition.tintColor);
       return { sprite, box: null };
     }
-    const definition = enemyStats(type, level);
     const sprite = this.add.container(x, y).setDepth(19);
     const box = this.add.rectangle(0, 0, definition.width, definition.height, definition.color)
-      .setStrokeStyle(level > 1 ? 3 : 2, level > 1 ? 0xffd26e : 0xf7efff);
-    const label = this.add.text(0, 0, String(type) + (level > 1 ? ' II' : ''), {
+      .setStrokeStyle(level > 1 ? 3 : 2, level >= 3 ? 0xffffff : level > 1 ? 0xffd26e : 0xf7efff);
+    const label = this.add.text(0, 0, String(type) + (level >= 3 ? ' III' : level > 1 ? ' II' : ''), {
       fontFamily: 'monospace', fontSize: type === 5 ? '24px' : (level > 1 ? '12px' : '17px'),
       fontStyle: 'bold', color: '#091323',
     }).setOrigin(0.5);
@@ -852,7 +852,7 @@ export class GameScene extends Phaser.Scene {
       this.showAttackWarning('ESQUADRÃO EM ÓRBITA • NÍVEL 2');
       for (let i = 0; i < count; i += 1) {
         this.spawnEnemy(2, {
-          level: 2, pattern: 'orbit',
+          level, pattern: 'orbit',
           center, formationIndex: i, formationCount: count,
         });
       }
@@ -860,12 +860,19 @@ export class GameScene extends Phaser.Scene {
     }
     if (event.type === 2 && event.group) {
       const center = Phaser.Math.Between(300, 650);
-      for (let i = 0; i < 3; i += 1) {
-        this.spawnEnemy(2, { level, center, formationIndex: i });
+      const count = event.count ?? 3;
+      for (let i = 0; i < count; i += 1) {
+        this.spawnEnemy(2, { level, center, formationIndex: i, formationCount: count });
       }
       return;
     }
-    this.spawnEnemy(event.type, { level });
+    if (event.type === 4 && event.pattern === 'pincer') {
+      // Entrada realmente simultânea, um caça em cada lateral.
+      this.spawnEnemy(4, { level, side: 'left' });
+      this.spawnEnemy(4, { level, side: 'right' });
+      return;
+    }
+    this.spawnEnemy(event.type, { level, side: event.side });
   }
 
   spawnEnemy(type, options = {}) {
@@ -875,12 +882,15 @@ export class GameScene extends Phaser.Scene {
     const orbiting = type === 2 && options.pattern === 'orbit';
     const groupCount = options.formationCount ?? 3;
     const center = options.center ?? W / 2;
+    const formationOffset = index - (groupCount - 1) / 2;
     const startX = type === 5 ? W / 2 :
-      type === 4 ? (Phaser.Math.Between(0, 1) ? -64 : W + 64) :
-      type === 2 ? center + (orbiting ? (index - (groupCount - 1) / 2) * 60 : (index - 1) * 83) :
+      type === 4 ? (options.side === 'left' ? -64
+        : options.side === 'right' ? W + 64
+          : Phaser.Math.Between(0, 1) ? -64 : W + 64) :
+      type === 2 ? center + formationOffset * (orbiting ? 60 : 83) :
       options.x ?? Phaser.Math.Between(120, W - 120);
     const startY = type === 4 ? Phaser.Math.Between(120, 180) :
-      type === 2 ? -45 - Math.abs(index - (orbiting ? (groupCount - 1) / 2 : 1)) * 7 :
+      type === 2 ? -45 - Math.abs(formationOffset) * 7 :
       type === 1 ? -28 : -65;
     const visual = this.makeEnemyVisual(type, startX, startY, level);
     const enemy = {
@@ -917,15 +927,16 @@ export class GameScene extends Phaser.Scene {
       enemy.orbitEntryY = startY;
     } else if (type === 2) {
       enemy.phase = 'formation';
-      enemy.formationX = center + (index - 1) * 38;
-      enemy.formationY = 143 + Math.abs(index - 1) * 21;
-      enemy.formationWait = 2.6 + index * 0.65;
+      enemy.formationX = center + formationOffset * 38;
+      enemy.formationY = 143 + Math.abs(formationOffset) * 21;
+      enemy.formationWait = 2.6 + index * 0.65 + definition.formationWaitBonus;
     } else if (type === 3) {
       enemy.phase = 'approach';
       this.setRoute(enemy, Phaser.Math.Between(235, 725), Phaser.Math.Between(170, 220));
     } else if (type === 4) {
       enemy.phase = 'flyby';
       enemy.direction = startX < 0 ? 1 : -1;
+      enemy.passesRemaining = definition.fighterExtraPasses;
     } else if (type === 5) {
       enemy.phase = 'arrival';
     }
@@ -1023,7 +1034,7 @@ export class GameScene extends Phaser.Scene {
           enemy.shotTimer = 0;
           this.fireEnemyProjectile(enemy);
         }
-        if (enemy.phaseAge >= (enemy.level > 1 ? 9 : 11)) {
+        if (enemy.phaseAge >= enemy.definition.bomberHoverDuration) {
           enemy.phase = 'dive';
           this.assignInvaderTarget(enemy, enemy.target);
         }
@@ -1032,9 +1043,18 @@ export class GameScene extends Phaser.Scene {
         enemy.sprite.x += enemy.direction * enemy.speed * slow * dt;
         if ((enemy.direction > 0 && enemy.sprite.x >= W + 55) ||
             (enemy.direction < 0 && enemy.sprite.x <= -55)) {
-          enemy.phase = 'swoop1';
-          enemy.phaseAge = 0;
-          this.setRoute(enemy, enemy.direction > 0 ? -30 : W + 30, 245);
+          if (enemy.passesRemaining > 0) {
+            // Novas versões blindadas: segunda passagem lateral na tela,
+            // ainda com a velocidade de caça, antes do mergulho com laser.
+            enemy.passesRemaining -= 1;
+            enemy.direction *= -1;
+            enemy.sprite.y = Phaser.Math.Clamp(
+              enemy.sprite.y + (enemy.direction > 0 ? 30 : -30), 110, 215);
+          } else {
+            enemy.phase = 'swoop1';
+            enemy.phaseAge = 0;
+            this.setRoute(enemy, enemy.direction > 0 ? -30 : W + 30, 245);
+          }
         }
       } else if (enemy.phase === 'swoop1') {
         if (this.moveAlongRoute(enemy, dt)) {
@@ -1203,7 +1223,8 @@ export class GameScene extends Phaser.Scene {
       const y = enemy.sprite.y - enemy.definition.height / 2 - 15;
       graphics.fillStyle(0x061426, 0.95);
       graphics.fillRect(x - 2, y - 2, width + 4, 8);
-      graphics.fillStyle(enemy.level > 1 ? 0xffc977 : 0x6df3ba, 0.95);
+      graphics.fillStyle(enemy.level >= 3 ? enemy.definition.color
+        : enemy.level > 1 ? 0xffc977 : 0x6df3ba, 0.95);
       graphics.fillRect(x, y, width * Math.max(0, enemy.hp / enemy.maxHp), 4);
     }
   }
@@ -1236,7 +1257,7 @@ export class GameScene extends Phaser.Scene {
       this.time.delayedCall(100, () => {
         if (!enemy.sprite.active) return;
         if (enemy.box?.active) enemy.box.setFillStyle(enemy.definition.color);
-        else enemy.sprite.setTint(enemy.level > 1 ? 0xffd5a0 : 0xffffff);
+        else enemy.sprite.setTint(enemy.definition.tintColor);
       });
       if (enemy.phase === 'dive' && knockback > 0) {
         enemy.recoilSpeed = applyRecoilImpulse(enemy.recoilSpeed, knockback, maxRecoil);
@@ -1888,13 +1909,19 @@ export class GameScene extends Phaser.Scene {
       });
       return;
     }
+    if (this.mode === 'wave3') {
+      // Ainda não há o quarto upgrade: a campanha continua sem uma
+      // escolha fictícia e mantém as 3 melhorias e torres conquistadas.
+      this.scene.start('GameScene', { mode: 'wave4', campaign: this.campaign });
+      return;
+    }
     this.statusText.setText('DEFESA BEM-SUCEDIDA');
     this.tutorialText.setText('');
     this.add.rectangle(W / 2, H / 2, W, H, 0x061022, 0.78)
       .setDepth(120).setInteractive();
     this.add.rectangle(W / 2, H / 2, 530, 332, 0x0b1c33, 0.98)
       .setStrokeStyle(2, 0x71e2b9).setDepth(121);
-    this.add.text(W / 2, 166, this.mode === 'lab' ? 'TESTE CONCLUÍDO' : 'ONDA 3 CONCLUÍDA!', {
+    this.add.text(W / 2, 166, this.mode === 'lab' ? 'TESTE CONCLUÍDO' : 'ONDA 4 CONCLUÍDA!', {
       fontFamily: 'monospace', fontSize: '32px',
       color: '#f4e3a3', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(122);
@@ -1943,7 +1970,7 @@ export class GameScene extends Phaser.Scene {
       } else {
         this.tutorialText.setText('Proteja o canhão! Escudos regeneram sem dano.');
       }
-    } else if (this.mode === 'wave1' || this.mode === 'wave2' || this.mode === 'wave3') {
+    } else if (this.mode.startsWith('wave')) {
       const history = this.campaign.choices.map((id) => id.toUpperCase()).join(' + ');
       const special = this.combat.plasmaEvery ? ' | KATANA: ' +
         (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/3'
