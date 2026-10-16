@@ -2384,13 +2384,13 @@ export class GameScene extends Phaser.Scene {
         this.tutorialText.setText('Proteja o canhão! Escudos regeneram sem dano.');
       }
     } else if (this.mode.startsWith('wave')) {
-      const history = this.campaign.choices.map((id) => id.toUpperCase()).join(' + ');
+      const history = this.campaign.choices.map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' + ');
       const special = this.combat.plasmaEvery ? ' | LIGHTSTICK: ' +
         (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/3'
         : this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
       const towerLabel = this.supportTowers.map((tower) => tower.definition.label).join(' + ');
       const levelTwo = unlockedSecondUpgrades(this.campaign)
-        .map((id) => id.toUpperCase()).join(' + ');
+        .map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' + ');
       this.tutorialText.setText(
         'ALIADOS: ' + (history || 'NENHUM') +
         (levelTwo ? ' | N2: ' + levelTwo : '') +
@@ -2399,7 +2399,7 @@ export class GameScene extends Phaser.Scene {
     } else if (this.mode === 'upgradeLab') {
       this.tutorialText.setText('1–5: GERAR   SHIFT+1–5: NÍVEL 2   C: LIMPAR   U: UPGRADES');
       const names = this.upgradeIds.map((id) => getFirstUpgrade(id)?.flag).filter(Boolean);
-      const secondNames = this.labSecondIds.map((id) => id.toUpperCase()).join('+');
+      const secondNames = this.labSecondIds.map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join('+');
       this.labUpgradeLabel.setText(
         'MELHORIAS: ' + (names.length ? names.join(' + ') : 'NENHUMA') +
         (secondNames ? '  |  NÍVEL 2: ' + secondNames : ''),
