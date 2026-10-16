@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.17 — Mira do tiro especial.** O disparo de botão direito agora tem um alvo semitransparente que acompanha a posição possível de impacto, respeitando o arco e o alcance do canhão. O tiro especial detona **exatamente no alvo**, sem explodir antes ao atravessar inimigos ou projéteis. A mira fica apagada durante a recarga e some fora do campo de jogo, na contagem inicial e no encerramento. Mantém a **Onda 3: Céu Fechado**, os 88 invasores e a primeira torre no nível 3 do país.
+> **Protótipo 0.18 — Onda 4: Ataque em Pinça.** Acrescenta 80 inimigos com HP maior e coloração laranja de nível 3 (47 básicos, 20 de formação, 5 bombardeiros e 8 caças). A onda dura pelo menos 70 s e inclui caças em pinças simultâneas e retardadas, mais tempo de formação/bombardeio e uma segunda passagem dos caças. A **Onda 4 começa automaticamente após vencer a Onda 3**, mantendo os três upgrades/torres conquistados; ainda não há nível 4 de upgrades. Preserva a mira do especial da v0.17.
 
 ## Novo cenário fixo do Rio
 
@@ -26,7 +26,7 @@ git push
 npm.cmd run dev
 ```
 
-O ZIP acima acompanha a entrega do novo cenário no chat. O arquivo da imagem deve estar no projeto para aparecer também no HTML de publicação.
+**Atenção:** o ZIP citado acima era uma referência antiga e pode não estar disponível. Se ele não existir, copie manualmente o PNG original fornecido para `public/assets/cenario/rio_fundo_fixo.png`; o arquivo precisa estar no projeto para aparecer no HTML de publicação.
 
 ## Publicar no itch.io sem arquivos externos — RECOMENDADO
 
@@ -82,9 +82,28 @@ Para publicação no itch.io, prefira `npm.cmd run build:itch` e envie diretamen
 5. Ao vencer a Onda 1, surge a **segunda escolha de país**. Cada cartão oferece o próximo upgrade daquele país: se repetir um país, ganha sua **melhoria de nível 2**, SEM instalar torre; se mudar de país, recebe o primeiro upgrade do novo aliado. O escudo elétrico brasileiro, por exemplo, pode ser testado escolhendo Brasil duas vezes.
 6. **Onda 2:** contagem regressiva 3–2–1, 80 inimigos programados com bombardeiros (Tipo 3) e caças relâmpago (Tipo 4), além dos básicos e formações. Ao vencer, abre a **terceira escolha de país**.
 7. **Terceira escolha:** repetir o mesmo país três vezes desbloqueia sua **primeira torre mecanizada** (Caramelo/Águia/Tsuru/Urso/PandaPrime); escolher um país diferente concede o próximo upgrade daquela linha, sem pular níveis.
-8. **Onda 3 — Céu Fechado:** 88 inimigos programados em quatro momentos: bombardeio inicial, órbita de Tipo 2, caças Tipo 4 cruzando com bombardeiros Tipo 3 e ataque final de Tipo 1 nível 2 em linha. Duração mínima inicial de 54 s, sem chefe novo; exige priorizar ameaças mesmo sem torre. Termina em tela provisória de vitória — a Onda 4 ainda não foi criada.
-9. **Testar inimigos**, no menu inicial, apresenta os Tipos 2–5 e seus padrões.
-10. **Testar upgrades** abre laboratório independente e permite testar as cinco torres sem passar pelas ondas.
+8. **Onda 3 — Céu Fechado:** 88 inimigos programados em quatro momentos: bombardeio inicial, órbita de Tipo 2, caças Tipo 4 cruzando com bombardeiros Tipo 3 e ataque final de Tipo 1 nível 2 em linha. Duração mínima de 54 s; ao vencer, começa a Onda 4 diretamente, preservando o conjunto de três upgrades/torres.
+9. **Onda 4 — Ataque em Pinça:** 80 inimigos, TODOS nível 3 de resistência e coloração laranja: **47 Tipo 1 (2 HP), 20 Tipo 2 (4 HP), 5 Tipo 3 (10 HP) e 8 Tipo 4 (6 HP)**. Duração mínima de 70 s, até todas as ameaças terem sido eliminadas. Primeiro caças em pares pelas laterais; depois ataques com 1,5 s de defasagem; por fim, círculo Tipo 2 e última pinça simultânea. A Onda 4 termina com a tela de conclusão provisória.
+10. **Testar inimigos**, no menu inicial, apresenta os Tipos 2–5 e seus padrões.
+11. **Testar upgrades** abre laboratório independente e permite testar as cinco torres sem passar pelas ondas.
+
+## Resistência progressiva e cores da frota
+
+Os níveis **1 e 2** permanecem com os atributos anteriores nas Ondas 0–3. A partir da Onda 4, a resistência cresce **para TODOS os inimigos da onda** (não apenas para parte da frota), sem modificar largura, altura ou hitbox:
+
+| Onda / nível | Tipo 1 | Tipo 2 | Tipo 3 | Tipo 4 | Cor do nível |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 4 / III | 2 | 4 | 10 | 6 | Laranja |
+| 5 / IV (planejado) | 3 | 5 | 12 | 7 | Magenta |
+| 6 / V (planejado) | 4 | 6 | 14 | 8 | Roxo |
+| 7 / VI (planejado) | 5 | 7 | 16 | 9 | Azul elétrico |
+| 8 / VII (planejado) | 6 | 8 | 18 | 10 | Ciano |
+| 9 / VIII (planejado) | 7 | 9 | 20 | 11 | Dourado pálido |
+| 10 / IX (planejado) | 8 | 10 | 22 | 12 | Branco frio |
+
+A escala de HP e as cores futuras já são calculáveis, mas **as Ondas 5–10 ainda não são jogáveis**. Os caças preservam sua velocidade; a partir do nível III, fazem uma segunda passagem antes de preparar o laser. Os bombardeiros pairam por mais tempo e as formações ficam alguns segundos extras antes do mergulho. O Tipo 5 permanece previsto como miniboss nas ondas avançadas, e o **Tipo 6 — Fortaleza-Mãe** (uma nave gigante no topo que invoca outros inimigos) é reservado para a luta alienígena da Onda 10, ainda não implementada.
+
+**Importante:** não há quarta escolha nem upgrades de nível 4 nesta versão. A vitória da Onda 3 conduz diretamente à Onda 4 com os equipamentos da terceira escolha; a tela de fim provisória aparece somente depois da Onda 4.
 
 ## Cinco upgrades iniciais
 
@@ -193,7 +212,7 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 ## Estrutura técnica
 
 - `src/scenes/MenuScene.js` — menu inicial e laboratório.
-- `src/scenes/GameScene.js` — Ondas 0–3, laboratório, torres automáticas e combate.
+- `src/scenes/GameScene.js` — Ondas 0–4, laboratório, torres automáticas e combate.
 - `src/scenes/UpgradeScene.js` — cinco cartões de escolha na campanha.
 - `src/scenes/UpgradeLabScene.js` — painel de upgrades acumuláveis e substituíveis em campo de teste.
 - `src/scenes/PauseScene.js` — pausa, reinício e menu.
@@ -203,7 +222,7 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - `src/gameplay/towers.js` — cinco perfis de torres, suas armas, alcance e aquisição de alvos.
 - `src/gameplay/shockArtillery.js` — mira preditiva, colisão contínua, dano da explosão e deslocamento amortecido do Urso.
 - `src/gameplay/enemies.js` — definições dos cinco tipos, níveis de dificuldade, matemática do círculo, fileira e movimento suave da Nave-Mãe.
-- `src/gameplay/waves.js` — agenda das Ondas 0–3 (incluindo ataques cruzados) e dos laboratórios.
+- `src/gameplay/waves.js` — agenda das Ondas 0–4, incluindo pinças simultâneas/retardadas e laboratórios.
 - `src/gameplay/combat.js` e `src/gameplay/specialBlast.js` — regras matemáticas de mira, dano e explosão persistente.
 - `src/gameplay/weaponEffects.js` — intervalos, alinhamento de laser e alcance da Fragmentação.
 - `tests/` — testes automatizados das regras, incluindo padrões, dificuldade, continuidade da Nave-Mãe e diferenças de upgrades.
