@@ -2,6 +2,8 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
+> **Protótipo 0.22 — Calibre visual russo.** Os projéteis do Camarada Canhão estão ligeiramente maiores, de **9 × 14 px para 11 × 17 px**, também em builds combinadas, sem modificar colisão, dano, velocidade ou recuo físico. Demais efeitos da v0.21 preservados.
+
 > **Protótipo 0.21 — Efeitos visuais dos upgrades de nível 1.** Gambiarra Balística passa de +25% para **+50% de cadência** (500 → 333 ms) e alterna suavemente o ângulo dos disparos. O canhão russo ganhou clarão, rastro quente, recuo visual, faíscas e microtremida; os tiros chineses têm flash duplo e rastros vermelho-dourados, também nas builds combinadas. Fragmentação americana ganhou estilhaços luminosos. O laser coreano (ainda identificado como Japão/Katana no código legado) permanece visualmente aprovado. Mantidas Ondas 0–9, Phaser 960 × 540 e a base responsiva da v0.20.
 
 ## Upgrades de nível 1 com impacto visual (v0.21)
@@ -13,8 +15,10 @@ A campanha e o **Laboratório de Upgrades** usam os mesmos efeitos. Para testar,
 | Brasil — Gambiarra Balística | **+50% de cadência** (500 ms → aproximadamente 333 ms) e leve alternância esquerda/direita a cada rajada | Flash esverdeado alternado e recuo mais animado. O desvio é determinístico (±0,045 rad, cerca de 2,6°), sem curva durante o voo |
 | EUA — Munição de Fragmentação | Mesmas explosões e dano de antes | Sete raios curtos de estilhaços azuis/brancos no impacto, sem dano extra |
 | Coreia do Sul — Lightstick Tático | Laser perfurante a cada três disparos, com rastro residual no nível 2 | Feixe violeta já aprovado. **O protótipo ainda apresenta o nome antigo Japão/Katana**, que será migrado separadamente |
-| Rússia — Camarada Canhão | +75% de dano e mesmo recuo físico de antes | Rastro vermelho/quente, clarão forte, recuo animado de 8 px, microtremida curta com limite de frequência, anel/faíscas ao acertar |
+| Rússia — Camarada Canhão | +75% de dano e mesmo recuo físico de antes | Projétil **11 × 17 px** (antes 9 × 14), rastro vermelho/quente, clarão forte, recuo animado de 8 px, microtremida curta com limite de frequência, anel/faíscas ao acertar |
 | China — AliExplode — Frete Grátis | Dois projéteis por rajada (três com nível 2) | Rastros dourados por projétil, flash duplo vermelho/âmbar e recuo visual de dois pulsos |
+
+O aumento de tamanho russo é **somente visual**: o acerto usa a mesma distância de colisão de antes. Em combinação com o plasma da Coreia, a munição básica preserva a cor e o comprimento violeta, mas ganha a largura de projétil russo. Essa regra foi adicionada aos testes de regressão.
 
 **Acúmulo de aliados:** a rajada chinesa mantém seu espalhamento simétrico, mesmo com o pequeno desvio brasileiro; os efeitos de trilha da Rússia e China aparecem juntos, sem mudar dano. O feixe coreano continua apontado para a mira original, independente do zigue-zague dos tiros básicos do Brasil. O recuo do canhão é somente uma animação e não altera a origem ou a direção física das balas.
 
