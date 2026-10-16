@@ -18,7 +18,7 @@ import {
 } from '../gameplay/specialBlast.js';
 import {
   ENEMY_SHOT_COLOR, enemyStats, enemyContactRadius,
-  lineFormationX, orbitalFormationPosition, bossCruiseX,
+  lineFormationX, orbitalFormationPosition, bossCruiseX, minibossSummonCount,
 } from '../gameplay/enemies.js';
 import {
   getFirstUpgrade, combatStatsFor, shotAngles, shotVisualFor,
@@ -852,12 +852,32 @@ export class GameScene extends Phaser.Scene {
     if (event.pattern === 'orbit' && event.type === 2) {
       const count = event.count ?? 10;
       const center = W / 2;
-      this.showAttackWarning('ESQUADRÃO EM ÓRBITA • NÍVEL 2');
+      this.showAttackWarning(level <= 2
+        ? 'ESQUADRÃO EM ÓRBITA • NÍVEL 2' : 'ESQUADRÃO BLINDADO EM ÓRBITA!');
       for (let i = 0; i < count; i += 1) {
         this.spawnEnemy(2, {
           level, pattern: 'orbit',
           center, formationIndex: i, formationCount: count,
         });
+      }
+      return;
+    }
+    if (event.type === 3 && event.pattern === 'escort') {
+      // Bombardeiro e escolta Tipo 2 chegam coordenados ao mesmo corredor.
+      const center = event.center ?? W / 2;
+      const count = event.count ?? 4;
+      this.spawnEnemy(3, { level, x: center, center, pattern: 'escort' });
+      for (let i = 0; i < count; i += 1) {
+        this.spawnEnemy(2, { level, center, formationIndex: i, formationCount: count });
+      }
+      return;
+    }
+    if (event.type === 3 && event.pattern === 'bomberFan') {
+      // Leque de bombardeiros alinhados em corredores distintos.
+      const count = event.count ?? 3;
+      for (let i = 0; i < count; i += 1) {
+        const x = lineFormationX(i, count, W, 220);
+        this.spawnEnemy(3, { level, x, center: x, pattern: 'bomberFan' });
       }
       return;
     }
@@ -894,7 +914,7 @@ export class GameScene extends Phaser.Scene {
       options.x ?? Phaser.Math.Between(120, W - 120);
     const startY = type === 4 ? Phaser.Math.Between(120, 180) :
       type === 2 ? -45 - Math.abs(formationOffset) * 7 :
-      type === 1 ? -28 : -65;
+      type === 1 ? (options.y ?? -28) : -65;
     const visual = this.makeEnemyVisual(type, startX, startY, level);
     const enemy = {
       uid: this.nextEnemyId++,
@@ -914,6 +934,8 @@ export class GameScene extends Phaser.Scene {
       phaseAge: 0,
       shotTimer: 0,
       spawnTimer: 0,
+      spawnedMinions: 0,
+      sourceBossId: options.sourceBossId ?? null,
       laserGraphics: null,
       target: this.chooseDefenseTarget(),
     };
@@ -935,7 +957,10 @@ export class GameScene extends Phaser.Scene {
       enemy.formationWait = 2.6 + index * 0.65 + definition.formationWaitBonus;
     } else if (type === 3) {
       enemy.phase = 'approach';
-      this.setRoute(enemy, Phaser.Math.Between(235, 725), Phaser.Math.Between(170, 220));
+      this.setRoute(enemy,
+        options.pattern === 'escort' || options.pattern === 'bomberFan'
+          ? options.center : Phaser.Math.Between(235, 725),
+        Phaser.Math.Between(170, 220));
     } else if (type === 4) {
       enemy.phase = 'flyby';
       enemy.direction = startX < 0 ? 1 : -1;
@@ -1117,14 +1142,24 @@ export class GameScene extends Phaser.Scene {
         }
         if (enemy.spawnTimer >= enemy.definition.spawnInterval) {
           enemy.spawnTimer = 0;
-          const count = enemy.definition.spawnCount;
+          const campaignMiniboss = this.mode === 'wave8' || this.mode === 'wave9';
+          const liveMinions = campaignMiniboss
+            ? this.enemies.filter((unit) => unit.sourceBossId === enemy.uid).length : 0;
+          const count = campaignMiniboss
+            ? minibossSummonCount(enemy.spawnedMinions, liveMinions,
+              enemy.definition.spawnCount) : enemy.definition.spawnCount;
+          // Na campanha, minions herdam HP/cor do nível atual. O miniboss
+          // tem no máximo 12 invocações totais e 6 vivas simultaneamente.
           for (let j = 0; j < count; j += 1) {
             const spread = (j - (count - 1) / 2) * 84;
             this.spawnEnemy(1, {
-              level: enemy.level > 1 ? 2 : 1,
+              level: campaignMiniboss ? enemy.level : enemy.level > 1 ? 2 : 1,
               x: Phaser.Math.Clamp(enemy.sprite.x + spread, 100, W - 100),
+              y: campaignMiniboss ? enemy.sprite.y + 38 : undefined,
+              sourceBossId: campaignMiniboss ? enemy.uid : null,
             });
           }
+          enemy.spawnedMinions += count;
         }
       } else if (enemy.phase === 'dive') {
         if (this.moveAlongRoute(enemy, dt)) {
@@ -1914,7 +1949,7 @@ export class GameScene extends Phaser.Scene {
     }
     const automaticNext = automaticWaveAfterVictory(this.mode);
     if (automaticNext) {
-      // A Onda 4 começa com o mesmo conjunto de aliados da Onda 3.
+      // Ondas 4–9 mantêm o conjunto de três aliados, sem upgrades fictícios.
       this.scene.start('GameScene', { mode: automaticNext, campaign: this.campaign });
       return;
     }
@@ -1924,13 +1959,13 @@ export class GameScene extends Phaser.Scene {
       .setDepth(120).setInteractive();
     this.add.rectangle(W / 2, H / 2, 530, 332, 0x0b1c33, 0.98)
       .setStrokeStyle(2, 0x71e2b9).setDepth(121);
-    this.add.text(W / 2, 166, this.mode === 'lab' ? 'TESTE CONCLUÍDO' : 'ONDA 4 CONCLUÍDA!', {
+    this.add.text(W / 2, 166, this.mode === 'lab' ? 'TESTE CONCLUÍDO' : 'ONDA 9 CONCLUÍDA!', {
       fontFamily: 'monospace', fontSize: '32px',
       color: '#f4e3a3', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(122);
     this.add.text(W / 2, 218, this.mode === 'lab'
       ? 'Os cinco tipos já têm comportamento provisório.'
-      : 'Protótipo concluído! Próximas ondas em desenvolvimento.',
+      : 'O Rio resistiu! Fortaleza-Mãe: Onda 10 em breve.',
     {
       fontFamily: 'monospace', fontSize: '14px', color: '#e0f3ff',
     }).setOrigin(0.5).setDepth(122);
