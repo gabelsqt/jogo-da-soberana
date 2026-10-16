@@ -956,6 +956,8 @@ export class GameScene extends Phaser.Scene {
       type, level, definition,
       sprite: visual.sprite,
       box: visual.box,
+      baseScaleX: visual.sprite.scaleX,
+      baseScaleY: visual.sprite.scaleY,
       hp: definition.hp,
       maxHp: definition.hp,
       speed: definition.speed,
@@ -1329,7 +1331,10 @@ export class GameScene extends Phaser.Scene {
     // é adicionado após o movimento e subtraído no frame seguinte.
     enemy.sprite.x += reaction.dx;
     enemy.sprite.setRotation(reaction.rotation);
-    enemy.sprite.setScale(reaction.scale);
+    // Preserva o tamanho inicial do PNG Tipo 1 (setDisplaySize(62, 72)).
+    // Os outros tipos são Containers com escala-base 1.
+    enemy.sprite.setScale(enemy.baseScaleX * reaction.scale,
+      enemy.baseScaleY * reaction.scale);
 
     if (enemy.box) {
       enemy.box.setFillStyle(reaction.flash ? 0xffffff : enemy.definition.color);
