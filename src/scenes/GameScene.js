@@ -51,6 +51,10 @@ import {
   strategicKnockback, strategicRecoilIntensity, vacuumRiftAppearance,
 } from '../gameplay/secondUpgrades.js';
 import {
+  COLLATERAL_VISUAL_DELAY_MS, fenceGlowAt, encoreRimGlowAt,
+  isChinaCenterProjectile, strategicDistortionOpacity,
+} from '../gameplay/secondUpgradeVisuals.js';
+import {
   PLASMA_EVERY_SHOTS,
   PLASMA_DAMAGE,
   PLASMA_HALF_WIDTH,
@@ -1369,17 +1373,22 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (effects.multiple) {
-      // Um clarão por boca fictícia do canhão: as duas trilhas de tiro são
-      // desenhadas independentemente, inclusive em builds RU + CN.
+      // China I tem flash duplo. China II passa a ter três clarões,
+      // com o central mais brilhante, sem criar disparos adicionais.
+      const volleySize = this.combat.bulletsPerShot;
+      const muzzlePositions = volleySize >= 3 ? [-1, 0, 1] : [-1, 1];
       const px = -Math.sin(angle) * 8;
       const py = Math.cos(angle) * 8;
-      for (const sign of [-1, 1]) {
+      for (const sign of muzzlePositions) {
+        const center = sign === 0;
         const glow = this.add.circle(
-          x + px * sign, y + py * sign, 5.5,
-          sign < 0 ? 0xffb34f : 0xff6757, 0.92,
+          x + px * sign, y + py * sign, center ? 7 : 5.5,
+          center ? 0xfff7d6 : sign < 0 ? 0xffb34f : 0xff6757,
+          center ? 1 : 0.92,
         ).setDepth(39);
         this.tweens.add({
-          targets: glow, scale: 2.15, alpha: 0, duration: 120,
+          targets: glow, scale: center ? 2.4 : 2.15,
+          alpha: 0, duration: center ? 155 : 120,
           onComplete: () => glow.destroy(),
         });
       }
@@ -1416,9 +1425,13 @@ export class GameScene extends Phaser.Scene {
     // projéteis chineses continuam com seu spread simétrico em torno dela.
     const aimed = brazilAlternatingAngle(angle, nextShot, this.combat.brazilZigzag);
     const effects = shotVfxFor(this.activeUpgradeIds());
-    for (const firingAngle of shotAngles(aimed, this.combat.bulletsPerShot)) {
-      this.createProjectile(firingAngle, false, 0, effects);
-    }
+    const volleyAngles = shotAngles(aimed, this.combat.bulletsPerShot);
+    volleyAngles.forEach((firingAngle, index) => {
+      const centerGlow = isChinaCenterProjectile(
+        index, volleyAngles.length, effects.multiple,
+      );
+      this.createProjectile(firingAngle, false, 0, effects, centerGlow);
+    });
     this.basicShotCount = nextShot;
     // O laser coreano mantém a direção da mira original (a oscilação da
     // Gambiarra altera apenas as balas básicas, não a arma laser).
@@ -1496,7 +1509,10 @@ export class GameScene extends Phaser.Scene {
     const ny = dx / length;
 
     // Halo de pressão, bordas azul-turquesa e vazio central.
-    graphics.lineStyle(width * 2 + 18, 0x18d7d8, 0.12);
+    // Encore! (nível 2) acentua suavemente as bordas, sem alargar
+    // a área física da fenda nem alterar o tempo de dano residual.
+    const edgePulse = encoreRimGlowAt(age);
+    graphics.lineStyle(width * 2 + 18, 0x18d7d8, 0.12 + edgePulse * 0.06);
     graphics.lineBetween(slash.x1, slash.y1, slash.x2, slash.y2);
     graphics.lineStyle(width * 2 + 7, 0x298cbd, 0.33);
     graphics.lineBetween(slash.x1, slash.y1, slash.x2, slash.y2);
@@ -1506,11 +1522,24 @@ export class GameScene extends Phaser.Scene {
     for (const direction of [-1, 1]) {
       const edgeX = nx * width * direction;
       const edgeY = ny * width * direction;
-      graphics.lineStyle(2.7, 0x8bfff2, 0.95);
+      graphics.lineStyle(2.4 + edgePulse * 0.55, 0x8bfff2,
+        Math.min(1, 0.65 + edgePulse * 0.33));
       graphics.lineBetween(
         slash.x1 + edgeX, slash.y1 + edgeY,
         slash.x2 + edgeX, slash.y2 + edgeY,
       );
+    }
+
+    // Pequenos reflexos nas extremidades tornam o pulso perceptível
+    // mesmo quando não há naves atravessando a fenda.
+    for (const t of [0.2, 0.8]) {
+      const mx = slash.x1 + dx * t;
+      const my = slash.y1 + dy * t;
+      graphics.lineStyle(1.3, 0xecfffb, Math.max(0.25, edgePulse * 0.63));
+      graphics.lineBetween(mx - nx * (width + 4), my - ny * (width + 4),
+        mx - nx * (width - 1), my - ny * (width - 1));
+      graphics.lineBetween(mx + nx * (width - 1), my + ny * (width - 1),
+        mx + nx * (width + 4), my + ny * (width + 4));
     }
 
     // Fissuras curtas e intermitentes atravessam a abertura.
@@ -1559,8 +1588,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   explodeCollateral(x, y) {
-    // Um único estouro extra por bala de Fragmentação; nunca dispara outra
-    // explosão de Dano Colateral ao matar novos inimigos nesta segunda área.
+    // IMPORTANTE: o dano continua imediato, com a mesma área e sem
+    // explosões recursivas. O atraso abaixo é SOMENTE para o visual.
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
       if (fragmentHitsTarget(
@@ -1568,11 +1597,31 @@ export class GameScene extends Phaser.Scene {
         enemyContactRadius(enemy.type), COLLATERAL_RADIUS,
       )) this.impactInvader(i, COLLATERAL_DAMAGE, 0, '#ffd59b', false);
     }
-    const ring = this.add.circle(x, y, COLLATERAL_RADIUS, 0xffa052, 0.22)
-      .setStrokeStyle(3, 0xffedac, 0.9).setScale(0.1).setDepth(46);
-    this.tweens.add({
-      targets: ring, scale: 1, alpha: 0, duration: 280,
-      onComplete: () => ring.destroy(),
+    this.time.delayedCall(COLLATERAL_VISUAL_DELAY_MS, () => {
+      // Primeira detonação azul (nível 1) seguida de segunda onda laranja.
+      const ring = this.add.circle(x, y, COLLATERAL_RADIUS, 0xffa052, 0.24)
+        .setStrokeStyle(3.5, 0xffedac, 0.96).setScale(0.12).setDepth(46);
+      const flash = this.add.circle(x, y, 12, 0xffe3b0, 0.86).setDepth(47);
+      const sparks = this.add.graphics().setPosition(x, y).setDepth(47);
+      for (let i = 0; i < 8; i += 1) {
+        const angle = (i * Math.PI * 2) / 8;
+        const dx = Math.cos(angle);
+        const dy = Math.sin(angle);
+        sparks.lineStyle(2, i % 2 === 0 ? 0xffedb4 : 0xff934c, 0.88);
+        sparks.lineBetween(dx * 16, dy * 16, dx * 39, dy * 39);
+      }
+      this.tweens.add({
+        targets: ring, scale: 1, alpha: 0, duration: 285,
+        onComplete: () => ring.destroy(),
+      });
+      this.tweens.add({
+        targets: flash, scale: 2.4, alpha: 0, duration: 180,
+        onComplete: () => flash.destroy(),
+      });
+      this.tweens.add({
+        targets: sparks, scale: 1.5, alpha: 0, duration: 230,
+        onComplete: () => sparks.destroy(),
+      });
     });
   }
 
@@ -1660,7 +1709,7 @@ export class GameScene extends Phaser.Scene {
     this.createProjectile(target.angle, true, target.distance);
   }
 
-  createProjectile(angle, special, distance = 0, effects = null) {
+  createProjectile(angle, special, distance = 0, effects = null, centerGlow = false) {
     const vx = Math.cos(angle);
     const vy = Math.sin(angle);
     const x = CANNON.x + vx * 29;
@@ -1670,7 +1719,7 @@ export class GameScene extends Phaser.Scene {
     const dot = special
       ? this.add.circle(x, y, 8, 0x72eaf8).setDepth(35)
       : this.add.rectangle(x, y, style.width, style.length, style.color)
-        .setStrokeStyle(1, 0xffffff, 0.65)
+        .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff, centerGlow ? 0.95 : 0.65)
         .setRotation(angle + Math.PI / 2)
         .setDepth(35);
     const speed = special ? 300 : this.combat.basicSpeed;
@@ -1682,6 +1731,7 @@ export class GameScene extends Phaser.Scene {
       sprite: dot,
       trail,
       vfx,
+      centerGlow,
       vx: vx * speed,
       vy: vy * speed,
       special,
@@ -1716,10 +1766,13 @@ export class GameScene extends Phaser.Scene {
     if (bullet.vfx.multiple) {
       // Destaque independente dos dois/três tiros da China. Pode coexistir
       // com o rastro russo sem perder o brilho vermelho/dourado.
-      gfx.lineStyle(8, 0xffa52c, 0.26);
+      gfx.lineStyle(bullet.centerGlow ? 11 : 8, 0xffa52c,
+        bullet.centerGlow ? 0.32 : 0.26);
       gfx.lineBetween(x - dx * 29, y - dy * 29, x, y);
-      gfx.lineStyle(2, 0xffef87, 0.95);
-      gfx.lineBetween(x - dx * 20, y - dy * 20, x, y);
+      gfx.lineStyle(bullet.centerGlow ? 3 : 2,
+        bullet.centerGlow ? 0xfff9d5 : 0xffef87, 0.95);
+      gfx.lineBetween(x - dx * (bullet.centerGlow ? 26 : 20),
+        y - dy * (bullet.centerGlow ? 26 : 20), x, y);
     }
   }
 
@@ -1810,6 +1863,17 @@ export class GameScene extends Phaser.Scene {
     graphic.strokeCircle(0, 0, radius);
     graphic.lineStyle(1.5 + intensity * 2, 0xfff2d1, 0.65 + intensity * 0.30);
     graphic.strokeCircle(0, 0, radius * 0.54);
+    // Reflexos concêntricos evocam uma breve distorção luminosa.
+    // A intensidade da distorção cresce apenas com o fator já usado
+    // pelo knockback estratégico; não existe alteração de física.
+    const distortion = strategicDistortionOpacity(intensity);
+    graphic.lineStyle(1 + intensity * 1.5, 0xfff9de, distortion);
+    graphic.beginPath();
+    graphic.arc(0, 0, radius * 1.15, -0.9, 0.68, false);
+    graphic.strokePath();
+    graphic.beginPath();
+    graphic.arc(0, 0, radius * 1.27, 2.35, 3.75, false);
+    graphic.strokePath();
     graphic.fillStyle(0xffe3ac, 0.32 + intensity * 0.38);
     graphic.fillCircle(0, 0, 3 + intensity * 6);
     const rays = 4 + Math.round(intensity * 9);
@@ -1967,7 +2031,7 @@ export class GameScene extends Phaser.Scene {
     const endX = target.sprite.x;
     const endY = target.sprite.y;
     const arc = this.add.graphics().setDepth(50);
-    arc.lineStyle(3, 0xffeaa2, 0.95);
+    arc.lineStyle(4, 0xcaffd0, 0.95);
     arc.beginPath();
     arc.moveTo(originX, originY);
     const perpX = -dy / distance;
@@ -1980,7 +2044,7 @@ export class GameScene extends Phaser.Scene {
     }
     arc.lineTo(endX, endY);
     arc.strokePath();
-    arc.lineStyle(1, 0x7bffb0, 0.75);
+    arc.lineStyle(1.5, 0xffffff, 0.9);
     arc.lineBetween(originX, originY, endX, endY);
     const pulse = this.add.circle(originX, originY, 5, 0xbaffc4, 0.65)
       .setDepth(49);
@@ -2048,6 +2112,11 @@ export class GameScene extends Phaser.Scene {
       if (this.combat.electricFence) {
         // Verde de cerca elétrica + cacos de vidro acompanhando a borda.
         const cy = y + 10;
+        const electricGlow = fenceGlowAt(this.time.now, fraction);
+        graphics.lineStyle(5, 0x60ffb9, electricGlow * 0.16);
+        graphics.beginPath();
+        graphics.arc(x, cy, drawRadius + 3, Math.PI, Math.PI * 2, false);
+        graphics.strokePath();
         graphics.lineStyle(1, 0xa4faad, Math.max(0.23, fraction * 0.70));
         graphics.beginPath();
         graphics.arc(x, cy, drawRadius + 2, Math.PI, Math.PI * 2, false);
@@ -2064,6 +2133,30 @@ export class GameScene extends Phaser.Scene {
             gx + sin * 3, gy - cos * 3,
             gx + cos * 7, gy + sin * 7,
           );
+        }
+        // Reflexos correm ao longo dos cacos mesmo quando não há OVNIs.
+        // Reutiliza o Graphics da cúpula em vez de emitir partículas.
+        for (let i = 0; i < 3; i += 1) {
+          const position = ((this.time.now * 0.00016 + i / 3) % 1);
+          const angle = Math.PI + position * Math.PI;
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          const gx = x + (drawRadius + 4) * cos;
+          const gy = cy + (drawRadius + 4) * sin;
+          graphics.lineStyle(1.4, 0xf3fff4, electricGlow * 0.75);
+          graphics.lineBetween(gx - 3, gy, gx + 3, gy);
+          graphics.lineBetween(gx, gy - 3, gx, gy + 3);
+        }
+        // Pequenos arcos da cerca: brilho somente decorativo.
+        for (let i = 0; i < 3; i += 1) {
+          const angle = Math.PI + (i + 0.5) * Math.PI / 3;
+          const cx = x + (drawRadius + 3) * Math.cos(angle);
+          const sy = cy + (drawRadius + 3) * Math.sin(angle);
+          const flicker = Math.sin(this.time.now * 0.017 + i * 2.7);
+          if (flicker < 0) continue;
+          graphics.lineStyle(1.2, 0xc9ffd5, flicker * electricGlow * 0.7);
+          graphics.lineBetween(cx - 5, sy, cx, sy - 4);
+          graphics.lineBetween(cx, sy - 4, cx + 4, sy + 1);
         }
       }
     };
