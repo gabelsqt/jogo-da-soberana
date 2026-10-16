@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import { assetUrl } from '../config/assetUrl.js';
+import { preloadMechSprites, createMechSprites } from '../gameplay/mechSpriteMounts.js';
 import {
   restrictedAimAngle,
   availableDefenseTargets,
@@ -183,6 +184,7 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     preloadRioBackdrop(this);
+    preloadMechSprites(this);
     this.load.setPath('');
     for (let frame = 1; frame <= 4; frame += 1) {
       const name = 'frame_' + String(frame).padStart(2, '0') + '.png';
@@ -388,7 +390,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   installSupportTowerSet(countryIds) {
-    for (const tower of this.supportTowers) tower.sprite.destroy();
+    for (const tower of this.supportTowers) tower.visual.destroy();
     for (const bullet of this.supportProjectiles) bullet.sprite.destroy();
     this.supportProjectiles.length = 0;
     this.supportTowers.length = 0;
@@ -399,36 +401,14 @@ export class GameScene extends Phaser.Scene {
       const position = SUPPORT_TOWER_POSITIONS[index];
       const { x, y } = position;
 
-      // Placeholders de arte, separados do cenário: silhueta metálica e sigla.
-      const sprite = this.add.container(x, y - 12).setDepth(26);
-      const base = this.add.rectangle(0, 22, 64, 17, 0x263e52)
-        .setStrokeStyle(2, 0x94b5c4);
-      const hull = this.add.rectangle(0, 0, 39, 32, definition.color)
-        .setStrokeStyle(2, 0xf4faff);
-      const visor = this.add.rectangle(0, -7, 23, 6, 0x1a2e42);
-      const glyph = this.add.text(0, 6, definition.glyph, {
-        fontFamily: 'monospace', fontSize: '19px',
-        color: '#091c32', fontStyle: 'bold',
-      }).setOrigin(0.5);
-      const name = this.add.text(0, 36, definition.label, {
-        fontFamily: 'monospace', fontSize: '9px',
-        color: '#f4faff', fontStyle: 'bold',
-        backgroundColor: '#142438dd', padding: { x: 3, y: 2 },
-      }).setOrigin(0.5);
-      if (id === 'ru') {
-        // O Urso ainda é um placeholder, mas ganha silhueta de artilharia pesada.
-        const barrel = this.add.rectangle(0, -26, 17, 48, 0x768390)
-          .setStrokeStyle(2, 0xffd7a5);
-        const muzzle = this.add.rectangle(0, -53, 27, 11, 0xc2a487)
-          .setStrokeStyle(2, 0xffe8c2);
-        sprite.add([barrel, muzzle]);
-      }
-      sprite.add([base, hull, visor, glyph, name]);
+      // Corpo e canhão são imagens independentes. Somente a arma gira no pivô.
+      const visual = createMechSprites(this, id, x, y);
+      const sprite = visual.sprite;
 
       this.supportTowers.push({
         id: 'tower-' + id, countryId: id,
         definition, x, y, shieldRadius: 46,
-        sprite,
+        sprite, visual,
         health: definition.healthMax,
         healthMax: definition.healthMax,
         shield: definition.shieldMax,
@@ -462,11 +442,14 @@ export class GameScene extends Phaser.Scene {
   updateSupportTowers(dt) {
     for (const tower of this.supportTowers) {
       if (tower.health <= 0) continue;
-      if (this.time.now - tower.lastAttackAt < tower.definition.interval) continue;
+      // O pivô visual acompanha alvos mesmo durante o intervalo de recarga;
+      // a cadência e a seleção de alvo para disparar continuam idênticas.
       const enemy = chooseTowerAttackTarget(
         tower.x, tower.y - 22, this.enemies, tower.definition.range,
       );
       if (!enemy) continue;
+      tower.visual.aimAt(enemy.sprite.x, enemy.sprite.y, dt);
+      if (this.time.now - tower.lastAttackAt < tower.definition.interval) continue;
       tower.lastAttackAt = this.time.now;
       this.fireTowerWeapon(tower, enemy);
     }
@@ -493,18 +476,6 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({
       targets: muzzle, scale: 2, alpha: 0, duration: 150,
       onComplete: () => muzzle.destroy(),
-    });
-
-    // O placeholder da torre sofre um recuo físico curto, com retorno suave.
-    const restY = tower.y - 12;
-    this.tweens.killTweensOf(tower.sprite);
-    tower.sprite.y = restY;
-    this.tweens.add({
-      targets: tower.sprite,
-      y: restY + 11,
-      duration: 95,
-      yoyo: true,
-      ease: 'Sine.easeOut',
     });
 
     this.supportProjectiles.push({
@@ -625,6 +596,8 @@ export class GameScene extends Phaser.Scene {
     const fromX = tower.x;
     const fromY = tower.y - 35;
 
+    // Recuo visual aplicado apenas ao canhão lateral, jamais ao corpo.
+    tower.visual.recoil();
     if (weapon.type === 'shell') {
       this.fireShockArtillery(tower, enemy);
       return;
