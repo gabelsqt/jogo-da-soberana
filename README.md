@@ -2,7 +2,25 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.20 — Base responsiva para PC, itch.io e celulares.** O canvas mantém a resolução lógica **960 × 540 (16:9, a mesma proporção de 1920 × 1080)** e se adapta ao espaço disponível sem distorcer o jogo, incluindo barras móveis do navegador e áreas seguras de celulares com notch. Em dispositivos de toque na vertical, aparece um aviso para girar a tela e a partida fica pausada até voltar à horizontal. **Controles touch ainda não implementados** — esta etapa prepara apenas apresentação e orientação. O conteúdo da v0.19 (Ondas 0–9 e miniboss Tipo 5) foi preservado.
+> **Protótipo 0.21 — Efeitos visuais dos upgrades de nível 1.** Gambiarra Balística passa de +25% para **+50% de cadência** (500 → 333 ms) e alterna suavemente o ângulo dos disparos. O canhão russo ganhou clarão, rastro quente, recuo visual, faíscas e microtremida; os tiros chineses têm flash duplo e rastros vermelho-dourados, também nas builds combinadas. Fragmentação americana ganhou estilhaços luminosos. O laser coreano (ainda identificado como Japão/Katana no código legado) permanece visualmente aprovado. Mantidas Ondas 0–9, Phaser 960 × 540 e a base responsiva da v0.20.
+
+## Upgrades de nível 1 com impacto visual (v0.21)
+
+A campanha e o **Laboratório de Upgrades** usam os mesmos efeitos. Para testar, escolha **Testar upgrades** no menu e marque um país na aba de nível 1; depois pressione **VOLTAR AO CAMPO [U]**. Também é possível selecionar vários países e observar as combinações.
+
+| País | Mecânica | Feedback visual |
+| --- | --- | --- |
+| Brasil — Gambiarra Balística | **+50% de cadência** (500 ms → aproximadamente 333 ms) e leve alternância esquerda/direita a cada rajada | Flash esverdeado alternado e recuo mais animado. O desvio é determinístico (±0,045 rad, cerca de 2,6°), sem curva durante o voo |
+| EUA — Munição de Fragmentação | Mesmas explosões e dano de antes | Sete raios curtos de estilhaços azuis/brancos no impacto, sem dano extra |
+| Coreia do Sul — Lightstick Tático | Laser perfurante a cada três disparos, com rastro residual no nível 2 | Feixe violeta já aprovado. **O protótipo ainda apresenta o nome antigo Japão/Katana**, que será migrado separadamente |
+| Rússia — Camarada Canhão | +75% de dano e mesmo recuo físico de antes | Rastro vermelho/quente, clarão forte, recuo animado de 8 px, microtremida curta com limite de frequência, anel/faíscas ao acertar |
+| China — AliExplode — Frete Grátis | Dois projéteis por rajada (três com nível 2) | Rastros dourados por projétil, flash duplo vermelho/âmbar e recuo visual de dois pulsos |
+
+**Acúmulo de aliados:** a rajada chinesa mantém seu espalhamento simétrico, mesmo com o pequeno desvio brasileiro; os efeitos de trilha da Rússia e China aparecem juntos, sem mudar dano. O feixe coreano continua apontado para a mira original, independente do zigue-zague dos tiros básicos do Brasil. O recuo do canhão é somente uma animação e não altera a origem ou a direção física das balas.
+
+**Implementação:** `src/gameplay/upgrades.js` define cadência, ângulo alternado e marcas visuais; `src/scenes/GameScene.js` desenha flashes, estilhaços, trilhas e recuo com objetos temporários destruídos ao finalizar a animação ou o projétil. `tests/firstUpgradeVisuals.test.js` cobre valores, alternância, limites de ângulo e compatibilidade entre países; os testes de progressão foram atualizados para a nova cadência.
+
+**Observação:** as intensidades visuais ainda dependem de playtest no navegador. A substituição temática de Japão por Coreia do Sul e os upgrades 4–10 continuam pendentes de implementação.
 
 ## Layout responsivo e preparação mobile (v0.20)
 
@@ -136,7 +154,7 @@ As quantidades são de **inimigos programados**; nas Ondas 8 e 9, o Cruzador-Col
 
 | País | Upgrade | Efeito no protótipo |
 | --- | --- | --- |
-| Brasil | Gambiarra Balística | +25% de cadência (500 ms → 400 ms) |
+| Brasil | Gambiarra Balística | **+50% de cadência** (500 ms → 333 ms), com leve alternância esquerda/direita dos tiros |
 | EUA | Munição de Fragmentação | Cada projétil que acerta um inimigo provoca uma explosão de raio 78 px, causando 1,5 de dano aos outros inimigos próximos e destruindo projéteis hostis na área |
 | Japão | Katana de Plasma | A cada três disparos básicos, solta um feixe de energia na direção da mira, atravessando todos os inimigos alinhados e causando 3 de dano a cada um |
 | Rússia | Camarada Canhão | +75% de dano, aplica **recuo gradual** aos inimigos em mergulho (em vez de saltar a posição) |
