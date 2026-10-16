@@ -241,6 +241,23 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
     this.input.keyboard.on('keydown-P', () => this.pauseGame());
 
+    if (import.meta.env.DEV && this.mode.startsWith('wave')) {
+      // Playtest local: Shift+5–9 abre a onda diretamente, sem afetar o itch.io.
+      // Se entrar antes da terceira escolha, usa Brasil III como equipamento
+      // padrão apenas no salto de testes, sem sobrescrever a campanha.
+      this.input.keyboard.on('keydown', (event) => {
+        if (!event.shiftKey) return;
+        const choice = /^Digit([5-9])$/.exec(event.code ?? '');
+        if (!choice) return;
+        event.preventDefault();
+        this.scene.start('GameScene', {
+          mode: `wave${choice[1]}`,
+          campaign: this.campaign.choices.length >= 3
+            ? this.campaign : { choices: ['br', 'br', 'br'] },
+        });
+      });
+    }
+
     if (this.mode.startsWith('wave')) {
       this.startWaveCountdown();
     } else {
