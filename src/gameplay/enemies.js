@@ -44,26 +44,55 @@ export function enemyContactRadius(type) {
 }
 
 
-// Níveis provisórios de dificuldade: nível 1 = comportamento básico;
-// nível 2 = padrão mais agressivo, sem trocar os sprites de placeholder.
+// Paleta por nível. Só a COR muda: dimensões e hitboxes vêm sempre do
+// tipo original. Níveis 1/2 preservam as cores da versão anterior;
+// nível 3 (Onda 4) inicia a frota blindada laranja.
+export const ENEMY_TIER_COLORS = {
+  3: 0xeaa149, // Onda 4 — laranja reforçado
+  4: 0xe47bba, // Onda 5 — magenta
+  5: 0xa77bec, // Onda 6 — violeta
+  6: 0x609df0, // Onda 7 — azul elétrico
+  7: 0x5bdbef, // Onda 8 — ciano
+  8: 0xf0d687, // Onda 9 — dourado pálido
+  9: 0xe9f4ff, // Onda 10 — branco frio
+  10: 0xff788a, // Reservado para variantes futuras
+};
+
+export function enemyTierColor(level) {
+  const tier = Math.max(1, Math.min(10, Math.trunc(level) || 1));
+  return ENEMY_TIER_COLORS[tier] ?? null;
+}
+
+// Mantém os níveis 1 e 2 já testados. A partir do nível 3,
+// aumenta HP em cada nível: +1 nos Tipos 1/2/4; +2 no bombardeiro.
+// A velocidade dos níveis 3+ NÃO continua aumentando: resistência,
+// e não aceleração descontrolada, é a base da dificuldade.
 export function enemyStats(type, level = 1) {
   const base = enemyDefinition(type);
-  const tier = level >= 2 ? 2 : 1;
-  const advanced = tier === 2;
-  const hpBonus = { 1: 0, 2: 1, 3: 2, 4: 1, 5: 8 };
+  const tier = Math.max(1, Math.min(10, Math.trunc(level) || 1));
+  const advanced = tier >= 2;
+  const baseBonus = { 1: 0, 2: 1, 3: 2, 4: 1, 5: 8 };
+  const hpPerLevel = { 1: 1, 2: 1, 3: 2, 4: 1, 5: 4 };
+  const tint = enemyTierColor(tier);
   return {
     ...base,
     level: tier,
-    hp: base.hp + (advanced ? hpBonus[type] : 0),
+    hp: base.hp + (advanced ? baseBonus[type] : 0)
+      + Math.max(0, tier - 2) * hpPerLevel[type],
+    color: tint ?? base.color,
+    tintColor: tint ?? (advanced ? 0xffd5a0 : 0xffffff),
     speed: Math.round(base.speed * (advanced ? 1.17 : 1)),
     shotInterval: type === 3 ? (advanced ? 1.7 : 2.4)
       : type === 5 ? (advanced ? 2.1 : 2.8) : null,
-    // O bombardeiro II lança duas bombas convergentes por salva.
+    // A partir do nível 2, bombardeiros soltam duas bombas convergentes.
     volleyCount: type === 3 && advanced ? 2 : 1,
-    // A Nave-Mãe II libera dois caças básicos por vez.
     spawnCount: type === 5 && advanced ? 2 : 1,
     spawnInterval: type === 5 ? (advanced ? 3.0 : 4.2) : null,
     warningDuration: type === 4 ? (advanced ? 0.85 : 1.4) : null,
+    // No nível 3+, a formação e o bombardeiro mantêm pressão por mais tempo.
+    formationWaitBonus: tier >= 3 ? 1.8 : 0,
+    bomberHoverDuration: tier >= 3 ? 12.5 : advanced ? 9 : 11,
+    fighterExtraPasses: tier >= 3 ? 1 : 0,
   };
 }
 
