@@ -4,7 +4,7 @@ export const FIRST_UPGRADES = [
   {
     id: 'br', name: 'Brasil', flag: 'BR', color: 0x2a9c65,
     title: 'Gambiarra Balística',
-    description: 'Cadência do canhão +25%. A engenharia brasileira não pergunta como.',
+    description: '+50% de cadência e disparos alternando levemente para os lados. Gambiarra é tecnologia.' ,
   },
   {
     id: 'us', name: 'EUA', flag: 'US', color: 0x477dc4,
@@ -42,10 +42,14 @@ export function combatStatsFor(upgradeId) {
     plasmaEvery: 0,
     knockback: 0,
     bulletsPerShot: 1,
+    brazilZigzag: false,
     specialCooldown: 8000,
   };
   switch (upgradeId) {
-    case 'br': stats.basicInterval = 400; break;
+    case 'br':
+      stats.basicInterval = Math.round(stats.basicInterval / 1.5);
+      stats.brazilZigzag = true;
+      break;
     case 'us': stats.fragmentation = true; break;
     case 'jp': stats.plasmaEvery = 3; break;
     case 'ru':
@@ -78,7 +82,8 @@ export function combatStatsForLoadout(ids = []) {
   for (const id of normalizeLabUpgrades(ids)) {
     switch (id) {
       case 'br':
-        stats.basicInterval *= 0.8;
+        stats.basicInterval /= 1.5;
+        stats.brazilZigzag = true;
         break;
       case 'us':
         stats.fragmentation = true;
@@ -133,4 +138,33 @@ export function shotVisualFor(ids = []) {
     color: 0xffdf72, impactColor: '#ffe6a0', width: 6, length: 14,
   };
   return { color: 0xffe29b, impactColor: '#ffe29b', width: 5, length: 11 };
+}
+
+// Alteração visual aprovada: primeiro tiro à esquerda, segundo à direita.
+// Cada trajetória segue RETA após sair do canhão: não há zig-zague durante o voo.
+// A abertura pequena (2,6 graus) mantém o tiro útil contra naves pequenas.
+export const BRAZIL_ALTERNATING_SPREAD = 0.045;
+
+export function brazilAlternatingAngle(aimAngle, shotNumber, enabled = false) {
+  if (!enabled || !Number.isInteger(shotNumber) || shotNumber < 1) return aimAngle;
+  const alternate = shotNumber % 2 === 1 ? -1 : 1;
+  const min = -Math.PI + Math.PI / 12;
+  const max = -Math.PI / 12;
+  return Math.max(min, Math.min(max, aimAngle + alternate * BRAZIL_ALTERNATING_SPREAD));
+}
+
+// VFX combináveis: uma build RU + CN mantém tanto a sensação de impacto
+// quanto as duas trilhas brilhantes, independentemente da cor principal do tiro.
+export function shotVfxFor(ids = []) {
+  const chosen = new Set(normalizeLabUpgrades(ids));
+  const heavy = chosen.has('ru');
+  const multiple = chosen.has('cn');
+  const improvised = chosen.has('br');
+  return {
+    heavy,
+    multiple,
+    improvised,
+    fragments: chosen.has('us'),
+    recoil: heavy ? 8 : improvised ? 4 : multiple ? 3 : 2,
+  };
 }
