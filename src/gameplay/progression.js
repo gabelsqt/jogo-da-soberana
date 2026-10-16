@@ -82,3 +82,9 @@ export function nextWaveAfterChoice(state) {
     : count === 2 ? 'wave2'
       : count === 3 ? 'wave3' : null;
 }
+
+// A quarta escolha ainda não foi criada. A Onda 4 funciona como continuação
+// direta após a Onda 3, preservando o conjunto de 3 escolhas e suas torres.
+export function automaticWaveAfterVictory(mode) {
+  return mode === 'wave3' ? 'wave4' : null;
+}
