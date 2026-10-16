@@ -2,13 +2,15 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
+> **Protótipo 0.25 — Identidade da Coreia do Sul.** Os nomes mostrados ao jogador foram atualizados: **Coreia do Sul (KR)**, **Lightstick Tático** (nível 1), **Encore!** (nível 2) e **Projeto Kkachi I / KKACHI** (torre do nível 3). HUD, cartões, laboratório e histórico de escolhas exibem a identidade coreana. O identificador interno legado `jp` permanece para preservar a progressão e as combinações já existentes. Nenhuma mecânica de combate, valor de dano ou arma foi alterado.
+
 > **Protótipo 0.24 — Feedback de impacto e destruição de OVNIs.** Todos os tipos de inimigo implementados (1–5) ganharam piscar branco curto e sacudida ao sobreviver a um disparo, além de explosões geométricas escalonadas ao serem abatidos. O Tipo 4 (Caça Relâmpago) recebe explosão rosa/branca em duas etapas, anel, estilhaços e microtremida; o Tipo 5 recebe celebração ainda maior e em duas etapas. O Tipo 6 já possui parâmetros de VFX planejados, mas **ainda não existe nas ondas jogáveis**. Nenhum atributo de HP, dano, movimento ou cooldown foi modificado.
 
-> **Protótipo 0.23 — Refinamentos visuais do nível 2.** Todos os cinco países ganharam uma evolução visual de seus upgrades de nível 2, preservando dano, cadência e área de efeito: escudos brasileiros com brilho e pequenas descargas, segunda explosão americana laranja levemente atrasada **apenas na animação**, fenda coreana com bordas pulsantes, choques russos com ondas e reflexos mais fortes perto do chão e flash triplo chinês com projétil central destacado. Os efeitos estão disponíveis tanto na campanha quanto no laboratório; a migração de nomes japoneses para coreanos continua pendente.
+> **Protótipo 0.23 — Refinamentos visuais do nível 2.** Todos os cinco países ganharam uma evolução visual de seus upgrades de nível 2, preservando dano, cadência e área de efeito: escudos brasileiros com brilho e pequenas descargas, segunda explosão americana laranja levemente atrasada **apenas na animação**, fenda coreana com bordas pulsantes, choques russos com ondas e reflexos mais fortes perto do chão e flash triplo chinês com projétil central destacado. Os efeitos estão disponíveis tanto na campanha quanto no laboratório; a migração de identidade foi concluída na v0.25.
 
 > **Protótipo 0.22 — Calibre visual russo.** Os projéteis do Camarada Canhão estão ligeiramente maiores, de **9 × 14 px para 11 × 17 px**, também em builds combinadas, sem modificar colisão, dano, velocidade ou recuo físico. Demais efeitos da v0.21 preservados.
 
-> **Protótipo 0.21 — Efeitos visuais dos upgrades de nível 1.** Gambiarra Balística passa de +25% para **+50% de cadência** (500 → 333 ms) e alterna suavemente o ângulo dos disparos. O canhão russo ganhou clarão, rastro quente, recuo visual, faíscas e microtremida; os tiros chineses têm flash duplo e rastros vermelho-dourados, também nas builds combinadas. Fragmentação americana ganhou estilhaços luminosos. O laser coreano (ainda identificado como Japão/Katana no código legado) permanece visualmente aprovado. Mantidas Ondas 0–9, Phaser 960 × 540 e a base responsiva da v0.20.
+> **Protótipo 0.21 — Efeitos visuais dos upgrades de nível 1.** Gambiarra Balística passa de +25% para **+50% de cadência** (500 → 333 ms) e alterna suavemente o ângulo dos disparos. O canhão russo ganhou clarão, rastro quente, recuo visual, faíscas e microtremida; os tiros chineses têm flash duplo e rastros vermelho-dourados, também nas builds combinadas. Fragmentação americana ganhou estilhaços luminosos. O laser coreano (identificado visualmente como Lightstick a partir da v0.25) permanece aprovado. Mantidas Ondas 0–9, Phaser 960 × 540 e a base responsiva da v0.20.
 
 ## Feedback de tiros e mortes dos invasores (v0.24)
 
@@ -45,7 +47,7 @@ Os upgrades de nível 2 agora mostram uma evolução claramente reconhecível do
 
 **Arquivos:** `src/gameplay/secondUpgradeVisuals.js` reúne parâmetros e funções visuais puras; `src/scenes/GameScene.js` renderiza os efeitos; `src/gameplay/secondUpgrades.js` atualiza apenas as descrições visíveis do laboratório; `tests/secondUpgradeVisuals.test.js` valida as animações e a preservação dos atributos mecânicos.
 
-**Estado:** a substituição definitiva de Japão por Coreia do Sul nas identificações, textos de combate e torres ainda está pendente; upgrades de níveis 4–10 ainda não foram implementados. Playtest visual no navegador permanece necessário.
+**Estado:** a identidade da Coreia do Sul foi integrada na v0.25; o identificador interno `jp` permanece por compatibilidade. Upgrades de níveis 4–10 ainda não foram implementados. Playtest visual no navegador permanece necessário.
 
 ## Upgrades de nível 1 com impacto visual (v0.21)
 
@@ -55,7 +57,7 @@ A campanha e o **Laboratório de Upgrades** usam os mesmos efeitos. Para testar,
 | --- | --- | --- |
 | Brasil — Gambiarra Balística | **+50% de cadência** (500 ms → aproximadamente 333 ms) e leve alternância esquerda/direita a cada rajada | Flash esverdeado alternado e recuo mais animado. O desvio é determinístico (±0,045 rad, cerca de 2,6°), sem curva durante o voo |
 | EUA — Munição de Fragmentação | Mesmas explosões e dano de antes | Sete raios curtos de estilhaços azuis/brancos no impacto, sem dano extra |
-| Coreia do Sul — Lightstick Tático | Laser perfurante a cada três disparos, com rastro residual no nível 2 | Feixe violeta já aprovado. **O protótipo ainda apresenta o nome antigo Japão/Katana**, que será migrado separadamente |
+| Coreia do Sul — Lightstick Tático | Laser perfurante a cada três disparos, com rastro residual no nível 2 | Feixe violeta já aprovado. **Agora exibido como Lightstick Tático** na v0.25 |
 | Rússia — Camarada Canhão | +75% de dano e mesmo recuo físico de antes | Projétil **11 × 17 px** (antes 9 × 14), rastro vermelho/quente, clarão forte, recuo animado de 8 px, microtremida curta com limite de frequência, anel/faíscas ao acertar |
 | China — AliExplode — Frete Grátis | Dois projéteis por rajada (três com nível 2) | Rastros dourados por projétil, flash duplo vermelho/âmbar e recuo visual de dois pulsos |
 
@@ -65,7 +67,7 @@ O aumento de tamanho russo é **somente visual**: o acerto usa a mesma distânci
 
 **Implementação:** `src/gameplay/upgrades.js` define cadência, ângulo alternado e marcas visuais; `src/scenes/GameScene.js` desenha flashes, estilhaços, trilhas e recuo com objetos temporários destruídos ao finalizar a animação ou o projétil. `tests/firstUpgradeVisuals.test.js` cobre valores, alternância, limites de ângulo e compatibilidade entre países; os testes de progressão foram atualizados para a nova cadência.
 
-**Observação:** as intensidades visuais ainda dependem de playtest no navegador. A substituição temática de Japão por Coreia do Sul e os upgrades 4–10 continuam pendentes de implementação.
+**Observação:** as intensidades visuais ainda dependem de playtest no navegador. A troca dos nomes do Japão pelos da Coreia do Sul chegou na v0.25; os upgrades 4–10 continuam pendentes de implementação.
 
 ## Layout responsivo e preparação mobile (v0.20)
 
@@ -160,7 +162,7 @@ Durante uma partida aberta com `npm.cmd run dev`, use **Shift+5, Shift+6, Shift+
 4. **Onda 1:** nova contagem **3, 2, 1**; são **70 inimigos**: 32 invasores básicos em sequência (a cada 0,96 s), grupos simultâneos com 3, 4 e 5 básicos, dois trios Tipo 2, um ataque circular de dez Tipo 2 avançados e uma **fileira final de dez OVNIs Tipo 1**, ocupando a largura do céu. A onda só termina depois que todas as ameaças são neutralizadas.
 5. Ao vencer a Onda 1, surge a **segunda escolha de país**. Cada cartão oferece o próximo upgrade daquele país: se repetir um país, ganha sua **melhoria de nível 2**, SEM instalar torre; se mudar de país, recebe o primeiro upgrade do novo aliado. O escudo elétrico brasileiro, por exemplo, pode ser testado escolhendo Brasil duas vezes.
 6. **Onda 2:** contagem regressiva 3–2–1, 80 inimigos programados com bombardeiros (Tipo 3) e caças relâmpago (Tipo 4), além dos básicos e formações. Ao vencer, abre a **terceira escolha de país**.
-7. **Terceira escolha:** repetir o mesmo país três vezes desbloqueia sua **primeira torre mecanizada** (Caramelo/Águia/Tsuru/Urso/PandaPrime); escolher um país diferente concede o próximo upgrade daquela linha, sem pular níveis.
+7. **Terceira escolha:** repetir o mesmo país três vezes desbloqueia sua **primeira torre mecanizada** (Caramelo/Águia/Kkachi/Urso/PandaPrime); escolher um país diferente concede o próximo upgrade daquela linha, sem pular níveis.
 8. **Onda 3 — Céu Fechado:** 88 inimigos programados em quatro momentos: bombardeio inicial, órbita de Tipo 2, caças Tipo 4 cruzando com bombardeiros Tipo 3 e ataque final de Tipo 1 nível 2 em linha. Duração mínima de 54 s; ao vencer, começa a Onda 4 diretamente, preservando o conjunto de três upgrades/torres.
 9. **Onda 4 — Ataque em Pinça:** 80 inimigos, TODOS nível 3 de resistência e coloração laranja: **47 Tipo 1 (2 HP), 20 Tipo 2 (4 HP), 5 Tipo 3 (10 HP) e 8 Tipo 4 (6 HP)**. Pinças simultâneas e retardadas. Mínimo 70 s; ao vencer começa a Onda 5 automaticamente.
 10. **Ondas 5–9:** cinco novas ondas com identidade própria, cores e HP maiores (tabela abaixo). A última termina numa tela provisória anunciando o boss da Onda 10.
@@ -201,7 +203,7 @@ As quantidades são de **inimigos programados**; nas Ondas 8 e 9, o Cruzador-Col
 | --- | --- | --- |
 | Brasil | Gambiarra Balística | **+50% de cadência** (500 ms → 333 ms), com leve alternância esquerda/direita dos tiros |
 | EUA | Munição de Fragmentação | Cada projétil que acerta um inimigo provoca uma explosão de raio 78 px, causando 1,5 de dano aos outros inimigos próximos e destruindo projéteis hostis na área |
-| Japão | Katana de Plasma | A cada três disparos básicos, solta um feixe de energia na direção da mira, atravessando todos os inimigos alinhados e causando 3 de dano a cada um |
+| Coreia do Sul | Lightstick Tático | A cada três disparos básicos, solta um feixe de energia na direção da mira, atravessando todos os inimigos alinhados e causando 3 de dano a cada um |
 | Rússia | Camarada Canhão | +75% de dano, aplica **recuo gradual** aos inimigos em mergulho (em vez de saltar a posição) |
 | China | AliExplode — Frete Grátis | Dois projéteis simultâneos com pequena dispersão |
 
@@ -213,7 +215,7 @@ Os upgrades de **nível 2** já funcionam. O **nível 3** instala a primeira tor
 | --- | --- | --- |
 | Brasil | **Minha Casa, Meu Escudo** | Amplia o raio de todas as cúpulas ativas em **18 px**, inclusive de torres estrangeiras; caco de vidro + cerca elétrica, choque de **1 de dano** por cúpula com **800 ms de recarga**, lentidão de 10% e faixa de ativação de 35 px |
 | EUA | **Dano Colateral** | Quando a Fragmentação destrói um OVNI, ocorre UMA explosão secundária de raio **94 px** e **0,75 de dano**, sem reações em cadeia; maior que os 78 px da Fragmentação básica |
-| Japão | **Corte Residual** | Após a Katana roxa, abre uma **fenda de vácuo** com centro escuro e bordas turquesa: ela se expande e permanece por **2,2 s**, causando **1 de dano** uma vez por alvo novo que a atravessar |
+| Coreia do Sul | **Encore!** | Após o feixe violeta, abre uma **fenda de vácuo** com centro escuro e bordas turquesa: ela se expande e permanece por **2,2 s**, causando **1 de dano** uma vez por alvo novo que a atravessar |
 | Rússia | **Recuo Estratégico** | Mantém até **2×** o recuo amortecido perto das defesas, agora com **anéis vermelhos de impacto e estilhaços luminosos** que ficam maiores e mais intensos quanto mais próximo do solo estiver o inimigo |
 | China | **Compre 2, Leve 3** | O canhão dispara **três projéteis em todas as rajadas**, sem contador, quinta rajada especial ou aviso “GRÁTIS!” |
 
@@ -225,7 +227,7 @@ Os valores são parâmetros provisórios para playtest, não balanceamento final
 | --- | --- | --- |
 | Brasil | Projeto Caramelo | **Caramelo**: torre automática de tiros frequentes contra invasores próximos |
 | EUA | Águia da Liberdade I | **Águia**: mísseis que perseguem o alvo |
-| Japão | Projeto Tsuru I | **Tsuru**: laser de precisão disparado automaticamente |
+| Coreia do Sul | Projeto Kkachi I | **Kkachi**: laser de precisão disparado automaticamente |
 | Rússia | Urso de Ferro | **Urso**: Artilharia de Choque com mira preditiva, explosão e empurrão em área |
 | China | PandaPrime I — Envio Econômico | **PandaPrime**: pares de minidrones perseguidores |
 
@@ -255,8 +257,8 @@ No menu inicial, clique em **TESTAR UPGRADES [U]**. O jogo abre um campo de test
 - **Shift+1–5 no painel** instala ou retira os animais correspondentes, até duas torres simultâneas, para testar combinações sem disputar as escolhas da campanha. O laboratório não altera a campanha.
 - Clique em **VOLTAR AO CAMPO [U]**, pressione **U** ou **Esc** para retornar ao combate com a configuração escolhida.
 - No campo, pressione **1–5** para gerar os inimigos Tipos 1–5 (2 gera um trio); **Shift+1** gera uma fileira de dez Tipo 1; **Shift+2** gera **dez Tipo 2 circulando em órbita antes de parar e mergulhar**; **Shift+3/4/5** gera as variantes de nível 2. **C** limpa os inimigos e projéteis; **U** reabre o painel.
-- Há **barras de vida** nos inimigos resistentes e **números flutuantes de dano** ao acertar. As melhorias têm cores de disparo próprias; o Japão solta uma lâmina violeta de plasma a cada três tiros básicos e os EUA produzem uma explosão azul de fragmentação ao atingir naves.
-- O painel e o HUD mostram **tiros por segundo, dano, quantidade de projéteis e presença de fragmentação e Katana**. Na campanha com Japão, o HUD apresenta o contador de tiros até a próxima Katana.
+- Há **barras de vida** nos inimigos resistentes e **números flutuantes de dano** ao acertar. As melhorias têm cores de disparo próprias; a Coreia do Sul solta um feixe violeta de plasma a cada três tiros básicos e os EUA produzem uma explosão azul de fragmentação ao atingir naves.
+- O painel e o HUD mostram **tiros por segundo, dano, quantidade de projéteis e presença de fragmentação e Lightstick**. Na campanha com Coreia do Sul, o HUD apresenta o contador de tiros até o próximo Lightstick.
 - Além dos invasores básicos automáticos, surgem alvos resistentes (Tipos 2 e 3) para testar o benefício de dano elevado e perfuração.
 - Um invasor Tipo 1 aparece automaticamente a cada 2,7 segundos, desde que haja menos de dez em campo.
 - O canhão é indestrutível nos dois laboratórios para não interromper os testes. A regeneração do escudo continua visível.
