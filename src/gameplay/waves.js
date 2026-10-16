@@ -1,5 +1,7 @@
-// Ondas 0–3: três escolhas de aliado. A Onda 4 começa após a Onda 3,
-// sem nova escolha: os upgrades de nível 4 ainda não foram definidos.
+import { ADVANCED_WAVE_METADATA, getAdvancedWaveEvents } from './advancedWaves.js';
+
+// Ondas 0–3: três escolhas de aliado. Ondas 4–9 seguem automaticamente,
+// conservando as 3 escolhas, até que os upgrades intermediários sejam criados.
 // Laboratórios continuam independentes da campanha.
 // Intervalos curtos e ataques simultâneos aumentam a pressão sem acelerar
 // artificialmente a movimentação de um único OVNI.
@@ -25,6 +27,7 @@ export const MODES = {
   wave2: { title: 'ONDA 2', minDuration: 46000 },
   wave3: { title: 'ONDA 3 — CÉU FECHADO', minDuration: 54000 },
   wave4: { title: 'ONDA 4 — ATAQUE EM PINÇA', minDuration: 70000 },
+  ...ADVANCED_WAVE_METADATA,
   lab: { title: 'TESTE DE INIMIGOS', minDuration: 36000 },
   upgradeLab: { title: 'LAB DE UPGRADES', minDuration: Infinity },
 };
@@ -166,6 +169,9 @@ export function getWaveEvents(mode) {
     );
     return events.sort((a, b) => a.at - b.at);
   }
+  if (Object.hasOwn(ADVANCED_WAVE_METADATA, mode)) {
+    return getAdvancedWaveEvents(mode);
+  }
   if (mode === 'lab') {
     return [
       { at: 800, type: 2, group: true },
@@ -188,6 +194,8 @@ export function scheduledEnemyCount(events) {
     if (event.pattern === 'spread' || event.pattern === 'line' ||
         event.pattern === 'orbit') return total + event.count;
     if (event.pattern === 'pincer' && event.type === 4) return total + 2;
+    if (event.pattern === 'escort' && event.type === 3) return total + 1 + event.count;
+    if (event.pattern === 'bomberFan' && event.type === 3) return total + event.count;
     if (event.group && event.type === 2) return total + (event.count ?? 3);
     return total + 1;
   }, 0);
