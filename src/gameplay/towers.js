@@ -11,7 +11,7 @@ export const TOWER_DEFINITIONS = {
     damage: 2.5, speed: 290, type: 'missile',
   },
   jp: {
-    id: 'jp', label: 'TSURU', glyph: 'T', color: 0xd4a7ff,
+    id: 'jp', label: 'KKACHI', glyph: 'K', color: 0xd4a7ff,
     healthMax: 95, shieldMax: 70, range: 710, interval: 1450,
     damage: 2.5, speed: 0, type: 'laser',
   },
