@@ -3,7 +3,7 @@ import {
   GAME_WIDTH as W,
   GAME_HEIGHT as H,
 } from '../config/scenery.js';
-import { FIRST_UPGRADES } from '../gameplay/upgrades.js';
+import { FIRST_UPGRADES, getFirstUpgrade } from '../gameplay/upgrades.js';
 import { SECOND_UPGRADES } from '../gameplay/secondUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 
@@ -64,7 +64,7 @@ export class UpgradeLabScene extends Phaser.Scene {
         ...extra,
       }).setOrigin(0.5).setDepth(4);
 
-      label(143, upgrade.flag + ' • ' + upgrade.name.toUpperCase(), '20px', '#f4fbff', { fontStyle: 'bold' });
+      label(143, upgrade.flag + ' • ' + (upgrade.shortName ?? upgrade.name).toUpperCase(), '20px', '#f4fbff', { fontStyle: 'bold' });
       const titleLabel = label(207, upgrade.title.toUpperCase(), '15px', '#ffe9b5',
         { fontStyle: 'bold' });
       const descriptionLabel = label(298, upgrade.description, '12px', '#d3e2ef',
@@ -178,9 +178,9 @@ export class UpgradeLabScene extends Phaser.Scene {
       '   DANO ' + stats.basicDamage.toFixed(2) +
       '   PROJ ' + stats.bulletsPerShot +
       '   FRAG ' + (stats.fragmentation ? '78px' : 'NÃO') +
-      '   KATANA ' + (stats.plasmaEvery ? 'A CADA 3 TIROS' : 'NÃO') +
+      '   LIGHTSTICK ' + (stats.plasmaEvery ? 'A CADA 3 TIROS' : 'NÃO') +
       '   N2 ' + (this.selectedSecondIds.length
-        ? this.selectedSecondIds.map((id) => id.toUpperCase()).join('+') : 'NÃO') +
+        ? this.selectedSecondIds.map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join('+') : 'NÃO') +
       '   TORRES ' + this.selectedTowerIds.length + '/2',
     );
   }
