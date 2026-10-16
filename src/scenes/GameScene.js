@@ -21,6 +21,10 @@ import {
   lineFormationX, orbitalFormationPosition, bossCruiseX, minibossSummonCount,
 } from '../gameplay/enemies.js';
 import {
+  hitProfileFor, hitReactionAt, deathProfileFor,
+  MAX_SIMULTANEOUS_DEATH_EFFECTS,
+} from '../gameplay/enemyFeedback.js';
+import {
   getFirstUpgrade, combatStatsFor, shotAngles, shotVisualFor,
   shotVfxFor, brazilAlternatingAngle, combatStatsForLoadout, normalizeLabUpgrades, toggleLabUpgrade,
 } from '../gameplay/upgrades.js';
@@ -172,6 +176,9 @@ export class GameScene extends Phaser.Scene {
     this.specialBlasts.length = 0;
     for (const bullet of this.supportProjectiles) bullet.sprite.destroy();
     this.supportProjectiles.length = 0;
+    // Limpa os VFX de mortes sem afetar o combate nem o treinamento.
+    for (const effect of this.deathEffects) effect.destroy();
+    this.deathEffects.length = 0;
   }
 
   preload() {
@@ -204,6 +211,8 @@ export class GameScene extends Phaser.Scene {
     this.supportTowers = [];
     this.supportProjectiles = [];
     this.residualSlashes = [];
+    this.deathEffects = [];
+    this.lastVictoryShake = -Infinity;
     this.electricLastFire = -Infinity;
     this.nextEnemyId = 1;
     this.nextBlastId = 1;
@@ -955,6 +964,9 @@ export class GameScene extends Phaser.Scene {
       velocityX: 0,
       velocityY: 0,
       shockOffset: { x: 0, y: 0, vx: 0, vy: 0 },
+      // Reação visual não acrescenta recuo físico nem altera o percurso.
+      lastHitAt: -Infinity,
+      hitVisualOffsetX: 0,
       phase: 'dive',
       age: 0,
       phaseAge: 0,
@@ -1016,7 +1028,9 @@ export class GameScene extends Phaser.Scene {
       // Desfaz o deslocamento visual anterior para não interferir no percurso
       // calculado pela nave (incluindo curvas, voos rasantes e órbitas).
       const previousShock = enemy.shockOffset;
-      enemy.sprite.x -= previousShock.x;
+      // Remove o deslocamento do frame anterior ANTES de calcular a rota.
+      // Hit shake e artilharia de choque permanecem efeitos independentes.
+      enemy.sprite.x -= previousShock.x + enemy.hitVisualOffsetX;
       enemy.sprite.y -= previousShock.y;
       const previousX = enemy.sprite.x;
       const previousY = enemy.sprite.y;
@@ -1209,6 +1223,7 @@ export class GameScene extends Phaser.Scene {
       enemy.shockOffset = advanceShockOffset(previousShock, dt);
       enemy.sprite.x += enemy.shockOffset.x;
       enemy.sprite.y += enemy.shockOffset.y;
+      this.updateEnemyHitVisual(enemy);
 
       // Bombas de pulso são barreiras: inimigos entram nelas durante o movimento.
       this.hitEnemyWithBlast(i);
@@ -1306,6 +1321,103 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  updateEnemyHitVisual(enemy) {
+    const age = this.time.now - enemy.lastHitAt;
+    const reaction = hitReactionAt(enemy.type, age);
+    enemy.hitVisualOffsetX = reaction.dx;
+    // O cálculo de rota/velocidade acima permanece inalterado; o deslocamento
+    // é adicionado após o movimento e subtraído no frame seguinte.
+    enemy.sprite.x += reaction.dx;
+    enemy.sprite.setRotation(reaction.rotation);
+    enemy.sprite.setScale(reaction.scale);
+
+    if (enemy.box) {
+      enemy.box.setFillStyle(reaction.flash ? 0xffffff : enemy.definition.color);
+    } else if (reaction.flash) {
+      // O modo fill torna o PIXEL ART inteiramente branco por poucos frames.
+      enemy.sprite.setTintFill(0xffffff);
+    } else if (enemy.level > 1) {
+      enemy.sprite.setTint(enemy.definition.tintColor);
+    } else {
+      enemy.sprite.clearTint();
+    }
+  }
+
+  showEnemyDeath(enemy) {
+    // Executado APENAS quando HP chega a zero, nunca em colisão com a base,
+    // fim de laser Tipo 4 nem quando o laboratório limpa os alvos.
+    const { x, y } = enemy.sprite;
+    const profile = deathProfileFor(enemy.type);
+    const createBurst = (stage = 0) => {
+      if (!this.scene.isActive('GameScene')) return;
+      const radius = profile.radius * (stage > 0 ? 0.70 : 1);
+      const color = stage > 0
+        ? (enemy.type === 4 ? 0xffd49c : 0xfff0bf)
+        : profile.color;
+      const graphic = this.add.graphics().setPosition(
+        x + (stage > 0 ? 9 : 0), y + (stage > 0 ? -6 : 0),
+      ).setDepth(54);
+      const fragments = Math.min(30, profile.fragments);
+      // Primeiro clarão branco, seguido de anel de energia e fragmentos.
+      graphic.fillStyle(color, stage > 0 ? 0.2 : 0.23);
+      graphic.fillCircle(0, 0, radius * 0.55);
+      graphic.fillStyle(0xffffff, stage > 0 ? 0.84 : 0.96);
+      graphic.fillCircle(0, 0, Math.max(5, radius * 0.21));
+      graphic.lineStyle(enemy.type >= 4 ? 4 : 2.5, color, 0.93);
+      graphic.strokeCircle(0, 0, radius * 0.58);
+      if (profile.ring) {
+        graphic.lineStyle(enemy.type >= 4 ? 3 : 2, 0xffffff, 0.78);
+        graphic.strokeCircle(0, 0, radius * 0.84);
+      }
+      for (let i = 0; i < fragments; i += 1) {
+        const angle = i * Math.PI * 2 / fragments + stage * 0.43;
+        const inner = radius * (0.52 + (i % 3) * 0.075);
+        const outer = radius * (0.90 + (i % 4) * 0.085);
+        const dx = Math.cos(angle);
+        const dy = Math.sin(angle);
+        graphic.lineStyle(enemy.type >= 4 ? 3 : 2,
+          i % 3 === 0 ? 0xffffff : color, i % 3 === 0 ? 1 : 0.90);
+        graphic.lineBetween(dx * inner, dy * inner, dx * outer, dy * outer);
+      }
+      if (enemy.type >= 4 && stage === 0) {
+        // Uma cicatriz luminosa curta recompensa especialmente o caça veloz.
+        graphic.lineStyle(3.5, 0xe9ffff, 0.84);
+        graphic.lineBetween(-radius * 1.2, -radius * 0.16,
+          radius * 1.2, radius * 0.16);
+      }
+      if (this.deathEffects.length >= MAX_SIMULTANEOUS_DEATH_EFFECTS) {
+        const oldest = this.deathEffects.shift();
+        oldest?.destroy();
+      }
+      this.deathEffects.push(graphic);
+      this.tweens.add({
+        targets: graphic,
+        alpha: 0, scale: enemy.type >= 4 ? 1.55 : 1.34,
+        duration: Math.round(profile.duration * (stage > 0 ? 0.60 : 1)),
+        ease: 'Cubic.easeOut',
+        onComplete: () => {
+          const position = this.deathEffects.indexOf(graphic);
+          if (position >= 0) this.deathEffects.splice(position, 1);
+          graphic.destroy();
+        },
+      });
+    };
+    createBurst(0);
+    if (profile.stages >= 2) {
+      this.time.delayedCall(enemy.type === 4 ? 95 : 150, () => createBurst(1));
+    }
+    // Reservado ao futuro chefe Tipo 6, ainda fora das ondas atuais.
+    if (profile.stages >= 3) {
+      this.time.delayedCall(300, () => createBurst(2));
+    }
+    // Recompensa no Tipo 4/5 sem tremor intenso em kills simultâneos.
+    if (enemy.type >= 4 && this.time.now - this.lastVictoryShake >= 220) {
+      this.cameras.main.shake(enemy.type === 4 ? 75 : 130,
+        enemy.type === 4 ? 0.0012 : 0.0019);
+      this.lastVictoryShake = this.time.now;
+    }
+  }
+
   impactInvader(index, damage = 1, knockback = 0, hitColor = '#ffe09f',
     showNumber = true, maxRecoil = 400) {
     const enemy = this.enemies[index];
@@ -1314,15 +1426,12 @@ export class GameScene extends Phaser.Scene {
     enemy.hp -= damage;
     const killed = enemy.hp <= 0;
     if (killed) {
+      this.showEnemyDeath(enemy);
       this.removeEnemy(index);
     } else {
+      enemy.lastHitAt = this.time.now;
       if (enemy.box) enemy.box.setFillStyle(0xffffff);
-      else enemy.sprite.setTint(0xffa8a8);
-      this.time.delayedCall(100, () => {
-        if (!enemy.sprite.active) return;
-        if (enemy.box?.active) enemy.box.setFillStyle(enemy.definition.color);
-        else enemy.sprite.setTint(enemy.definition.tintColor);
-      });
+      else enemy.sprite.setTintFill(0xffffff);
       if (enemy.phase === 'dive' && knockback > 0) {
         enemy.recoilSpeed = applyRecoilImpulse(enemy.recoilSpeed, knockback, maxRecoil);
       }
