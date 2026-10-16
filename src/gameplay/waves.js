@@ -1,6 +1,6 @@
-// Onda 0 -> escolha 1 -> Onda 1 -> escolha 2 -> Onda 2 -> escolha 3 -> Onda 3.
-// A campanha mantém upgrades individuais por país; a primeira torre requer
-// a terceira escolha do mesmo país. O laboratório segue independente.
+// Ondas 0–3: três escolhas de aliado. A Onda 4 começa após a Onda 3,
+// sem nova escolha: os upgrades de nível 4 ainda não foram definidos.
+// Laboratórios continuam independentes da campanha.
 // Intervalos curtos e ataques simultâneos aumentam a pressão sem acelerar
 // artificialmente a movimentação de um único OVNI.
 const wave0Times = Array.from({ length: 20 }, (_, index) => 250 + index * 1280);
@@ -24,6 +24,7 @@ export const MODES = {
   wave1: { title: 'ONDA 1', minDuration: 41000 },
   wave2: { title: 'ONDA 2', minDuration: 46000 },
   wave3: { title: 'ONDA 3 — CÉU FECHADO', minDuration: 54000 },
+  wave4: { title: 'ONDA 4 — ATAQUE EM PINÇA', minDuration: 70000 },
   lab: { title: 'TESTE DE INIMIGOS', minDuration: 36000 },
   upgradeLab: { title: 'LAB DE UPGRADES', minDuration: Infinity },
 };
@@ -119,6 +120,52 @@ export function getWaveEvents(mode) {
     );
     return events.sort((a, b) => a.at - b.at);
   }
+  if (mode === 'wave4') {
+    // ATAQUE EM PINÇA: 80 inimigos, todos nível 3 (HP 2/4/10/6).
+    // 47 básicos (30 individuais + 4+4+5+4), 20 de formação
+    // (grupos de 3+3+4 e órbita de 10), 5 bombardeiros e 8 caças.
+    // O nível 3 não muda o tamanho de nenhuma nave. Só acrescenta HP e cor.
+    const level = 3;
+    const events = Array.from({ length: 30 }, (_, index) => ({
+      at: 520 + index * 2150,
+      type: 1, level, index,
+    }));
+    events.push(
+      // 0–12 s: reconhecimento; primeira leitura da blindagem maior.
+      { at: 4300, type: 1, level, pattern: 'spread', count: 4 },
+      { at: 7000, type: 2, level, group: true, count: 3 },
+      { at: 9550, type: 1, level, pattern: 'spread', count: 4 },
+
+      // 12–27 s: pinça simultânea de dois caças; centro ainda ameaçado.
+      { at: 13800, type: 4, level, pattern: 'pincer',
+        warning: 'ALERTA! ATAQUE PELOS DOIS LADOS!' },
+      { at: 20800, type: 2, level, group: true, count: 3 },
+
+      // 27–37 s: brecha para mirar nos bombardeiros protegidos pela formação.
+      { at: 28500, type: 3, level, warning: 'BOMBARDEIROS APROXIMANDO!' },
+      { at: 32500, type: 3, level },
+      { at: 34400, type: 2, level, group: true, count: 4 },
+
+      // 37–55 s: duas pinças retardadas; segundo caça chega 1,5 s depois.
+      { at: 38500, type: 4, level, side: 'left',
+        warning: 'PINÇA RETARDADA — OLHE OS FLANCOS!' },
+      { at: 40000, type: 4, level, side: 'right' },
+      { at: 42000, type: 1, level, pattern: 'spread', count: 5 },
+      { at: 46000, type: 4, level, side: 'right' },
+      { at: 47000, type: 3, level },
+      { at: 47500, type: 4, level, side: 'left' },
+      { at: 52700, type: 3, level },
+
+      // 55–70 s: segundo ataque simultâneo + círculo + saturação final.
+      { at: 56500, type: 2, level, pattern: 'orbit', count: 10 },
+      { at: 57800, type: 4, level, pattern: 'pincer',
+        warning: 'PINÇA FINAL! DEFENDA O CENTRO!' },
+      { at: 62000, type: 3, level },
+      { at: 63800, type: 1, level, pattern: 'spread', count: 4,
+        warning: 'ÚLTIMA FORMAÇÃO DE INVASORES!' },
+    );
+    return events.sort((a, b) => a.at - b.at);
+  }
   if (mode === 'lab') {
     return [
       { at: 800, type: 2, group: true },
@@ -140,7 +187,8 @@ export function scheduledEnemyCount(events) {
   return events.reduce((total, event) => {
     if (event.pattern === 'spread' || event.pattern === 'line' ||
         event.pattern === 'orbit') return total + event.count;
-    if (event.group && event.type === 2) return total + 3;
+    if (event.pattern === 'pincer' && event.type === 4) return total + 2;
+    if (event.group && event.type === 2) return total + (event.count ?? 3);
     return total + 1;
   }, 0);
 }
