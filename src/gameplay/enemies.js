@@ -23,7 +23,7 @@ export const ENEMY_TYPES = {
     behavior: 'fighter',
   },
   5: {
-    id: 5, name: 'Nave-Mãe', color: 0x45cddd,
+    id: 5, name: 'Cruzador-Colmeia', color: 0x45cddd,
     hp: 24, speed: 28, width: 126, height: 60,
     behavior: 'boss',
     shotHp: 2,
