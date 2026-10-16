@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.25 — Identidade da Coreia do Sul.** Os nomes mostrados ao jogador foram atualizados: **Coreia do Sul (KR)**, **Lightstick Tático** (nível 1), **Encore!** (nível 2) e **Projeto Kkachi I / KKACHI** (torre do nível 3). HUD, cartões, laboratório e histórico de escolhas exibem a identidade coreana. O identificador interno legado `jp` permanece para preservar a progressão e as combinações já existentes. Nenhuma mecânica de combate, valor de dano ou arma foi alterado.
+> **Protótipo 0.26 — Torres mecanizadas com sprites independentes.** Substituímos os retângulos provisórios das primeiras cinco torres por 10 PNGs transparentes, cada corpo e sua arma lateral em texturas separadas. Os canhões apontam suavemente para o alvo e recuam sozinhos; o animal não gira nem recua ao disparar. A lógica de danos, alcance, alvos, HP, escudo e intervalo das torres permanece intacta. O identificador 'jp' continua mapeado ao sprite KR/Kkachi sem alterar os saves. As artes aprovadas foram reduzidas a 128 px na maior dimensão, com 48 cores, para publicação mais leve; os PNGs de alta resolução permanecem preservados no pacote original.\n\n> **Protótipo 0.25 — Identidade da Coreia do Sul.** Os nomes mostrados ao jogador foram atualizados: **Coreia do Sul (KR)**, **Lightstick Tático** (nível 1), **Encore!** (nível 2) e **Projeto Kkachi I / KKACHI** (torre do nível 3). HUD, cartões, laboratório e histórico de escolhas exibem a identidade coreana. O identificador interno legado `jp` permanece para preservar a progressão e as combinações já existentes. Nenhuma mecânica de combate, valor de dano ou arma foi alterado.
 
 > **Protótipo 0.24 — Feedback de impacto e destruição de OVNIs.** Todos os tipos de inimigo implementados (1–5) ganharam piscar branco curto e sacudida ao sobreviver a um disparo, além de explosões geométricas escalonadas ao serem abatidos. O Tipo 4 (Caça Relâmpago) recebe explosão rosa/branca em duas etapas, anel, estilhaços e microtremida; o Tipo 5 recebe celebração ainda maior e em duas etapas. O Tipo 6 já possui parâmetros de VFX planejados, mas **ainda não existe nas ondas jogáveis**. Nenhum atributo de HP, dano, movimento ou cooldown foi modificado.
 
@@ -11,6 +11,15 @@ Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, insp
 > **Protótipo 0.22 — Calibre visual russo.** Os projéteis do Camarada Canhão estão ligeiramente maiores, de **9 × 14 px para 11 × 17 px**, também em builds combinadas, sem modificar colisão, dano, velocidade ou recuo físico. Demais efeitos da v0.21 preservados.
 
 > **Protótipo 0.21 — Efeitos visuais dos upgrades de nível 1.** Gambiarra Balística passa de +25% para **+50% de cadência** (500 → 333 ms) e alterna suavemente o ângulo dos disparos. O canhão russo ganhou clarão, rastro quente, recuo visual, faíscas e microtremida; os tiros chineses têm flash duplo e rastros vermelho-dourados, também nas builds combinadas. Fragmentação americana ganhou estilhaços luminosos. O laser coreano (identificado visualmente como Lightstick a partir da v0.25) permanece aprovado. Mantidas Ondas 0–9, Phaser 960 × 540 e a base responsiva da v0.20.
+
+## Torres de nível 3 — sprites e pivôs (v0.26)
+
+- Os sprites utilizados em jogo estão em `public/assets/torres/`, com arquivos `*_corpo.png` e `*_arma.png`. 
+- `src/gameplay/mechSpriteMounts.js` define o ponto de encaixe do canhão em cada animal, carrega 10 texturas no Phaser e gira apenas a arma, sem mover o corpo.
+- A seleção de alvos continua a mesma: o canhão acompanha o inimigo durante o cooldown e atira com a cadência anterior. O recuo visual afeta apenas a imagem da arma.
+- O ID de lógica `jp` utiliza o sprite de aparência `kr` (Kkachi), preservando progressão e combinações.
+- A exportação HTML único do itch.io embute todos os PNGs automaticamente, inclusive os novos, sem requisições externas.
+- **Teste visual:** abrir `TESTAR UPGRADES [U]`, instalar a torre com `Shift+1` a `Shift+5`, retornar ao campo com `U` e gerar alvos com `1`–`5`. Observe o encaixe na lateral, a rotação independente e o recuo. O tamanho e os pivôs ainda precisam de confirmação no navegador antes da aprovação final.
 
 ## Feedback de tiros e mortes dos invasores (v0.24)
 
