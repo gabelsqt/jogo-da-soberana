@@ -10,7 +10,7 @@ import {
 import { shotVisualFor, combatStatsForLoadout } from '../src/gameplay/upgrades.js';
 import { getWaveEvents } from '../src/gameplay/waves.js';
 
-test('todos os tipos possuem dois níveis de dificuldade e atributos progressivos', () => {
+test('todos os tipos preservam os dois primeiros níveis e aceitam níveis reforçados', () => {
   for (let type = 1; type <= 5; type += 1) {
     const base = enemyStats(type, 1);
     const hard = enemyStats(type, 2);
@@ -19,7 +19,7 @@ test('todos os tipos possuem dois níveis de dificuldade e atributos progressivo
     assert.ok(hard.hp >= base.hp, 'HP não pode cair no nível 2');
     assert.ok(hard.speed > base.speed, 'velocidade deve subir no nível 2');
     assert.equal(base.hp, enemyDefinition(type).hp);
-    assert.equal(enemyStats(type, 15).level, 2);
+    assert.equal(enemyStats(type, 15).level, 10, 'o nível máximo foi ampliado para as próximas ondas');
   }
   assert.ok(enemyStats(3, 2).shotInterval < enemyStats(3, 1).shotInterval);
   assert.equal(enemyStats(3, 1).volleyCount, 1);
