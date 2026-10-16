@@ -3,27 +3,27 @@
 export const SECOND_UPGRADES = {
   br: {
     title: 'Minha Casa, Meu Escudo',
-    description: 'Caco de vidro e cerca elétrica: amplia todos os escudos e aplica choque de 1 de dano com recarga.',
+    description: 'Cúpulas com cacos brilhantes, cerca elétrica pulsante e choques de 1 de dano.' ,
     tower: false,
   },
   us: {
     title: 'Dano Colateral',
-    description: 'Quando a Fragmentação destrói um OVNI, provoca uma explosão secundária de área ampliada.',
+    description: 'Fragmentação destrói OVNIs e gera uma segunda explosão laranja, com estilhaços.' ,
     tower: false,
   },
   jp: {
     title: 'Corte Residual',
-    description: 'A Katana abre uma fenda de vácuo turquesa duradoura, atingindo naves que a atravessam.',
+    description: 'O laser abre uma fenda turquesa com bordas pulsantes, atingindo naves que a cruzam.' ,
     tower: false,
   },
   ru: {
     title: 'Recuo Estratégico',
-    description: 'O empurrão aumenta perto do chão e cria ondas de impacto visualmente mais intensas.',
+    description: 'Perto do chão, maior recuo e impactos com reflexos e ondas luminosas.' ,
     tower: false,
   },
   cn: {
     title: 'Compre 2, Leve 3',
-    description: 'O canhão dispara três projéteis em todas as rajadas, em vez de dois.',
+    description: 'O canhão dispara três projéteis, com flash triplo e tiro central mais brilhante.' ,
     tower: false,
   },
 };
