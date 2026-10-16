@@ -27,7 +27,7 @@ test('as cinco primeiras melhorias alteram o combate como prometido', () => {
   const ru = combatStatsFor('ru');
   const cn = combatStatsFor('cn');
   assert.equal(base.basicInterval, 500);
-  assert.equal(br.basicInterval, 400);
+  assert.equal(br.basicInterval, 333);
   assert.equal(us.basicDamage, base.basicDamage);
   assert.equal(us.fragmentation, true);
   assert.equal(jp.basicInterval, base.basicInterval);
@@ -124,7 +124,7 @@ test('laboratório ativa e desativa melhorias sem duplicatas nem IDs inválidos'
 
 test('laboratório combina Katana, Fragmentação e os outros países sem alterar atributos básicos', () => {
   const stats = combatStatsForLoadout(['br', 'jp', 'us', 'ru', 'cn']);
-  assert.equal(stats.basicInterval, 400);
+  assert.equal(stats.basicInterval, 333);
   assert.equal(stats.basicDamage, 1.75);
   assert.equal(stats.pierce, 1);
   assert.equal(stats.basicSpeed, 480);
