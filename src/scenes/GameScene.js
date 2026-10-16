@@ -31,6 +31,7 @@ import { addMenuButton } from '../ui/menuButton.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries,
+  automaticWaveAfterVictory,
 } from '../gameplay/progression.js';
 import {
   TOWER_DEFINITIONS, SUPPORT_TOWER_POSITIONS,
@@ -1909,10 +1910,10 @@ export class GameScene extends Phaser.Scene {
       });
       return;
     }
-    if (this.mode === 'wave3') {
-      // Ainda não há o quarto upgrade: a campanha continua sem uma
-      // escolha fictícia e mantém as 3 melhorias e torres conquistadas.
-      this.scene.start('GameScene', { mode: 'wave4', campaign: this.campaign });
+    const automaticNext = automaticWaveAfterVictory(this.mode);
+    if (automaticNext) {
+      // A Onda 4 começa com o mesmo conjunto de aliados da Onda 3.
+      this.scene.start('GameScene', { mode: automaticNext, campaign: this.campaign });
       return;
     }
     this.statusText.setText('DEFESA BEM-SUCEDIDA');
