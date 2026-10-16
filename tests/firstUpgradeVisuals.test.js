@@ -103,13 +103,11 @@ test('projéteis russos ficam um pouco maiores, sem afetar o calibre dos outros 
   assert.equal(mix.length, korean.length);
   assert.equal(mix.width, 11);
 
-  for (const id of ['br', 'us', 'cn', 'jp']) {
-    assert.deepEqual(shotVisualFor([id]), shotVisualFor([id]));
-  }
-  assert.equal(base.width, 5);
-  assert.equal(base.length, 11);
-  assert.equal(shotVisualFor(['us']).width, 8);
-  assert.equal(shotVisualFor(['cn']).width, 6);
+  assert.deepEqual([base.width, base.length], [5, 11]);
+  assert.deepEqual([shotVisualFor(['br']).width, shotVisualFor(['br']).length], [5, 12]);
+  assert.deepEqual([shotVisualFor(['us']).width, shotVisualFor(['us']).length], [8, 15]);
+  assert.deepEqual([shotVisualFor(['cn']).width, shotVisualFor(['cn']).length], [6, 14]);
+  assert.deepEqual([korean.width, korean.length], [4, 20]);
 });
 
 test('o aumento russo não modifica velocidade, dano ou alcance físico', () => {
