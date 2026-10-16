@@ -27,7 +27,7 @@ import { combatStatsForLoadout } from '../src/gameplay/upgrades.js';
 test('nível 2 de cada país não cria torre nem pula escolhas', () => {
   assert.deepEqual(Object.keys(SECOND_UPGRADES), ['br', 'us', 'jp', 'ru', 'cn']);
   assert.deepEqual(Object.values(SECOND_UPGRADES).map((value) => value.title), [
-    'Minha Casa, Meu Escudo', 'Dano Colateral', 'Corte Residual',
+    'Minha Casa, Meu Escudo', 'Dano Colateral', 'Encore!',
     'Recuo Estratégico', 'Compre 2, Leve 3',
   ]);
   assert.ok(Object.values(SECOND_UPGRADES).every((value) => value.tower === false));
