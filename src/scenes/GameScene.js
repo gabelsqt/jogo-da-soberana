@@ -13,6 +13,7 @@ import {
 import {
   specialBlastRadius,
   blastCatchesTarget,
+  specialTargetPoint,
   SPECIAL_BLAST_DURATION,
 } from '../gameplay/specialBlast.js';
 import {
@@ -221,7 +222,18 @@ export class GameScene extends Phaser.Scene {
     this.createHud();
     this.drawShield();
 
+    // Mira de impacto do tiro especial, sem consumir mouse nem bloquear HUD.
+    // Fica acima do combate, mas abaixo dos botões e textos de interface.
+    this.specialAimGraphics = this.add.graphics().setDepth(80);
+    this.specialAimActive = false;
+    this.input.on('pointermove', () => { this.specialAimActive = true; });
+    this.input.on('gameover', () => { this.specialAimActive = true; });
+    this.input.on('gameout', () => {
+      this.specialAimActive = false;
+      this.specialAimGraphics.clear();
+    });
     this.input.on('pointerdown', (pointer) => {
+      this.specialAimActive = true;
       if (pointer.rightButtonDown()) this.shootSpecial(pointer);
     });
     this.input.keyboard.on('keydown-R', () => this.scene.restart(this.getRunOptions()));
@@ -1451,15 +1463,37 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  drawSpecialAim(pointer) {
+    const gfx = this.specialAimGraphics;
+    gfx.clear();
+    if (!this.specialAimActive || this.countdownActive || this.tutorialComplete) return;
+
+    // Exibe o ponto exato do disparo, não só a coordenada crua do cursor.
+    // Isto também cobre o ângulo limitado e os alcances mínimo/máximo.
+    const { x, y } = specialTargetPoint(CANNON.x, CANNON.y, pointer.x, pointer.y);
+    const ready = this.time.now - this.lastSpecialFire >= this.combat.specialCooldown;
+    const alpha = ready ? 0.65 : 0.25;
+    gfx.fillStyle(0x37ddfb, ready ? 0.10 : 0.04);
+    gfx.fillCircle(x, y, 14);
+    gfx.lineStyle(1.5, 0x8bf5ff, alpha);
+    gfx.strokeCircle(x, y, 14);
+    gfx.lineStyle(1.5, 0xcaffff, alpha * 0.95);
+    gfx.lineBetween(x - 23, y, x - 17, y);
+    gfx.lineBetween(x + 17, y, x + 23, y);
+    gfx.lineBetween(x, y - 23, x, y - 17);
+    gfx.lineBetween(x, y + 17, x, y + 23);
+    gfx.fillStyle(0xbaffff, alpha);
+    gfx.fillCircle(x, y, 2.5);
+  }
+
   shootSpecial(pointer) {
     if (this.tutorialComplete || this.countdownActive) return;
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
-    this.lastSpecialFire = this.time.now;
-    const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
-    const distance = Phaser.Math.Clamp(
-      Math.hypot(pointer.x - CANNON.x, pointer.y - CANNON.y), 140, 580,
+    const target = specialTargetPoint(
+      CANNON.x, CANNON.y, pointer.x, pointer.y,
     );
-    this.createProjectile(angle, true, distance);
+    this.lastSpecialFire = this.time.now;
+    this.createProjectile(target.angle, true, target.distance);
   }
 
   createProjectile(angle, special, distance = 0) {
@@ -1592,7 +1626,9 @@ export class GameScene extends Phaser.Scene {
         remove = true;
       }
 
-      if (!remove) {
+      // O especial só detona na mira (tx,ty), não ao tocar projéteis no caminho.
+      // Dessa forma a marca semitransparente indica um ponto garantido.
+      if (!remove && !bullet.special) {
         for (let j = this.enemyBullets.length - 1; j >= 0; j -= 1) {
           const hostile = this.enemyBullets[j];
           if (Phaser.Math.Distance.Between(
@@ -1610,7 +1646,8 @@ export class GameScene extends Phaser.Scene {
         }
       }
 
-      if (!remove) {
+      // OVNIs cruzando a trajetória do especial não alteram o local de explosão.
+      if (!remove && !bullet.special) {
         for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
           const enemy = this.enemies[j];
           if (bullet.hitEnemyIds.has(enemy.uid)) continue;
@@ -1911,7 +1948,7 @@ export class GameScene extends Phaser.Scene {
       if (this.elapsed < 6500) {
         this.tutorialText.setText('Mova o mouse e segure o botão esquerdo para atirar');
       } else if (this.elapsed < 15000) {
-        this.tutorialText.setText('Botão direito: tiro especial protege uma área durante 3s');
+        this.tutorialText.setText('Mira azul = explosão do especial • Botão direito: dispara');
       } else {
         this.tutorialText.setText('Proteja o canhão! Escudos regeneram sem dano.');
       }
@@ -1951,6 +1988,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time, delta) {
+    const pointer = this.input.activePointer;
+    this.drawSpecialAim(pointer);
     if (this.tutorialComplete) {
       if (!this.gameOver) this.updateBlasts();
       return;
@@ -1959,7 +1998,6 @@ export class GameScene extends Phaser.Scene {
     if (this.countdownActive) return;
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += delta;
-    const pointer = this.input.activePointer;
     this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     this.barrel.rotation = this.aimAngle + Math.PI / 2;
     if (pointer.leftButtonDown()) this.shootBasic(pointer);
