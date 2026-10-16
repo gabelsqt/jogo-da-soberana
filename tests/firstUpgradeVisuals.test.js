@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   BRAZIL_ALTERNATING_SPREAD, brazilAlternatingAngle,
-  shotVfxFor, shotAngles, combatStatsFor, combatStatsForLoadout,
+  shotVfxFor, shotVisualFor, shotAngles, combatStatsFor, combatStatsForLoadout,
 } from '../src/gameplay/upgrades.js';
 
 test('Brasil nível 1 tem +50% de cadência e mantém as outras estatísticas', () => {
@@ -82,6 +82,49 @@ test('os efeitos visuais RU e CN coexistem em builds multinacionais', () => {
   assert.equal(stats.bulletsPerShot, 2);
   assert.equal(stats.fragmentation, true);
   assert.equal(stats.plasmaEvery, 3);
+});
+
+test('projéteis russos ficam um pouco maiores, sem afetar o calibre dos outros países', () => {
+  const base = shotVisualFor([]);
+  const previous = { width: 9, length: 14 };
+  const ru = shotVisualFor(['ru']);
+  assert.deepEqual({ width: ru.width, length: ru.length }, { width: 11, length: 17 });
+  assert.ok(ru.width > previous.width && ru.length > previous.length);
+  assert.ok(ru.width / previous.width < 1.3);
+  assert.ok(ru.length / previous.length < 1.3);
+  assert.deepEqual(shotVisualFor(['ru', 'cn']), ru);
+  assert.deepEqual(shotVisualFor(['br', 'ru', 'cn']), ru);
+
+  // A combinação com laser coreano preserva sua aparência violeta
+  // e sua proporção longa, mas não perde a largura de munição russa.
+  const korean = shotVisualFor(['jp']);
+  const mix = shotVisualFor(['jp', 'ru']);
+  assert.equal(mix.color, korean.color);
+  assert.equal(mix.length, korean.length);
+  assert.equal(mix.width, 11);
+
+  for (const id of ['br', 'us', 'cn', 'jp']) {
+    assert.deepEqual(shotVisualFor([id]), shotVisualFor([id]));
+  }
+  assert.equal(base.width, 5);
+  assert.equal(base.length, 11);
+  assert.equal(shotVisualFor(['us']).width, 8);
+  assert.equal(shotVisualFor(['cn']).width, 6);
+});
+
+test('o aumento russo não modifica velocidade, dano ou alcance físico', () => {
+  const before = combatStatsFor('ru');
+  const combined = combatStatsForLoadout(['ru', 'cn']);
+  assert.equal(before.basicDamage, 1.75);
+  assert.equal(before.basicSpeed, 480);
+  assert.equal(before.knockback, 0.12);
+  assert.equal(combined.basicDamage, before.basicDamage);
+  assert.equal(combined.basicSpeed, before.basicSpeed);
+  assert.equal(combined.knockback, before.knockback);
+  const scene = readFileSync(new URL('../src/scenes/GameScene.js', import.meta.url), 'utf8');
+  assert.match(scene, /this\.add\.rectangle\(x, y, style\.width, style\.length, style\.color\)/);
+  assert.match(scene, /enemyContactRadius\(enemy\.type\) \+ 7/,
+    'colisão continua fixa, independente da largura do sprite');
 });
 
 test('rastro visual e recuo são puramente gráficos, com limpeza por bala', () => {
