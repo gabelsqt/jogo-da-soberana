@@ -2,9 +2,29 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
+> **Protótipo 0.23 — Refinamentos visuais do nível 2.** Todos os cinco países ganharam uma evolução visual de seus upgrades de nível 2, preservando dano, cadência e área de efeito: escudos brasileiros com brilho e pequenas descargas, segunda explosão americana laranja levemente atrasada **apenas na animação**, fenda coreana com bordas pulsantes, choques russos com ondas e reflexos mais fortes perto do chão e flash triplo chinês com projétil central destacado. Os efeitos estão disponíveis tanto na campanha quanto no laboratório; a migração de nomes japoneses para coreanos continua pendente.
+
 > **Protótipo 0.22 — Calibre visual russo.** Os projéteis do Camarada Canhão estão ligeiramente maiores, de **9 × 14 px para 11 × 17 px**, também em builds combinadas, sem modificar colisão, dano, velocidade ou recuo físico. Demais efeitos da v0.21 preservados.
 
 > **Protótipo 0.21 — Efeitos visuais dos upgrades de nível 1.** Gambiarra Balística passa de +25% para **+50% de cadência** (500 → 333 ms) e alterna suavemente o ângulo dos disparos. O canhão russo ganhou clarão, rastro quente, recuo visual, faíscas e microtremida; os tiros chineses têm flash duplo e rastros vermelho-dourados, também nas builds combinadas. Fragmentação americana ganhou estilhaços luminosos. O laser coreano (ainda identificado como Japão/Katana no código legado) permanece visualmente aprovado. Mantidas Ondas 0–9, Phaser 960 × 540 e a base responsiva da v0.20.
+
+## Melhorias visuais de nível 2 (v0.23)
+
+Os upgrades de nível 2 agora mostram uma evolução claramente reconhecível do nível 1, **sem alterar atributos de gameplay**:
+
+| País | Nível 2 | Novo feedback visual |
+| --- | --- | --- |
+| Brasil | Minha Casa, Meu Escudo | Halo verde pulsante, cacos de vidro com reflexos em movimento e arcos curtos sobre **escudos ativos**. Descarga contra OVNI ganha núcleo branco/verde. São efeitos desenhados diretamente no `shieldGraphics`, sem partículas criadas continuamente |
+| EUA | Dano Colateral | Fragmentação azul seguida por explosão laranja e oito raios de estilhaços com **95 ms de atraso visual**. Dano, raio e cálculo de acertos continuam imediatos, sem explosões recursivas |
+| Coreia do Sul | Encore! | Fenda turquesa existente recebe bordas que pulsam discretamente e reflexos nas extremidades; mantém duração de **2,2 s**, largura de colisão e dano residual |
+| Rússia | Recuo Estratégico | O choque perto do chão recebe reflexos concêntricos e arcos luminosos, crescendo conforme a intensidade de recuo que já existia; nenhuma mudança na força mecânica |
+| China | Compre 2, Leve 3 | A rajada de três projéteis produz **flash triplo**, com projétil central delineado e com trilha dourada mais brilhante. O nível 1 ainda usa flash duplo e duas balas |
+
+**Como testar:** entre em **Testar upgrades**, pressione **N** para mostrar os upgrades de nível 2, ative o país desejado e retorne ao combate com **U**. O laboratório habilita automaticamente o nível 1 correspondente quando o nível 2 é ativado. Alterne os países e use várias combinações para verificar a legibilidade de partículas, raios e disparos.
+
+**Arquivos:** `src/gameplay/secondUpgradeVisuals.js` reúne parâmetros e funções visuais puras; `src/scenes/GameScene.js` renderiza os efeitos; `src/gameplay/secondUpgrades.js` atualiza apenas as descrições visíveis do laboratório; `tests/secondUpgradeVisuals.test.js` valida as animações e a preservação dos atributos mecânicos.
+
+**Estado:** a substituição definitiva de Japão por Coreia do Sul nas identificações, textos de combate e torres ainda está pendente; upgrades de níveis 4–10 ainda não foram implementados. Playtest visual no navegador permanece necessário.
 
 ## Upgrades de nível 1 com impacto visual (v0.21)
 
