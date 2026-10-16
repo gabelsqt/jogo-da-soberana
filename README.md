@@ -2,7 +2,7 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.18 — Onda 4: Ataque em Pinça.** Acrescenta 80 inimigos com HP maior e coloração laranja de nível 3 (47 básicos, 20 de formação, 5 bombardeiros e 8 caças). A onda dura pelo menos 70 s e inclui caças em pinças simultâneas e retardadas, mais tempo de formação/bombardeio e uma segunda passagem dos caças. A **Onda 4 começa automaticamente após vencer a Onda 3**, mantendo os três upgrades/torres conquistados; ainda não há nível 4 de upgrades. Preserva a mira do especial da v0.17.
+> **Protótipo 0.19 — Ondas 5 a 9.** Agora há **dez ondas jogáveis (0–9)**: cerco aéreo com escoltas, chuva de ferro, enxame organizado, superunidades e último cerco. Inimigos de cada onda ganham HP e filtro de cor novos sem mudar o tamanho. O Tipo 5 passa a atuar como miniboss **Cruzador-Colmeia** nas Ondas 8/9 e invoca reforços com quantidade limitada. As Ondas 4–9 seguem automaticamente após a Onda 3, mantendo os mesmos três upgrades e torres, até que os próximos upgrades sejam definidos. O Tipo 6, boss colossal da Onda 10, ainda não foi criado.
 
 ## Novo cenário fixo do Rio
 
@@ -73,6 +73,10 @@ npm.cmd run build
 
 Para publicação no itch.io, prefira `npm.cmd run build:itch` e envie diretamente o **`itch-build/index.html`**, sem ZIP. O ZIP normal de `dist/` continua possível, mas apresentou erro no CDN do itch.io nos testes anteriores.
 
+### Playtest rápido das novas ondas (apenas no servidor de desenvolvimento)
+
+Durante uma partida aberta com `npm.cmd run dev`, use **Shift+5, Shift+6, Shift+7, Shift+8 ou Shift+9** para abrir imediatamente a onda correspondente. Se você ainda não selecionou três aliados, o salto usa Brasil três vezes como loadout temporário (com Caramelo), exclusivamente para teste. **Os atalhos não existem no HTML de produção/itch.io.**
+
 ## Fluxo jogável nesta versão
 
 1. Menu inicial → **Começar**.
@@ -83,9 +87,10 @@ Para publicação no itch.io, prefira `npm.cmd run build:itch` e envie diretamen
 6. **Onda 2:** contagem regressiva 3–2–1, 80 inimigos programados com bombardeiros (Tipo 3) e caças relâmpago (Tipo 4), além dos básicos e formações. Ao vencer, abre a **terceira escolha de país**.
 7. **Terceira escolha:** repetir o mesmo país três vezes desbloqueia sua **primeira torre mecanizada** (Caramelo/Águia/Tsuru/Urso/PandaPrime); escolher um país diferente concede o próximo upgrade daquela linha, sem pular níveis.
 8. **Onda 3 — Céu Fechado:** 88 inimigos programados em quatro momentos: bombardeio inicial, órbita de Tipo 2, caças Tipo 4 cruzando com bombardeiros Tipo 3 e ataque final de Tipo 1 nível 2 em linha. Duração mínima de 54 s; ao vencer, começa a Onda 4 diretamente, preservando o conjunto de três upgrades/torres.
-9. **Onda 4 — Ataque em Pinça:** 80 inimigos, TODOS nível 3 de resistência e coloração laranja: **47 Tipo 1 (2 HP), 20 Tipo 2 (4 HP), 5 Tipo 3 (10 HP) e 8 Tipo 4 (6 HP)**. Duração mínima de 70 s, até todas as ameaças terem sido eliminadas. Primeiro caças em pares pelas laterais; depois ataques com 1,5 s de defasagem; por fim, círculo Tipo 2 e última pinça simultânea. A Onda 4 termina com a tela de conclusão provisória.
-10. **Testar inimigos**, no menu inicial, apresenta os Tipos 2–5 e seus padrões.
-11. **Testar upgrades** abre laboratório independente e permite testar as cinco torres sem passar pelas ondas.
+9. **Onda 4 — Ataque em Pinça:** 80 inimigos, TODOS nível 3 de resistência e coloração laranja: **47 Tipo 1 (2 HP), 20 Tipo 2 (4 HP), 5 Tipo 3 (10 HP) e 8 Tipo 4 (6 HP)**. Pinças simultâneas e retardadas. Mínimo 70 s; ao vencer começa a Onda 5 automaticamente.
+10. **Ondas 5–9:** cinco novas ondas com identidade própria, cores e HP maiores (tabela abaixo). A última termina numa tela provisória anunciando o boss da Onda 10.
+11. **Testar inimigos**, no menu inicial, apresenta os Tipos 2–5 e seus padrões.
+12. **Testar upgrades** abre laboratório independente e permite testar as cinco torres sem passar pelas ondas.
 
 ## Resistência progressiva e cores da frota
 
@@ -94,16 +99,26 @@ Os níveis **1 e 2** permanecem com os atributos anteriores nas Ondas 0–3. A p
 | Onda / nível | Tipo 1 | Tipo 2 | Tipo 3 | Tipo 4 | Cor do nível |
 | --- | ---: | ---: | ---: | ---: | --- |
 | 4 / III | 2 | 4 | 10 | 6 | Laranja |
-| 5 / IV (planejado) | 3 | 5 | 12 | 7 | Magenta |
-| 6 / V (planejado) | 4 | 6 | 14 | 8 | Roxo |
-| 7 / VI (planejado) | 5 | 7 | 16 | 9 | Azul elétrico |
-| 8 / VII (planejado) | 6 | 8 | 18 | 10 | Ciano |
-| 9 / VIII (planejado) | 7 | 9 | 20 | 11 | Dourado pálido |
+| 5 / IV | 3 | 5 | 12 | 7 | Magenta |
+| 6 / V | 4 | 6 | 14 | 8 | Roxo |
+| 7 / VI | 5 | 7 | 16 | 9 | Azul elétrico |
+| 8 / VII | 6 | 8 | 18 | 10 | Ciano |
+| 9 / VIII | 7 | 9 | 20 | 11 | Dourado pálido |
 | 10 / IX (planejado) | 8 | 10 | 22 | 12 | Branco frio |
 
-A escala de HP e as cores futuras já são calculáveis, mas **as Ondas 5–10 ainda não são jogáveis**. Os caças preservam sua velocidade; a partir do nível III, fazem uma segunda passagem antes de preparar o laser. Os bombardeiros pairam por mais tempo e as formações ficam alguns segundos extras antes do mergulho. O Tipo 5 permanece previsto como miniboss nas ondas avançadas, e o **Tipo 6 — Fortaleza-Mãe** (uma nave gigante no topo que invoca outros inimigos) é reservado para a luta alienígena da Onda 10, ainda não implementada.
+As **Ondas 5–9 são jogáveis**. A Onda 10 e seu **Tipo 6 — Fortaleza-Mãe** (boss gigante que ocupa o topo e invoca outros inimigos) permanecem somente planejados. Os caças continuam velozes e fazem uma segunda passagem antes do laser; bombardeiros pairam por mais tempo, enquanto formações demoram mais para mergulhar.
 
-**Importante:** não há quarta escolha nem upgrades de nível 4 nesta versão. A vitória da Onda 3 conduz diretamente à Onda 4 com os equipamentos da terceira escolha; a tela de fim provisória aparece somente depois da Onda 4.
+| Onda | Tema tático | Inimigos agendados | Duração mínima | Nova mecânica |
+| --- | --- | ---: | --- | --- |
+| 5 | Cerco Aéreo | 83 | 79 s | Bombardeiros escoltados por Tipo 2 |
+| 6 | Chuva de Ferro | 77 | 82 s | Leques de até três bombardeiros |
+| 7 | Enxame Organizado | 78 | 90 s | Dois círculos e duas fileiras de naves blindadas |
+| 8 | Superunidades | 62 + até 12 invocados | 94 s | Primeiro Cruzador-Colmeia (Tipo 5), 52 HP |
+| 9 | Último Cerco | 77 + até 12 invocados | 105 s | Cruzador-Colmeia reforçado, 56 HP, mais ataques combinados |
+
+As quantidades são de **inimigos programados**; nas Ondas 8 e 9, o Cruzador-Colmeia pode invocar até **12 básicos adicionais de mesmo nível**, com máximo de **6 invocações vivas simultaneamente**. Ao derrotar a superunidade, o jogador ainda precisa eliminar os invasores restantes para terminar a onda.
+
+**Importante:** ainda não há quarta escolha de aliado nem upgrades de nível 4. **As vitórias das Ondas 3–8 iniciam a onda seguinte automaticamente**, preservando as três escolhas e torres conquistadas. A tela final provisória aparece somente depois da Onda 9.
 
 ## Cinco upgrades iniciais
 
@@ -180,7 +195,7 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - **Tipo 2 — Esquadrão de Formação:** **quadrados roxos**. Nível 1: trio que se posiciona antes de mergulhar. Nível 2: **dez naves giram em círculo**, param numa linha, sinalizam o ataque e depois mergulham.
 - **Tipo 3 — Bombardeiro:** **quadrado amarelo/laranja** com 6 HP; paira e atira projéteis interceptáveis (2 HP), depois mergulha.
 - **Tipo 4 — Caça Relâmpago:** **quadrado rosa/vermelho** com 4 HP; cruza a tela rapidamente, faz mergulhos e prepara um laser sinalizado.
-- **Tipo 5 — Nave-Mãe:** **quadrado ciano** grande com 24 HP no nível 1; paira, dispara projéteis e gera invasores Tipo 1. A transição da descida para o voo lateral agora é suave, sem o salto horizontal; no nível 2, possui mais vida, ataca mais vezes e **lança pares de invasores de nível 2**.
+- **Tipo 5 — Cruzador-Colmeia:** **quadrado ciano** grande com 24 HP no nível 1; paira, dispara projéteis e gera invasores Tipo 1. A transição da descida para o voo lateral é suave. No nível 2, tem mais vida, ataca mais vezes e lança pares de invasores. Nas Ondas 8 e 9, funciona como miniboss, com **52 ou 56 HP** e reforços que herdam a cor e o HP da onda, limitados a 12 invocações.
 
 **Aparência dos Tipos 2–5 é provisória:** quadrados com o número do tipo. O contorno dourado e o sufixo `II` indicam dificuldade 2. O Tipo 1 de nível 2 é levemente dourado e mais rápido. Os níveis 2 dos Tipos 3 e 4 também possuem mais vida e velocidade; o **Bombardeiro II dispara duas bombas convergentes por salva**, e o **Caça Relâmpago II prepara o laser mais rapidamente**. O balanceamento ainda pode mudar.
 
@@ -212,7 +227,7 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 ## Estrutura técnica
 
 - `src/scenes/MenuScene.js` — menu inicial e laboratório.
-- `src/scenes/GameScene.js` — Ondas 0–4, laboratório, torres automáticas e combate.
+- `src/scenes/GameScene.js` — Ondas 0–9, laboratório, torres automáticas e combate.
 - `src/scenes/UpgradeScene.js` — cinco cartões de escolha na campanha.
 - `src/scenes/UpgradeLabScene.js` — painel de upgrades acumuláveis e substituíveis em campo de teste.
 - `src/scenes/PauseScene.js` — pausa, reinício e menu.
@@ -221,11 +236,12 @@ Esse modo é **separado da campanha**: não consome escolhas, não habilita nív
 - `src/gameplay/secondUpgrades.js` — cinco melhorias de nível 2, parâmetros de alcance e regras puras de dano, recuo e promoções.
 - `src/gameplay/towers.js` — cinco perfis de torres, suas armas, alcance e aquisição de alvos.
 - `src/gameplay/shockArtillery.js` — mira preditiva, colisão contínua, dano da explosão e deslocamento amortecido do Urso.
-- `src/gameplay/enemies.js` — definições dos cinco tipos, níveis de dificuldade, matemática do círculo, fileira e movimento suave da Nave-Mãe.
-- `src/gameplay/waves.js` — agenda das Ondas 0–4, incluindo pinças simultâneas/retardadas e laboratórios.
+- `src/gameplay/enemies.js` — definições dos cinco tipos, níveis de dificuldade, matemática do círculo, fileira e movimento suave do Cruzador-Colmeia.
+- `src/gameplay/waves.js` — agenda das Ondas 0–9 e laboratórios.
+- `src/gameplay/advancedWaves.js` — agendas das Ondas 5–9, com escoltas, leques, círculos e miniboss.
 - `src/gameplay/combat.js` e `src/gameplay/specialBlast.js` — regras matemáticas de mira, dano e explosão persistente.
 - `src/gameplay/weaponEffects.js` — intervalos, alinhamento de laser e alcance da Fragmentação.
-- `tests/` — testes automatizados das regras, incluindo padrões, dificuldade, continuidade da Nave-Mãe e diferenças de upgrades.
+- `tests/` — testes automatizados das regras, incluindo padrões, dificuldade, continuidade do Cruzador-Colmeia e diferenças de upgrades.
 - `.github/workflows/checks.yml` — testes e build automáticos no GitHub.
 
 ## Documento de design
