@@ -4,8 +4,11 @@ import { GameScene } from './scenes/GameScene.js';
 import { PauseScene } from './scenes/PauseScene.js';
 import { UpgradeScene } from './scenes/UpgradeScene.js';
 import { UpgradeLabScene } from './scenes/UpgradeLabScene.js';
+import { installResponsiveViewport } from './config/responsive.js';
 
-new Phaser.Game({
+// 960 × 540 já é 16:9. Phaser amplia até 1920 × 1080 sem
+// mudar o tamanho lógico de sprites, hitboxes e coordenadas.
+const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
   width: 960,
@@ -18,4 +21,12 @@ new Phaser.Game({
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   scene: [MenuScene, GameScene, PauseScene, UpgradeScene, UpgradeLabScene],
+});
+
+// O #viewport é a moldura com safe areas; #game continua sem padding,
+// para o ScaleManager FIT centralizar o canvas corretamente.
+installResponsiveViewport(game, {
+  root: document.getElementById('viewport'),
+  notice: document.getElementById('rotate-notice'),
+  environment: window,
 });
