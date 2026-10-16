@@ -123,10 +123,15 @@ export function shotAngles(aimAngle, bulletsPerShot) {
 export function shotVisualFor(ids = []) {
   const selected = new Set(normalizeLabUpgrades(ids));
   if (selected.has('jp')) return {
-    color: 0xe997ff, impactColor: '#e997ff', width: 4, length: 20,
+    color: 0xe997ff, impactColor: '#e997ff',
+    // Se Rússia + Coreia estiverem ativas, o feixe continua violeta,
+    // mas a munição básica também ganha o calibre visual russo.
+    width: selected.has('ru') ? 11 : 4, length: 20,
   };
   if (selected.has('ru')) return {
-    color: 0xff846b, impactColor: '#ffbc8a', width: 9, length: 14,
+    // Era 9 × 14 px: um aumento discreto (~20%), puramente visual.
+    // O raio de colisão continua fixo em GameScene.
+    color: 0xff846b, impactColor: '#ffbc8a', width: 11, length: 17,
   };
   if (selected.has('us')) return {
     color: 0x79b9ff, impactColor: '#9dd7ff', width: 8, length: 15,
