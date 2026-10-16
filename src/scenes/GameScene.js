@@ -22,7 +22,7 @@ import {
 } from '../gameplay/enemies.js';
 import {
   getFirstUpgrade, combatStatsFor, shotAngles, shotVisualFor,
-  combatStatsForLoadout, normalizeLabUpgrades, toggleLabUpgrade,
+  shotVfxFor, brazilAlternatingAngle, combatStatsForLoadout, normalizeLabUpgrades, toggleLabUpgrade,
 } from '../gameplay/upgrades.js';
 import {
   MODES, getWaveEvents, waveIsFinished, WAVE_COUNTDOWN_SECONDS,
@@ -158,7 +158,10 @@ export class GameScene extends Phaser.Scene {
     if (this.mode !== 'upgradeLab' && this.mode !== 'lab') return;
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) this.removeEnemy(i);
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) this.removeEnemyBullet(i);
-    for (const bullet of this.projectiles) bullet.sprite.destroy();
+    for (const bullet of this.projectiles) {
+      bullet.trail?.destroy();
+      bullet.sprite.destroy();
+    }
     this.projectiles.length = 0;
     this.clearResidualSlashes();
     for (const blast of this.specialBlasts) blast.graphics.destroy();
@@ -206,6 +209,8 @@ export class GameScene extends Phaser.Scene {
     this.waveEvents = getWaveEvents(this.mode);
     this.lastBasicFire = -this.combat.basicInterval;
     this.basicShotCount = 0;
+    this.cannonRecoil = 0;
+    this.lastHeavyShake = -Infinity;
     this.lastSpecialFire = -this.combat.specialCooldown;
     this.tutorialComplete = false;
     this.gameOver = false;
@@ -1327,15 +1332,78 @@ export class GameScene extends Phaser.Scene {
       : unlockedFirstUpgrades(this.campaign);
   }
 
-  showMuzzleFlash(angle) {
+  showMuzzleFlash(angle, effects = shotVfxFor(this.activeUpgradeIds())) {
     const style = shotVisualFor(this.activeUpgradeIds());
     const x = CANNON.x + Math.cos(angle) * 34;
     const y = CANNON.y + Math.sin(angle) * 34;
-    const flash = this.add.circle(x, y, 7, style.color, 0.9).setDepth(38);
+    const flash = this.add.circle(
+      x, y, effects.heavy ? 11 : effects.multiple ? 8 : 7,
+      effects.heavy ? 0xffe1b5 : style.color, 0.92,
+    ).setDepth(38);
     this.tweens.add({
-      targets: flash, scale: 2.5, alpha: 0, duration: 145,
+      targets: flash, scale: effects.heavy ? 3.2 : 2.5, alpha: 0,
+      duration: effects.heavy ? 180 : 145,
       onComplete: () => flash.destroy(),
     });
+
+    if (effects.heavy) {
+      // Peso VISUAL, sem alterar dano/recuo físico. A microtremida é limitada
+      // para não acumular nas builds brasileiras de alta cadência.
+      const burst = this.add.graphics().setPosition(x, y).setDepth(39);
+      burst.lineStyle(3, 0xffe9c8, 0.95);
+      for (const offset of [-0.33, 0, 0.33]) {
+        const a = angle + offset;
+        burst.lineBetween(
+          Math.cos(a) * 7, Math.sin(a) * 7,
+          Math.cos(a) * 29, Math.sin(a) * 29,
+        );
+      }
+      this.tweens.add({
+        targets: burst, scale: 1.45, alpha: 0, duration: 160,
+        onComplete: () => burst.destroy(),
+      });
+      if (this.time.now - this.lastHeavyShake >= 230) {
+        this.cameras.main.shake(60, 0.0011);
+        this.lastHeavyShake = this.time.now;
+      }
+    }
+
+    if (effects.multiple) {
+      // Um clarão por boca fictícia do canhão: as duas trilhas de tiro são
+      // desenhadas independentemente, inclusive em builds RU + CN.
+      const px = -Math.sin(angle) * 8;
+      const py = Math.cos(angle) * 8;
+      for (const sign of [-1, 1]) {
+        const glow = this.add.circle(
+          x + px * sign, y + py * sign, 5.5,
+          sign < 0 ? 0xffb34f : 0xff6757, 0.92,
+        ).setDepth(39);
+        this.tweens.add({
+          targets: glow, scale: 2.15, alpha: 0, duration: 120,
+          onComplete: () => glow.destroy(),
+        });
+      }
+      if (!effects.heavy) {
+        this.time.delayedCall(45, () => {
+          if (this.barrel?.active) this.cannonRecoil = Math.max(this.cannonRecoil, 2.5);
+        });
+      }
+    }
+
+    if (effects.improvised) {
+      const side = this.basicShotCount % 2 === 1 ? -1 : 1;
+      const accent = this.add.circle(
+        x - Math.sin(angle) * side * 7,
+        y + Math.cos(angle) * side * 7,
+        4.5, 0xbaffb2, 0.9,
+      ).setDepth(39);
+      this.tweens.add({
+        targets: accent, scale: 1.8, alpha: 0, duration: 110,
+        onComplete: () => accent.destroy(),
+      });
+    }
+
+    this.cannonRecoil = Math.max(this.cannonRecoil, effects.recoil);
   }
 
   shootBasic(pointer) {
@@ -1343,15 +1411,21 @@ export class GameScene extends Phaser.Scene {
     if (this.time.now - this.lastBasicFire < this.combat.basicInterval) return;
     this.lastBasicFire = this.time.now;
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
-    // O segundo upgrade da China adiciona um terceiro tiro em TODA rajada.
-    for (const firingAngle of shotAngles(angle, this.combat.bulletsPerShot)) {
-      this.createProjectile(firingAngle, false);
+    const nextShot = this.basicShotCount + 1;
+    // A alternância brasileira é aplicada à rajada INTEIRA; todos os
+    // projéteis chineses continuam com seu spread simétrico em torno dela.
+    const aimed = brazilAlternatingAngle(angle, nextShot, this.combat.brazilZigzag);
+    const effects = shotVfxFor(this.activeUpgradeIds());
+    for (const firingAngle of shotAngles(aimed, this.combat.bulletsPerShot)) {
+      this.createProjectile(firingAngle, false, 0, effects);
     }
-    this.basicShotCount += 1;
+    this.basicShotCount = nextShot;
+    // O laser coreano mantém a direção da mira original (a oscilação da
+    // Gambiarra altera apenas as balas básicas, não a arma laser).
     if (isPlasmaShot(this.basicShotCount, this.combat.plasmaEvery > 0)) {
       this.firePlasmaKatana(angle);
     }
-    this.showMuzzleFlash(angle);
+    this.showMuzzleFlash(aimed, effects);
   }
 
   firePlasmaKatana(angle) {
@@ -1526,6 +1600,20 @@ export class GameScene extends Phaser.Scene {
     if (this.combat.collateral && casualty) {
       this.explodeCollateral(casualty.x, casualty.y);
     }
+    // Fragmentação americana: estilhaços curtos e claros, apenas decorativos.
+    const shards = this.add.graphics().setPosition(x, y).setDepth(45);
+    for (let i = 0; i < 7; i += 1) {
+      const a = (i * Math.PI * 2) / 7;
+      const dx = Math.cos(a);
+      const dy = Math.sin(a);
+      shards.lineStyle(i % 2 === 0 ? 2.4 : 1.5,
+        i % 2 === 0 ? 0xe9f8ff : 0x78c9ff, 0.92);
+      shards.lineBetween(dx * 13, dy * 13, dx * 36, dy * 36);
+    }
+    this.tweens.add({
+      targets: shards, scale: 1.6, alpha: 0, duration: 240,
+      onComplete: () => shards.destroy(),
+    });
     const blast = this.add.circle(x, y, FRAGMENT_RADIUS, 0x75aeff, 0.22)
       .setStrokeStyle(4, 0xe2f2ff, 0.92).setScale(0.20).setDepth(43);
     const spark = this.add.circle(x, y, 10, 0xffffff, 0.90).setDepth(44);
@@ -1572,12 +1660,13 @@ export class GameScene extends Phaser.Scene {
     this.createProjectile(target.angle, true, target.distance);
   }
 
-  createProjectile(angle, special, distance = 0) {
+  createProjectile(angle, special, distance = 0, effects = null) {
     const vx = Math.cos(angle);
     const vy = Math.sin(angle);
     const x = CANNON.x + vx * 29;
     const y = CANNON.y + vy * 29;
     const style = shotVisualFor(this.activeUpgradeIds());
+    const vfx = special ? null : (effects ?? shotVfxFor(this.activeUpgradeIds()));
     const dot = special
       ? this.add.circle(x, y, 8, 0x72eaf8).setDepth(35)
       : this.add.rectangle(x, y, style.width, style.length, style.color)
@@ -1585,8 +1674,14 @@ export class GameScene extends Phaser.Scene {
         .setRotation(angle + Math.PI / 2)
         .setDepth(35);
     const speed = special ? 300 : this.combat.basicSpeed;
-    this.projectiles.push({
+    // Uma única Graphics por bala, redesenhada enquanto ela se move.
+    // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
+    const trail = vfx && (vfx.heavy || vfx.multiple)
+      ? this.add.graphics().setDepth(34) : null;
+    const bullet = {
       sprite: dot,
+      trail,
+      vfx,
       vx: vx * speed,
       vy: vy * speed,
       special,
@@ -1598,7 +1693,34 @@ export class GameScene extends Phaser.Scene {
       fragmentation: !special && this.combat.fragmentation,
       impactColor: style.impactColor,
       hitEnemyIds: new Set(),
-    });
+    };
+    this.projectiles.push(bullet);
+    this.drawProjectileTrail(bullet);
+  }
+
+  drawProjectileTrail(bullet) {
+    const gfx = bullet.trail;
+    if (!gfx) return;
+    const { x, y } = bullet.sprite;
+    const length = Math.hypot(bullet.vx, bullet.vy) || 1;
+    const dx = bullet.vx / length;
+    const dy = bullet.vy / length;
+    gfx.clear();
+    if (bullet.vfx.heavy) {
+      // Rastro quente russo: halo vermelho e núcleo branco-alaranjado.
+      gfx.lineStyle(10, 0xff594c, 0.18);
+      gfx.lineBetween(x - dx * 30, y - dy * 30, x, y);
+      gfx.lineStyle(3, 0xffd6ab, 0.92);
+      gfx.lineBetween(x - dx * 23, y - dy * 23, x, y);
+    }
+    if (bullet.vfx.multiple) {
+      // Destaque independente dos dois/três tiros da China. Pode coexistir
+      // com o rastro russo sem perder o brilho vermelho/dourado.
+      gfx.lineStyle(8, 0xffa52c, 0.26);
+      gfx.lineBetween(x - dx * 29, y - dy * 29, x, y);
+      gfx.lineStyle(2, 0xffef87, 0.95);
+      gfx.lineBetween(x - dx * 20, y - dy * 20, x, y);
+    }
   }
 
   explode(x, y) {
@@ -1655,6 +1777,29 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  showHeavyImpact(x, y) {
+    // Impacto russo de nível 1: anel e faíscas sem dano adicional.
+    // Se Recuo Estratégico (nível 2) estiver ativo, seu efeito mais forte
+    // substitui este anel para evitar sobreposição desnecessária.
+    const gfx = this.add.graphics().setPosition(x, y).setDepth(53);
+    gfx.lineStyle(3, 0xffb273, 0.9);
+    gfx.strokeCircle(0, 0, 10);
+    gfx.lineStyle(1.5, 0xffeed0, 0.95);
+    gfx.strokeCircle(0, 0, 5);
+    for (let i = 0; i < 6; i += 1) {
+      const a = i * Math.PI / 3;
+      gfx.lineStyle(2, i % 2 ? 0xffa868 : 0xffffff, 0.88);
+      gfx.lineBetween(
+        Math.cos(a) * 14, Math.sin(a) * 14,
+        Math.cos(a) * 26, Math.sin(a) * 26,
+      );
+    }
+    this.tweens.add({
+      targets: gfx, alpha: 0, scale: 1.65, duration: 240,
+      onComplete: () => gfx.destroy(),
+    });
+  }
+
   showStrategicRecoilImpact(x, y) {
     const intensity = strategicRecoilIntensity(y);
     const radius = 12 + intensity * 33;
@@ -1692,6 +1837,7 @@ export class GameScene extends Phaser.Scene {
       const bullet = this.projectiles[i];
       bullet.sprite.x += bullet.vx * dt;
       bullet.sprite.y += bullet.vy * dt;
+      this.drawProjectileTrail(bullet);
       let remove = false;
 
       if (bullet.special && Phaser.Math.Distance.Between(
@@ -1737,8 +1883,12 @@ export class GameScene extends Phaser.Scene {
             j, bullet.damage, knockback, bullet.impactColor,
             true, this.combat.strategicRecoil ? 720 : 400,
           );
-          if (this.combat.strategicRecoil && bullet.knockback > 0) {
-            this.showStrategicRecoilImpact(deathPosition.x, deathPosition.y);
+          if (bullet.knockback > 0) {
+            if (this.combat.strategicRecoil) {
+              this.showStrategicRecoilImpact(deathPosition.x, deathPosition.y);
+            } else {
+              this.showHeavyImpact(deathPosition.x, deathPosition.y);
+            }
           }
           if (bullet.fragmentation) {
             this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
@@ -1756,6 +1906,7 @@ export class GameScene extends Phaser.Scene {
         bullet.sprite.y < -30 || bullet.sprite.y > H + 30
       )) remove = true;
       if (remove) {
+        bullet.trail?.destroy();
         bullet.sprite.destroy();
         this.projectiles.splice(i, 1);
       }
@@ -2074,6 +2225,14 @@ export class GameScene extends Phaser.Scene {
     this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     this.barrel.rotation = this.aimAngle + Math.PI / 2;
     if (pointer.leftButtonDown()) this.shootBasic(pointer);
+    // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
+    // volta ao lugar sem alterar a origem física das balas.
+    this.cannonRecoil *= Math.exp(-19 * dt);
+    if (this.cannonRecoil < 0.10) this.cannonRecoil = 0;
+    this.barrel.setPosition(
+      CANNON.x - Math.cos(this.aimAngle) * this.cannonRecoil,
+      CANNON.y - 20 - Math.sin(this.aimAngle) * this.cannonRecoil,
+    );
 
     this.updateEnemies(dt);
     if (this.gameOver) return;
