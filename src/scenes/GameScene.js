@@ -1550,12 +1550,12 @@ export class GameScene extends Phaser.Scene {
     // O laser coreano mantém a direção da mira original (a oscilação da
     // Gambiarra altera apenas as balas básicas, não a arma laser).
     if (isPlasmaShot(this.basicShotCount, this.combat.plasmaEvery > 0)) {
-      this.firePlasmaKatana(angle);
+      this.fireLightstickBeam(angle);
     }
     this.showMuzzleFlash(aimed, effects);
   }
 
-  firePlasmaKatana(angle) {
+  fireLightstickBeam(angle) {
     const startX = CANNON.x + Math.cos(angle) * 32;
     const startY = CANNON.y + Math.sin(angle) * 32;
     const endX = startX + Math.cos(angle) * PLASMA_RANGE;
@@ -1585,7 +1585,7 @@ export class GameScene extends Phaser.Scene {
       this.createResidualSlash(startX, startY, endX, endY, initialHitIds);
     }
 
-    // Três traços luminosos sobrepostos criam uma espada de plasma bem visível.
+    // Três traços luminosos sobrepostos criam um feixe de plasma bem visível.
     const beam = this.add.graphics().setDepth(48);
     beam.lineStyle(26, 0x7f43c7, 0.18);
     beam.lineBetween(startX, startY, endX, endY);
@@ -1600,7 +1600,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   createResidualSlash(x1, y1, x2, y2, initialHitIds = new Set()) {
-    // A Katana roxa abre uma FENDA turquesa com centro escuro. A fenda
+    // O Lightstick roxo abre uma FENDA turquesa com centro escuro. A fenda
     // se alarga progressivamente e depois se fecha, não é só outro laser.
     const trail = this.add.graphics().setDepth(47);
     this.residualSlashes.push({
@@ -2385,7 +2385,7 @@ export class GameScene extends Phaser.Scene {
       }
     } else if (this.mode.startsWith('wave')) {
       const history = this.campaign.choices.map((id) => id.toUpperCase()).join(' + ');
-      const special = this.combat.plasmaEvery ? ' | KATANA: ' +
+      const special = this.combat.plasmaEvery ? ' | LIGHTSTICK: ' +
         (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/3'
         : this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
       const towerLabel = this.supportTowers.map((tower) => tower.definition.label).join(' + ');
@@ -2409,7 +2409,7 @@ export class GameScene extends Phaser.Scene {
         'TIROS ' + (1000 / stats.basicInterval).toFixed(1) + '/s' +
         '  |  DANO ' + stats.basicDamage.toFixed(2) +
         '  |  FRAG ' + (stats.fragmentation ? FRAGMENT_RADIUS + 'px' : 'NÃO') +
-        '  |  KATANA ' + (stats.plasmaEvery
+        '  |  LIGHTSTICK ' + (stats.plasmaEvery
           ? (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/' + PLASMA_EVERY_SHOTS : 'NÃO') +
         '  |  PROJ ' + stats.bulletsPerShot,
       );
