@@ -83,8 +83,10 @@ export function nextWaveAfterChoice(state) {
       : count === 3 ? 'wave3' : null;
 }
 
-// A quarta escolha ainda não foi criada. A Onda 4 funciona como continuação
-// direta após a Onda 3, preservando o conjunto de 3 escolhas e suas torres.
+// Upgrades 4–9 ainda estão em planejamento. Enquanto isso, as Ondas 4–9
+// seguem sem interromper a campanha e preservam as 3 escolhas já adquiridas.
+// A Onda 9 encerra o protótipo até a chegada do Tipo 6 na Onda 10.
 export function automaticWaveAfterVictory(mode) {
-  return mode === 'wave3' ? 'wave4' : null;
+  const match = /^wave([3-8])$/.exec(mode);
+  return match ? `wave${Number(match[1]) + 1}` : null;
 }
