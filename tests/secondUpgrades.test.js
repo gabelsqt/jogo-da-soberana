@@ -98,7 +98,7 @@ test('EUA: explosão Dano Colateral é maior que a Fragmentação, mas é única
   assert.equal(COLLATERAL_DAMAGE, 0.75);
 });
 
-test('Japão: fenda de vácuo abre, dura mais e depois desaparece sem saltos', () => {
+test('Coreia do Sul: fenda de vácuo abre, dura mais e depois desaparece sem saltos', () => {
   assert.equal(RESIDUAL_DURATION, 2200);
   assert.equal(RESIDUAL_DAMAGE, 1);
   assert.equal(RESIDUAL_HALF_WIDTH, 12);
