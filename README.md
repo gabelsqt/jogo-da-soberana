@@ -2,7 +2,19 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-> **Protótipo 0.19 — Ondas 5 a 9.** Agora há **dez ondas jogáveis (0–9)**: cerco aéreo com escoltas, chuva de ferro, enxame organizado, superunidades e último cerco. Inimigos de cada onda ganham HP e filtro de cor novos sem mudar o tamanho. O Tipo 5 passa a atuar como miniboss **Cruzador-Colmeia** nas Ondas 8/9 e invoca reforços com quantidade limitada. As Ondas 4–9 seguem automaticamente após a Onda 3, mantendo os mesmos três upgrades e torres, até que os próximos upgrades sejam definidos. O Tipo 6, boss colossal da Onda 10, ainda não foi criado.
+> **Protótipo 0.20 — Base responsiva para PC, itch.io e celulares.** O canvas mantém a resolução lógica **960 × 540 (16:9, a mesma proporção de 1920 × 1080)** e se adapta ao espaço disponível sem distorcer o jogo, incluindo barras móveis do navegador e áreas seguras de celulares com notch. Em dispositivos de toque na vertical, aparece um aviso para girar a tela e a partida fica pausada até voltar à horizontal. **Controles touch ainda não implementados** — esta etapa prepara apenas apresentação e orientação. O conteúdo da v0.19 (Ondas 0–9 e miniboss Tipo 5) foi preservado.
+
+## Layout responsivo e preparação mobile (v0.20)
+
+- **Resolução lógica:** o Phaser continua rodando em **960 × 540**, que já é 16:9, exatamente como 1920 × 1080. Não alteramos posições de armas, torres, sprites nem hitboxes.
+- **Escala:** `Phaser.Scale.FIT` e `CENTER_BOTH` centralizam e ampliam o jogo sem cortar ou esticar a imagem. Nas telas de proporção diferente, surgem faixas vazias ao redor, sem perda do cenário.
+- **Pixel art:** o canvas mantém a renderização sem suavização, inclusive quando ampliado no PC.
+- **Área segura:** a moldura `#viewport` incorpora `viewport-fit=cover`, `env(safe-area-inset-*)` e `100dvh`. O elemento `#game` segue **sem padding**, como recomendado pelo Phaser, para não quebrar os cálculos de escala.
+- **Celular na vertical:** em tela sensível ao toque, aparece a mensagem “Gire o celular para jogar”. A partida pausa automaticamente e retoma ao mudar para paisagem; também funciona para orientação do aparelho detectada dentro de um iframe.
+- **Barras do navegador e redimensionamento:** a mudança de tamanho da janela ou de `visualViewport` recalcula a escala. O `index.html` continua integrado ao HTML único de itch.io.
+- **Fase futura:** controles específicos de toque (mira, tiro principal, tiro especial, menus), avaliação de legibilidade do HUD em telas pequenas e testes em celulares reais. **Esses controles ainda não estão prontos.**
+
+**Teste no PC:** execute `npm.cmd run dev`, redimensione a janela e verifique que a proporção continua 16:9. **Teste no celular:** abra o servidor numa rede acessível pelo aparelho, gire a tela e verifique o aviso/pausa. A incorporação no itch.io também depende das dimensões do iframe da própria página; mantenha a proporção de exibição 16:9.
 
 ## Novo cenário fixo do Rio
 
