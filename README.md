@@ -2,11 +2,32 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
+> **Protótipo 0.24 — Feedback de impacto e destruição de OVNIs.** Todos os tipos de inimigo implementados (1–5) ganharam piscar branco curto e sacudida ao sobreviver a um disparo, além de explosões geométricas escalonadas ao serem abatidos. O Tipo 4 (Caça Relâmpago) recebe explosão rosa/branca em duas etapas, anel, estilhaços e microtremida; o Tipo 5 recebe celebração ainda maior e em duas etapas. O Tipo 6 já possui parâmetros de VFX planejados, mas **ainda não existe nas ondas jogáveis**. Nenhum atributo de HP, dano, movimento ou cooldown foi modificado.
+
 > **Protótipo 0.23 — Refinamentos visuais do nível 2.** Todos os cinco países ganharam uma evolução visual de seus upgrades de nível 2, preservando dano, cadência e área de efeito: escudos brasileiros com brilho e pequenas descargas, segunda explosão americana laranja levemente atrasada **apenas na animação**, fenda coreana com bordas pulsantes, choques russos com ondas e reflexos mais fortes perto do chão e flash triplo chinês com projétil central destacado. Os efeitos estão disponíveis tanto na campanha quanto no laboratório; a migração de nomes japoneses para coreanos continua pendente.
 
 > **Protótipo 0.22 — Calibre visual russo.** Os projéteis do Camarada Canhão estão ligeiramente maiores, de **9 × 14 px para 11 × 17 px**, também em builds combinadas, sem modificar colisão, dano, velocidade ou recuo físico. Demais efeitos da v0.21 preservados.
 
 > **Protótipo 0.21 — Efeitos visuais dos upgrades de nível 1.** Gambiarra Balística passa de +25% para **+50% de cadência** (500 → 333 ms) e alterna suavemente o ângulo dos disparos. O canhão russo ganhou clarão, rastro quente, recuo visual, faíscas e microtremida; os tiros chineses têm flash duplo e rastros vermelho-dourados, também nas builds combinadas. Fragmentação americana ganhou estilhaços luminosos. O laser coreano (ainda identificado como Japão/Katana no código legado) permanece visualmente aprovado. Mantidas Ondas 0–9, Phaser 960 × 540 e a base responsiva da v0.20.
+
+## Feedback de tiros e mortes dos invasores (v0.24)
+
+Cada tiro que **não mata imediatamente** dá uma resposta visual: a nave fica branca por 60–100 ms, treme e inclina brevemente, e retorna à trajetória normal. A reação cresce com o tipo de ameaça; o PNG animado do Tipo 1 conserva a escala original, e os Tipos 2–5 ainda usam as artes geométricas provisórias. O efeito é visual: não aplica dano extra ou recuo físico ao inimigo. Quando o tiro mata o alvo, a explosão inclui um clarão branco inicial.
+
+| Tipo | Shake ao tomar dano | Flash branco | Raio visual da explosão | Estilhaços | Morte |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 1 — Invasor básico | 2 px | 60 ms | 23 px | 5 | pequena e rápida |
+| 2 — Esquadrão | 3 px | 70 ms | 31 px | 7 | explosão lilás |
+| 3 — Bombardeiro | 4 px | 80 ms | 45 px | 10 | anel de energia |
+| **4 — Caça Relâmpago** | **5 px** | **90 ms** | **62 px** | **16** | **duas etapas**, flash rosa/branco, anel, cicatriz luminosa e pequena sacudida de tela |
+| **5 — Cruzador-Colmeia** | **6 px** | **100 ms** | **103 px** | **23** | **duas etapas**, colapso luminoso turquesa e segunda explosão |
+| 6 — Chefão final | planejado | 120 ms | 155 px | 30 | três etapas previstas, **não implementado no combate** |
+
+A morte só dispara quando o HP do inimigo chega a zero: inimigos que completam um ataque, atingem a base ou são removidos por **C: LIMPAR** no laboratório não geram explosões. Os efeitos não são ataques em área: não causam dano nem encadeiam novas mortes. Há um máximo de **24 Graphics simultâneos** para impedir excesso de partículas e pequenas tremidas de câmera nos abates de Tipos 4 e 5 são limitadas a no máximo uma a cada 220 ms. Objetos animados são descartados ao fim da animação.
+
+**Código:** `src/gameplay/enemyFeedback.js` define os perfis e cálculos puros; `src/scenes/GameScene.js` aplica flash, shake e explosões; `tests/enemyFeedback.test.js` valida perfis, morte real versus desaparecimento e o limite de efeitos.
+
+**Playtest sugerido:** no **Laboratório de Inimigos** use as teclas **1–5** para gerar cada tipo de OVNI (Shift+4/5 para versões resistentes). Na campanha, foque no Caça Relâmpago e no Cruzador-Colmeia para avaliar se a recompensa por derrota está suficientemente marcante. É importante conferir visualmente performance e legibilidade com muitos alvos.
 
 ## Melhorias visuais de nível 2 (v0.23)
 
