@@ -96,6 +96,19 @@ export function enemyStats(type, level = 1) {
   };
 }
 
+// Miniboss Tipo 5: no modo campanha das Ondas 8/9, a invocação
+// precisa ter limite para a luta terminar e não criar enjame infinito.
+export const MINIBOSS_MAX_SUMMONS = 12;
+export const MINIBOSS_MAX_ACTIVE_MINIONS = 6;
+
+export function minibossSummonCount(totalSpawned, activeMinions, requested = 2) {
+  return Math.max(0, Math.min(
+    Math.max(0, Math.trunc(requested)),
+    MINIBOSS_MAX_SUMMONS - Math.max(0, Math.trunc(totalSpawned)),
+    MINIBOSS_MAX_ACTIVE_MINIONS - Math.max(0, Math.trunc(activeMinions)),
+  ));
+}
+
 // A fileira final e o círculo coordenado são padrões independentes dos
 // atributos de HP/velocidade (possibilita balancear cada um depois).
 export function lineFormationX(index, count, width = 960, margin = 46) {
