@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { mechAimAligned } from '../src/gameplay/mechSpriteMounts.js';
 import {
   advanceGuidedTowerShot,
   chooseTowerHomingTarget,
@@ -60,4 +61,12 @@ test('GameScene aplica rastreamento ao Urso e a todas as balas auxiliares', () =
   assert.match(tower, /advanceGuidedTowerShot\(\s*oldX, oldY,/);
   assert.match(tower, /this\.acquireGuidedTowerTarget\(shot\)/);
   assert.doesNotMatch(tower, /predictShockImpact|aimX, aimY|shot\.sprite\.x \+= shot\.vx/);
+});
+
+test('a arma visual só libera disparo ao alinhar e respeita ângulos equivalentes', () => {
+  assert.equal(mechAimAligned(-1.1, -1.1), true);
+  assert.equal(mechAimAligned(-1.1, -0.9), false);
+  assert.equal(mechAimAligned(-Math.PI, Math.PI), true);
+  const scene = readFileSync(new URL('../src/scenes/GameScene.js', import.meta.url), 'utf8');
+  assert.match(scene, /if \(!enemy \|\| !aimed \|\| towerChargeProgress\(/);
 });
