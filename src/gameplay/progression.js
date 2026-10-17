@@ -6,14 +6,21 @@ export const COUNTRIES = FIRST_UPGRADES.map(({ id }) => id);
 export const MAX_SUPPORT_TOWERS = 2;
 export { SECOND_UPGRADES };
 
-// A primeira torre é o TERCEIRO upgrade do mesmo país. A segunda só será
-// desbloqueada no nível 7; seus perfis seguem no GDD, ainda não implementados.
+// Níveis 3 e 4 evoluem em conjunto o ataque especial e o escudo.
+// A primeira torre antienxame só é instalada no nível 5.
 export const THIRD_UPGRADES = {
-  br: { title: 'Projeto Caramelo', description: 'Instala um vira-lata mecanizado que atira automaticamente nos invasores.', tower: true },
-  us: { title: 'Águia da Liberdade I', description: 'Instala águia mecanizada que dispara mísseis teleguiados.', tower: true },
-  jp: { title: 'Projeto Kkachi I', description: 'Instala pega coreana mecanizada com laser automático de precisão.', tower: true },
-  ru: { title: 'Urso de Ferro', description: 'Instala urso com artilharia preditiva: explosão de choque e empurrão em área.', tower: true },
-  cn: { title: 'PandaPrime I — Envio Econômico', description: 'Instala panda mecanizado que envia minidrones perseguidores.', tower: true },
+  br: { title: 'Gambiarra de Defesa Integrada', description: 'Especial e escudo ganham a primeira evolução elétrica.', tower: false },
+  us: { title: 'Protocolo de Contenção I', description: 'Especial e escudo evoluem com tecnologia de fragmentação.', tower: false },
+  jp: { title: 'Palco de Luz I', description: 'Especial e escudo ganham uma evolução de energia luminosa.', tower: false },
+  ru: { title: 'Doutrina de Repulsão I', description: 'Especial e escudo evoluem com energia cinética.', tower: false },
+  cn: { title: 'Pacote Integrado I', description: 'Especial e escudo compartilham tecnologia de minidrones.', tower: false },
+};
+export const FIFTH_UPGRADES = {
+  br: { title: 'Projeto Caramelo', description: 'Instala o vira-lata mecanizado antienxame.', tower: true },
+  us: { title: 'Águia da Liberdade I', description: 'Instala a águia mecanizada antienxame.', tower: true },
+  jp: { title: 'Projeto Kkachi I', description: 'Instala a pega coreana mecanizada antienxame.', tower: true },
+  ru: { title: 'Urso de Ferro', description: 'Instala o urso mecanizado antienxame.', tower: true },
+  cn: { title: 'PandaPrime I', description: 'Instala o panda mecanizado antienxame.', tower: true },
 };
 
 export function normalizeCampaignState(state = {}) {
@@ -40,7 +47,7 @@ export function activeTowerCountries(state) {
   const towers = [];
   for (const id of normalizeCampaignState(state).choices) {
     seen.set(id, (seen.get(id) ?? 0) + 1);
-    if (seen.get(id) === 3) towers.push(id);
+    if (seen.get(id) === 5) towers.push(id);
   }
   return towers.slice(0, MAX_SUPPORT_TOWERS);
 }
@@ -54,14 +61,13 @@ export function nextUpgradeOptions(state) {
     if (level === 2) {
       return { ...first, ...SECOND_UPGRADES[first.id], level, locked: false };
     }
-    if (level === 3) {
-      return {
-        ...first, ...THIRD_UPGRADES[first.id], level,
-        locked: installed >= MAX_SUPPORT_TOWERS,
-        reason: installed >= MAX_SUPPORT_TOWERS ? 'DUAS TORRES JÁ INSTALADAS' : '',
-      };
-    }
+    if (level === 3) return { ...first, ...THIRD_UPGRADES[first.id], level, locked: false };
     if (level === 4) return { ...first, ...FOURTH_UPGRADES[first.id], level, locked: false };
+    if (level === 5) return {
+      ...first, ...FIFTH_UPGRADES[first.id], level,
+      locked: installed >= MAX_SUPPORT_TOWERS,
+      reason: installed >= MAX_SUPPORT_TOWERS ? 'DUAS TORRES JÁ INSTALADAS' : '',
+    };
     return {
       ...first, level, title: 'EM DESENVOLVIMENTO',
       description: 'Este nível será adicionado nas próximas versões.',
