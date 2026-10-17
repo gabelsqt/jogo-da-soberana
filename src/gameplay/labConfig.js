@@ -1,6 +1,6 @@
 // Configuração livre do laboratório. Nenhum limite de escolhas da campanha.
 export const LAB_COUNTRIES = ['br', 'us', 'jp', 'ru', 'cn'];
-export const LAB_MAX_LEVEL = 4;
+export const LAB_MAX_LEVEL = 5;
 export const LAB_MAX_TOWERS = 2;
 export const LAB_MAX_WAVE = 9;
 
@@ -14,7 +14,7 @@ export function normalizeLabConfig(input = {}) {
 
 export function configuredTowerCountries(config) {
   const { levels } = normalizeLabConfig(config);
-  return LAB_COUNTRIES.filter(id => levels[id] >= 3);
+  return LAB_COUNTRIES.filter(id => levels[id] >= 5);
 }
 
 export function changeLabLevel(config, country, delta) {
