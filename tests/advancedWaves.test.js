@@ -30,16 +30,16 @@ function scheduledComposition(events) {
 }
 
 const expected = {
-  wave5: { level: 4, seconds: 48, counts: [28, 15, 3, 3, 0], total: 49,
-    last: 44500, title: 'ONDA 5 — CERCO AÉREO' },
-  wave6: { level: 5, seconds: 82, counts: [45, 17, 9, 6, 0], total: 77,
-    last: 75000, title: 'ONDA 6 — CHUVA DE FERRO' },
-  wave7: { level: 6, seconds: 90, counts: [44, 28, 2, 4, 0], total: 78,
-    last: 83000, title: 'ONDA 7 — ENXAME ORGANIZADO' },
-  wave8: { level: 7, seconds: 94, counts: [36, 16, 3, 6, 1], total: 62,
-    last: 84000, title: 'ONDA 8 — SUPERUNIDADES' },
-  wave9: { level: 8, seconds: 105, counts: [41, 24, 5, 6, 1], total: 77,
-    last: 91500, title: 'ONDA 9 — ÚLTIMO CERCO' },
+  wave5: { level: 4, seconds: 30, counts: [28, 15, 3, 3, 0], total: 49,
+    last: 19500, title: 'ONDA 5 — CERCO AÉREO' },
+  wave6: { level: 5, seconds: 30, counts: [45, 17, 9, 6, 0], total: 77,
+    last: 19500, title: 'ONDA 6 — CHUVA DE FERRO' },
+  wave7: { level: 6, seconds: 30, counts: [44, 28, 2, 4, 0], total: 78,
+    last: 19500, title: 'ONDA 7 — ENXAME ORGANIZADO' },
+  wave8: { level: 7, seconds: 30, counts: [36, 16, 3, 6, 1], total: 62,
+    last: 19500, title: 'ONDA 8 — SUPERUNIDADES' },
+  wave9: { level: 8, seconds: 30, counts: [41, 24, 5, 6, 1], total: 77,
+    last: 19500, title: 'ONDA 9 — ÚLTIMO CERCO' },
 };
 
 test('Ondas 5–9 têm ritmo, composição e níveis distintos', () => {
@@ -135,18 +135,18 @@ test('conclusão avança automaticamente até a Onda 9, mantendo os aliados', ()
     assert.equal(automaticWaveAfterVictory(mode), null);
   }
   const state = { choices: ['br', 'br', 'br'] };
-  assert.deepEqual(activeTowerCountries(state), ['br']);
+  assert.deepEqual(activeTowerCountries(state), []);
   assert.deepEqual(unlockedFirstUpgrades(state), ['br']);
 });
 
-test('Onda 9 só termina após a última ameaça, sem criar a Onda 10', () => {
+test('Onda 9 encerra por amanhecer aos 30 s ou vitória antecipada', () => {
   const mode = 'wave9';
   const events = getWaveEvents(mode);
-  const state = { mode, elapsed: 105000, spawned: events.length,
-    scheduled: events.length, enemies: 0, hostileShots: 0 };
-  assert.equal(waveIsFinished(state), true);
-  assert.equal(waveIsFinished({ ...state, elapsed: 104999 }), false);
-  assert.equal(waveIsFinished({ ...state, spawned: events.length - 1 }), false);
-  assert.equal(waveIsFinished({ ...state, enemies: 1 }), false);
-  assert.equal(waveIsFinished({ ...state, hostileShots: 1 }), false);
+  const waiting = { mode, elapsed: 25000, spawned: events.length,
+    scheduled: events.length, enemies: 1, hostileShots: 0 };
+  assert.equal(waveIsFinished(waiting), false);
+  assert.equal(waveIsFinished({ ...waiting, elapsed: 30000 }), true);
+  assert.equal(waveIsFinished({ ...waiting, enemies: 0 }), true);
+  assert.equal(waveIsFinished({ ...waiting, hostileShots: 1, enemies: 0 }), false);
+  assert.equal(waveIsFinished({ ...waiting, spawned: events.length - 1, enemies: 0 }), false);
 });

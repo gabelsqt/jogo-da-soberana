@@ -27,7 +27,7 @@ import { combatStatsForLoadout } from '../src/gameplay/upgrades.js';
 test('nível 2 de cada país não cria torre nem pula escolhas', () => {
   assert.deepEqual(Object.keys(SECOND_UPGRADES), ['br', 'us', 'jp', 'ru', 'cn']);
   assert.deepEqual(Object.values(SECOND_UPGRADES).map((value) => value.title), [
-    'Minha Casa, Meu Escudo', 'Dano Colateral', 'Encore!',
+    'Gambiarra Balística II', 'Dano Colateral', 'Encore!',
     'Recuo Estratégico', 'Compre 2, Leve 3',
   ]);
   assert.ok(Object.values(SECOND_UPGRADES).every((value) => value.tower === false));
@@ -38,14 +38,14 @@ test('nível 2 de cada país não cria torre nem pula escolhas', () => {
   assert.deepEqual(normalizeSecondUpgradeIds(null), []);
 });
 
-test('nível 2 modifica só suas características sem mudar cadência ou dano base', () => {
+test('nível 2 modifica a cadência brasileira e mantém dano base', () => {
   const base = combatStatsForLoadout(['br', 'us', 'jp', 'ru', 'cn']);
   const stats = applySecondUpgradeStats(base, ['br', 'us', 'jp', 'ru', 'cn']);
-  assert.equal(stats.electricFence, true);
+  assert.equal(stats.electricFence, false);
   assert.equal(stats.collateral, true);
   assert.equal(stats.residualSlash, true);
   assert.equal(stats.strategicRecoil, true);
-  assert.equal(stats.basicInterval, base.basicInterval);
+  assert.equal(stats.basicInterval, Math.round(base.basicInterval / 1.25));
   assert.equal(stats.basicDamage, base.basicDamage);
   assert.equal(stats.bulletsPerShot, base.bulletsPerShot + 1);
   assert.equal(stats.bulletsPerShot, 3);

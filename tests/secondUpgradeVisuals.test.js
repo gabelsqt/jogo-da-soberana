@@ -119,7 +119,7 @@ test('China: apenas a terceira bala ganha destaque central e flash triplo', () =
 test('nível 2 combinado preserva dano, intervalo e especial da configuração anterior', () => {
   const initial = combatStatsForLoadout(['br', 'us', 'jp', 'ru', 'cn']);
   const upgraded = applySecondUpgradeStats(initial, ['br', 'us', 'jp', 'ru', 'cn']);
-  assert.equal(upgraded.basicInterval, initial.basicInterval);
+  assert.equal(upgraded.basicInterval, Math.round(initial.basicInterval / 1.25));
   assert.equal(upgraded.basicDamage, initial.basicDamage);
   assert.equal(upgraded.basicSpeed, initial.basicSpeed);
   assert.equal(upgraded.knockback, initial.knockback);
@@ -127,7 +127,7 @@ test('nível 2 combinado preserva dano, intervalo e especial da configuração a
   assert.equal(upgraded.plasmaEvery, initial.plasmaEvery);
   assert.equal(upgraded.bulletsPerShot, 3);
   assert.equal(upgraded.collateral, true);
-  assert.equal(upgraded.electricFence, true);
+  assert.equal(upgraded.electricFence, false);
   assert.equal(upgraded.residualSlash, true);
   assert.equal(upgraded.strategicRecoil, true);
 });

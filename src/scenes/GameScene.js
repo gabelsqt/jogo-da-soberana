@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
-import { normalizeLabConfig, configuredTowerCountries } from '../gameplay/labConfig.js';
+import {
+  normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout,
+  LAB_ENEMY_NAMES, LAB_MAX_ENEMY_LEVEL, labEnemyEvent,
+} from '../gameplay/labConfig.js';
 import { preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import { assetUrl } from '../config/assetUrl.js';
 import { preloadMechSprites, createMechSprites } from '../gameplay/mechSpriteMounts.js';
@@ -21,6 +24,7 @@ import {
 import {
   ENEMY_SHOT_COLOR, enemyStats, enemyContactRadius,
   lineFormationX, orbitalFormationPosition, bossCruiseX, minibossSummonCount,
+  advanceBomberHover,
 } from '../gameplay/enemies.js';
 import {
   hitProfileFor, hitReactionAt, deathProfileFor,
@@ -31,22 +35,24 @@ import {
   shotVfxFor, brazilAlternatingAngle, combatStatsForLoadout, normalizeLabUpgrades, toggleLabUpgrade,
 } from '../gameplay/upgrades.js';
 import {
-  MODES, getWaveEvents, waveIsFinished, WAVE_COUNTDOWN_SECONDS,
+  MODES, getWaveEvents, waveOutcome, WAVE_COUNTDOWN_SECONDS, WAVE_DURATION_MS,
 } from '../gameplay/waves.js';
 import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
-  activeTowerCountries,
+  activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
   automaticWaveAfterVictory,
 } from '../gameplay/progression.js';
 import {
   TOWER_DEFINITIONS, SUPPORT_TOWER_POSITIONS,
-  towerDefinition, chooseTowerAttackTarget, canInstallTower,
+  towerDefinition, upgradedTowerWeapon, canInstallTower, chooseTowerAttackTarget,
+  towerBlindZoneY, towerSeesEnemy, towerChargeProgress, chooseSuitableTowerTarget,
+  chooseTowerTrackingTarget, advanceGuidedTowerShot, chooseTowerHomingTarget,
 } from '../gameplay/towers.js';
 import {
   SHOCK_BLAST_RADIUS, SHOCK_KNOCKBACK,
-  predictShockImpact, segmentHitsCircle, shockBlastDamage, advanceShockOffset,
+  segmentHitsCircle, shockBlastDamage, advanceShockOffset,
 } from '../gameplay/shockArtillery.js';
 import {
   ELECTRIC_FENCE_DAMAGE, ELECTRIC_FENCE_RADIUS_BONUS,
@@ -76,6 +82,7 @@ import {
 const W = 960;
 const H = 540;
 const CANNON = { x: 480, y: 494 };
+const TOWER_BLIND_ZONE_Y = towerBlindZoneY(H);
 const SHIELD_REGEN_RATE = 3.5;
 const SHIELD_REGEN_DELAY = 4000;
 const ENEMY_IMPACT_DAMAGE = 46;
@@ -95,6 +102,9 @@ export class GameScene extends Phaser.Scene {
       ? { choices: [data.upgradeId] } : {};
     this.campaign = normalizeCampaignState(data.campaign ?? legacy);
     this.upgradeId = this.campaign.choices.at(-1) ?? null;
+    this.thirdIds = this.unifiedLab
+      ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 3)
+      : this.mode === 'upgradeLab' ? [] : unlockedThirdUpgradeCountries(this.campaign);
     this.fourthIds = this.unifiedLab
       ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 4)
       : this.mode === 'upgradeLab' ? [] : unlockedFourthUpgradeCountries(this.campaign);
@@ -117,6 +127,10 @@ export class GameScene extends Phaser.Scene {
       ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 2)
       : this.mode === 'upgradeLab' ? this.labSecondIds : unlockedSecondUpgrades(this.campaign);
     this.combat = applySecondUpgradeStats(firstStats, seconds);
+    // Primeira evolução conjunta: fortalecimento de escudo e recarga do especial.
+    // Valores provisórios para o playtest da árvore reorganizada.
+    const jointStages = this.thirdIds.length + this.fourthIds.length;
+    this.combat.specialCooldown = Math.round(this.combat.specialCooldown * Math.pow(0.93, jointStages));
   }
 
   getRunOptions() {
@@ -176,7 +190,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   clearTestEnemies() {
-    if (this.mode !== 'upgradeLab' && this.mode !== 'lab') return;
+    if (!this.unifiedLab && this.mode !== 'upgradeLab' && this.mode !== 'lab') return;
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) this.removeEnemy(i);
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) this.removeEnemyBullet(i);
     for (const bullet of this.projectiles) {
@@ -208,6 +222,11 @@ export class GameScene extends Phaser.Scene {
     this.input.mouse?.disableContextMenu();
 
     drawRioBackdrop(this);
+    // Iluminação de amanhecer nos últimos 5 segundos das noites.
+    // Camada atrás dos alvos/defesas e acima do cenário.
+    this.sunriseOverlay = this.mode.startsWith('wave')
+      ? this.add.rectangle(W / 2, H / 2, W, H, 0xffc285, 0).setDepth(18)
+      : null;
 
     if (!this.anims.exists('tipo1_voo')) {
       this.anims.create({
@@ -232,6 +251,7 @@ export class GameScene extends Phaser.Scene {
     this.nextBlastId = 1;
     this.elapsed = 0;
     this.countdownActive = false;
+    this.labEnemyLevel = 1;
     this.eventsSpawned = 0;
     this.waveEvents = getWaveEvents(this.mode);
     this.lastBasicFire = -this.combat.basicInterval;
@@ -242,8 +262,8 @@ export class GameScene extends Phaser.Scene {
     this.tutorialComplete = false;
     this.gameOver = false;
     this.cannonHealth = 100;
-    this.shield = 80;
-    this.shieldMax = 80;
+    this.shieldMax = 80 + (this.thirdIds.length + this.fourthIds.length) * 8;
+    this.shield = this.shieldMax;
     this.lastDamageAt = -10000;
     this.aimAngle = -Math.PI / 2;
 
@@ -251,8 +271,10 @@ export class GameScene extends Phaser.Scene {
     this.shieldGraphics = this.add.graphics().setDepth(23);
     this.enemyHealthGraphics = this.add.graphics().setDepth(27);
     this.towerStatusGraphics = this.add.graphics().setDepth(35);
+    this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
+    if (this.unifiedLab) this.createEnemyLabPanel();
     this.drawShield();
 
     // Mira de impacto do tiro especial, sem consumir mouse nem bloquear HUD.
@@ -290,7 +312,10 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    if (this.mode.startsWith('wave')) {
+    if (this.unifiedLab && this.mode === 'lab') {
+      // Arena livre: nenhum spawn agendado e nenhuma duração limite.
+      this.waveEvents = [];
+    } else if (this.mode.startsWith('wave')) {
       this.startWaveCountdown();
     } else {
       this.scheduleWaveEvents();
@@ -326,30 +351,137 @@ export class GameScene extends Phaser.Scene {
       // Exibe a seleção logo ao entrar; ela pode ser reaberta com U.
       this.time.delayedCall(1, () => this.openUpgradeLab());
     }
-    if (this.mode === 'upgradeLab' || this.mode === 'lab') {
+    if (this.unifiedLab || this.mode === 'upgradeLab' || this.mode === 'lab') {
       this.input.keyboard.on('keydown', (event) => {
         if (!this.scene.isActive('GameScene') || this.tutorialComplete) return;
-        // Event.code identifica a tecla física mesmo com Shift pressionado,
-        // quando event.key vira !, @, #, etc.
+        // Teclas físicas 1–5, inclusive Shift+1–5 no layout brasileiro.
         const match = /^(?:Digit|Numpad)([1-5])$/.exec(event.code || '');
         if (!match) return;
-        const type = Number(match[1]);
-        const level = event.shiftKey ? 2 : 1;
-        this.spawnWaveEvent({
-          type, level,
-          group: type === 2 && level === 1,
-          pattern: level === 2 && type === 1 ? 'line'
-            : level === 2 && type === 2 ? 'orbit' : undefined,
-          count: 10,
-        });
-        if (level === 2 && type >= 3) {
-          this.showAttackWarning('TIPO ' + type + ' • NÍVEL 2');
-        }
+        this.spawnLabEnemy(Number(match[1]), event.shiftKey ? 2 : this.labEnemyLevel);
       });
       this.input.keyboard.on('keydown-C', () => {
         if (this.scene.isActive('GameScene')) this.clearTestEnemies();
       });
     }
+    if (this.unifiedLab) {
+      this.input.keyboard.on('keydown-I', () => {
+        if (this.scene.isActive('GameScene')) {
+          this.setEnemyLabPanelOpen(!this.enemyLabPanelOpen);
+        }
+      });
+      this.input.keyboard.on('keydown-L', () => {
+        if (this.scene.isActive('GameScene')) {
+          this.scene.start('LabSetupScene', { config: this.labConfig });
+        }
+      });
+    }
+  }
+
+  spawnLabEnemy(type, level = 1) {
+    if (this.tutorialComplete || this.countdownActive) return false;
+    const event = labEnemyEvent(type, level);
+    if (!event) return false;
+    this.spawnWaveEvent(event);
+    return true;
+  }
+
+  // Painel retrátil no campo do laboratório, sem bloquear a mira quando
+  // fechado. Funciona tanto na Arena Livre quanto no teste de uma onda.
+  createEnemyLabPanel() {
+    this.enemyLabPanelOpen = this.mode === 'lab';
+    const toggleBg = this.add.rectangle(825, 69, 260, 33, 0x173d50, 0.98)
+      .setStrokeStyle(2, 0x87ddeb).setDepth(108)
+      .setInteractive({ useHandCursor: true });
+    this.enemyLabToggle = this.add.text(825, 69, '', {
+      fontFamily: 'monospace', fontSize: '14px',
+      fontStyle: 'bold', color: '#f3f9ff',
+    }).setOrigin(0.5).setDepth(109);
+    toggleBg.on('pointerover', () => toggleBg.setFillStyle(0x286476));
+    toggleBg.on('pointerout', () => toggleBg.setFillStyle(0x173d50));
+    toggleBg.on('pointerdown', (pointer, _x, _y, event) => {
+      event?.stopPropagation();
+      if (pointer.leftButtonDown()) this.setEnemyLabPanelOpen(!this.enemyLabPanelOpen);
+    });
+
+    const panel = this.add.container(0, 0).setDepth(108);
+    this.enemyLabPanel = panel;
+    this.enemyLabInputs = [];
+    const background = this.add.rectangle(825, 284, 268, 388, 0x071527, 0.96)
+      .setStrokeStyle(2, 0x63a8bc);
+    background.setInteractive().on('pointerdown', (_pointer, _x, _y, event) => {
+      event?.stopPropagation();
+    });
+    panel.add(background);
+    // Ao recolher o painel, nem o fundo invisível intercepta a mira.
+    this.enemyLabInputs.push(background);
+    panel.add(this.add.text(825, 112, 'GERAR INIMIGOS • TIPO 1–5', {
+      fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold', color: '#9ef0db',
+    }).setOrigin(0.5));
+
+    const addButton = (x, y, width, height, label, onClick, primary = false) => {
+      const baseColor = primary ? 0x205661 : 0x142a3f;
+      const hoverColor = primary ? 0x307985 : 0x23506c;
+      const button = this.add.rectangle(x, y, width, height, baseColor, 0.98)
+        .setStrokeStyle(1.5, primary ? 0x8de8cf : 0x759db9)
+        .setInteractive({ useHandCursor: true });
+      const text = this.add.text(x, y, label, {
+        fontFamily: 'monospace', fontSize: '13px',
+        color: '#f2faff', fontStyle: 'bold',
+      }).setOrigin(0.5);
+      button.on('pointerover', () => button.setFillStyle(hoverColor));
+      button.on('pointerout', () => button.setFillStyle(baseColor));
+      button.on('pointerdown', (pointer, _lx, _ly, event) => {
+        event?.stopPropagation();
+        if (pointer.leftButtonDown()) onClick();
+      });
+      panel.add([button, text]);
+      this.enemyLabInputs.push(button);
+      return { button, text };
+    };
+
+    LAB_ENEMY_NAMES.forEach((name, index) => {
+      addButton(825, 152 + index * 41, 232, 34,
+        (index + 1) + '  ' + name,
+        () => this.spawnLabEnemy(index + 1, this.labEnemyLevel));
+    });
+    panel.add(this.add.text(825, 366, 'NÍVEL DOS INIMIGOS', {
+      fontFamily: 'monospace', fontSize: '12px', color: '#a8bed8',
+    }).setOrigin(0.5));
+    addButton(745, 389, 42, 29, '−', () => this.setLabEnemyLevel(this.labEnemyLevel - 1));
+    this.enemyLabLevelLabel = this.add.text(825, 389, '', {
+      fontFamily: 'monospace', fontSize: '16px', fontStyle: 'bold',
+      color: '#f9e6ae',
+    }).setOrigin(0.5);
+    panel.add(this.enemyLabLevelLabel);
+    addButton(905, 389, 42, 29, '+', () => this.setLabEnemyLevel(this.labEnemyLevel + 1));
+    addButton(825, 425, 232, 31, 'C  LIMPAR INIMIGOS', () => this.clearTestEnemies());
+    addButton(825, 462, 232, 28, 'L  CONFIGURAR LAB', () =>
+      this.scene.start('LabSetupScene', { config: this.labConfig }));
+    this.setLabEnemyLevel(1);
+    this.setEnemyLabPanelOpen(this.enemyLabPanelOpen);
+  }
+
+  setLabEnemyLevel(level) {
+    this.labEnemyLevel = Math.max(1, Math.min(
+      LAB_MAX_ENEMY_LEVEL, Math.trunc(Number(level) || 1),
+    ));
+    this.enemyLabLevelLabel?.setText('NÍVEL ' + this.labEnemyLevel);
+  }
+
+  setEnemyLabPanelOpen(open) {
+    this.enemyLabPanelOpen = Boolean(open);
+    this.enemyLabPanel.setVisible(this.enemyLabPanelOpen);
+    for (const button of this.enemyLabInputs) {
+      if (this.enemyLabPanelOpen) button.setInteractive({ useHandCursor: true });
+      else button.disableInteractive();
+    }
+    this.enemyLabToggle.setText(this.enemyLabPanelOpen
+      ? 'INIMIGOS [I] ▲' : 'INIMIGOS [I] ▼');
+  }
+
+  pointerOverEnemyLabControls(pointer) {
+    return this.unifiedLab && pointer.x >= 691 && pointer.x <= 960 &&
+      pointer.y >= 52 && pointer.y <= (this.enemyLabPanelOpen ? 488 : 87);
   }
 
   scheduleWaveEvents() {
@@ -391,13 +523,15 @@ export class GameScene extends Phaser.Scene {
       countdownItems.forEach((object) => object.destroy());
       this.countdownActive = false;
       this.elapsed = 0;
+      // A carga só começa quando a defesa fica liberada para lutar.
+      for (const tower of this.supportTowers) tower.lastAttackAt = this.time.now;
       this.scheduleWaveEvents();
     });
   }
 
   createSupportTowers() {
-    const selected = this.unifiedLab ? configuredTowerCountries(this.labConfig)
-      : this.mode === 'upgradeLab' ? this.labTowerIds : activeTowerCountries(this.campaign);
+    const selected = this.unifiedLab ? configuredTowerLoadout(this.labConfig)
+      : this.mode === 'upgradeLab' ? this.labTowerIds.map(id => ({ id, role: 'swarm', level: 5 })) : activeTowerLoadout(this.campaign);
     this.installSupportTowerSet(selected);
   }
 
@@ -406,19 +540,24 @@ export class GameScene extends Phaser.Scene {
     for (const bullet of this.supportProjectiles) bullet.sprite.destroy();
     this.supportProjectiles.length = 0;
     this.supportTowers.length = 0;
+    this.towerChargeGraphics?.clear();
 
-    countryIds.slice(0, SUPPORT_TOWER_POSITIONS.length).forEach((id, index) => {
-      const definition = towerDefinition(id);
+    countryIds.slice(0, SUPPORT_TOWER_POSITIONS.length).forEach((entry, index) => {
+      const id = typeof entry === 'string' ? entry : entry.id;
+      const role = typeof entry === 'string' ? 'swarm' : entry.role;
+      const level = typeof entry === 'string' ? 5 : entry.level;
+      const definition = upgradedTowerWeapon(id, role, level);
       if (!definition) return;
       const position = SUPPORT_TOWER_POSITIONS[index];
       const { x, y } = position;
 
-      // Corpo e canhão são imagens independentes. Somente a arma gira no pivô.
-      const visual = createMechSprites(this, id, x, y);
+      // Corpo correto para cada papel: lobo/antienxame e animais destruidoras,
+      // com arma modular giratória independente do sprite do corpo.
+      const visual = createMechSprites(this, id, x, y, 26, position.side === 'right', role);
       const sprite = visual.sprite;
 
       this.supportTowers.push({
-        id: 'tower-' + id, countryId: id,
+        id: 'tower-' + id + '-' + role, countryId: id, role, level,
         definition, x, y, shieldRadius: 46,
         sprite, visual,
         health: definition.healthMax,
@@ -426,7 +565,7 @@ export class GameScene extends Phaser.Scene {
         shield: definition.shieldMax,
         shieldMax: definition.shieldMax,
         lastDamageAt: -10000,
-        lastAttackAt: -definition.interval,
+        lastAttackAt: this.time.now,
         electricLastFire: -Infinity,
       });
     });
@@ -454,16 +593,77 @@ export class GameScene extends Phaser.Scene {
   updateSupportTowers(dt) {
     for (const tower of this.supportTowers) {
       if (tower.health <= 0) continue;
-      // O pivô visual acompanha alvos mesmo durante o intervalo de recarga;
-      // a cadência e a seleção de alvo para disparar continuam idênticas.
-      const enemy = chooseTowerAttackTarget(
-        tower.x, tower.y - 22, this.enemies, tower.definition.range,
+      // A arma acompanha QUALQUER inimigo ao alcance, mas a carga
+      // só é gasta se ele atender à prioridade da classe.
+      // Ambos respeitam a zona cega de 10% e as bordas do cenário.
+      const firingTarget = chooseSuitableTowerTarget(
+        tower, this.enemies, TOWER_BLIND_ZONE_Y, 390, W, H,
       );
-      if (!enemy) continue;
-      tower.visual.aimAt(enemy.sprite.x, enemy.sprite.y, dt);
-      if (this.time.now - tower.lastAttackAt < tower.definition.interval) continue;
+      const trackingTarget = firingTarget ?? chooseTowerTrackingTarget(
+        tower, this.enemies, TOWER_BLIND_ZONE_Y, W, H,
+      );
+      const aimed = trackingTarget
+        ? tower.visual.aimAt(trackingTarget.sprite.x, trackingTarget.sprite.y, dt)
+        : false;
+      // Sem alvo adequado, conserva carga completa mesmo enquanto gira.
+      // Ao disparar, exige que a arma visual esteja alinhada com esse alvo.
+      if (!firingTarget || !aimed || towerChargeProgress(
+        tower.lastAttackAt, this.time.now, tower.definition.interval,
+      ) < 1) continue;
       tower.lastAttackAt = this.time.now;
-      this.fireTowerWeapon(tower, enemy);
+      this.fireTowerWeapon(tower, firingTarget);
+    }
+    this.drawTowerCharges();
+  }
+
+  drawTowerCharges() {
+    const graphics = this.towerChargeGraphics;
+    graphics.clear();
+    for (const tower of this.supportTowers) {
+      if (tower.health <= 0) continue;
+      const progress = towerChargeProgress(
+        tower.lastAttackAt, this.time.now, tower.definition.interval,
+      );
+      const ready = progress >= 1;
+      const evolved = tower.role === 'swarm' ? tower.level >= 6 : tower.level >= 8;
+      // O corpo e o canhão clareiam durante a carga, mantendo o sprite original.
+      const brightness = Math.round(105 + 150 * progress);
+      const tint = Phaser.Display.Color.GetColor(brightness, brightness, brightness);
+      tower.visual.body.setTint(tint);
+      tower.visual.weapon.setTint(tint);
+      const glow = ready ? 0.78 + Math.sin(this.time.now * 0.012) * 0.18 : 0.20 + progress * 0.38;
+      // O indicador do Lobo não pode flutuar acima do sprite.
+      // Em cada animal secundário, ele acompanha o ombro/encaixe
+      // do canhão; o anel compacto deixa a silhueta e a arma legíveis.
+      const mount = tower.visual.secondary
+        ? tower.visual.mountWorldPosition() : null;
+      const x = mount?.x ?? tower.x;
+      const y = mount?.y ?? (tower.y - 89);
+      const ring = mount ? 12 : 21;
+      const color = tower.definition.color;
+      graphics.fillStyle(color, glow * 0.14);
+      graphics.fillCircle(x, y, ring * (0.75 + progress * 0.42));
+      graphics.lineStyle(2.5, 0x23374a, 0.75);
+      graphics.strokeCircle(x, y, ring);
+      if (progress > 0) {
+        graphics.lineStyle(mount ? 2.2 : 3.5, ready ? 0xffffff : color, glow);
+        graphics.beginPath();
+        graphics.arc(x, y, ring, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+        graphics.strokePath();
+      }
+      if (evolved) {
+        // Circuito de evolução proporcional ao tamanho da torre.
+        graphics.lineStyle(1.8, color, 0.25 + 0.55 * progress);
+        graphics.strokeCircle(x, y, ring + 6);
+        if (ready) {
+          graphics.fillStyle(0xffffff, glow * 0.85);
+          graphics.fillCircle(x + Math.cos(this.time.now * 0.006) * (ring + 6),
+            y + Math.sin(this.time.now * 0.006) * (ring + 6), 2.4);
+        }
+      }
+      graphics.fillStyle(ready ? 0xffffff : color, ready ? glow : glow * 0.65);
+      graphics.fillCircle(x, y,
+        mount ? (ready ? 3.2 : 1.8 + 1.5 * progress) : (ready ? 5.5 : 2.5 + 2.5 * progress));
     }
   }
 
@@ -471,16 +671,6 @@ export class GameScene extends Phaser.Scene {
     const weapon = tower.definition;
     const fromX = tower.x;
     const fromY = tower.y - 35;
-    const lead = predictShockImpact(
-      fromX, fromY, enemy.sprite.x, enemy.sprite.y,
-      enemy.velocityX, enemy.velocityY, weapon.speed,
-    );
-    // A artilharia não atira para fora da área visível ou sobre o canhão.
-    const aimX = Phaser.Math.Clamp(lead.x, 35, W - 35);
-    const aimY = Phaser.Math.Clamp(lead.y, 45, H - 95);
-    const dx = aimX - fromX;
-    const dy = aimY - fromY;
-    const distance = Math.max(1, Math.hypot(dx, dy));
 
     const shell = this.add.circle(fromX, fromY, 9, 0xff9b49)
       .setStrokeStyle(3, 0xffe6a7).setDepth(42);
@@ -490,13 +680,17 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => muzzle.destroy(),
     });
 
+    // Diferente da antiga artilharia preditiva, o Urso acompanha a nave
+    // durante todo o trajeto e não detona em uma coordenada vazia.
     this.supportProjectiles.push({
       kind: 'shock-shell',
       sprite: shell,
       weapon,
-      vx: dx / distance * weapon.speed,
-      vy: dy / distance * weapon.speed,
-      aimX, aimY, age: 0, smokeTimer: 0,
+      targetId: enemy.uid,
+      role: tower.role,
+      speed: weapon.speed,
+      vx: 0, vy: 0,
+      age: 0, smokeTimer: 0,
     });
   }
 
@@ -516,6 +710,7 @@ export class GameScene extends Phaser.Scene {
     // A queda é suave: alvos centrais sofrem dano cheio, bordas dano reduzido.
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
       const distance = Math.hypot(enemy.sprite.x - x, enemy.sprite.y - y);
       const damage = shockBlastDamage(
         distance, enemyContactRadius(enemy.type), weapon.damage, SHOCK_BLAST_RADIUS,
@@ -561,53 +756,69 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.shake(100, 0.0021);
   }
 
+  // A transferência de alvo é compartilhada por balas, drones,
+  // mísseis e projéteis pesados: nenhum prossegue rumo ao vazio.
+  acquireGuidedTowerTarget(shot) {
+    const original = this.enemies.find(enemy =>
+      enemy.uid === shot.targetId &&
+      towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H));
+    if (original) return original;
+    const next = chooseTowerHomingTarget(
+      shot.sprite.x, shot.sprite.y, this.enemies,
+      TOWER_BLIND_ZONE_Y, W, shot.role, H,
+    );
+    if (next) shot.targetId = next.uid;
+    return next;
+  }
+
   updateShockShell(shot, dt) {
-    const oldX = shot.sprite.x;
-    const oldY = shot.sprite.y;
-    const aimDistance = Math.hypot(shot.aimX - oldX, shot.aimY - oldY);
-    const step = shot.weapon.speed * dt;
-    const atDestination = aimDistance <= step + 6;
-    const nextX = atDestination ? shot.aimX : oldX + shot.vx * dt;
-    const nextY = atDestination ? shot.aimY : oldY + shot.vy * dt;
-    shot.sprite.setPosition(nextX, nextY);
+    const target = this.acquireGuidedTowerTarget(shot);
+    // Se não restar nenhuma nave detectável, a munição desaparece
+    // silenciosamente — não explode no canto ou na zona morta.
+    if (!target || shot.age > 5) return true;
+
+    const oldX = shot.sprite.x, oldY = shot.sprite.y;
+    const next = advanceGuidedTowerShot(oldX, oldY,
+      target.sprite.x, target.sprite.y, shot.speed, dt);
+    shot.sprite.setPosition(next.x, next.y);
+    shot.vx = next.vx;
+    shot.vy = next.vy;
 
     shot.smokeTimer += dt;
     if (shot.smokeTimer >= 0.065) {
       shot.smokeTimer = 0;
-      this.makeShockSmoke(nextX, nextY);
+      this.makeShockSmoke(next.x, next.y);
     }
 
-    let impactX = nextX;
-    let impactY = nextY;
-    let impact = atDestination;
-    if (!impact) {
-      for (const enemy of this.enemies) {
-        if (segmentHitsCircle(
-          oldX, oldY, nextX, nextY, enemy.sprite.x, enemy.sprite.y,
-          enemyContactRadius(enemy.type) + 9,
-        )) {
-          // Se uma nave cruzar o caminho, a bomba explode no impacto real.
-          impactX = enemy.sprite.x;
-          impactY = enemy.sprite.y;
-          impact = true;
-          break;
-        }
+    // A bomba só explode se interceptar uma nave real, nunca ao
+    // atingir um ponto de previsão ou quando esgota seu tempo.
+    for (const enemy of this.enemies) {
+      if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+      if (segmentHitsCircle(oldX, oldY, next.x, next.y,
+        enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 9)) {
+        this.detonateShockArtillery(enemy.sprite.x, enemy.sprite.y, shot.weapon);
+        return true;
       }
     }
-    if (!impact && shot.age >= 4) {
-      impact = true;
-      impactX = Phaser.Math.Clamp(nextX, 35, W - 35);
-      impactY = Phaser.Math.Clamp(nextY, 45, H - 95);
-    }
-    if (impact) this.detonateShockArtillery(impactX, impactY, shot.weapon);
-    return impact;
+    return false;
   }
 
   fireTowerWeapon(tower, enemy) {
     const weapon = tower.definition;
-    const fromX = tower.x;
-    const fromY = tower.y - 35;
+    // Nos novos corpos, o disparo começa no canhão que realmente girou,
+    // não em um ponto fixo que faria parecer que atirou pelo corpo.
+    const muzzle = tower.visual.secondary ? tower.visual.muzzlePosition() : null;
+    const fromX = muzzle?.x ?? tower.x;
+    const fromY = muzzle?.y ?? tower.y - 35;
 
+    // Descarga visível da energia acumulada, sem screenshake ao atirar.
+    const discharge = this.add.circle(fromX, fromY, tower.role === 'destroyer' ? 19 : 13,
+      weapon.color, 0.78).setStrokeStyle(2, 0xffffff, 0.85).setDepth(40);
+    this.tweens.add({
+      targets: discharge, scale: tower.role === 'destroyer' ? 2.6 : 2,
+      alpha: 0, duration: tower.role === 'destroyer' ? 280 : 190,
+      onComplete: () => discharge.destroy(),
+    });
     // Recuo visual aplicado apenas ao canhão lateral, jamais ao corpo.
     tower.visual.recoil();
     if (weapon.type === 'shell') {
@@ -625,19 +836,35 @@ export class GameScene extends Phaser.Scene {
         targets: beam, alpha: 0, duration: 260,
         onComplete: () => beam.destroy(),
       });
-      const index = this.enemies.findIndex((item) => item.uid === enemy.uid);
-      if (index >= 0) this.impactInvader(index, weapon.damage, 0, '#e6b1ff');
+      const hits = weapon.pierce ? this.enemies.filter(e => {
+        if (!towerSeesEnemy(e, TOWER_BLIND_ZONE_Y, W, H)) return false;
+        const ax = fromX, ay = fromY, bx = enemy.sprite.x, by = enemy.sprite.y;
+        const dx = bx-ax, dy = by-ay, len = Math.max(1, dx*dx+dy*dy);
+        const t = Phaser.Math.Clamp(((e.sprite.x-ax)*dx+(e.sprite.y-ay)*dy)/len, 0, 1);
+        return Math.hypot(e.sprite.x-(ax+t*dx),e.sprite.y-(ay+t*dy)) < 24;
+      }) : [enemy];
+      for (const hitEnemy of hits) {
+        if (!towerSeesEnemy(hitEnemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+        const index = this.enemies.findIndex(item => item.uid === hitEnemy.uid);
+        if (index >= 0) this.impactInvader(index, weapon.damage, 0, '#e6b1ff');
+      }
       return;
     }
 
     const count = weapon.count ?? 1;
+    const swarmTargets = tower.role === 'swarm'
+      ? this.enemies.filter(e => towerSeesEnemy(e, TOWER_BLIND_ZONE_Y, W, H) &&
+        Math.hypot(e.sprite.x - fromX, e.sprite.y - fromY) <= weapon.range)
+        .sort((a,b) => b.sprite.y - a.sprite.y) : [];
     for (let i = 0; i < count; i += 1) {
+      const shotTarget = swarmTargets[i % swarmTargets.length] ?? enemy;
       const x = fromX + (i - (count - 1) / 2) * 18;
       const y = fromY;
-      const dx = enemy.sprite.x - x;
-      const dy = enemy.sprite.y - y;
+      const dx = shotTarget.sprite.x - x;
+      const dy = shotTarget.sprite.y - y;
       const distance = Math.max(1, Math.hypot(dx, dy));
-      const guided = weapon.type === 'missile' || weapon.type === 'drone';
+      // Todos os projéteis das torres têm guia ativo, inclusive balas comuns.
+      const guided = true;
       const bullet = weapon.type === 'shell'
         ? this.add.rectangle(x, y, 12, 14, weapon.color).setStrokeStyle(2, 0xffffff)
         : this.add.circle(x, y, weapon.type === 'bullet' ? 4 : 6, weapon.color)
@@ -645,7 +872,7 @@ export class GameScene extends Phaser.Scene {
       bullet.setDepth(40);
       this.supportProjectiles.push({
         sprite: bullet,
-        targetId: enemy.uid,
+        targetId: shotTarget.uid, role: tower.role,
         guided, age: 0, speed: weapon.speed, weapon,
         vx: dx / distance * weapon.speed,
         vy: dy / distance * weapon.speed,
@@ -664,50 +891,55 @@ export class GameScene extends Phaser.Scene {
         }
         continue;
       }
-      if (shot.guided) {
-        let target = this.enemies.find((enemy) => enemy.uid === shot.targetId);
-        if (!target) {
-          target = chooseTowerAttackTarget(
-            shot.sprite.x, shot.sprite.y, this.enemies, 850,
-          );
-          if (target) shot.targetId = target.uid;
-        }
-        if (target) {
-          const dx = target.sprite.x - shot.sprite.x;
-          const dy = target.sprite.y - shot.sprite.y;
-          const distance = Math.max(1, Math.hypot(dx, dy));
-          // Acompanhamento suave, sem teleportar mísseis ao mudar de alvo.
-          const smooth = Math.min(1, 8 * dt);
-          shot.vx = Phaser.Math.Linear(shot.vx, dx / distance * shot.speed, smooth);
-          shot.vy = Phaser.Math.Linear(shot.vy, dy / distance * shot.speed, smooth);
-        }
+
+      // A orientação de TODOS os tiros é recalculada a cada quadro.
+      // Se o alvo morrer ou sair do radar, outro é adquirido. Sem
+      // alvo na tela, a bala some sem voar rumo ao canto.
+      const target = this.acquireGuidedTowerTarget(shot);
+      if (!target || shot.age > 5) {
+        shot.sprite.destroy();
+        this.supportProjectiles.splice(i, 1);
+        continue;
       }
-      shot.sprite.x += shot.vx * dt;
-      shot.sprite.y += shot.vy * dt;
+      const oldX = shot.sprite.x, oldY = shot.sprite.y;
+      const next = advanceGuidedTowerShot(
+        oldX, oldY, target.sprite.x, target.sprite.y, shot.speed, dt,
+      );
+      shot.sprite.setPosition(next.x, next.y);
+      shot.vx = next.vx;
+      shot.vy = next.vy;
 
       let hit = false;
       for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
         const enemy = this.enemies[j];
-        if (Phaser.Math.Distance.Between(
-          shot.sprite.x, shot.sprite.y, enemy.sprite.x, enemy.sprite.y,
-        ) > enemyContactRadius(enemy.type) + 7) continue;
+        if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+        if (!segmentHitsCircle(oldX, oldY, next.x, next.y,
+          enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 7)) continue;
+
         this.impactInvader(
           j, shot.weapon.damage, shot.weapon.knockback ?? 0, '#fff3b9',
         );
         const flash = this.add.circle(
-          shot.sprite.x, shot.sprite.y, shot.weapon.type === 'shell' ? 20 : 12,
-          shot.weapon.color, 0.45,
+          next.x, next.y, 12, shot.weapon.color, 0.45,
         ).setDepth(44);
         this.tweens.add({
           targets: flash, alpha: 0, scale: 1.8, duration: 180,
           onComplete: () => flash.destroy(),
         });
+        if (shot.weapon.splashRadius) {
+          const radius = shot.weapon.splashRadius;
+          const nearby = this.enemies.filter(e =>
+            towerSeesEnemy(e, TOWER_BLIND_ZONE_Y, W, H) &&
+            Math.hypot(e.sprite.x - next.x, e.sprite.y - next.y) <= radius);
+          for (const extra of nearby) {
+            const idx = this.enemies.findIndex(e => e.uid === extra.uid);
+            if (idx >= 0) this.impactInvader(idx, shot.weapon.damage * 0.75, 0, '#a6d5ff');
+          }
+        }
         hit = true;
         break;
       }
-      if (hit || shot.age > 5 ||
-          shot.sprite.x < -40 || shot.sprite.x > W + 40 ||
-          shot.sprite.y < -40 || shot.sprite.y > H + 40) {
+      if (hit) {
         shot.sprite.destroy();
         this.supportProjectiles.splice(i, 1);
       }
@@ -982,10 +1214,11 @@ export class GameScene extends Phaser.Scene {
       enemy.formationWait = 2.6 + index * 0.65 + definition.formationWaitBonus;
     } else if (type === 3) {
       enemy.phase = 'approach';
-      this.setRoute(enemy,
-        options.pattern === 'escort' || options.pattern === 'bomberFan'
-          ? options.center : Phaser.Math.Between(235, 725),
-        Phaser.Math.Between(170, 220));
+      // Bombardeiro escolhe uma defesa na entrada; as formações com escolta
+      // preservam a sua coluna e os demais voam até a coluna da defesa.
+      const hoverX = options.pattern === 'escort' || options.pattern === 'bomberFan'
+        ? options.center : Phaser.Math.Clamp(enemy.target.x, 235, 725);
+      this.setRoute(enemy, hoverX, Phaser.Math.Between(170, 220));
     } else if (type === 4) {
       enemy.phase = 'flyby';
       enemy.direction = startX < 0 ? 1 : -1;
@@ -1082,16 +1315,31 @@ export class GameScene extends Phaser.Scene {
           enemy.shotTimer = 0;
         }
       } else if (enemy.phase === 'hover') {
-        // Bombardeiro mantém posição, dispara projéteis interceptáveis e depois avança.
+        // Tipo 3: ataca a MESMA defesa durante doze segundos.
+        // Quatro salvas aos 3, 6, 9 e 12 s antes de se retirar pelo topo.
         enemy.sprite.x += Math.sin(enemy.age * 1.2) * 15 * dt;
-        enemy.shotTimer += dt;
-        if (enemy.shotTimer >= enemy.definition.shotInterval) {
-          enemy.shotTimer = 0;
-          this.fireEnemyProjectile(enemy);
+        const hover = advanceBomberHover(
+          enemy.shotTimer, enemy.phaseAge, dt,
+          enemy.definition.shotInterval, enemy.definition.bomberHoverDuration,
+        );
+        enemy.shotTimer = hover.shotTimer;
+        for (let salvo = 0; salvo < hover.shots; salvo += 1) {
+          this.fireEnemyProjectile(enemy, enemy.target);
         }
-        if (enemy.phaseAge >= enemy.definition.bomberHoverDuration) {
-          enemy.phase = 'dive';
-          this.assignInvaderTarget(enemy, enemy.target);
+        if (hover.retreat) {
+          enemy.phase = 'retreat';
+          enemy.phaseAge = 0;
+          this.setRoute(enemy, enemy.sprite.x, -78);
+        }
+      } else if (enemy.phase === 'retreat') {
+        // Sai pela parte de cima e retorna à mesma noite para outra passada.
+        if (this.moveAlongRoute(enemy, dt)) {
+          enemy.target = this.chooseDefenseTarget();
+          enemy.phase = 'approach';
+          enemy.phaseAge = 0;
+          this.setRoute(enemy,
+            Phaser.Math.Clamp(enemy.target.x, 235, 725),
+            Phaser.Math.Between(170, 220));
         }
       } else if (enemy.phase === 'flyby') {
         const slow = this.time.now < enemy.electricSlowUntil ? ELECTRIC_SLOW_FACTOR : 1;
@@ -1217,8 +1465,7 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  fireEnemyProjectile(enemy) {
-    const target = this.chooseDefenseTarget();
+  fireEnemyProjectile(enemy, target = this.chooseDefenseTarget()) {
     const count = enemy.definition.volleyCount;
     for (let i = 0; i < count; i += 1) {
       // A versão II do bombardeiro dispara duas bombas das laterais,
@@ -1466,10 +1713,8 @@ export class GameScene extends Phaser.Scene {
         targets: burst, scale: 1.45, alpha: 0, duration: 160,
         onComplete: () => burst.destroy(),
       });
-      if (this.time.now - this.lastHeavyShake >= 230) {
-        this.cameras.main.shake(60, 0.0011);
-        this.lastHeavyShake = this.time.now;
-      }
+      // O canhão principal russo mantém o clarão e o recuo visual,
+      // mas não sacode a câmera ao disparar.
     }
 
     if (effects.multiple) {
@@ -2380,10 +2625,58 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  showWaveComplete() {
+  showWaveComplete(outcome = 'cleared') {
     if (this.tutorialComplete) return;
     this.tutorialComplete = true;
 
+    if (this.mode.startsWith('wave')) {
+      const survived = outcome === 'survived';
+      const message = survived
+        ? 'AMANHECEU! O RIO RESISTIU!'
+        : 'CÉU LIMPO! VITÓRIA ANTECIPADA!';
+      this.statusText.setText('NOITE CONCLUÍDA');
+      this.tutorialText.setText('');
+      this.sunriseOverlay?.setAlpha(survived ? 0.32 : 0);
+      const banner = this.add.rectangle(W / 2, H / 2, W, 110,
+        survived ? 0x39271f : 0x0a2731, 0.86).setDepth(110);
+      const title = this.add.text(W / 2, H / 2, message, {
+        fontFamily: 'monospace', fontSize: survived ? '34px' : '29px',
+        fontStyle: 'bold', color: survived ? '#ffddab' : '#bafff0',
+        stroke: '#071225', strokeThickness: 5,
+      }).setOrigin(0.5).setDepth(111);
+
+      if (survived && this.enemies.length) {
+        // As naves que sobreviveram fogem pelo portal vermelho.
+        const portal = this.add.circle(W / 2, 95, 35, 0x7c1632, 0.55)
+          .setStrokeStyle(6, 0xff425d, 0.92).setDepth(80);
+        const core = this.add.circle(W / 2, 95, 21, 0xff8093, 0.68).setDepth(81);
+        this.tweens.add({ targets: [portal, core], scale: 1.6, alpha: 0,
+          delay: 700, duration: 850 });
+        for (const enemy of this.enemies) {
+          this.tweens.add({ targets: enemy.sprite, x: W / 2, y: 95,
+            alpha: 0, scale: 0.05, duration: 1250, ease: 'Sine.easeIn' });
+        }
+      } else if (!survived) {
+        // Fogos para comunicar claramente a vitória antes dos 30 segundos.
+        for (const [x, y] of [[235, 130], [480, 110], [720, 145]]) {
+          const firework = this.add.circle(x, y, 7, 0xffd789, 0.95)
+            .setStrokeStyle(3, 0x9dffda, 0.85).setDepth(82);
+          this.tweens.add({ targets: firework, scale: 8, alpha: 0,
+            duration: 1100, onComplete: () => firework.destroy() });
+        }
+      }
+      // A mesa só aparece depois de o resultado da noite ser legível.
+      this.time.delayedCall(1700, () => {
+        title.destroy();
+        banner.destroy();
+        this.advanceAfterWave();
+      });
+      return;
+    }
+    this.advanceAfterWave();
+  }
+
+  advanceAfterWave() {
     if (!this.unifiedLab && /^wave[0-8]$/.test(this.mode)) {
       this.scene.start('UpgradeScene', {
         campaign: this.campaign,
@@ -2441,8 +2734,11 @@ export class GameScene extends Phaser.Scene {
     const remaining = Math.max(
       0, (this.lastSpecialFire + this.combat.specialCooldown - this.time.now) / 1000,
     );
-    this.statusText.setText(remaining
-      ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO');
+    const clock = this.mode.startsWith('wave')
+      ? 'NOITE ' + String(Math.ceil(Math.max(0, WAVE_DURATION_MS - this.elapsed) / 1000))
+        .padStart(2, '0') + 's | ' : '';
+    this.statusText.setText(clock + (remaining
+      ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO'));
     this.healthText.setText(
       'CANHÃO ' + Math.ceil(this.cannonHealth) +
       ' | ESCUDO ' + Math.ceil(this.shield) +
@@ -2487,7 +2783,9 @@ export class GameScene extends Phaser.Scene {
         '  |  PROJ ' + stats.bulletsPerShot,
       );
     } else {
-      this.tutorialText.setText('TESTE: 1–5 TIPOS   SHIFT+1–5: NÍVEL 2   C: LIMPAR');
+      this.tutorialText.setText(this.unifiedLab
+        ? 'ARENA LIVRE: 1–5 OU PAINEL [I]  •  C LIMPAR  •  L CONFIGURAR LAB'
+        : 'TESTE: 1–5 TIPOS   SHIFT+1–5: NÍVEL 2   C: LIMPAR');
     }
   }
 
@@ -2502,9 +2800,19 @@ export class GameScene extends Phaser.Scene {
     if (this.countdownActive) return;
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += delta;
+    if (this.sunriseOverlay) {
+      const sunrise = Math.max(0, 1 - (WAVE_DURATION_MS - this.elapsed) / 5000);
+      this.sunriseOverlay.setAlpha(sunrise * 0.28);
+    }
+    // À meia-noite de 30 segundos, sobreviver basta — mesmo com inimigos vivos.
+    // A verificação vem ANTES das atualizações hostis do quadro final.
+    if (this.mode.startsWith('wave') && this.elapsed >= WAVE_DURATION_MS) {
+      this.showWaveComplete('survived');
+      return;
+    }
     this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     this.barrel.rotation = this.aimAngle + Math.PI / 2;
-    if (pointer.leftButtonDown()) this.shootBasic(pointer);
+    if (pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer)) this.shootBasic(pointer);
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
     // volta ao lugar sem alterar a origem física das balas.
     this.cannonRecoil *= Math.exp(-19 * dt);
@@ -2539,15 +2847,18 @@ export class GameScene extends Phaser.Scene {
     this.drawTowerStatus();
     this.updateHud();
 
-    if (waveIsFinished({
-      mode: this.mode,
-      elapsed: this.elapsed,
-      spawned: this.eventsSpawned,
-      scheduled: this.waveEvents.length,
-      enemies: this.enemies.length,
-      hostileShots: this.enemyBullets.length,
-    })) {
-      this.showWaveComplete();
+    // A Arena Livre deve continuar indefinidamente, inclusive quando o
+    // jogador eliminar todas as naves de treino.
+    if (!(this.unifiedLab && this.mode === 'lab')) {
+      const outcome = waveOutcome({
+        mode: this.mode,
+        elapsed: this.elapsed,
+        spawned: this.eventsSpawned,
+        scheduled: this.waveEvents.length,
+        enemies: this.enemies.length,
+        hostileShots: this.enemyBullets.length,
+      });
+      if (outcome) this.showWaveComplete(outcome);
     }
   }
 }

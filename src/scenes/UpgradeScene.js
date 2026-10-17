@@ -9,6 +9,7 @@ import {
   chooseCampaignUpgrade, nextWaveAfterChoice,
 } from '../gameplay/progression.js';
 import { REPRESENTATIVES, representativeLine } from '../gameplay/representatives.js';
+import { upgradeRepresentativeLine } from '../gameplay/upgradeDialogue.js';
 
 const FONT = 'monospace';
 const SLOTS = [130, 305, 480, 655, 830];
@@ -133,7 +134,7 @@ export class UpgradeScene extends Phaser.Scene {
     }
     const option = selected.option;
     this.dialogueTitle.setText(REPRESENTATIVES[id].label + ' — REPRESENTANTE');
-    this.dialogueBody.setText('“' + representativeLine(id) + '”');
+    this.dialogueBody.setText('“' + (upgradeRepresentativeLine(id, option.level) || representativeLine(id)) + '”');
     this.dialogueUpgrade.setText(
       option.title.toUpperCase() + ' — ' + option.description,
     );

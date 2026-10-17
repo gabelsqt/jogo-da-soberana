@@ -12,7 +12,7 @@ test('Coreia do Sul usa identidade oficial nos três níveis e na torre', () => 
   assert.equal(korea.flag, 'KR');
   assert.equal(korea.title, 'Lightstick Tático');
   assert.equal(SECOND_UPGRADES.jp.title, 'Encore!');
-  assert.equal(THIRD_UPGRADES.jp.title, 'Projeto Kkachi I');
+  assert.equal(THIRD_UPGRADES.jp.title, 'Palco de Luz I');
   assert.equal(TOWER_DEFINITIONS.jp.label, 'KKACHI');
   assert.equal(TOWER_DEFINITIONS.jp.glyph, 'K');
 
@@ -26,8 +26,8 @@ test('identificador legado jp preserva builds, progressão e combate', () => {
   const second = nextUpgradeOptions({ choices: ['jp'] }).find(({ id }) => id === 'jp');
   assert.equal(second.title, 'Encore!');
   const third = nextUpgradeOptions({ choices: ['jp', 'jp'] }).find(({ id }) => id === 'jp');
-  assert.equal(third.title, 'Projeto Kkachi I');
-  assert.equal(third.tower, true);
+  assert.equal(third.title, 'Palco de Luz I');
+  assert.equal(third.tower, false);
   assert.deepEqual(normalizeCampaignState({ choices: ['jp', 'jp', 'jp'] }), {
     choices: ['jp', 'jp', 'jp'],
   });

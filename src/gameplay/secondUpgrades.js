@@ -2,8 +2,8 @@
 // Regras puras, para testes sem Phaser. Números ainda sujeitos a playtest.
 export const SECOND_UPGRADES = {
   br: {
-    title: 'Minha Casa, Meu Escudo',
-    description: 'Cúpulas com cacos brilhantes, cerca elétrica pulsante e choques de 1 de dano.' ,
+    title: 'Gambiarra Balística II',
+    description: 'A cadência do tiro principal aumenta mais 25%. Gambiarra reforçada!' ,
     tower: false,
   },
   us: {
@@ -59,7 +59,8 @@ export function applySecondUpgradeStats(base, ids = []) {
   const selected = new Set(normalizeSecondUpgradeIds(ids));
   return {
     ...base,
-    electricFence: selected.has('br'),
+    electricFence: false,
+    basicInterval: selected.has('br') ? Math.round(base.basicInterval / 1.25) : base.basicInterval,
     collateral: selected.has('us'),
     residualSlash: selected.has('jp'),
     strategicRecoil: selected.has('ru'),

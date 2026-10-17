@@ -13,6 +13,23 @@ const wave0Packs = [
 ];
 
 export const WAVE_COUNTDOWN_SECONDS = 3;
+export const WAVE_DURATION_MS = 30000;
+export const WAVE_FIRST_SPAWN_WINDOW_MS = 20000;
+// Resguardo de meio segundo para o último lote entrar antes dos 20s.
+export const WAVE_LAST_SPAWN_MS = WAVE_FIRST_SPAWN_WINDOW_MS - 500;
+
+// Temporário: preserva os encontros e padrões existentes, distribuindo seus
+// horários proporcionalmente no novo período. O balanceamento da densidade
+// e os retornos de Tipos 3/4 serão tratados separadamente.
+export function fitWaveEventsToWindow(events, lastAt = WAVE_LAST_SPAWN_MS) {
+  if (!events.length) return [];
+  const end = Math.max(...events.map(event => event.at));
+  if (end <= 0) return events.map(event => ({ ...event, at: 0 }));
+  return events.map(event => ({
+    ...event,
+    at: Math.min(lastAt, Math.round(event.at / end * lastAt)),
+  })).sort((a, b) => a.at - b.at);
+}
 
 // Antes da onda há 3, 2, 1. O relógio de inimigos só começa no fim.
 export function countdownNumberAt(elapsedMs) {
@@ -22,17 +39,17 @@ export function countdownNumberAt(elapsedMs) {
 
 
 export const MODES = {
-  wave0: { title: 'ONDA 0', minDuration: 30000 },
-  wave1: { title: 'ONDA 1', minDuration: 41000 },
-  wave2: { title: 'ONDA 2', minDuration: 46000 },
-  wave3: { title: 'ONDA 3 — CÉU FECHADO', minDuration: 54000 },
-  wave4: { title: 'ONDA 4 — ATAQUE EM PINÇA', minDuration: 70000 },
+  wave0: { title: 'ONDA 0', minDuration: WAVE_DURATION_MS },
+  wave1: { title: 'ONDA 1', minDuration: WAVE_DURATION_MS },
+  wave2: { title: 'ONDA 2', minDuration: WAVE_DURATION_MS },
+  wave3: { title: 'ONDA 3 — CÉU FECHADO', minDuration: WAVE_DURATION_MS },
+  wave4: { title: 'ONDA 4 — ATAQUE EM PINÇA', minDuration: WAVE_DURATION_MS },
   ...ADVANCED_WAVE_METADATA,
   lab: { title: 'TESTE DE INIMIGOS', minDuration: 36000 },
   upgradeLab: { title: 'LAB DE UPGRADES', minDuration: Infinity },
 };
 
-export function getWaveEvents(mode) {
+function getOriginalWaveEvents(mode) {
   // Laboratório livre: inimigos aparecem por timer próprio e nunca acaba a onda.
   if (mode === 'upgradeLab') return [];
   if (mode === 'wave0') {
@@ -188,6 +205,11 @@ export function getWaveEvents(mode) {
 }
 
 
+export function getWaveEvents(mode) {
+  const events = getOriginalWaveEvents(mode);
+  return /^wave[0-9]$/.test(mode) ? fitWaveEventsToWindow(events) : events;
+}
+
 export function scheduledEnemyCount(events) {
   // Uma entrada da agenda pode representar vários OVNIs simultâneos.
   return events.reduce((total, event) => {
@@ -201,10 +223,22 @@ export function scheduledEnemyCount(events) {
   }, 0);
 }
 
-export function waveIsFinished({ mode, elapsed, spawned, scheduled, enemies, hostileShots }) {
-  if (mode === 'upgradeLab') return false;
-  return elapsed >= MODES[mode].minDuration
-    && spawned === scheduled
-    && enemies === 0
-    && hostileShots === 0;
+// Resultado de noite: vitória por céu limpo ou por resistir até o amanhecer.
+// O relógio de campanha nunca aguarda a limpeza de inimigos restantes em 00:00.
+// Os laboratórios mantêm o encerramento antigo e independente.
+export function waveOutcome({ mode, elapsed, spawned, scheduled, enemies, hostileShots }) {
+  if (mode === 'upgradeLab') return null;
+  if (/^wave[0-9]$/.test(mode)) {
+    if (elapsed >= WAVE_DURATION_MS) return 'survived';
+    if (spawned === scheduled && scheduled > 0 && enemies === 0 && hostileShots === 0) {
+      return 'cleared';
+    }
+    return null;
+  }
+  return elapsed >= MODES[mode].minDuration &&
+    spawned === scheduled && enemies === 0 && hostileShots === 0 ? 'cleared' : null;
+}
+
+export function waveIsFinished(state) {
+  return waveOutcome(state) !== null;
 }
