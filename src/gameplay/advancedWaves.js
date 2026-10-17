@@ -2,11 +2,11 @@
 // A cor e o HP são determinados pelo nível (Onda 5 = nível IV, etc).
 // Nenhuma destas ondas adiciona upgrades: o jogador mantém as 3 escolhas.
 export const ADVANCED_WAVE_METADATA = {
-  wave5: { title: 'ONDA 5 — CERCO AÉREO', minDuration: 48000 },
-  wave6: { title: 'ONDA 6 — CHUVA DE FERRO', minDuration: 82000 },
-  wave7: { title: 'ONDA 7 — ENXAME ORGANIZADO', minDuration: 90000 },
-  wave8: { title: 'ONDA 8 — SUPERUNIDADES', minDuration: 94000 },
-  wave9: { title: 'ONDA 9 — ÚLTIMO CERCO', minDuration: 105000 },
+  wave5: { title: 'ONDA 5 — CERCO AÉREO', minDuration: 30000 },
+  wave6: { title: 'ONDA 6 — CHUVA DE FERRO', minDuration: 30000 },
+  wave7: { title: 'ONDA 7 — ENXAME ORGANIZADO', minDuration: 30000 },
+  wave8: { title: 'ONDA 8 — SUPERUNIDADES', minDuration: 30000 },
+  wave9: { title: 'ONDA 9 — ÚLTIMO CERCO', minDuration: 30000 },
 };
 
 function basicStream(level, count, firstAt, spacing) {
