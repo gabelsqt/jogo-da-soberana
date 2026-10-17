@@ -50,3 +50,7 @@ As propostas E–H para Brasil 2 não foram escolhidas. Continuar exploração d
 ## Decisão 75 — P: reconsiderar a abordagem de Brasil 2
 
 Não selecionar as alternativas K–N. Voltar à definição da experiência de jogo antes de especificar mecânicas. Três direções para discussão: controle direto do tiro especial; risco e recompensa com recursos do escudo/canhão; transformação perceptível do especial com benefício defensivo complementar. Brasil 2 permanece **em aberto**, preservando por ora a posição de upgrade especial/escudo nos níveis pares e reservando eletricidade para Brasil 4/6/8. Nenhuma implementação autorizada.
+
+## Decisão 76 — C (opção 3): transformação marcante do arsenal para Brasil 2
+
+**Direção selecionada:** Brasil 2 deve transformar substancialmente o **tiro especial**, com mecânica e identidade visual próprias, enquanto o **escudo** recebe um benefício complementar e facilmente perceptível, não necessariamente acoplado ao especial. Evitar meros bônus numéricos, escudos automáticos genéricos e antecipação da eletricidade reservada a Brasil 4/6/8. Esta é uma direção criativa, **não** uma escolha definitiva da mecânica. Próxima etapa: comparar conceitos concretos de transformação do especial antes de fixar parâmetros. Não implementar código.
