@@ -22,7 +22,7 @@ export const TOWER_DEFINITIONS = {
     blastRadius: 85,
   },
   cn: {
-    id: 'cn', label: 'PANDAPRIME', glyph: 'P', color: 0xf4d46e,
+    id: 'cn', label: 'PANDA', glyph: 'P', color: 0xf4d46e,
     healthMax: 100, shieldMax: 70, range: 640, interval: 1850,
     damage: 1.1, speed: 320, count: 2, type: 'drone',
   },

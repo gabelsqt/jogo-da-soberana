@@ -87,13 +87,13 @@ test('as cinco ondas têm identidades próprias e usam só inimigos conhecidos',
     'Tipo 6 permanece reservado ao chefe da Onda 10');
 });
 
-test('HP cresce em todas as ondas e o filtro de cor não altera o tamanho', () => {
+test('HP Tipo 1 progride suavemente; blindagem dos demais e cores são preservadas', () => {
   const hp = {
     wave5: [3, 5, 12, 7],
-    wave6: [4, 6, 14, 8],
-    wave7: [5, 7, 16, 9],
-    wave8: [6, 8, 18, 10],
-    wave9: [7, 9, 20, 11],
+    wave6: [3, 6, 14, 8],
+    wave7: [3, 7, 16, 9],
+    wave8: [4, 8, 18, 10],
+    wave9: [4, 9, 20, 11],
   };
   for (const [mode, values] of Object.entries(hp)) {
     const level = expected[mode].level;
@@ -103,7 +103,9 @@ test('HP cresce em todas as ondas e o filtro de cor não altera o tamanho', () =
       assert.equal(enemy.width, ENEMY_TYPES[type].width);
       assert.equal(enemy.height, ENEMY_TYPES[type].height);
       assert.equal(enemy.speed, enemyStats(type, 3).speed);
-      assert.ok(enemy.hp > enemyStats(type, level - 1).hp);
+      assert.ok(type === 1
+        ? enemy.hp >= enemyStats(type, level - 1).hp
+        : enemy.hp > enemyStats(type, level - 1).hp);
       assert.equal(enemy.color, ENEMY_TIER_COLORS[level]);
       assert.equal(enemy.tintColor, ENEMY_TIER_COLORS[level]);
     }

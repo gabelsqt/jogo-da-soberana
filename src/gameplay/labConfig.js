@@ -12,9 +12,10 @@ export function labEnemyEvent(type, level = 1) {
   ));
   return {
     type, level: tier,
-    ...(type === 2 && tier === 1 ? { group: true, count: 3 } : {}),
-    ...(type === 1 && tier >= 2 ? { pattern: 'line', count: 10 } : {}),
-    ...(type === 2 && tier >= 2 ? { pattern: 'orbit', count: 10 } : {}),
+    ...(type === 1 ? { pattern: 'swarm',
+      count: Math.min(18, 3 + Math.round((tier - 1) * 15 / 9)) } : {}),
+    ...(type === 2 ? { pattern: 'tactical', group: true,
+      count: Math.min(8, 3 + Math.round((tier - 1) * 5 / 9)) } : {}),
   };
 }
 

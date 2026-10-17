@@ -7,6 +7,12 @@ import { preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import { assetUrl } from '../config/assetUrl.js';
 import { preloadMechSprites, createMechSprites } from '../gameplay/mechSpriteMounts.js';
 import {
+  SWARM_DANCES, SWARM_ENTRIES,
+  getV035WaveEvents, swarmDanceCenter, swarmDancePosition,
+  tacticalFormationOffset, tacticalManeuverPosition, tacticalAttackPosition,
+  chooseGroupDefenseTarget,
+} from '../gameplay/formation035.js';
+import {
   restrictedAimAngle,
   availableDefenseTargets,
   positionOnRoute,
@@ -39,6 +45,7 @@ import {
 } from '../gameplay/waves.js';
 import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
@@ -253,7 +260,9 @@ export class GameScene extends Phaser.Scene {
     this.countdownActive = false;
     this.labEnemyLevel = 1;
     this.eventsSpawned = 0;
-    this.waveEvents = getWaveEvents(this.mode);
+    // v0.35: a campanha usa grupos reais, com progressão dentro de cada noite.
+    // Laboratórios e a agenda legada continuam acessíveis independentemente.
+    this.waveEvents = getV035WaveEvents(this.mode, getWaveEvents(this.mode));
     this.lastBasicFire = -this.combat.basicInterval;
     this.basicShotCount = 0;
     this.cannonRecoil = 0;
@@ -274,6 +283,9 @@ export class GameScene extends Phaser.Scene {
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
+    // A batalha é vista como transmissão de TV. O filtro é somente visual:
+    // fica acima das naves, mas abaixo dos textos e controles do HUD.
+    this.crtOverlay = createCombatCrtOverlay(this, W, H);
     if (this.unifiedLab) this.createEnemyLabPanel();
     this.drawShield();
 
@@ -1082,9 +1094,54 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  spawnV035Group(type, level, count, centerX = null) {
+    const kind = type === 1 ? 'swarm' : 'tactical';
+    const center = centerX ?? Phaser.Math.Between(350, 610);
+    const group = {
+      kind, count, centerX: center, target: null,
+      duration: kind === 'swarm'
+        ? Phaser.Math.FloatBetween(3, 5)
+        : Phaser.Math.FloatBetween(2, 4),
+      pattern: kind === 'swarm'
+        ? SWARM_DANCES[Phaser.Math.Between(0, SWARM_DANCES.length - 1)] : 'tactical',
+      entry: kind === 'swarm'
+        ? SWARM_ENTRIES[Phaser.Math.Between(0, SWARM_ENTRIES.length - 1)] : 'together',
+      direction: Phaser.Math.Between(0, 1) ? 1 : -1,
+      attackStartAge: null,
+      attackOrigin: null,
+      attackDuration: null,
+    };
+    for (let i = 0; i < count; i += 1) {
+      const initial = kind === 'swarm'
+        ? swarmDancePosition(group, i, 0)
+        : tacticalManeuverPosition(group, i, 0);
+      this.spawnEnemy(type, {
+        level, x: initial.x, y: initial.y,
+        center, formationIndex: i, formationCount: count,
+        formationGroup: group,
+      });
+    }
+  }
+
+  chooseV035GroupTarget(group, center) {
+    return chooseGroupDefenseTarget(
+      availableDefenseTargets(CANNON, this.supportTowers),
+      center.x, center.y, group.kind,
+      this.cannonHealth, this.shield, this.shieldMax,
+    );
+  }
+
   spawnWaveEvent(event) {
     if (event.warning) this.showAttackWarning(event.warning);
     const level = event.level ?? 1;
+    if (event.pattern === 'swarm' && event.type === 1) {
+      this.spawnV035Group(1, level, event.count ?? 3);
+      return;
+    }
+    if (event.pattern === 'tactical' && event.type === 2) {
+      this.spawnV035Group(2, level, event.count ?? 3);
+      return;
+    }
     if (event.pattern === 'spread' && event.type === 1) {
       // Rajada simultânea, distribuída pelo céu para forçar múltiplas decisões.
       const count = event.count ?? 3;
@@ -1119,9 +1176,7 @@ export class GameScene extends Phaser.Scene {
       const center = event.center ?? W / 2;
       const count = event.count ?? 4;
       this.spawnEnemy(3, { level, x: center, center, pattern: 'escort' });
-      for (let i = 0; i < count; i += 1) {
-        this.spawnEnemy(2, { level, center, formationIndex: i, formationCount: count });
-      }
+      this.spawnV035Group(2, level, count, center);
       return;
     }
     if (event.type === 3 && event.pattern === 'bomberFan') {
@@ -1155,6 +1210,7 @@ export class GameScene extends Phaser.Scene {
     const definition = enemyStats(type, level);
     const index = options.formationIndex ?? 1;
     const orbiting = type === 2 && options.pattern === 'orbit';
+    const formationGroup = options.formationGroup ?? null;
     const groupCount = options.formationCount ?? 3;
     const center = options.center ?? W / 2;
     const formationOffset = index - (groupCount - 1) / 2;
@@ -1162,10 +1218,10 @@ export class GameScene extends Phaser.Scene {
       type === 4 ? (options.side === 'left' ? -64
         : options.side === 'right' ? W + 64
           : Phaser.Math.Between(0, 1) ? -64 : W + 64) :
-      type === 2 ? center + formationOffset * (orbiting ? 60 : 83) :
+      type === 2 ? (options.x ?? center + formationOffset * (orbiting ? 60 : 83)) :
       options.x ?? Phaser.Math.Between(120, W - 120);
     const startY = type === 4 ? Phaser.Math.Between(120, 180) :
-      type === 2 ? -45 - Math.abs(formationOffset) * 7 :
+      type === 2 ? (options.y ?? -45 - Math.abs(formationOffset) * 7) :
       type === 1 ? (options.y ?? -28) : -65;
     const visual = this.makeEnemyVisual(type, startX, startY, level);
     const enemy = {
@@ -1194,10 +1250,19 @@ export class GameScene extends Phaser.Scene {
       spawnedMinions: 0,
       sourceBossId: options.sourceBossId ?? null,
       laserGraphics: null,
-      target: this.chooseDefenseTarget(),
+      formationGroup,
+      formationIndex: index,
+      entryDelay: formationGroup?.kind === 'swarm' &&
+        formationGroup.entry === 'staggered' ? index * 0.052 : 0,
+      target: formationGroup ? null : this.chooseDefenseTarget(),
     };
 
-    if (type === 1) {
+    if (type === 1 && formationGroup?.kind === 'swarm') {
+      enemy.phase = 'swarmDance';
+      enemy.sprite.setVisible(false);
+    } else if (type === 2 && formationGroup?.kind === 'tactical') {
+      enemy.phase = 'tacticalManeuver';
+    } else if (type === 1) {
       this.assignInvaderTarget(enemy, enemy.target);
     } else if (type === 2 && orbiting) {
       enemy.phase = 'orbit';
@@ -1257,12 +1322,90 @@ export class GameScene extends Phaser.Scene {
       enemy.age += dt;
       enemy.phaseAge += dt;
 
-      if (enemy.target.kind === 'tower' && enemy.target.tower?.health <= 0) {
+      // O grupo conserva um alvo coletivo: se uma torre cai, TODO o
+      // enxame/esquadrilha escolhe outra defesa ativa e recalcula sua rota.
+      const group = enemy.formationGroup;
+      if (group?.target?.kind === 'tower' && group.target.tower?.health <= 0) {
+        const survivors = this.enemies.filter(unit => unit.formationGroup === group);
+        const center = {
+          x: survivors.reduce((sum, unit) => sum + unit.sprite.x, 0) / survivors.length,
+          y: survivors.reduce((sum, unit) => sum + unit.sprite.y, 0) / survivors.length,
+        };
+        // Para o Tipo 2, mantém a continuidade do centro da formação
+        // ao mudar a defesa, sem teletransportar a esquadrilha.
+        if (group.kind === 'tactical' && group.attackStartAge !== null) {
+          const first = survivors[0];
+          const offset = tacticalFormationOffset('column', first.formationIndex, group.count);
+          const current = tacticalAttackPosition(group, first.formationIndex,
+            first.age - group.attackStartAge);
+          group.attackOrigin = { x: current.x - offset.x, y: current.y - offset.y };
+          group.attackStartAge = enemy.age;
+        }
+        group.target = this.chooseV035GroupTarget(group, center);
+        if (group.kind === 'tactical' && group.attackOrigin && group.target) {
+          group.attackDuration = Math.max(1.4, Math.hypot(
+            group.target.x - group.attackOrigin.x,
+            group.target.y - group.attackOrigin.y,
+          ) / Math.max(90, enemy.speed));
+        }
+        for (const member of survivors) {
+          member.target = group.target;
+          if (member.phase === 'dive' && group.target)
+            this.assignInvaderTarget(member, group.target);
+        }
+      } else if (enemy.target?.kind === 'tower' &&
+                 enemy.target.tower?.health <= 0) {
         enemy.target = availableDefenseTargets(CANNON, this.supportTowers)[0];
         if (enemy.phase === 'dive') this.assignInvaderTarget(enemy, enemy.target);
       }
 
-      if (enemy.phase === 'orbit') {
+      if (enemy.phase === 'swarmDance') {
+        if (enemy.age >= enemy.entryDelay) {
+          enemy.sprite.setVisible(true);
+          const danceAge = enemy.age - enemy.entryDelay;
+          const pos = swarmDancePosition(group, enemy.formationIndex, danceAge);
+          enemy.sprite.setPosition(pos.x, pos.y);
+          if (danceAge >= group.duration) {
+            if (!group.target) {
+              group.target = this.chooseV035GroupTarget(group,
+                swarmDanceCenter(group, group.duration));
+            }
+            enemy.phase = 'dive';
+            enemy.phaseAge = 0;
+            this.assignInvaderTarget(enemy, group.target);
+          }
+        }
+      } else if (enemy.phase === 'tacticalManeuver') {
+        const position = tacticalManeuverPosition(group, enemy.formationIndex, enemy.age);
+        enemy.sprite.setPosition(position.x, position.y);
+        if (enemy.age >= group.duration) {
+          if (!group.target) {
+            // Separação entre a manobra e a investida: todos atacam
+            // a defesa com menor porcentagem de vida e escudo.
+            const slot = tacticalFormationOffset('column', enemy.formationIndex, group.count);
+            group.attackOrigin = { x: position.x - slot.x, y: position.y - slot.y };
+            group.target = this.chooseV035GroupTarget(group, group.attackOrigin);
+            group.attackStartAge = enemy.age;
+            group.attackDuration = Math.max(1.4, Math.hypot(
+              group.target.x - group.attackOrigin.x,
+              group.target.y - group.attackOrigin.y,
+            ) / Math.max(90, enemy.speed));
+          }
+          enemy.target = group.target;
+          enemy.phase = 'tacticalAttack';
+          enemy.phaseAge = 0;
+        }
+      } else if (enemy.phase === 'tacticalAttack') {
+        const attackAge = Math.max(0, enemy.age - group.attackStartAge);
+        const position = tacticalAttackPosition(group, enemy.formationIndex, attackAge);
+        enemy.sprite.setPosition(position.x, position.y);
+        if (attackAge >= group.attackDuration) {
+          this.removeEnemy(i);
+          this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE * (enemy.level > 1 ? 1.12 : 1));
+          if (this.gameOver) return;
+          continue;
+        }
+      } else if (enemy.phase === 'orbit') {
         // Nível 2: dez naves se organizam num círculo, giram juntas e depois
         // param em uma linha para avisar o jogador antes do mergulho.
         const orbitAge = Math.max(0, enemy.phaseAge - 1.35);
@@ -2790,6 +2933,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time, delta) {
+    // Também anima durante a contagem 3–2–1 e as telas de resultado,
+    // sem consumir eventos de mouse e sem alterar o ritmo do combate.
+    this.crtOverlay?.update(this.time.now);
     const pointer = this.input.activePointer;
     this.drawSpecialAim(pointer);
     if (this.tutorialComplete) {

@@ -65,7 +65,7 @@ test('novos inimigos têm HP aumentado, mesmo tamanho e velocidade estabilizada'
     const future = enemyStats(type, 4);
     assert.equal(reinforced.hp, expected[type], `HP do tipo ${type} na Onda 4`);
     assert.equal(future.hp, next[type], `HP futuro do tipo ${type}`);
-    assert.ok(reinforced.hp > prior.hp);
+    assert.ok(type === 1 ? reinforced.hp >= prior.hp : reinforced.hp > prior.hp);
     assert.equal(reinforced.width, base.width);
     assert.equal(reinforced.height, base.height);
     assert.equal(future.width, base.width);
