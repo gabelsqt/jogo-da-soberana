@@ -135,7 +135,7 @@ test('conclusão avança automaticamente até a Onda 9, mantendo os aliados', ()
     assert.equal(automaticWaveAfterVictory(mode), null);
   }
   const state = { choices: ['br', 'br', 'br'] };
-  assert.deepEqual(activeTowerCountries(state), ['br']);
+  assert.deepEqual(activeTowerCountries(state), []);
   assert.deepEqual(unlockedFirstUpgrades(state), ['br']);
 });
 
