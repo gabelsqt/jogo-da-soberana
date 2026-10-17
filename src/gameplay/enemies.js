@@ -30,9 +30,9 @@ export const ENEMY_TYPES = {
   },
 };
 
-// Ciclo do Bombardeiro Tipo 3: sobrevoa uma defesa por seis segundos,
-// solta uma bomba a cada três segundos e então se afasta para retornar.
-export const BOMBER_HOVER_SECONDS = 6;
+// Ciclo do Bombardeiro Tipo 3: sobrevoa uma defesa por doze segundos,
+// solta quatro salvas com intervalo de três segundos e só então recua.
+export const BOMBER_HOVER_SECONDS = 12;
 export const BOMBER_SHOT_INTERVAL_SECONDS = 3;
 
 export function advanceBomberHover(shotTimer, phaseAge, dt,
