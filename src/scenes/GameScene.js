@@ -32,6 +32,7 @@ import {
 import {
   MODES, getWaveEvents, waveIsFinished, WAVE_COUNTDOWN_SECONDS,
 } from '../gameplay/waves.js';
+import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
@@ -91,6 +92,7 @@ export class GameScene extends Phaser.Scene {
       ? { choices: [data.upgradeId] } : {};
     this.campaign = normalizeCampaignState(data.campaign ?? legacy);
     this.upgradeId = this.campaign.choices.at(-1) ?? null;
+    this.fourthIds = this.mode === 'upgradeLab' ? [] : unlockedFourthUpgradeCountries(this.campaign);
     this.upgradeIds = this.mode === 'upgradeLab'
       ? normalizeLabUpgrades(data.upgradeIds) : [];
     this.labSecondIds = this.mode === 'upgradeLab'
@@ -2288,7 +2290,7 @@ export class GameScene extends Phaser.Scene {
     if (this.tutorialComplete) return;
     this.tutorialComplete = true;
 
-    if (this.mode === 'wave0' || this.mode === 'wave1' || this.mode === 'wave2') {
+    if (/^wave[0-8]$/.test(this.mode)) {
       this.scene.start('UpgradeScene', {
         campaign: this.campaign,
         completedWave: Number(this.mode.at(-1)),
@@ -2297,7 +2299,7 @@ export class GameScene extends Phaser.Scene {
     }
     const automaticNext = automaticWaveAfterVictory(this.mode);
     if (automaticNext) {
-      // Ondas 4–9 mantêm o conjunto de três aliados, sem upgrades fictícios.
+      // Avanço automático de compatibilidade; ondas 0–8 agora usam mesa.
       this.scene.start('GameScene', { mode: automaticNext, campaign: this.campaign });
       return;
     }
