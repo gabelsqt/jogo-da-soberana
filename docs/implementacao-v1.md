@@ -54,3 +54,9 @@ Não selecionar as alternativas K–N. Voltar à definição da experiência de 
 ## Decisão 76 — C (opção 3): transformação marcante do arsenal para Brasil 2
 
 **Direção selecionada:** Brasil 2 deve transformar substancialmente o **tiro especial**, com mecânica e identidade visual próprias, enquanto o **escudo** recebe um benefício complementar e facilmente perceptível, não necessariamente acoplado ao especial. Evitar meros bônus numéricos, escudos automáticos genéricos e antecipação da eletricidade reservada a Brasil 4/6/8. Esta é uma direção criativa, **não** uma escolha definitiva da mecânica. Próxima etapa: comparar conceitos concretos de transformação do especial antes de fixar parâmetros. Não implementar código.
+
+## Decisões 77–78 — Brasil 2 Arraial Balístico (direção)
+
+- **Decisão 77 C:** o especial cria um núcleo suspenso na posição-alvo; fogos de artifício detonam ao redor dele enquanto permanece ativo. Conceito de Brasil 2: Arraial Balístico/Festa Junina. Escudo recebe melhoria complementar ainda a especificar.
+- **Decisão 78 C:** ritmo dos fogos em **crescendo junino**: explosões inicialmente espaçadas, acelerando ao longo da duração do núcleo, culminando em uma explosão final maior. Valores de duração, dano, raio e balanceamento não foram definidos. Futuras evoluções Brasil 4/6/8 ficam reservadas para eletricidade, cadeias e defesa avançada.
+- **Status:** direção de design aprovada; detalhamento ainda pendente. Não implementar código.
