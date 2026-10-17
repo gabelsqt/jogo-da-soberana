@@ -1950,7 +1950,8 @@ export class GameScene extends Phaser.Scene {
       );
       const offset = this.isV1Campaign && this.combat.horizontalSpread
         ? (nextShot % 2 ? -1 : 1) * this.combat.horizontalSpread : 0;
-      this.createProjectile(firingAngle, false, 0, effects, centerGlow, offset);
+      if (this.isV1Campaign) this.createProjectile(firingAngle, false, 0, effects, centerGlow, offset);
+      else this.createProjectile(firingAngle, false, 0, effects, centerGlow);
       if (this.isV1Campaign && this.combat.extraBurstEvery && nextShot % this.combat.extraBurstEvery === 0) {
         this.createProjectile(firingAngle, false, 0, effects, false, offset + 7);
       }
@@ -2351,14 +2352,14 @@ export class GameScene extends Phaser.Scene {
     const x = (origin?.x ?? CANNON.x + vx * 29) + offsetX;
     const y = origin?.y ?? CANNON.y + vy * 29;
     const style = shotVisualFor(this.activeUpgradeIds());
+    if (this.isV1Campaign && this.combat.transformed === 'br') style.color = 0x55e99e;
     const vfx = special ? null : (effects ?? shotVfxFor(this.activeUpgradeIds()));
     // Somente a representação gráfica é limitada. Balas invisíveis continuam com física e dano.
     const visible = special || this.visibleProjectileCount < MAX_VISUAL_PROJECTILES;
     if (visible) this.visibleProjectileCount += 1;
     const dot = !visible ? {x, y, destroy(){}} : special
       ? this.add.circle(x, y, 8, 0x72eaf8).setDepth(35)
-      : this.add.rectangle(x, y, style.width, style.length,
-          this.combat.transformed === 'br' ? 0x55e99e : style.color)
+      : this.add.rectangle(x, y, style.width, style.length, style.color)
         .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff, centerGlow ? 0.95 : 0.65)
         .setRotation(angle + Math.PI / 2)
         .setDepth(35);
