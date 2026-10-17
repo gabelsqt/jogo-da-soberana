@@ -3,6 +3,7 @@ import { MenuScene } from './scenes/MenuScene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { PauseScene } from './scenes/PauseScene.js';
 import { UpgradeScene } from './scenes/UpgradeScene.js';
+import { LabSetupScene } from './scenes/LabSetupScene.js';
 import { UpgradeLabScene } from './scenes/UpgradeLabScene.js';
 import { installResponsiveViewport } from './config/responsive.js';
 
@@ -20,7 +21,7 @@ const game = new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [MenuScene, GameScene, PauseScene, UpgradeScene, UpgradeLabScene],
+  scene: [MenuScene, GameScene, PauseScene, UpgradeScene, UpgradeLabScene, LabSetupScene],
 });
 
 // O #viewport é a moldura com safe areas; #game continua sem padding,
