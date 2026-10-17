@@ -72,3 +72,7 @@ Não selecionar as alternativas K–N. Voltar à definição da experiência de 
 ## Decisão 81 — Brasil 2: alcance dos fogos
 
 **Opção B aprovada:** alcance médio de **100 px de raio a partir do núcleo suspenso** (resolução interna 960 × 540). Explosões seguem o padrão circular coreografado da Decisão 80 durante quatro segundos e terminam com uma explosão maior. Este valor representa a extensão do padrão em torno do centro; o raio individual de dano de cada explosão, sua frequência e o dano seguem pendentes de especificação. **Apenas GDD; nenhuma implementação.**
+
+## Decisão 82 — Brasil 2: dano baixo por fogo
+
+**Opção A aprovada:** cada explosão periférica do Arraial Balístico causa **dano baixo**, favorecendo controle de enxames e eliminação de inimigos frágeis, com eficácia limitada contra naves resistentes. Mantêm-se núcleo suspenso, duração de 4 segundos, fogos em círculo de alcance 100 px com ritmo crescente e grande explosão final. Valores numéricos do dano e o dano da explosão final ainda não definidos. **Somente GDD, sem implementar código.**
