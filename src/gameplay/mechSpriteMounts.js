@@ -55,6 +55,13 @@ export function mechAimAngle(mountX, mountY, targetX, targetY) {
   return Math.atan2(Math.min(-0.01, targetY - mountY), targetX - mountX);
 }
 
+// Reflexão horizontal conserva a direção MUNDIAL da mira. A câmera
+// não deve fazer o canhão da direita acompanhar o alvo ao contrário.
+export function mechLocalAimAngle(mountX, mountY, targetX, targetY, mirrored = false) {
+  const worldAngle = mechAimAngle(mountX, mountY, targetX, targetY);
+  return mirrored ? Math.PI - worldAngle : worldAngle;
+}
+
 export function rotateMechWeapon(currentAngle, targetAngle, radiansPerFrame) {
   const delta = Math.atan2(
     Math.sin(targetAngle - currentAngle), Math.cos(targetAngle - currentAngle),
@@ -134,8 +141,9 @@ export function createMechSprites(scene, countryId, x, y, depth = 26,
     muzzlePosition: syncMuzzle,
     aimAt(targetX, targetY, dt = 1) {
       const mountWorldX = x + (mirrored ? -mount.x : mount.x);
-      const worldAngle = mechAimAngle(mountWorldX, y + mount.y, targetX, targetY);
-      const angle = mirrored ? Math.PI - worldAngle : worldAngle;
+      const angle = mechLocalAimAngle(
+        mountWorldX, y + mount.y, targetX, targetY, mirrored,
+      );
       weapon.rotation = rotateMechWeapon(weapon.rotation, angle, 6 * dt);
       syncMuzzle();
       // Só libera o disparo quando o canhão visual está alinhado;
