@@ -551,9 +551,9 @@ export class GameScene extends Phaser.Scene {
       const position = SUPPORT_TOWER_POSITIONS[index];
       const { x, y } = position;
 
-      // Corpo e canhão são imagens independentes. Somente a arma gira no pivô.
-      // Placeholder visual para os Destruidores até termos os sprites aprovados.
-      const visual = createMechSprites(this, role === 'destroyer' && id === 'ru' ? 'ru' : id, x, y, 26, position.side === 'right');
+      // Corpo correto para cada papel: lobo/antienxame e animais destruidoras,
+      // com arma modular giratória independente do sprite do corpo.
+      const visual = createMechSprites(this, id, x, y, 26, position.side === 'right', role);
       const sprite = visual.sprite;
 
       this.supportTowers.push({
