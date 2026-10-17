@@ -28,6 +28,32 @@ export const TOWER_DEFINITIONS = {
   },
 };
 
+// Arsenal da v0.32: o ataque antienxame e o destruidor possuem papéis fixos.
+export const SWARM_WEAPONS = {
+  br: { ...TOWER_DEFINITIONS.br, label: 'CARAMELO', type: 'bullet', count: 3, damage: 0.9, interval: 850, speed: 450 },
+  us: { ...TOWER_DEFINITIONS.us, type: 'missile', damage: 1.1, count: 2, interval: 1700, splashRadius: 70 },
+  jp: { ...TOWER_DEFINITIONS.jp, type: 'laser', damage: 1.1, interval: 1500, pierce: true },
+  ru: { ...TOWER_DEFINITIONS.ru, label: 'LOBO', type: 'bullet', damage: 1.05, count: 3, interval: 1150, speed: 490 },
+  cn: { ...TOWER_DEFINITIONS.cn, type: 'drone', count: 3, damage: 0.9 },
+};
+export const DESTROYER_WEAPONS = {
+  br: { ...TOWER_DEFINITIONS.br, label: 'CAPIVARA', type: 'missile', count: 1, damage: 9, interval: 2450, speed: 285 },
+  us: { ...TOWER_DEFINITIONS.us, label: 'BISÃO', type: 'missile', count: 1, damage: 10, interval: 2550, speed: 310 },
+  jp: { ...TOWER_DEFINITIONS.jp, label: 'HAECHI', type: 'laser', damage: 9, interval: 2700 },
+  ru: { ...TOWER_DEFINITIONS.ru, label: 'URSO', type: 'shell', damage: 12, interval: 2900, blastRadius: 45 },
+  cn: { ...TOWER_DEFINITIONS.cn, label: 'DRAGÃO', type: 'missile', count: 1, damage: 10, interval: 2750, speed: 250 },
+};
+export function upgradedTowerWeapon(country, role = 'swarm', level = 5) {
+  const base = (role === 'destroyer' ? DESTROYER_WEAPONS : SWARM_WEAPONS)[country];
+  if (!base) return null;
+  const evolved = role === 'destroyer' ? level >= 8 : level >= 6;
+  return evolved ? {
+    ...base, damage: +(base.damage * 1.45).toFixed(3),
+    interval: Math.round(base.interval * 0.87),
+    ...(role === 'swarm' && base.count ? { count: base.count + 1 } : {}),
+  } : { ...base };
+}
+
 export const SUPPORT_TOWER_POSITIONS = [
   { x: 280, y: 483, side: 'left' },
   { x: 680, y: 483, side: 'right' },
