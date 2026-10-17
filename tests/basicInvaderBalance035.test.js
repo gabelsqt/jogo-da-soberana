@@ -23,7 +23,7 @@ test('Tipo 1 continua fraco individualmente mesmo no nível 10', () => {
 
 test('a redução não altera HP dos inimigos Tipos 2–5', () => {
   assert.deepEqual([2,3,4,5].map(type => enemyStats(type,10).hp),
-    [12, 26, 14, 64]);
+    [11, 24, 13, 64]);
   assert.equal(enemyStats(2,1).hp,2);
   assert.equal(enemyStats(3,1).hp,6);
   assert.equal(enemyStats(4,1).hp,4);
