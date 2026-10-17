@@ -412,6 +412,8 @@ export class GameScene extends Phaser.Scene {
       event?.stopPropagation();
     });
     panel.add(background);
+    // Ao recolher o painel, nem o fundo invisível intercepta a mira.
+    this.enemyLabInputs.push(background);
     panel.add(this.add.text(825, 112, 'GERAR INIMIGOS • TIPO 1–5', {
       fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold', color: '#9ef0db',
     }).setOrigin(0.5));
