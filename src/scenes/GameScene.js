@@ -31,7 +31,7 @@ import {
   shotVfxFor, brazilAlternatingAngle, combatStatsForLoadout, normalizeLabUpgrades, toggleLabUpgrade,
 } from '../gameplay/upgrades.js';
 import {
-  MODES, getWaveEvents, waveIsFinished, WAVE_COUNTDOWN_SECONDS,
+  MODES, getWaveEvents, waveOutcome, WAVE_COUNTDOWN_SECONDS, WAVE_DURATION_MS,
 } from '../gameplay/waves.js';
 import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
@@ -218,6 +218,11 @@ export class GameScene extends Phaser.Scene {
     this.input.mouse?.disableContextMenu();
 
     drawRioBackdrop(this);
+    // Iluminação de amanhecer nos últimos 5 segundos das noites.
+    // Camada atrás dos alvos/defesas e acima do cenário.
+    this.sunriseOverlay = this.mode.startsWith('wave')
+      ? this.add.rectangle(W / 2, H / 2, W, H, 0xffc285, 0).setDepth(18)
+      : null;
 
     if (!this.anims.exists('tipo1_voo')) {
       this.anims.create({
@@ -2468,10 +2473,58 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  showWaveComplete() {
+  showWaveComplete(outcome = 'cleared') {
     if (this.tutorialComplete) return;
     this.tutorialComplete = true;
 
+    if (this.mode.startsWith('wave')) {
+      const survived = outcome === 'survived';
+      const message = survived
+        ? 'AMANHECEU! O RIO RESISTIU!'
+        : 'CÉU LIMPO! VITÓRIA ANTECIPADA!';
+      this.statusText.setText('NOITE CONCLUÍDA');
+      this.tutorialText.setText('');
+      this.sunriseOverlay?.setAlpha(survived ? 0.32 : 0);
+      const banner = this.add.rectangle(W / 2, H / 2, W, 110,
+        survived ? 0x39271f : 0x0a2731, 0.86).setDepth(110);
+      const title = this.add.text(W / 2, H / 2, message, {
+        fontFamily: 'monospace', fontSize: survived ? '34px' : '29px',
+        fontStyle: 'bold', color: survived ? '#ffddab' : '#bafff0',
+        stroke: '#071225', strokeThickness: 5,
+      }).setOrigin(0.5).setDepth(111);
+
+      if (survived && this.enemies.length) {
+        // As naves que sobreviveram fogem pelo portal vermelho.
+        const portal = this.add.circle(W / 2, 95, 35, 0x7c1632, 0.55)
+          .setStrokeStyle(6, 0xff425d, 0.92).setDepth(80);
+        const core = this.add.circle(W / 2, 95, 21, 0xff8093, 0.68).setDepth(81);
+        this.tweens.add({ targets: [portal, core], scale: 1.6, alpha: 0,
+          delay: 700, duration: 850 });
+        for (const enemy of this.enemies) {
+          this.tweens.add({ targets: enemy.sprite, x: W / 2, y: 95,
+            alpha: 0, scale: 0.05, duration: 1250, ease: 'Sine.easeIn' });
+        }
+      } else if (!survived) {
+        // Fogos para comunicar claramente a vitória antes dos 30 segundos.
+        for (const [x, y] of [[235, 130], [480, 110], [720, 145]]) {
+          const firework = this.add.circle(x, y, 7, 0xffd789, 0.95)
+            .setStrokeStyle(3, 0x9dffda, 0.85).setDepth(82);
+          this.tweens.add({ targets: firework, scale: 8, alpha: 0,
+            duration: 1100, onComplete: () => firework.destroy() });
+        }
+      }
+      // A mesa só aparece depois de o resultado da noite ser legível.
+      this.time.delayedCall(1700, () => {
+        title.destroy();
+        banner.destroy();
+        this.advanceAfterWave();
+      });
+      return;
+    }
+    this.advanceAfterWave();
+  }
+
+  advanceAfterWave() {
     if (!this.unifiedLab && /^wave[0-8]$/.test(this.mode)) {
       this.scene.start('UpgradeScene', {
         campaign: this.campaign,
@@ -2529,8 +2582,11 @@ export class GameScene extends Phaser.Scene {
     const remaining = Math.max(
       0, (this.lastSpecialFire + this.combat.specialCooldown - this.time.now) / 1000,
     );
-    this.statusText.setText(remaining
-      ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO');
+    const clock = this.mode.startsWith('wave')
+      ? 'NOITE ' + String(Math.ceil(Math.max(0, WAVE_DURATION_MS - this.elapsed) / 1000))
+        .padStart(2, '0') + 's | ' : '';
+    this.statusText.setText(clock + (remaining
+      ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO'));
     this.healthText.setText(
       'CANHÃO ' + Math.ceil(this.cannonHealth) +
       ' | ESCUDO ' + Math.ceil(this.shield) +
@@ -2590,6 +2646,16 @@ export class GameScene extends Phaser.Scene {
     if (this.countdownActive) return;
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += delta;
+    if (this.sunriseOverlay) {
+      const sunrise = Math.max(0, 1 - (WAVE_DURATION_MS - this.elapsed) / 5000);
+      this.sunriseOverlay.setAlpha(sunrise * 0.28);
+    }
+    // À meia-noite de 30 segundos, sobreviver basta — mesmo com inimigos vivos.
+    // A verificação vem ANTES das atualizações hostis do quadro final.
+    if (this.mode.startsWith('wave') && this.elapsed >= WAVE_DURATION_MS) {
+      this.showWaveComplete('survived');
+      return;
+    }
     this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     this.barrel.rotation = this.aimAngle + Math.PI / 2;
     if (pointer.leftButtonDown()) this.shootBasic(pointer);
@@ -2627,15 +2693,14 @@ export class GameScene extends Phaser.Scene {
     this.drawTowerStatus();
     this.updateHud();
 
-    if (waveIsFinished({
+    const outcome = waveOutcome({
       mode: this.mode,
       elapsed: this.elapsed,
       spawned: this.eventsSpawned,
       scheduled: this.waveEvents.length,
       enemies: this.enemies.length,
       hostileShots: this.enemyBullets.length,
-    })) {
-      this.showWaveComplete();
-    }
+    });
+    if (outcome) this.showWaveComplete(outcome);
   }
 }
