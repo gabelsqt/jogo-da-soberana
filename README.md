@@ -171,7 +171,7 @@ Durante uma partida aberta com `npm.cmd run dev`, use **Shift+5, Shift+6, Shift+
 4. **Onda 1:** nova contagem **3, 2, 1**; são **70 inimigos**: 32 invasores básicos em sequência (a cada 0,96 s), grupos simultâneos com 3, 4 e 5 básicos, dois trios Tipo 2, um ataque circular de dez Tipo 2 avançados e uma **fileira final de dez OVNIs Tipo 1**, ocupando a largura do céu. A onda só termina depois que todas as ameaças são neutralizadas.
 5. Ao vencer a Onda 1, surge a **segunda escolha de país**. Cada cartão oferece o próximo upgrade daquele país: se repetir um país, ganha sua **melhoria de nível 2**, SEM instalar torre; se mudar de país, recebe o primeiro upgrade do novo aliado. O escudo elétrico brasileiro, por exemplo, pode ser testado escolhendo Brasil duas vezes.
 6. **Onda 2:** contagem regressiva 3–2–1, 80 inimigos programados com bombardeiros (Tipo 3) e caças relâmpago (Tipo 4), além dos básicos e formações. Ao vencer, abre a **terceira escolha de país**.
-7. **Terceira escolha:** repetir o mesmo país três vezes desbloqueia sua **primeira torre mecanizada** (Caramelo/Águia/Kkachi/Urso/PandaPrime); escolher um país diferente concede o próximo upgrade daquela linha, sem pular níveis.
+7. **Terceira escolha:** repetir o mesmo país três vezes desbloqueia sua **primeira torre mecanizada** (Caramelo/Águia/Kkachi/Urso/Panda); escolher um país diferente concede o próximo upgrade daquela linha, sem pular níveis.
 8. **Onda 3 — Céu Fechado:** 88 inimigos programados em quatro momentos: bombardeio inicial, órbita de Tipo 2, caças Tipo 4 cruzando com bombardeiros Tipo 3 e ataque final de Tipo 1 nível 2 em linha. Duração mínima de 54 s; ao vencer, começa a Onda 4 diretamente, preservando o conjunto de três upgrades/torres.
 9. **Onda 4 — Ataque em Pinça:** 80 inimigos, TODOS nível 3 de resistência e coloração laranja: **47 Tipo 1 (2 HP), 20 Tipo 2 (4 HP), 5 Tipo 3 (10 HP) e 8 Tipo 4 (6 HP)**. Pinças simultâneas e retardadas. Mínimo 70 s; ao vencer começa a Onda 5 automaticamente.
 10. **Ondas 5–9:** cinco novas ondas com identidade própria, cores e HP maiores (tabela abaixo). A última termina numa tela provisória anunciando o boss da Onda 10.
@@ -238,7 +238,7 @@ Os valores são parâmetros provisórios para playtest, não balanceamento final
 | EUA | Águia da Liberdade I | **Águia**: mísseis que perseguem o alvo |
 | Coreia do Sul | Projeto Kkachi I | **Kkachi**: laser de precisão disparado automaticamente |
 | Rússia | Urso de Ferro | **Urso**: Artilharia de Choque com mira preditiva, explosão e empurrão em área |
-| China | PandaPrime I — Envio Econômico | **PandaPrime**: pares de minidrones perseguidores |
+| China | Panda I — Envio Econômico | **Panda**: pares de minidrones perseguidores |
 
 ### Urso de Ferro — Artilharia de Choque
 
