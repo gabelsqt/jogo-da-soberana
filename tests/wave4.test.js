@@ -24,31 +24,32 @@ function countByType(events) {
 test('Onda 4 tem 80 inimigos blindados com a composição aprovada', () => {
   const events = getWaveEvents('wave4');
   assert.equal(MODES.wave4.title, 'ONDA 4 — ATAQUE EM PINÇA');
-  assert.equal(MODES.wave4.minDuration, 70000);
+  assert.equal(MODES.wave4.minDuration, 30000);
   assert.equal(scheduledEnemyCount(events), 80);
   assert.deepEqual(countByType(events), { 1: 47, 2: 20, 3: 5, 4: 8 });
   assert.ok(events.every(({ level }) => level === 3),
     'todos os inimigos da Onda 4 recebem o nível 3');
-  assert.ok(events.every(({ at }) => at >= 0 && at < 70000));
+  assert.ok(events.every(({ at }) => at >= 0 && at < 20000));
   assert.ok(events.every((event, index) => index === 0 ||
     event.at >= events[index - 1].at));
-  assert.equal(events.at(-1).at, 63800);
+  assert.equal(events.at(-1).at, 19500);
 });
 
 test('pinças têm caças nos dois lados e atrasos exatos de 1,5 s', () => {
   const events = getWaveEvents('wave4');
   const paired = events.filter(({ pattern }) => pattern === 'pincer');
   assert.deepEqual(paired.map(({ at, type }) => [at, type]),
-    [[13800, 4], [57800, 4]]);
+    [[13800, 4], [57800, 4]].map(([at, type]) =>
+      [Math.round(at / 63800 * 19500), type]));
   assert.ok(paired.every(({ warning }) => Boolean(warning)));
 
   const singles = events.filter(({ type, side }) => type === 4 && side);
   assert.deepEqual(singles.map(({ at, side }) => [at, side]), [
     [38500, 'left'], [40000, 'right'],
     [46000, 'right'], [47500, 'left'],
-  ]);
-  assert.equal(singles[1].at - singles[0].at, 1500);
-  assert.equal(singles[3].at - singles[2].at, 1500);
+  ].map(([at, side]) => [Math.round(at / 63800 * 19500), side]));
+  assert.ok(Math.abs(singles[1].at - singles[0].at - 1500 * 19500 / 63800) <= 1);
+  assert.ok(Math.abs(singles[3].at - singles[2].at - 1500 * 19500 / 63800) <= 1);
   assert.ok(events.some(({ type, group, count }) => type === 2 && group && count === 4));
   assert.ok(events.some(({ type, pattern, count }) =>
     type === 2 && pattern === 'orbit' && count === 10));
@@ -106,13 +107,13 @@ test('ao vencer Onda 3 começa Onda 4 preservando escolhas e sem quarto upgrade'
   assert.deepEqual(state.choices, ['br', 'br', 'br']);
 });
 
-test('a Onda 4 só termina após 70 s e todas as ameaças eliminadas', () => {
+test('a Onda 4 termina por céu limpo ou ao resistir até 30 s', () => {
   const wave = getWaveEvents('wave4');
-  const ready = { mode: 'wave4', elapsed: 70000, spawned: wave.length,
+  const ready = { mode: 'wave4', elapsed: 22000, spawned: wave.length,
     scheduled: wave.length, enemies: 0, hostileShots: 0 };
   assert.equal(waveIsFinished(ready), true);
-  assert.equal(waveIsFinished({ ...ready, elapsed: 69999 }), false);
   assert.equal(waveIsFinished({ ...ready, enemies: 1 }), false);
   assert.equal(waveIsFinished({ ...ready, hostileShots: 1 }), false);
   assert.equal(waveIsFinished({ ...ready, spawned: wave.length - 1 }), false);
+  assert.equal(waveIsFinished({ ...ready, elapsed: 30000, enemies: 1 }), true);
 });
