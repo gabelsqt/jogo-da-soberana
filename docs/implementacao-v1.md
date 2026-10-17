@@ -60,3 +60,7 @@ Não selecionar as alternativas K–N. Voltar à definição da experiência de 
 - **Decisão 77 C:** o especial cria um núcleo suspenso na posição-alvo; fogos de artifício detonam ao redor dele enquanto permanece ativo. Conceito de Brasil 2: Arraial Balístico/Festa Junina. Escudo recebe melhoria complementar ainda a especificar.
 - **Decisão 78 C:** ritmo dos fogos em **crescendo junino**: explosões inicialmente espaçadas, acelerando ao longo da duração do núcleo, culminando em uma explosão final maior. Valores de duração, dano, raio e balanceamento não foram definidos. Futuras evoluções Brasil 4/6/8 ficam reservadas para eletricidade, cadeias e defesa avançada.
 - **Status:** direção de design aprovada; detalhamento ainda pendente. Não implementar código.
+
+## Decisão 79 — Brasil 2: duração do núcleo
+
+**Opção B aprovada:** o núcleo suspenso do Arraial Balístico permanece ativo por **4 segundos**. Durante esse período, solta fogos em ritmo crescente e termina com uma explosão maior (Decisão 78 C). Dano, frequência, raio e efeito complementar do escudo seguem pendentes de decisão. Apenas GDD; nenhuma mudança no código.
