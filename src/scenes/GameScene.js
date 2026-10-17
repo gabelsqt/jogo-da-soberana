@@ -2359,7 +2359,7 @@ export class GameScene extends Phaser.Scene {
     } else if (this.mode.startsWith('wave')) {
       const history = this.campaign.choices.map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' + ');
       const special = this.combat.plasmaEvery ? ' | LIGHTSTICK: ' +
-        (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/3'
+        (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/' + PLASMA_EVERY_SHOTS
         : this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
       const towerLabel = this.supportTowers.map((tower) => tower.definition.label).join(' + ');
       const levelTwo = unlockedSecondUpgrades(this.campaign)
