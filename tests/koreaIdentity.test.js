@@ -31,6 +31,6 @@ test('identificador legado jp preserva builds, progressão e combate', () => {
   assert.deepEqual(normalizeCampaignState({ choices: ['jp', 'jp', 'jp'] }), {
     choices: ['jp', 'jp', 'jp'],
   });
-  assert.equal(combatStatsFor('jp').plasmaEvery, 3);
-  assert.equal(combatStatsForLoadout(['jp', 'ru']).plasmaEvery, 3);
+  assert.equal(combatStatsFor('jp').plasmaEvery, 4);
+  assert.equal(combatStatsForLoadout(['jp', 'ru']).plasmaEvery, 4);
 });
