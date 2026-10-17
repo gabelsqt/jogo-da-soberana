@@ -24,6 +24,22 @@ export const MECH_VISUALS = {
 
 export const visualCountryId = (countryId) => countryId === 'jp' ? 'kr' : countryId;
 
+// Sprite sheet v0.32: capivara, bisão, haechi, lobo e dragão.
+// Ordem e frames idênticos no navegador e na exportação itch.io.
+// Urso de Ferro continua com a arte russa original.
+export const SECONDARY_MECH_ATLAS = 'mech_animais_secundarios_v032.png';
+export const SECONDARY_MECH_FRAME_SIZE = 64;
+export const SECONDARY_MECH_FRAMES = Object.freeze({
+  br: 0, us: 1, kr: 2, ru: 3, cn: 4,
+});
+export function usesSecondaryMechArt(countryId, role) {
+  const country = visualCountryId(countryId);
+  return role === 'destroyer'
+    ? country !== 'ru' && Object.hasOwn(SECONDARY_MECH_FRAMES, country)
+    : role === 'swarm' && country === 'ru';
+}
+
+
 // Âncora local no contêiner do animal, cuja posição (0,0) é o chão.
 export function mechMountOffset(countryId) {
   const cfg = MECH_VISUALS[visualCountryId(countryId)];
@@ -59,26 +75,38 @@ export function preloadMechSprites(scene) {
     scene.load.image(`mech_${country}_body`, assetUrl(`assets/torres/${cfg.body}`));
     scene.load.image(`mech_${country}_weapon`, assetUrl(`assets/torres/${cfg.weapon}`));
   }
+  scene.load.spritesheet('mech_secondary_body',
+    assetUrl(`assets/torres/${SECONDARY_MECH_ATLAS}`),
+    { frameWidth: SECONDARY_MECH_FRAME_SIZE, frameHeight: SECONDARY_MECH_FRAME_SIZE },
+  );
 }
 
-export function createMechSprites(scene, countryId, x, y, depth = 26, mirrored = false) {
+export function createMechSprites(scene, countryId, x, y, depth = 26,
+  mirrored = false, role = 'swarm') {
   const country = visualCountryId(countryId);
   const cfg = MECH_VISUALS[country];
   if (!cfg) throw new Error(`Torre visual desconhecida: ${countryId}`);
+  const secondary = usesSecondaryMechArt(country, role);
 
   const sprite = scene.add.container(x, y).setDepth(depth);
   if (mirrored) sprite.setScale(-1, 1);
-  const body = scene.add.image(0, 0, `mech_${country}_body`)
-    .setOrigin(0.5, 1)
-    .setDisplaySize(cfg.bodySize[0] * cfg.scale, cfg.bodySize[1] * cfg.scale);
+  const body = secondary
+    ? scene.add.image(0, 0, 'mech_secondary_body', SECONDARY_MECH_FRAMES[country])
+      .setOrigin(0.5, 1).setDisplaySize(93, 93)
+    : scene.add.image(0, 0, `mech_${country}_body`)
+      .setOrigin(0.5, 1)
+      .setDisplaySize(cfg.bodySize[0] * cfg.scale, cfg.bodySize[1] * cfg.scale);
   sprite.add(body);
 
-  const mount = mechMountOffset(country);
+  // O corpo aprovado fica imóvel e o canhão modular continua girando.
+  // Escala reduzida sobre o animal secundário para não encobrir sua arte.
+  const mount = secondary ? { x: -23, y: -63 } : mechMountOffset(country);
+  const weaponScale = cfg.scale * (secondary ? 0.69 : 1);
   const weapon = scene.add.image(mount.x, mount.y, `mech_${country}_weapon`)
     .setOrigin(
       cfg.weaponPivot[0] / cfg.weaponSize[0],
       cfg.weaponPivot[1] / cfg.weaponSize[1],
-    ).setDisplaySize(cfg.weaponSize[0] * cfg.scale, cfg.weaponSize[1] * cfg.scale)
+    ).setDisplaySize(cfg.weaponSize[0] * weaponScale, cfg.weaponSize[1] * weaponScale)
     .setRotation(-Math.PI / 3);
   sprite.add(weapon);
 
