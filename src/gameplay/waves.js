@@ -45,6 +45,7 @@ export const MODES = {
   wave3: { title: 'ONDA 3 — CÉU FECHADO', minDuration: WAVE_DURATION_MS },
   wave4: { title: 'ONDA 4 — ATAQUE EM PINÇA', minDuration: WAVE_DURATION_MS },
   ...ADVANCED_WAVE_METADATA,
+  wave10: { title: 'ONDA 10 — FORTALEZA-MÃE', minDuration: 60000 },
   lab: { title: 'TESTE DE INIMIGOS', minDuration: 36000 },
   upgradeLab: { title: 'LAB DE UPGRADES', minDuration: Infinity },
 };
@@ -189,6 +190,7 @@ function getOriginalWaveEvents(mode) {
   if (Object.hasOwn(ADVANCED_WAVE_METADATA, mode)) {
     return getAdvancedWaveEvents(mode);
   }
+  if (mode === 'wave10') return [{ at: 1250, type: 5, level: 9, warning: 'FORTALEZA-MÃE DETECTADA!' }];
   if (mode === 'lab') {
     return [
       { at: 800, type: 2, group: true },
