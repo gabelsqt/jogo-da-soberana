@@ -15,7 +15,7 @@ export const ENEMY_TYPES = {
     id: 3, name: 'Bombardeiro', color: 0xf8ba56,
     hp: 6, speed: 50, width: 59, height: 45,
     behavior: 'bomber',
-    shotHp: 2,
+    shotHp: 1,
   },
   4: {
     id: 4, name: 'Caça Relâmpago', color: 0xfa5275,
@@ -26,7 +26,7 @@ export const ENEMY_TYPES = {
     id: 5, name: 'Cruzador-Colmeia', color: 0x45cddd,
     hp: 24, speed: 28, width: 126, height: 60,
     behavior: 'boss',
-    shotHp: 2,
+    shotHp: 1,
   },
 };
 
