@@ -74,8 +74,8 @@ test('novos inimigos têm HP aumentado, mesmo tamanho e velocidade estabilizada'
       'o jogador enfrenta blindagem, não uma velocidade cada vez maior');
   }
   assert.ok(enemyStats(2, 3).formationWaitBonus > enemyStats(2, 2).formationWaitBonus);
-  assert.equal(enemyStats(3, 3).bomberHoverDuration, 6);
-  assert.equal(enemyStats(3, 2).bomberHoverDuration, 6);
+  assert.equal(enemyStats(3, 3).bomberHoverDuration, 12);
+  assert.equal(enemyStats(3, 2).bomberHoverDuration, 12);
   assert.equal(enemyStats(4, 2).fighterExtraPasses, 0);
   assert.equal(enemyStats(4, 3).fighterExtraPasses, 1);
 });
