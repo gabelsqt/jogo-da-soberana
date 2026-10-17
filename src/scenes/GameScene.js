@@ -48,7 +48,7 @@ import {
   TOWER_DEFINITIONS, SUPPORT_TOWER_POSITIONS,
   towerDefinition, upgradedTowerWeapon, canInstallTower, chooseTowerAttackTarget,
   towerBlindZoneY, towerSeesEnemy, towerChargeProgress, chooseSuitableTowerTarget,
-  advanceGuidedTowerShot, chooseTowerHomingTarget,
+  chooseTowerTrackingTarget, advanceGuidedTowerShot, chooseTowerHomingTarget,
 } from '../gameplay/towers.js';
 import {
   SHOCK_BLAST_RADIUS, SHOCK_KNOCKBACK,
@@ -593,16 +593,25 @@ export class GameScene extends Phaser.Scene {
   updateSupportTowers(dt) {
     for (const tower of this.supportTowers) {
       if (tower.health <= 0) continue;
-      // Sem alvo adequado, a carga chega a 100% e fica armazenada.
-      // A seleção não detecta inimigos na faixa cega superior.
-      const enemy = chooseSuitableTowerTarget(tower, this.enemies, TOWER_BLIND_ZONE_Y, 390, W, H);
-      const aimed = enemy ? tower.visual.aimAt(enemy.sprite.x, enemy.sprite.y, dt) : false;
-      // Não dispara até que a arma esteja apontada para o alvo.
-      if (!enemy || !aimed || towerChargeProgress(
+      // A arma acompanha QUALQUER inimigo ao alcance, mas a carga
+      // só é gasta se ele atender à prioridade da classe.
+      // Ambos respeitam a zona cega de 10% e as bordas do cenário.
+      const firingTarget = chooseSuitableTowerTarget(
+        tower, this.enemies, TOWER_BLIND_ZONE_Y, 390, W, H,
+      );
+      const trackingTarget = firingTarget ?? chooseTowerTrackingTarget(
+        tower, this.enemies, TOWER_BLIND_ZONE_Y, W, H,
+      );
+      const aimed = trackingTarget
+        ? tower.visual.aimAt(trackingTarget.sprite.x, trackingTarget.sprite.y, dt)
+        : false;
+      // Sem alvo adequado, conserva carga completa mesmo enquanto gira.
+      // Ao disparar, exige que a arma visual esteja alinhada com esse alvo.
+      if (!firingTarget || !aimed || towerChargeProgress(
         tower.lastAttackAt, this.time.now, tower.definition.interval,
       ) < 1) continue;
       tower.lastAttackAt = this.time.now;
-      this.fireTowerWeapon(tower, enemy);
+      this.fireTowerWeapon(tower, firingTarget);
     }
     this.drawTowerCharges();
   }
