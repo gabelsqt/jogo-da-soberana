@@ -64,3 +64,7 @@ Não selecionar as alternativas K–N. Voltar à definição da experiência de 
 ## Decisão 79 — Brasil 2: duração do núcleo
 
 **Opção B aprovada:** o núcleo suspenso do Arraial Balístico permanece ativo por **4 segundos**. Durante esse período, solta fogos em ritmo crescente e termina com uma explosão maior (Decisão 78 C). Dano, frequência, raio e efeito complementar do escudo seguem pendentes de decisão. Apenas GDD; nenhuma mudança no código.
+
+## Decisão 80 — Brasil 2: padrão circular dos fogos
+
+**Opção C aprovada:** as explosões dos fogos percorrem o entorno do núcleo suspenso em uma **sequência circular coreografada e previsível**, em vez de serem aleatórias ou buscarem automaticamente inimigos. A cadência cresce durante os 4 segundos e culmina em uma explosão final maior (Decisões 78–79). Direção/raio/distribuição e dano permanecem sujeitos às próximas decisões. **Somente GDD, sem alteração de código.**
