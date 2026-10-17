@@ -32,6 +32,21 @@ export const SECONDARY_MECH_FRAME_SIZE = 112;
 export const SECONDARY_MECH_FRAMES = Object.freeze({
   br: 0, us: 1, kr: 2, ru: 3, cn: 4,
 });
+// Encaixes calibrados à silhueta real de cada frame (112 × 112).
+// O Lobo ocupa somente a parte inferior do quadro: seu ombro fica
+// 32 px acima do solo, NÃO 63 px como no posicionamento genérico antigo.
+export const SECONDARY_MECH_MOUNTS = Object.freeze({
+  br: { x: -23, y: -53, weaponFactor: 0.54 },
+  us: { x: -23, y: -55, weaponFactor: 0.54 },
+  kr: { x: -27, y: -52, weaponFactor: 0.54 },
+  ru: { x: -19, y: -31, weaponFactor: 0.48 },
+  cn: { x: -25, y: -60, weaponFactor: 0.54 },
+});
+
+export function secondaryMechMount(countryId) {
+  return SECONDARY_MECH_MOUNTS[visualCountryId(countryId)] ?? null;
+}
+
 export function usesSecondaryMechArt(countryId, role) {
   const country = visualCountryId(countryId);
   return role === 'destroyer'
@@ -107,8 +122,11 @@ export function createMechSprites(scene, countryId, x, y, depth = 26,
 
   // O corpo aprovado fica imóvel e o canhão modular continua girando.
   // Escala reduzida sobre o animal secundário para não encobrir sua arte.
-  const mount = secondary ? { x: -23, y: -63 } : mechMountOffset(country);
-  const weaponScale = cfg.scale * (secondary ? 0.69 : 1);
+  const secondaryMount = secondary ? secondaryMechMount(country) : null;
+  const mount = secondary
+    ? { x: secondaryMount.x, y: secondaryMount.y }
+    : mechMountOffset(country);
+  const weaponScale = cfg.scale * (secondary ? secondaryMount.weaponFactor : 1);
   const weapon = scene.add.image(mount.x, mount.y, `mech_${country}_weapon`)
     .setOrigin(
       cfg.weaponPivot[0] / cfg.weaponSize[0],
@@ -138,6 +156,12 @@ export function createMechSprites(scene, countryId, x, y, depth = 26,
 
   return {
     sprite, body, weapon, mount, secondary,
+    // Posição de encaixe para o indicador circular de recarga.
+    // Espelha apenas o X: preserva a altura real de cada animal.
+    mountWorldPosition: () => ({
+      x: x + (mirrored ? -mount.x : mount.x),
+      y: y + mount.y,
+    }),
     muzzlePosition: syncMuzzle,
     aimAt(targetX, targetY, dt = 1) {
       const mountWorldX = x + (mirrored ? -mount.x : mount.x);
