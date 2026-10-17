@@ -1497,10 +1497,8 @@ export class GameScene extends Phaser.Scene {
         targets: burst, scale: 1.45, alpha: 0, duration: 160,
         onComplete: () => burst.destroy(),
       });
-      if (this.time.now - this.lastHeavyShake >= 230) {
-        this.cameras.main.shake(60, 0.0011);
-        this.lastHeavyShake = this.time.now;
-      }
+      // O canhão principal russo mantém o clarão e o recuo visual,
+      // mas não sacode a câmera ao disparar.
     }
 
     if (effects.multiple) {
