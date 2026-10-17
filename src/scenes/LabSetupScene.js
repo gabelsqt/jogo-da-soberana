@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH as W, GAME_HEIGHT as H, preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import { FIRST_UPGRADES } from '../gameplay/upgrades.js';
-import { normalizeLabConfig, changeLabWave, changeLabLevel, configuredTowerCountries } from '../gameplay/labConfig.js';
+import { normalizeLabConfig, changeLabWave, changeLabLevel, configuredTowerCountries, configuredTowerLoadout } from '../gameplay/labConfig.js';
 import { addMenuButton } from '../ui/menuButton.js';
 
 export class LabSetupScene extends Phaser.Scene {
@@ -23,7 +23,7 @@ export class LabSetupScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(35);
     this.drawButton(635, 125, '▶', () => this.setConfig(changeLabWave(this.config, 1)), 64);
 
-    this.add.text(W / 2, 174, 'NÍVEIS DE CADA PAÍS (0–5)', {
+    this.add.text(W / 2, 174, 'NÍVEIS DE CADA PAÍS (0–8)', {
       fontFamily: 'monospace', fontSize: '16px', color: '#ecf5fa',
     }).setOrigin(0.5).setDepth(35);
     this.levelTexts = {};
@@ -39,7 +39,7 @@ export class LabSetupScene extends Phaser.Scene {
       this.drawButton(682, y, '+', () => {
         const updated = changeLabLevel(this.config, country.id, 1);
         if (updated.levels[country.id] === this.config.levels[country.id] &&
-          this.config.levels[country.id] === 4) {
+          [4, 6].includes(this.config.levels[country.id])) {
           this.infoText.setText('LIMITE DE DUAS TORRES. REDUZA OUTRO PAÍS ABAIXO DO NÍVEL 5.');
         } else this.setConfig(updated);
       }, 49);
@@ -72,8 +72,8 @@ export class LabSetupScene extends Phaser.Scene {
     for (const country of FIRST_UPGRADES) {
       this.levelTexts[country.id].setText('' + this.config.levels[country.id]);
     }
-    const towers = configuredTowerCountries(this.config);
+    const towers = configuredTowerLoadout(this.config);
     this.infoText.setText('TORRES: ' + towers.length + '/2  •  ESPECIAIS NÍVEL 4 ATIVOS AUTOMATICAMENTE' +
-      '  •  NÍVEIS 6–10 AINDA NÃO JOGÁVEIS');
+      '  •  NÍVEIS 9–10 AINDA NÃO JOGÁVEIS');
   }
 }
