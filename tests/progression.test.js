@@ -26,14 +26,14 @@ test('as cinco primeiras melhorias alteram o combate como prometido', () => {
   const jp = combatStatsFor('jp');
   const ru = combatStatsFor('ru');
   const cn = combatStatsFor('cn');
-  assert.equal(base.basicInterval, 500);
-  assert.equal(br.basicInterval, 333);
+  assert.equal(base.basicInterval, 400);
+  assert.equal(br.basicInterval, 267);
   assert.equal(us.basicDamage, base.basicDamage);
   assert.equal(us.fragmentation, true);
   assert.equal(jp.basicInterval, base.basicInterval);
   assert.equal(jp.pierce, base.pierce);
   assert.equal(jp.basicSpeed, base.basicSpeed);
-  assert.equal(jp.plasmaEvery, 3);
+  assert.equal(jp.plasmaEvery, 4);
   assert.equal(base.fragmentation, false);
   assert.equal(base.plasmaEvery, 0);
   assert.equal(ru.basicDamage, 1.75);
@@ -124,12 +124,12 @@ test('laboratório ativa e desativa melhorias sem duplicatas nem IDs inválidos'
 
 test('laboratório combina Lightstick, Fragmentação e os outros países sem alterar atributos básicos', () => {
   const stats = combatStatsForLoadout(['br', 'jp', 'us', 'ru', 'cn']);
-  assert.equal(stats.basicInterval, 333);
+  assert.equal(stats.basicInterval, 267);
   assert.equal(stats.basicDamage, 1.75);
   assert.equal(stats.pierce, 1);
   assert.equal(stats.basicSpeed, 480);
   assert.equal(stats.fragmentation, true);
-  assert.equal(stats.plasmaEvery, 3);
+  assert.equal(stats.plasmaEvery, 4);
   assert.equal(stats.bulletsPerShot, 2);
   assert.equal(stats.knockback, 0.12);
   assert.equal(stats.specialCooldown, 8000);
