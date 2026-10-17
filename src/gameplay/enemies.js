@@ -35,6 +35,17 @@ export const ENEMY_TYPES = {
 export const BOMBER_HOVER_SECONDS = 6;
 export const BOMBER_SHOT_INTERVAL_SECONDS = 3;
 
+export function advanceBomberHover(shotTimer, phaseAge, dt,
+  interval = BOMBER_SHOT_INTERVAL_SECONDS, duration = BOMBER_HOVER_SECONDS) {
+  const timer = Math.max(0, shotTimer) + Math.max(0, dt);
+  const shots = Math.floor((timer + 1e-9) / interval);
+  return {
+    shots,
+    shotTimer: Math.max(0, timer - shots * interval),
+    retreat: phaseAge >= duration,
+  };
+}
+
 export const ENEMY_SHOT_COLOR = 0xffda6d;
 
 export function enemyDefinition(type) {
