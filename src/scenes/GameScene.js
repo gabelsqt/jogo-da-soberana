@@ -796,8 +796,11 @@ export class GameScene extends Phaser.Scene {
 
   fireTowerWeapon(tower, enemy) {
     const weapon = tower.definition;
-    const fromX = tower.x;
-    const fromY = tower.y - 35;
+    // Nos novos corpos, o disparo começa no canhão que realmente girou,
+    // não em um ponto fixo que faria parecer que atirou pelo corpo.
+    const muzzle = tower.visual.secondary ? tower.visual.muzzlePosition() : null;
+    const fromX = muzzle?.x ?? tower.x;
+    const fromY = muzzle?.y ?? tower.y - 35;
 
     // Descarga visível da energia acumulada, sem screenshake ao atirar.
     const discharge = this.add.circle(fromX, fromY, tower.role === 'destroyer' ? 19 : 13,
