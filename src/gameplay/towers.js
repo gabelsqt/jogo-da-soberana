@@ -99,6 +99,35 @@ export function chooseTowerHomingTarget(x, y, enemies, blindZoneY, playfieldWidt
   }, null).enemy;
 }
 
+// Apontar não é disparar: a mira visual acompanha qualquer nave elegível
+// dentro do alcance, mesmo quando a torre aguarda seu alvo prioritário.
+// As regras mais seletivas de chooseSuitableTowerTarget continuam decidindo
+// quando a munição realmente pode ser consumida.
+export function chooseTowerTrackingTarget(tower, enemies, blindZoneY,
+  playfieldWidth = Infinity, playfieldHeight = Infinity) {
+  const candidates = enemies.filter(enemy => {
+    if (!towerSeesEnemy(enemy, blindZoneY, playfieldWidth, playfieldHeight)) return false;
+    const x = enemy.sprite?.x ?? enemy.x;
+    const y = enemy.sprite?.y ?? enemy.y;
+    return Math.hypot(x - tower.x, y - (tower.y - 22)) <= tower.definition.range;
+  });
+  if (!candidates.length) return null;
+  // A Destruidora mira preferencialmente nos resistentes; as demais
+  // acompanham a ameaça mais próxima da base mesmo que isolada.
+  if (tower.role === 'destroyer') {
+    const heavy = candidates.filter(enemy =>
+      enemy.type === 5 || enemy.type === 3 || (enemy.hp ?? 0) >= 4);
+    if (heavy.length) {
+      heavy.sort((a, b) => (b.hp ?? 0) - (a.hp ?? 0) ||
+        (b.sprite?.y ?? b.y) - (a.sprite?.y ?? a.y));
+      return heavy[0];
+    }
+  }
+  return candidates.reduce((closest, enemy) =>
+    !closest || (enemy.sprite?.y ?? enemy.y) > (closest.sprite?.y ?? closest.y)
+      ? enemy : closest, null);
+}
+
 export function towerChargeProgress(lastAttackAt, now, interval) {
   return Math.max(0, Math.min(1, (now - lastAttackAt) / Math.max(1, interval)));
 }
