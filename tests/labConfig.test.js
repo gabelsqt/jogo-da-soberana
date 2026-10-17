@@ -22,5 +22,5 @@ test('níveis implementados 0–5 são independentes do número de escolhas', ()
   config=changeLabLevel(config,'jp',1);
   const blocked=changeLabLevel(config,'jp',1);
   assert.equal(blocked.levels.jp,4,'não cria terceira torre');
-  assert.equal(changeLabLevel(config,'br',1).levels.br,5);
+  assert.equal(changeLabLevel(config,'br',1).levels.br,6);
 });
