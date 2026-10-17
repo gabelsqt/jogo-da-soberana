@@ -99,7 +99,7 @@ test('bloqueia instalação da TERCEIRA torre e não pula níveis bloqueados', (
   assert.equal(jpOption.locked, true);
   assert.equal(jpOption.reason, 'DUAS TORRES JÁ INSTALADAS');
   assert.equal(chooseCampaignUpgrade(state, 'jp'), null);
-  assert.equal(chooseCampaignUpgrade(two, 'br'), null, 'nível 4 ainda indisponível');
+  assert.deepEqual(chooseCampaignUpgrade(two, 'br')?.choices, [...two.choices, 'br'], 'nível 4 liberado');
   assert.equal(chooseCampaignUpgrade(two, 'inexistente'), null);
   assert.equal(chooseCampaignUpgrade({ choices: Array(10).fill('br') }, 'us'), null);
   assert.equal(canInstallTower(['br', 'us'], 'jp'), false);
