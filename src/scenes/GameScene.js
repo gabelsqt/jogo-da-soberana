@@ -37,7 +37,7 @@ import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
-  activeTowerCountries,
+  activeTowerCountries, unlockedThirdUpgradeCountries,
   automaticWaveAfterVictory,
 } from '../gameplay/progression.js';
 import {
@@ -95,6 +95,9 @@ export class GameScene extends Phaser.Scene {
       ? { choices: [data.upgradeId] } : {};
     this.campaign = normalizeCampaignState(data.campaign ?? legacy);
     this.upgradeId = this.campaign.choices.at(-1) ?? null;
+    this.thirdIds = this.unifiedLab
+      ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 3)
+      : this.mode === 'upgradeLab' ? [] : unlockedThirdUpgradeCountries(this.campaign);
     this.fourthIds = this.unifiedLab
       ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 4)
       : this.mode === 'upgradeLab' ? [] : unlockedFourthUpgradeCountries(this.campaign);
@@ -117,6 +120,10 @@ export class GameScene extends Phaser.Scene {
       ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 2)
       : this.mode === 'upgradeLab' ? this.labSecondIds : unlockedSecondUpgrades(this.campaign);
     this.combat = applySecondUpgradeStats(firstStats, seconds);
+    // Primeira evolução conjunta: fortalecimento de escudo e recarga do especial.
+    // Valores provisórios para o playtest da árvore reorganizada.
+    const jointStages = this.thirdIds.length + this.fourthIds.length;
+    this.combat.specialCooldown = Math.round(this.combat.specialCooldown * Math.pow(0.93, jointStages));
   }
 
   getRunOptions() {
@@ -242,8 +249,8 @@ export class GameScene extends Phaser.Scene {
     this.tutorialComplete = false;
     this.gameOver = false;
     this.cannonHealth = 100;
-    this.shield = 80;
-    this.shieldMax = 80;
+    this.shieldMax = 80 + (this.thirdIds.length + this.fourthIds.length) * 8;
+    this.shield = this.shieldMax;
     this.lastDamageAt = -10000;
     this.aimAngle = -Math.PI / 2;
 
