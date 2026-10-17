@@ -7,7 +7,7 @@ Implementação em PR draft, aguardando avaliação visual e de balanceamento.
 
 1. Cada noite de 30 s cresce em intensidade, começando administrável e terminando mais intensa. Todos os inimigos programados entram antes de 20 s. Se o jogador elimina todas as ameaças após o último spawn, ganha imediatamente (sem espera artificial).
 2. Tipo 1: cinco padrões sorteados por grupo a cada partida — serpentina, travessia lateral, ataque cruzado, espiral, enxame disperso. São trajetórias coletivas antes do mergulho.
-3. Tipo 1: grupos progressivos, 3–5 no começo da campanha, até 15–20 no final. Fracos individualmente, perigosos pela quantidade.
+3. Tipo 1: grupos progressivos, 3–5 no começo da campanha, até 15–18 no final. Fracos individualmente, perigosos pela quantidade.
 4. Tipo 1: entrada junta **ou** escalonada, sorteada. Não atacam logo após aparecer.
 5. Tipo 1: dança sincronizada; posições relativas preservadas.
 6. Tipo 1: após dança, cada nave segue sua própria curva para atacar, mas todo o grupo converge ao mesmo alvo.
@@ -39,12 +39,20 @@ Implementação em PR draft, aguardando avaliação visual e de balanceamento.
 ## Critérios de aceitação manual
 
 1. Arena Livre: Tipo 1 nível 1 entra como grupo de 3, dança 3–5s, muda de posição sem perder formação; após dança, dispersa contra a defesa mais próxima.
-2. Arena Livre: Tipo 1 nível 10 permite 20 invasores em grupo, com entradas simultâneas ou escalonadas e cinco padrões sorteados.
+2. Arena Livre: Tipo 1 nível 10 permite 18 invasores em grupo, com entradas simultâneas ou escalonadas e cinco padrões sorteados.
 3. Arena Livre: Tipo 2 nível 1 apresenta três unidades; nível 10, oito. Alterna V/linha/coluna durante 2–4s e ataca organizado.
 4. Eliminar membros durante formação deve produzir lacunas até o ataque.
 5. Torre destruída: sobreviventes do grupo escolhem alvo novo.
 6. Tipo 2 prioriza defesa vulnerável; Tipo 1 prioriza a mais próxima. 
 7. Ondas 0 e 9: pressão crescente sem travar desempenho. Clímax antes dos 30s; vitória antecipada ao limpar todos os inimigos depois da última entrada.
 8. Canhões aliados, bombardeiros e demais mecânicas v0.32 continuam funcionais.
+
+### Ajuste de balanceamento após Teste 14 (PARCIAL)
+
+- Enxames Tipo 1 nas últimas noites: **15–18** unidades (antes 15–20).
+- Arena Livre, Tipo 1 nível 10: **18 naves** (antes 20).
+- Vida do Tipo 1 por nível 1–10: **1, 2, 2, 3, 3, 3, 4, 4, 4, 4 HP** (antes 1 até 10 HP, aumentando 1 por nível).
+- Tipos 2 a 5 não alterados. Dificuldade do Tipo 1 continua vindo principalmente da quantidade e da coreografia, não de um HP alto.
+- **Reteste 14B pendente**, conferir sensação de jogo e desempenho; preservar Teste 14 como PARCIAL.
 
 **Status:** código/testes automatizados concluídos; validação visual/manual e ajustes de balanceamento pendentes.
