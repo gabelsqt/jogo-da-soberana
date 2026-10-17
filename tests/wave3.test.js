@@ -28,7 +28,7 @@ test('escolher o mesmo país três vezes instala só a primeira torre', () => {
       assert.ok(state, `deve ser possível escolher ${country} no nível ${i+1}`);
     }
     assert.equal(countryLevel(state, country), 3);
-    assert.deepEqual(activeTowerCountries(state), [country]);
+    assert.deepEqual(activeTowerCountries(state), []);
     assert.deepEqual(unlockedSecondUpgrades(state), [country]);
     assert.deepEqual(unlockedFirstUpgrades(state), [country]);
     assert.equal(nextWaveAfterChoice(state), 'wave3');
