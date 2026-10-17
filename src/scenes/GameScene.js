@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { normalizeLabConfig, configuredTowerCountries } from '../gameplay/labConfig.js';
+import { normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout } from '../gameplay/labConfig.js';
 import { preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import { assetUrl } from '../config/assetUrl.js';
 import { preloadMechSprites, createMechSprites } from '../gameplay/mechSpriteMounts.js';
@@ -37,12 +37,12 @@ import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
-  activeTowerCountries, unlockedThirdUpgradeCountries,
+  activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
   automaticWaveAfterVictory,
 } from '../gameplay/progression.js';
 import {
   TOWER_DEFINITIONS, SUPPORT_TOWER_POSITIONS,
-  towerDefinition, chooseTowerAttackTarget, canInstallTower,
+  towerDefinition, upgradedTowerWeapon, chooseTowerAttackTarget, canInstallTower,
 } from '../gameplay/towers.js';
 import {
   SHOCK_BLAST_RADIUS, SHOCK_KNOCKBACK,
@@ -403,8 +403,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   createSupportTowers() {
-    const selected = this.unifiedLab ? configuredTowerCountries(this.labConfig)
-      : this.mode === 'upgradeLab' ? this.labTowerIds : activeTowerCountries(this.campaign);
+    const selected = this.unifiedLab ? configuredTowerLoadout(this.labConfig)
+      : this.mode === 'upgradeLab' ? this.labTowerIds.map(id => ({ id, role: 'swarm', level: 5 })) : activeTowerLoadout(this.campaign);
     this.installSupportTowerSet(selected);
   }
 
@@ -414,18 +414,22 @@ export class GameScene extends Phaser.Scene {
     this.supportProjectiles.length = 0;
     this.supportTowers.length = 0;
 
-    countryIds.slice(0, SUPPORT_TOWER_POSITIONS.length).forEach((id, index) => {
-      const definition = towerDefinition(id);
+    countryIds.slice(0, SUPPORT_TOWER_POSITIONS.length).forEach((entry, index) => {
+      const id = typeof entry === 'string' ? entry : entry.id;
+      const role = typeof entry === 'string' ? 'swarm' : entry.role;
+      const level = typeof entry === 'string' ? 5 : entry.level;
+      const definition = upgradedTowerWeapon(id, role, level);
       if (!definition) return;
       const position = SUPPORT_TOWER_POSITIONS[index];
       const { x, y } = position;
 
       // Corpo e canhão são imagens independentes. Somente a arma gira no pivô.
-      const visual = createMechSprites(this, id, x, y, 26, position.side === 'right');
+      // Placeholder visual para os Destruidores até termos os sprites aprovados.
+      const visual = createMechSprites(this, role === 'destroyer' && id === 'ru' ? 'ru' : id, x, y, 26, position.side === 'right');
       const sprite = visual.sprite;
 
       this.supportTowers.push({
-        id: 'tower-' + id, countryId: id,
+        id: 'tower-' + id + '-' + role, countryId: id, role,
         definition, x, y, shieldRadius: 46,
         sprite, visual,
         health: definition.healthMax,
@@ -632,17 +636,29 @@ export class GameScene extends Phaser.Scene {
         targets: beam, alpha: 0, duration: 260,
         onComplete: () => beam.destroy(),
       });
-      const index = this.enemies.findIndex((item) => item.uid === enemy.uid);
-      if (index >= 0) this.impactInvader(index, weapon.damage, 0, '#e6b1ff');
+      const hits = weapon.pierce ? this.enemies.filter(e => {
+        const ax = fromX, ay = fromY, bx = enemy.sprite.x, by = enemy.sprite.y;
+        const dx = bx-ax, dy = by-ay, len = Math.max(1, dx*dx+dy*dy);
+        const t = Phaser.Math.Clamp(((e.sprite.x-ax)*dx+(e.sprite.y-ay)*dy)/len, 0, 1);
+        return Math.hypot(e.sprite.x-(ax+t*dx),e.sprite.y-(ay+t*dy)) < 24;
+      }) : [enemy];
+      for (const hitEnemy of hits) {
+        const index = this.enemies.findIndex(item => item.uid === hitEnemy.uid);
+        if (index >= 0) this.impactInvader(index, weapon.damage, 0, '#e6b1ff');
+      }
       return;
     }
 
     const count = weapon.count ?? 1;
+    const swarmTargets = tower.role === 'swarm'
+      ? this.enemies.filter(e => Math.hypot(e.sprite.x - fromX, e.sprite.y - fromY) <= weapon.range)
+        .sort((a,b) => b.sprite.y - a.sprite.y) : [];
     for (let i = 0; i < count; i += 1) {
+      const shotTarget = swarmTargets[i % swarmTargets.length] ?? enemy;
       const x = fromX + (i - (count - 1) / 2) * 18;
       const y = fromY;
-      const dx = enemy.sprite.x - x;
-      const dy = enemy.sprite.y - y;
+      const dx = shotTarget.sprite.x - x;
+      const dy = shotTarget.sprite.y - y;
       const distance = Math.max(1, Math.hypot(dx, dy));
       const guided = weapon.type === 'missile' || weapon.type === 'drone';
       const bullet = weapon.type === 'shell'
@@ -652,7 +668,7 @@ export class GameScene extends Phaser.Scene {
       bullet.setDepth(40);
       this.supportProjectiles.push({
         sprite: bullet,
-        targetId: enemy.uid,
+        targetId: shotTarget.uid,
         guided, age: 0, speed: weapon.speed, weapon,
         vx: dx / distance * weapon.speed,
         vy: dy / distance * weapon.speed,
@@ -709,6 +725,14 @@ export class GameScene extends Phaser.Scene {
           targets: flash, alpha: 0, scale: 1.8, duration: 180,
           onComplete: () => flash.destroy(),
         });
+        if (shot.weapon.splashRadius) {
+          const radius = shot.weapon.splashRadius;
+          const nearby = this.enemies.filter(e => Math.hypot(e.sprite.x-shot.sprite.x, e.sprite.y-shot.sprite.y) <= radius);
+          for (const extra of nearby) {
+            const idx = this.enemies.findIndex(e => e.uid === extra.uid);
+            if (idx >= 0) this.impactInvader(idx, shot.weapon.damage * 0.75, 0, '#a6d5ff');
+          }
+        }
         hit = true;
         break;
       }
