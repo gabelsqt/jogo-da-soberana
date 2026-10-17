@@ -28,7 +28,7 @@ export const visualCountryId = (countryId) => countryId === 'jp' ? 'kr' : countr
 // Ordem e frames idênticos no navegador e na exportação itch.io.
 // Urso de Ferro continua com a arte russa original.
 export const SECONDARY_MECH_ATLAS = 'mech_animais_secundarios_v032.png';
-export const SECONDARY_MECH_FRAME_SIZE = 64;
+export const SECONDARY_MECH_FRAME_SIZE = 112;
 export const SECONDARY_MECH_FRAMES = Object.freeze({
   br: 0, us: 1, kr: 2, ru: 3, cn: 4,
 });
