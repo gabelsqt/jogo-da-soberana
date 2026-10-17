@@ -34,3 +34,7 @@ Branch separada de `feat/enxames-esquadrilhas-v035`, preservando o jogo antigo.
 - **Sinergias:** cadência maior ativa com mais frequência gatilhos por disparo de outras nações. Efeitos se acumulam segundo as regras híbridas e respeitam os limites visuais/de geração existentes.
 - **Brasil 3 — Motor Esquentando:** precisa ser redesenhado para **recompensar estar em temperatura alta com uma nova propriedade ofensiva**, em vez de simplesmente repetir o aumento de cadência. Nenhuma variante mecânica do nível 3 está aprovada ainda; discussão posterior.
 - **Escopo:** documentação de design apenas. Não alterar implementação atual até finalizar e autorizar o pacote.
+
+## Decisão 72 — Brasil 3: Pressão Máxima (direção escolhida, detalhamento pendente)
+
+**Opção B escolhida:** ao atingir 100% de calor, o tiro principal do canhão passa a perfurar o primeiro inimigo, podendo acertar um segundo. A propriedade depende do calor gerado por Brasil 1; não deve repetir aumento de cadência. Os parâmetros exatos de perfuração, dano, leitura visual e combinação entre países serão decididos posteriormente. Brasil 5 permanece dedicado ao aumento de porte e força dos projéteis. Próxima revisão na ordem normal: Brasil 2. **Apenas planejamento; nenhuma implementação autorizada.**
