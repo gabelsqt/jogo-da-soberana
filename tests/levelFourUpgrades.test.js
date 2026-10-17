@@ -5,11 +5,11 @@ import { scheduledEnemyCount, MODES } from '../src/gameplay/waves.js';
 import { FOURTH_UPGRADES, unlockedFourthUpgradeCountries } from '../src/gameplay/fourthUpgrades.js';
 import { nextUpgradeOptions, nextWaveAfterChoice, chooseCampaignUpgrade } from '../src/gameplay/progression.js';
 
-test('Onda 5 foi encurtada para 48 segundos e 51 invasores agendados', () => {
+test('Onda 5 foi encurtada para 48 segundos e 49 invasores agendados', () => {
   const events = getAdvancedWaveEvents('wave5');
   assert.equal(MODES.wave5.minDuration, 48000);
   assert.equal(events.at(-1).at, 44500);
-  assert.equal(scheduledEnemyCount(events), 51);
+  assert.equal(scheduledEnemyCount(events), 49);
 });
 test('cinco upgrades de nível 4 têm efeito adicional ao tiro especial', () => {
   assert.deepEqual(Object.keys(FOURTH_UPGRADES), ['br','us','jp','ru','cn']);
