@@ -68,3 +68,7 @@ Não selecionar as alternativas K–N. Voltar à definição da experiência de 
 ## Decisão 80 — Brasil 2: padrão circular dos fogos
 
 **Opção C aprovada:** as explosões dos fogos percorrem o entorno do núcleo suspenso em uma **sequência circular coreografada e previsível**, em vez de serem aleatórias ou buscarem automaticamente inimigos. A cadência cresce durante os 4 segundos e culmina em uma explosão final maior (Decisões 78–79). Direção/raio/distribuição e dano permanecem sujeitos às próximas decisões. **Somente GDD, sem alteração de código.**
+
+## Decisão 81 — Brasil 2: alcance dos fogos
+
+**Opção B aprovada:** alcance médio de **100 px de raio a partir do núcleo suspenso** (resolução interna 960 × 540). Explosões seguem o padrão circular coreografado da Decisão 80 durante quatro segundos e terminam com uma explosão maior. Este valor representa a extensão do padrão em torno do centro; o raio individual de dano de cada explosão, sua frequência e o dano seguem pendentes de especificação. **Apenas GDD; nenhuma implementação.**
