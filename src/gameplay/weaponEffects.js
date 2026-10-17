@@ -1,9 +1,9 @@
 // Regras puras dos efeitos ofensivos dos primeiros upgrades dos EUA e Japão.
 // Separadas de Phaser para testar colisões e balanceamento automaticamente.
 
-export const PLASMA_EVERY_SHOTS = 3;
-export const PLASMA_DAMAGE = 3;
-export const PLASMA_HALF_WIDTH = 19;
+export const PLASMA_EVERY_SHOTS = 4;
+export const PLASMA_DAMAGE = 2;
+export const PLASMA_HALF_WIDTH = 14;
 export const PLASMA_RANGE = 1150;
 export const FRAGMENT_RADIUS = 78;
 export const FRAGMENT_DAMAGE = 1.5;
