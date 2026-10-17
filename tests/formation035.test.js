@@ -30,14 +30,14 @@ test('v0.35 preserva 30 segundos, agenda completa em 19,5s e vitória antecipada
   }
 });
 
-test('Tipo 1 chega em enxames progressivos reais de 3–5 até 15–20', () => {
+test('Tipo 1 chega em enxames progressivos reais de 3–5 até 15–18', () => {
   assert.deepEqual(V035_SWARM_SIZES[0],[3,5]);
-  assert.deepEqual(V035_SWARM_SIZES[9],[15,20]);
+  assert.deepEqual(V035_SWARM_SIZES[9],[15,18]);
   assert.equal(progressiveGroupCount(0,1,0),3);
   assert.equal(progressiveGroupCount(0,1,1),5);
   assert.equal(progressiveGroupCount(9,1,0),15);
-  assert.equal(progressiveGroupCount(9,1,1),20);
-  assert.equal(progressiveGroupCount(9,1,0.5),18);
+  assert.equal(progressiveGroupCount(9,1,1),18);
+  assert.equal(progressiveGroupCount(9,1,0.5),17);
   for(let wave=0;wave<=9;wave++){
     const events=getV035WaveEvents('wave'+wave,getWaveEvents('wave'+wave));
     const swarms=events.filter(e=>e.type===1);
@@ -70,20 +70,20 @@ test('Tipo 2 substitui entradas soltas ou órbitas por esquadrilhas de 3–8', (
   assert.deepEqual(labEnemyEvent(2,10),
     {type:2,level:10,pattern:'tactical',group:true,count:8});
   assert.deepEqual(labEnemyEvent(1,10),
-    {type:1,level:10,pattern:'swarm',count:20});
+    {type:1,level:10,pattern:'swarm',count:18});
 });
 
 test('cinco danças animam o centro sem alterar posições dos sobreviventes', () => {
   for (const pattern of SWARM_DANCES){
-    const group={pattern,duration:4,count:20,centerX:470,direction:1};
+    const group={pattern,duration:4,count:18,centerX:470,direction:1};
     const start=swarmDancePosition(group,0,0);
     const middle=swarmDancePosition(group,0,2);
     const end=swarmDancePosition(group,0,4);
     assert.ok(Number.isFinite(start.x)&&Number.isFinite(start.y));
     assert.notDeepEqual(start,middle,pattern);
     assert.ok(end.y>start.y);
-    const slot0=swarmOffset(0,20,pattern);
-    const slot14=swarmOffset(14,20,pattern);
+    const slot0=swarmOffset(0,18,pattern);
+    const slot14=swarmOffset(14,18,pattern);
     assert.deepEqual({
       x:swarmDancePosition(group,14,2).x-swarmDanceCenter(group,2).x,
       y:swarmDancePosition(group,14,2).y-swarmDanceCenter(group,2).y,
