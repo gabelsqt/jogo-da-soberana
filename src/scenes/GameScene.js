@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { normalizeLabConfig, configuredTowerCountries } from '../gameplay/labConfig.js';
 import { preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import { assetUrl } from '../config/assetUrl.js';
 import { preloadMechSprites, createMechSprites } from '../gameplay/mechSpriteMounts.js';
@@ -87,12 +88,16 @@ export class GameScene extends Phaser.Scene {
 
   init(data = {}) {
     this.mode = MODES[data.mode] ? data.mode : 'wave0';
+    this.unifiedLab = Boolean(data.labConfig);
+    this.labConfig = this.unifiedLab ? normalizeLabConfig(data.labConfig) : null;
     // Compatibilidade com saves antigos que tinham apenas "upgradeId".
     const legacy = getFirstUpgrade(data.upgradeId) && this.mode === 'wave1'
       ? { choices: [data.upgradeId] } : {};
     this.campaign = normalizeCampaignState(data.campaign ?? legacy);
     this.upgradeId = this.campaign.choices.at(-1) ?? null;
-    this.fourthIds = this.mode === 'upgradeLab' ? [] : unlockedFourthUpgradeCountries(this.campaign);
+    this.fourthIds = this.unifiedLab
+      ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 4)
+      : this.mode === 'upgradeLab' ? [] : unlockedFourthUpgradeCountries(this.campaign);
     this.upgradeIds = this.mode === 'upgradeLab'
       ? normalizeLabUpgrades(data.upgradeIds) : [];
     this.labSecondIds = this.mode === 'upgradeLab'
@@ -102,15 +107,20 @@ export class GameScene extends Phaser.Scene {
       ? [...new Set(Array.isArray(data.labTowerIds) ? data.labTowerIds : [])]
         .filter((id) => towerDefinition(id)).slice(0, 2)
       : [];
-    const firstUpgrades = unlockedFirstUpgrades(this.campaign);
+    const firstUpgrades = this.unifiedLab
+      ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 1)
+      : unlockedFirstUpgrades(this.campaign);
     const firstStats = this.mode === 'upgradeLab'
       ? combatStatsForLoadout(this.upgradeIds)
       : combatStatsForLoadout(firstUpgrades);
-    this.combat = applySecondUpgradeStats(firstStats,
-      this.mode === 'upgradeLab' ? this.labSecondIds : unlockedSecondUpgrades(this.campaign));
+    const seconds = this.unifiedLab
+      ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 2)
+      : this.mode === 'upgradeLab' ? this.labSecondIds : unlockedSecondUpgrades(this.campaign);
+    this.combat = applySecondUpgradeStats(firstStats, seconds);
   }
 
   getRunOptions() {
+    if (this.unifiedLab) return { mode: this.mode, labConfig: this.labConfig };
     if (this.mode === 'upgradeLab') {
       return {
         mode: this.mode, upgradeIds: [...this.upgradeIds],
@@ -386,8 +396,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   createSupportTowers() {
-    const selected = this.mode === 'upgradeLab'
-      ? this.labTowerIds : activeTowerCountries(this.campaign);
+    const selected = this.unifiedLab ? configuredTowerCountries(this.labConfig)
+      : this.mode === 'upgradeLab' ? this.labTowerIds : activeTowerCountries(this.campaign);
     this.installSupportTowerSet(selected);
   }
 
@@ -2359,6 +2369,10 @@ export class GameScene extends Phaser.Scene {
       x: W / 2, y: 293, text: '↻  TENTAR NOVAMENTE',
       onClick: () => this.scene.restart(this.getRunOptions()), primary: true, depth: 124,
     });
+    if (this.unifiedLab) addMenuButton(this, {
+      x: W / 2, y: 410, text: 'CONFIGURAR LAB',
+      onClick: () => this.scene.start('LabSetupScene', { config: this.labConfig }), depth: 124,
+    });
     addMenuButton(this, {
       x: W / 2, y: 362, text: '⌂  MENU PRINCIPAL',
       onClick: () => this.scene.start('MenuScene'), depth: 124,
@@ -2369,11 +2383,15 @@ export class GameScene extends Phaser.Scene {
     if (this.tutorialComplete) return;
     this.tutorialComplete = true;
 
-    if (/^wave[0-8]$/.test(this.mode)) {
+    if (!this.unifiedLab && /^wave[0-8]$/.test(this.mode)) {
       this.scene.start('UpgradeScene', {
         campaign: this.campaign,
         completedWave: Number(this.mode.at(-1)),
       });
+      return;
+    }
+    if (this.unifiedLab) {
+      this.scene.start('LabSetupScene', { config: this.labConfig });
       return;
     }
     const automaticNext = automaticWaveAfterVictory(this.mode);
