@@ -1430,6 +1430,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   activeUpgradeIds() {
+    if (this.unifiedLab) return Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 1);
     return this.mode === 'upgradeLab'
       ? this.upgradeIds
       : unlockedFirstUpgrades(this.campaign);
