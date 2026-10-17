@@ -27,6 +27,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: feat/v1-upgrades-64-68
+      - name: Confirmar revisão da árvore V1 utilizada no site
+        run: |
+          echo "Publicando branch: $(git branch --show-current)"
+          echo "Commit jogável: $(git rev-parse HEAD)"
+          test -f src/scenes/V1PlaytestScene.js
+          grep -q 'TESTAR UPGRADES V1' src/scenes/MenuScene.js
+          ! grep -q "scene.start('LabSetupScene')" src/scenes/MenuScene.js
       - name: Configurar Node
         uses: actions/setup-node@v4
         with:
