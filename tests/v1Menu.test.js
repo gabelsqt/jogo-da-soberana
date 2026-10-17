@@ -1,0 +1,25 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { V1_UPGRADES } from '../src/gameplay/v1Upgrades.js';
+
+test('menu do playtest v1 não expõe laboratório de animais',()=>{
+ const menu=readFileSync(new URL('../src/scenes/MenuScene.js',import.meta.url),'utf8');
+ assert.match(menu,/TESTAR UPGRADES V1/);
+ assert.match(menu,/COMEÇAR CAMPANHA V1/);
+ assert.doesNotMatch(menu,/this\.scene\.start\('LabSetupScene'/);
+ assert.match(menu,/PLAYTEST V1/);
+});
+test('menu escolhe próximos níveis da árvore nova, incluindo 9 e 10',()=>{
+ const scene=readFileSync(new URL('../src/scenes/V1PlaytestScene.js',import.meta.url),'utf8');
+ assert.match(scene,/V1_UPGRADES\[this\.country\]/);
+ assert.match(scene,/this\.level===10\?'wave10'/);
+ assert.match(scene,/campaign:\{choices\}/);
+ assert.equal(Object.keys(V1_UPGRADES).length,5);
+});
+test('boteco V1 não exibe diálogos legados de animais',()=>{
+ const scene=readFileSync(new URL('../src/scenes/UpgradeScene.js',import.meta.url),'utf8');
+ assert.match(scene,/nextV1Options\(this\.campaign, FIRST_UPGRADES\)/);
+ assert.match(scene,/representativeLine\(id\)/);
+ assert.doesNotMatch(scene,/upgradeRepresentativeLine\(/);
+});
