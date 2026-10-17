@@ -14,16 +14,16 @@ import {
 import { combatStatsFor, combatStatsForLoadout } from '../src/gameplay/upgrades.js';
 
 test('Japão: somente cada terceiro disparo gera uma Katana de Plasma', () => {
-  assert.equal(PLASMA_EVERY_SHOTS, 3);
+  assert.equal(PLASMA_EVERY_SHOTS, 4);
   assert.ok(PLASMA_DAMAGE > 1);
   assert.ok(PLASMA_RANGE >= 960);
   assert.deepEqual(
     Array.from({ length: 9 }, (_, i) => isPlasmaShot(i + 1, true)),
-    [false, false, true, false, false, true, false, false, true],
+    [false, false, false, true, false, false, false, true, false],
   );
   assert.equal(isPlasmaShot(0, true), false);
-  assert.equal(isPlasmaShot(3, false), false);
-  assert.equal(combatStatsFor('jp').plasmaEvery, 3);
+  assert.equal(isPlasmaShot(4, false), false);
+  assert.equal(combatStatsFor('jp').plasmaEvery, 4);
   assert.equal(combatStatsFor('br').plasmaEvery, 0);
 });
 
@@ -61,6 +61,6 @@ test('laboratório pode combinar Katana, Fragmentação e disparos duplos', () =
   assert.equal(build.fragmentation, true);
   assert.equal(build.bulletsPerShot, 2);
   // Um combo não duplica a frequência do laser: conta uma rajada como um disparo.
-  assert.equal(isPlasmaShot(3, build.plasmaEvery > 0), true);
+  assert.equal(isPlasmaShot(4, build.plasmaEvery > 0), true);
   assert.equal(combatStatsForLoadout([]).fragmentation, false);
 });

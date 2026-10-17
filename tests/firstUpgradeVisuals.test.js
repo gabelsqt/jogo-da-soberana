@@ -10,16 +10,16 @@ test('Brasil nível 1 tem +50% de cadência e mantém as outras estatísticas', 
   const base = combatStatsFor(null);
   const brazil = combatStatsFor('br');
   const combined = combatStatsForLoadout(['br']);
-  assert.equal(base.basicInterval, 500);
-  assert.equal(brazil.basicInterval, 333);
-  assert.equal(combined.basicInterval, 333);
+  assert.equal(base.basicInterval, 400);
+  assert.equal(brazil.basicInterval, 267);
+  assert.equal(combined.basicInterval, 267);
   assert.ok(Math.abs(base.basicInterval / combined.basicInterval - 1.5) < 0.003);
   assert.equal(brazil.brazilZigzag, true);
   assert.equal(combined.brazilZigzag, true);
   assert.equal(base.brazilZigzag, false);
   assert.equal(combined.basicDamage, base.basicDamage);
   assert.equal(combined.bulletsPerShot, 1);
-  assert.equal(combatStatsForLoadout(['br', 'br']).basicInterval, 333,
+  assert.equal(combatStatsForLoadout(['br', 'br']).basicInterval, 267,
     'não multiplica um país repetido duas vezes');
 });
 
@@ -76,12 +76,12 @@ test('os efeitos visuais RU e CN coexistem em builds multinacionais', () => {
   });
 
   const stats = combatStatsForLoadout(['br', 'us', 'jp', 'ru', 'cn']);
-  assert.equal(stats.basicInterval, 333);
+  assert.equal(stats.basicInterval, 267);
   assert.equal(stats.basicDamage, 1.75);
   assert.equal(stats.knockback, 0.12);
   assert.equal(stats.bulletsPerShot, 2);
   assert.equal(stats.fragmentation, true);
-  assert.equal(stats.plasmaEvery, 3);
+  assert.equal(stats.plasmaEvery, 4);
 });
 
 test('projéteis russos ficam um pouco maiores, sem afetar o calibre dos outros países', () => {

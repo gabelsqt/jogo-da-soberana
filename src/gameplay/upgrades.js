@@ -14,7 +14,7 @@ export const FIRST_UPGRADES = [
   {
     id: 'jp', name: 'Coreia do Sul', shortName: 'Coreia', flag: 'KR', color: 0xd85c78,
     title: 'Lightstick Tático',
-    description: 'A cada 3 disparos, um feixe violeta atravessa todos os inimigos alinhados.'
+    description: 'A cada 4 disparos, um feixe violeta de precisão atravessa os inimigos alinhados.'
   },
   {
     id: 'ru', name: 'Rússia', flag: 'RU', color: 0xc94d4d,
@@ -34,7 +34,7 @@ export function getFirstUpgrade(id) {
 
 export function combatStatsFor(upgradeId) {
   const stats = {
-    basicInterval: 500,
+    basicInterval: 400,
     basicSpeed: 480,
     basicDamage: 1,
     pierce: 1,
@@ -51,7 +51,7 @@ export function combatStatsFor(upgradeId) {
       stats.brazilZigzag = true;
       break;
     case 'us': stats.fragmentation = true; break;
-    case 'jp': stats.plasmaEvery = 3; break;
+    case 'jp': stats.plasmaEvery = 4; break;
     case 'ru':
       stats.basicDamage = 1.75;
       stats.knockback = 0.12;
@@ -89,7 +89,7 @@ export function combatStatsForLoadout(ids = []) {
         stats.fragmentation = true;
         break;
       case 'jp':
-        stats.plasmaEvery = 3;
+        stats.plasmaEvery = 4;
         break;
       case 'ru':
         stats.basicDamage *= 1.75;
