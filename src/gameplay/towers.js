@@ -54,6 +54,57 @@ export function upgradedTowerWeapon(country, role = 'swarm', level = 5) {
   } : { ...base };
 }
 
+// Limite do radar auxiliar: 10% superiores da altura jogável de 540 px.
+export const TOWER_RADAR_BLIND_FRACTION = 0.10;
+
+export function towerBlindZoneY(playfieldHeight) {
+  return Math.round(playfieldHeight * TOWER_RADAR_BLIND_FRACTION);
+}
+
+export function towerSeesEnemy(enemy, blindZoneY) {
+  const x = enemy?.sprite?.x ?? enemy?.x;
+  const y = enemy?.sprite?.y ?? enemy?.y;
+  return Number.isFinite(x) && Number.isFinite(y) && y >= blindZoneY;
+}
+
+export function towerChargeProgress(lastAttackAt, now, interval) {
+  return Math.max(0, Math.min(1, (now - lastAttackAt) / Math.max(1, interval)));
+}
+
+// Só considera inimigos dentro do radar e do alcance. Destruidoras esperam
+// blindados/bombardeiros; Antienxame espera grupos. Ambas podem reagir a uma
+// ameaça isolada se ela estiver muito próxima das defesas.
+export function chooseSuitableTowerTarget(tower, enemies, blindZoneY, dangerY = 390) {
+  const { x, y, role, definition } = tower;
+  const visible = enemies.filter(enemy =>
+    towerSeesEnemy(enemy, blindZoneY) &&
+    Math.hypot(x - (enemy.sprite?.x ?? enemy.x), (y - 22) - (enemy.sprite?.y ?? enemy.y)) <= definition.range,
+  );
+  if (!visible.length) return null;
+  const byDanger = (a, b) => (b.sprite?.y ?? b.y) - (a.sprite?.y ?? a.y);
+  if (role === 'destroyer') {
+    const heavy = visible.filter(enemy =>
+      enemy.type === 5 || enemy.type === 3 || (enemy.hp ?? 0) >= 4,
+    );
+    if (heavy.length) {
+      heavy.sort((a, b) => (b.hp ?? 0) - (a.hp ?? 0) || byDanger(a, b));
+      return heavy[0];
+    }
+  } else {
+    const clusters = visible.map(enemy => ({
+      enemy,
+      neighbors: visible.filter(other => other !== enemy &&
+        Math.hypot(
+          (enemy.sprite?.x ?? enemy.x) - (other.sprite?.x ?? other.x),
+          (enemy.sprite?.y ?? enemy.y) - (other.sprite?.y ?? other.y),
+        ) <= 145).length,
+    }));
+    clusters.sort((a, b) => b.neighbors - a.neighbors || byDanger(a.enemy, b.enemy));
+    if (clusters[0].neighbors > 0) return clusters[0].enemy;
+  }
+  return visible.filter(enemy => (enemy.sprite?.y ?? enemy.y) >= dangerY).sort(byDanger)[0] ?? null;
+}
+
 export const SUPPORT_TOWER_POSITIONS = [
   { x: 280, y: 483, side: 'left' },
   { x: 680, y: 483, side: 'right' },
