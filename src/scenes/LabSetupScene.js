@@ -48,10 +48,19 @@ export class LabSetupScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '12px', color: '#ffe9b0',
       wordWrap: { width: 890 }, align: 'center',
     }).setOrigin(0.5).setDepth(35);
-    addMenuButton(this, { x: 300, y: 492, width: 300, text: '⌂ MENU PRINCIPAL',
+    addMenuButton(this, { x: 167, y: 492, width: 250, height: 43,
+      text: '⌂ MENU', fontSize: '16px',
       onClick: () => this.scene.start('MenuScene'), depth: 40 });
-    addMenuButton(this, { x: 660, y: 492, width: 300, text: '▶ INICIAR TESTE',
+    // Arena sem cronômetro nem spawns automáticos para testar os cinco tipos
+    // de inimigos contra qualquer combinação de upgrades selecionada acima.
+    addMenuButton(this, { x: 480, y: 492, width: 250, height: 43,
+      text: '◎ ARENA LIVRE', fontSize: '16px',
       primary: true, onClick: () => this.scene.start('GameScene', {
+        mode: 'lab', labConfig: this.config,
+      }), depth: 40 });
+    addMenuButton(this, { x: 793, y: 492, width: 250, height: 43,
+      text: '▶ TESTAR ONDA', fontSize: '16px',
+      onClick: () => this.scene.start('GameScene', {
         mode: 'wave' + this.config.wave, labConfig: this.config,
       }), depth: 40 });
     this.refresh();
@@ -74,6 +83,6 @@ export class LabSetupScene extends Phaser.Scene {
     }
     const towers = configuredTowerLoadout(this.config);
     this.infoText.setText('TORRES: ' + towers.length + '/2  •  ESPECIAIS NÍVEL 4 ATIVOS AUTOMATICAMENTE' +
-      '  •  NÍVEIS 9–10 AINDA NÃO JOGÁVEIS');
+      '  •  ARENA LIVRE: GERAR INIMIGOS MANUALMENTE  •  NÍVEIS 9–10 EM BREVE');
   }
 }
