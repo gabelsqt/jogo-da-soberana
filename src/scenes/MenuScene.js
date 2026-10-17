@@ -46,8 +46,8 @@ export class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(22);
 
     const startGame = () => this.scene.start('GameScene', { mode: 'wave0' });
-    const testEnemies = () => this.scene.start('GameScene', { mode: 'lab' });
-    const testUpgrades = () => this.scene.start('GameScene', { mode: 'upgradeLab' });
+    const testEnemies = () => this.scene.start('LabSetupScene');
+    const testUpgrades = () => this.scene.start('LabSetupScene');
     addMenuButton(this, {
       x: W / 2, y: 229, text: '▶  COMEÇAR', onClick: startGame, primary: true,
       depth: 23,
@@ -55,12 +55,12 @@ export class MenuScene extends Phaser.Scene {
 
     addMenuButton(this, {
       x: W / 2, y: 288, width: 300,
-      text: 'TESTAR INIMIGOS [T]', onClick: testEnemies, depth: 23,
+      text: 'LABORATÓRIO [T]', onClick: testEnemies, depth: 23,
     });
 
     addMenuButton(this, {
       x: W / 2, y: 347, width: 320,
-      text: 'TESTAR UPGRADES [U]', onClick: testUpgrades, depth: 23,
+      text: 'CONFIGURAR TESTES [U]', onClick: testUpgrades, depth: 23,
     });
 
     this.add.text(W / 2, 413,

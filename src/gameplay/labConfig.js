@@ -1,0 +1,32 @@
+// Configuração livre do laboratório. Nenhum limite de escolhas da campanha.
+export const LAB_COUNTRIES = ['br', 'us', 'jp', 'ru', 'cn'];
+export const LAB_MAX_LEVEL = 4;
+export const LAB_MAX_TOWERS = 2;
+export const LAB_MAX_WAVE = 9;
+
+export function normalizeLabConfig(input = {}) {
+  const wave = Math.max(0, Math.min(LAB_MAX_WAVE, Math.trunc(Number(input.wave) || 0)));
+  const levels = Object.fromEntries(LAB_COUNTRIES.map(id => [
+    id, Math.max(0, Math.min(LAB_MAX_LEVEL, Math.trunc(Number(input.levels?.[id]) || 0))),
+  ]));
+  return { wave, levels };
+}
+
+export function configuredTowerCountries(config) {
+  const { levels } = normalizeLabConfig(config);
+  return LAB_COUNTRIES.filter(id => levels[id] >= 3);
+}
+
+export function changeLabLevel(config, country, delta) {
+  const current = normalizeLabConfig(config);
+  if (!LAB_COUNTRIES.includes(country)) return current;
+  const next = Math.max(0, Math.min(LAB_MAX_LEVEL, current.levels[country] + delta));
+  const levels = { ...current.levels, [country]: next };
+  if (LAB_COUNTRIES.filter(id => levels[id] >= 3).length > LAB_MAX_TOWERS) return current;
+  return { wave: current.wave, levels };
+}
+
+export function changeLabWave(config, delta) {
+  const current = normalizeLabConfig(config);
+  return { ...current, wave: Math.max(0, Math.min(LAB_MAX_WAVE, current.wave + delta)) };
+}
