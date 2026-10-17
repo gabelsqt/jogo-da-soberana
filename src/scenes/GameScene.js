@@ -475,8 +475,9 @@ export class GameScene extends Phaser.Scene {
       // Sem alvo adequado, a carga chega a 100% e fica armazenada.
       // A seleção não detecta inimigos na faixa cega superior.
       const enemy = chooseSuitableTowerTarget(tower, this.enemies, TOWER_BLIND_ZONE_Y, 390, W, H);
-      if (enemy) tower.visual.aimAt(enemy.sprite.x, enemy.sprite.y, dt);
-      if (!enemy || towerChargeProgress(
+      const aimed = enemy ? tower.visual.aimAt(enemy.sprite.x, enemy.sprite.y, dt) : false;
+      // Não dispara até que a arma esteja apontada para o alvo.
+      if (!enemy || !aimed || towerChargeProgress(
         tower.lastAttackAt, this.time.now, tower.definition.interval,
       ) < 1) continue;
       tower.lastAttackAt = this.time.now;
