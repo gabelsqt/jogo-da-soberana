@@ -61,10 +61,42 @@ export function towerBlindZoneY(playfieldHeight) {
   return Math.round(playfieldHeight * TOWER_RADAR_BLIND_FRACTION);
 }
 
-export function towerSeesEnemy(enemy, blindZoneY) {
+export function towerSeesEnemy(enemy, blindZoneY, playfieldWidth = Infinity) {
   const x = enemy?.sprite?.x ?? enemy?.x;
   const y = enemy?.sprite?.y ?? enemy?.y;
-  return Number.isFinite(x) && Number.isFinite(y) && y >= blindZoneY;
+  return Number.isFinite(x) && Number.isFinite(y) &&
+    y >= blindZoneY && x >= 0 && x <= playfieldWidth;
+}
+
+// Todos os projéteis físicos das torres seguem o alvo a cada quadro.
+// Limitar o passo à distância restante evita ultrapassar ou oscilar
+// ao redor de uma nave quando ela muda de direção.
+export function advanceGuidedTowerShot(x, y, targetX, targetY, speed, dt) {
+  const dx = targetX - x, dy = targetY - y;
+  const distance = Math.hypot(dx, dy);
+  if (distance <= 0) return { x, y, vx: 0, vy: 0 };
+  const velocity = Math.max(0, speed) / distance;
+  const factor = Math.min(1, Math.max(0, dt) * Math.max(0, speed) / distance);
+  return { x: x + dx * factor, y: y + dy * factor,
+    vx: dx * velocity, vy: dy * velocity };
+}
+
+// Ao perder o alvo, a munição procura o inimigo elegível mais próximo,
+// priorizando blindados no caso das Destruidoras. Nunca busca na zona cega.
+export function chooseTowerHomingTarget(x, y, enemies, blindZoneY, playfieldWidth, role = 'swarm') {
+  const visible = enemies.filter(enemy =>
+    towerSeesEnemy(enemy, blindZoneY, playfieldWidth));
+  if (!visible.length) return null;
+  const preferred = role === 'destroyer'
+    ? visible.filter(enemy => enemy.type === 5 || enemy.type === 3 || (enemy.hp ?? 0) >= 4)
+    : visible;
+  const candidates = preferred.length ? preferred : visible;
+  return candidates.reduce((closest, candidate) => {
+    const distance = Math.hypot((candidate.sprite?.x ?? candidate.x) - x,
+      (candidate.sprite?.y ?? candidate.y) - y);
+    return !closest || distance < closest.distance
+      ? { enemy: candidate, distance } : closest;
+  }, null).enemy;
 }
 
 export function towerChargeProgress(lastAttackAt, now, interval) {
@@ -74,10 +106,10 @@ export function towerChargeProgress(lastAttackAt, now, interval) {
 // Só considera inimigos dentro do radar e do alcance. Destruidoras esperam
 // blindados/bombardeiros; Antienxame espera grupos. Ambas podem reagir a uma
 // ameaça isolada se ela estiver muito próxima das defesas.
-export function chooseSuitableTowerTarget(tower, enemies, blindZoneY, dangerY = 390) {
+export function chooseSuitableTowerTarget(tower, enemies, blindZoneY, dangerY = 390, playfieldWidth = Infinity) {
   const { x, y, role, definition } = tower;
   const visible = enemies.filter(enemy =>
-    towerSeesEnemy(enemy, blindZoneY) &&
+    towerSeesEnemy(enemy, blindZoneY, playfieldWidth) &&
     Math.hypot(x - (enemy.sprite?.x ?? enemy.x), (y - 22) - (enemy.sprite?.y ?? enemy.y)) <= definition.range,
   );
   if (!visible.length) return null;
