@@ -76,3 +76,7 @@ Não selecionar as alternativas K–N. Voltar à definição da experiência de 
 ## Decisão 82 — Brasil 2: dano baixo por fogo
 
 **Opção A aprovada:** cada explosão periférica do Arraial Balístico causa **dano baixo**, favorecendo controle de enxames e eliminação de inimigos frágeis, com eficácia limitada contra naves resistentes. Mantêm-se núcleo suspenso, duração de 4 segundos, fogos em círculo de alcance 100 px com ritmo crescente e grande explosão final. Valores numéricos do dano e o dano da explosão final ainda não definidos. **Somente GDD, sem implementar código.**
+
+## Decisão 83 — Brasil 2: explosão final concentrada
+
+**Opção B aprovada:** após os 4 segundos de fogos periféricos de dano baixo, o núcleo termina com **grande explosão concentrada de dano elevado nas proximidades do centro**, recompensando posicionamento preciso. Raio e dano numérico ainda sujeitos a ajuste. A decisão não transforma a explosão final em dano uniforme por toda a região de 100 px. Próxima decisão: benefício complementar do escudo. Apenas documentação; sem código.
