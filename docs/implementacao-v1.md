@@ -18,3 +18,9 @@ Branch separada de `feat/enxames-esquadrilhas-v035`, preservando o jogo antigo.
 - Fluxo cinematográfico, Cubo News e alterações posteriores da tela CRT permanecem pendentes conforme outras decisões do GDD.
 
 **Não mesclar esta branch sem playtest e revisão.**
+
+## Decisão 69 — Redesign significativo dos upgrades (APROVADA, 17/10/2026)
+
+**Opção B — Evolução marcante.** Manter a arquitetura de 5 países × 10 níveis e o tema central de cada tecnologia, mas reprojetar cada upgrade individual para ter mudanças perceptíveis **mecânicas, visuais e estratégicas**. Preservar o canhão brasileiro como plataforma central; efeitos e cores de diferentes países devem coexistir. Cada escolha deve ter função própria, boa leitura visual e sinergias com escolhas de outros países; evitar melhorias que consistam apenas em bônus numéricos invisíveis. Manter níveis ímpares 1/3/5/7 centrados no tiro principal, pares 2/4/6/8 no especial/escudo, nível 9 suprema e nível 10 transformação final. Preservar geração adicional de projéteis limitada a uma etapa e salvaguardas de desempenho.
+
+**Estado:** somente diretriz de planejamento aprovada. As propostas detalhadas de cada nível, começando por Brasil 1 — *Gambiarra Balística*, exigem decisão separada. **Não implementar nem alterar código de gameplay durante esta revisão.**
