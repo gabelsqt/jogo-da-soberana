@@ -8,37 +8,44 @@ import {
   enemyStats,
 } from '../src/gameplay/enemies.js';
 
-test('Tipo 3 paira 6 s e lança bombas a cada 3 s em todos os níveis', () => {
-  assert.equal(BOMBER_HOVER_SECONDS, 6);
+test('Tipo 3 paira 12 s e lança quatro salvas a cada 3 s em todos os níveis', () => {
+  assert.equal(BOMBER_HOVER_SECONDS, 12);
   assert.equal(BOMBER_SHOT_INTERVAL_SECONDS, 3);
   for (const level of [1, 2, 3, 4, 8, 10]) {
     const bomber = enemyStats(3, level);
-    assert.equal(bomber.bomberHoverDuration, 6);
+    assert.equal(bomber.bomberHoverDuration, 12);
     assert.equal(bomber.shotInterval, 3);
   }
 });
 
-test('durante o primeiro ciclo, há salvas aos 3 e 6 segundos e depois retirada', () => {
+test('ciclo de 12 segundos: quatro salvas, recuo somente após a quarta', () => {
   let age = 0, timer = 0;
   const moments = [];
-  for (let tick = 0; tick < 360; tick += 1) {
+  for (let tick = 0; tick < 720; tick += 1) {
     age += 1 / 60;
     const step = advanceBomberHover(timer, age, 1 / 60);
     timer = step.shotTimer;
     for (let i = 0; i < step.shots; i += 1) moments.push(age);
-    if (tick < 359) assert.equal(step.retreat, false);
-    else assert.equal(step.retreat, true);
+    assert.equal(step.retreat, tick === 719,
+      'não deve recuar antes da quarta salva aos 12 s');
   }
-  assert.equal(moments.length, 2);
-  assert.ok(Math.abs(moments[0] - 3) < 1e-8);
-  assert.ok(Math.abs(moments[1] - 6) < 1e-8);
+  assert.equal(moments.length, 4);
+  for (let i = 0; i < 4; i += 1) {
+    assert.ok(Math.abs(moments[i] - (i + 1) * 3) < 1e-8);
+  }
 });
 
-test('o relógio zera quando o bombardeiro retoma outro ciclo', () => {
-  const first = advanceBomberHover(0, 3, 3);
-  assert.deepEqual(first, { shots: 1, shotTimer: 0, retreat: false });
-  const second = advanceBomberHover(first.shotTimer, 6, 3);
-  assert.deepEqual(second, { shots: 1, shotTimer: 0, retreat: true });
+test('timer de ataque reinicia corretamente a cada novo ciclo', () => {
+  let timer = 0;
+  for (let salvo = 1; salvo <= 4; salvo += 1) {
+    const step = advanceBomberHover(timer, salvo * 3, 3);
+    assert.deepEqual(step, {
+      shots: 1,
+      shotTimer: 0,
+      retreat: salvo === 4,
+    });
+    timer = step.shotTimer;
+  }
   const restart = advanceBomberHover(0, 1, 1);
   assert.deepEqual(restart, { shots: 0, shotTimer: 1, retreat: false });
 });
