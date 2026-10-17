@@ -214,7 +214,8 @@ export function scheduledEnemyCount(events) {
   // Uma entrada da agenda pode representar vários OVNIs simultâneos.
   return events.reduce((total, event) => {
     if (event.pattern === 'spread' || event.pattern === 'line' ||
-        event.pattern === 'orbit') return total + event.count;
+        event.pattern === 'orbit' || event.pattern === 'swarm' ||
+        event.pattern === 'tactical') return total + event.count;
     if (event.pattern === 'pincer' && event.type === 4) return total + 2;
     if (event.pattern === 'escort' && event.type === 3) return total + 1 + event.count;
     if (event.pattern === 'bomberFan' && event.type === 3) return total + event.count;
