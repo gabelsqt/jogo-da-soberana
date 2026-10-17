@@ -21,6 +21,7 @@ import {
 import {
   ENEMY_SHOT_COLOR, enemyStats, enemyContactRadius,
   lineFormationX, orbitalFormationPosition, bossCruiseX, minibossSummonCount,
+  advanceBomberHover,
 } from '../gameplay/enemies.js';
 import {
   hitProfileFor, hitReactionAt, deathProfileFor,
@@ -1181,12 +1182,15 @@ export class GameScene extends Phaser.Scene {
         // Tipo 3: ataca a MESMA defesa durante seis segundos.
         // Faz duas salvas, aos 3 s e 6 s; não mergulha nem some ao fim.
         enemy.sprite.x += Math.sin(enemy.age * 1.2) * 15 * dt;
-        enemy.shotTimer += dt;
-        if (enemy.shotTimer >= enemy.definition.shotInterval) {
-          enemy.shotTimer -= enemy.definition.shotInterval;
+        const hover = advanceBomberHover(
+          enemy.shotTimer, enemy.phaseAge, dt,
+          enemy.definition.shotInterval, enemy.definition.bomberHoverDuration,
+        );
+        enemy.shotTimer = hover.shotTimer;
+        for (let salvo = 0; salvo < hover.shots; salvo += 1) {
           this.fireEnemyProjectile(enemy, enemy.target);
         }
-        if (enemy.phaseAge >= enemy.definition.bomberHoverDuration) {
+        if (hover.retreat) {
           enemy.phase = 'retreat';
           enemy.phaseAge = 0;
           this.setRoute(enemy, enemy.sprite.x, -78);
