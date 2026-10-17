@@ -1,0 +1,53 @@
+name: Game Soberana — Playtest v1 (Pages)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/pages-v1-main.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: soberana-v1-pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Obter apenas a versão de teste da branch isolada
+        uses: actions/checkout@v4
+        with:
+          ref: feat/v1-upgrades-64-68
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências
+        run: npm ci
+      - name: Executar testes
+        run: npm test
+      - name: Compilar HTML autônomo para teste
+        run: npm run build:itch
+      - name: Preparar o GitHub Pages
+        run: |
+          mkdir -p pages-site
+          cp itch-build/index.html pages-site/index.html
+          touch pages-site/.nojekyll
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+      - name: Empacotar página
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages-site
+      - name: Publicar jogo
+        id: deployment
+        uses: actions/deploy-pages@v4
