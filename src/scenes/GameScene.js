@@ -1294,8 +1294,8 @@ export class GameScene extends Phaser.Scene {
           enemy.shotTimer = 0;
         }
       } else if (enemy.phase === 'hover') {
-        // Tipo 3: ataca a MESMA defesa durante seis segundos.
-        // Faz duas salvas, aos 3 s e 6 s; não mergulha nem some ao fim.
+        // Tipo 3: ataca a MESMA defesa durante doze segundos.
+        // Quatro salvas aos 3, 6, 9 e 12 s antes de se retirar pelo topo.
         enemy.sprite.x += Math.sin(enemy.age * 1.2) * 15 * dt;
         const hover = advanceBomberHover(
           enemy.shotTimer, enemy.phaseAge, dt,
