@@ -46,3 +46,7 @@ O usuário escolheu **D — explorar outras ideias** em vez de aprovar as três 
 ## Decisão 74 — Brasil 2: J, explorar outra direção (17/10/2026)
 
 As propostas E–H para Brasil 2 não foram escolhidas. Continuar exploração de conceito sem aprovar uma mecânica ainda. Brasil 2 deve criar interação significativa entre tiro especial e escudo, sem introduzir a temática elétrica reservada a Brasil 4 (eletricidade ativa), Brasil 6 (descargas em cadeia) e Brasil 8 (defesa elétrica avançada). A revisão permanece estritamente documental; nenhuma alteração no código.
+
+## Decisão 75 — P: reconsiderar a abordagem de Brasil 2
+
+Não selecionar as alternativas K–N. Voltar à definição da experiência de jogo antes de especificar mecânicas. Três direções para discussão: controle direto do tiro especial; risco e recompensa com recursos do escudo/canhão; transformação perceptível do especial com benefício defensivo complementar. Brasil 2 permanece **em aberto**, preservando por ora a posição de upgrade especial/escudo nos níveis pares e reservando eletricidade para Brasil 4/6/8. Nenhuma implementação autorizada.
