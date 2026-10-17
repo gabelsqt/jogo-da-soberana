@@ -61,11 +61,11 @@ export function towerBlindZoneY(playfieldHeight) {
   return Math.round(playfieldHeight * TOWER_RADAR_BLIND_FRACTION);
 }
 
-export function towerSeesEnemy(enemy, blindZoneY, playfieldWidth = Infinity) {
+export function towerSeesEnemy(enemy, blindZoneY, playfieldWidth = Infinity, playfieldHeight = Infinity) {
   const x = enemy?.sprite?.x ?? enemy?.x;
   const y = enemy?.sprite?.y ?? enemy?.y;
   return Number.isFinite(x) && Number.isFinite(y) &&
-    y >= blindZoneY && x >= 0 && x <= playfieldWidth;
+    y >= blindZoneY && y <= playfieldHeight && x >= 0 && x <= playfieldWidth;
 }
 
 // Todos os projéteis físicos das torres seguem o alvo a cada quadro.
@@ -83,9 +83,9 @@ export function advanceGuidedTowerShot(x, y, targetX, targetY, speed, dt) {
 
 // Ao perder o alvo, a munição procura o inimigo elegível mais próximo,
 // priorizando blindados no caso das Destruidoras. Nunca busca na zona cega.
-export function chooseTowerHomingTarget(x, y, enemies, blindZoneY, playfieldWidth, role = 'swarm') {
+export function chooseTowerHomingTarget(x, y, enemies, blindZoneY, playfieldWidth, role = 'swarm', playfieldHeight = Infinity) {
   const visible = enemies.filter(enemy =>
-    towerSeesEnemy(enemy, blindZoneY, playfieldWidth));
+    towerSeesEnemy(enemy, blindZoneY, playfieldWidth, playfieldHeight));
   if (!visible.length) return null;
   const preferred = role === 'destroyer'
     ? visible.filter(enemy => enemy.type === 5 || enemy.type === 3 || (enemy.hp ?? 0) >= 4)
@@ -106,10 +106,10 @@ export function towerChargeProgress(lastAttackAt, now, interval) {
 // Só considera inimigos dentro do radar e do alcance. Destruidoras esperam
 // blindados/bombardeiros; Antienxame espera grupos. Ambas podem reagir a uma
 // ameaça isolada se ela estiver muito próxima das defesas.
-export function chooseSuitableTowerTarget(tower, enemies, blindZoneY, dangerY = 390, playfieldWidth = Infinity) {
+export function chooseSuitableTowerTarget(tower, enemies, blindZoneY, dangerY = 390, playfieldWidth = Infinity, playfieldHeight = Infinity) {
   const { x, y, role, definition } = tower;
   const visible = enemies.filter(enemy =>
-    towerSeesEnemy(enemy, blindZoneY, playfieldWidth) &&
+    towerSeesEnemy(enemy, blindZoneY, playfieldWidth, playfieldHeight) &&
     Math.hypot(x - (enemy.sprite?.x ?? enemy.x), (y - 22) - (enemy.sprite?.y ?? enemy.y)) <= definition.range,
   );
   if (!visible.length) return null;
