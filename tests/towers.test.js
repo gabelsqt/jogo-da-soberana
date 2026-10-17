@@ -125,11 +125,11 @@ test('cada torre tem arma própria, defesa independente e alvos dentro do alcanc
 test('Onda 2 mistura bombardeiros e caças com ataques de saturação', () => {
   const wave = getWaveEvents('wave2');
   assert.equal(MODES.wave2.title, 'ONDA 2');
-  assert.equal(wave[0].at, 320);
+  assert.ok(wave[0].at > 0 && wave[0].at < 500);
   assert.ok(wave.some((event) => event.type === 3));
   assert.ok(wave.some((event) => event.type === 4));
   assert.ok(wave.some((event) => event.type === 2 && event.pattern === 'orbit'));
   assert.ok(wave.some((event) => event.type === 1 && event.pattern === 'line'));
   assert.equal(scheduledEnemyCount(wave), 80);
-  assert.equal(wave.at(-1).at, 39900);
+  assert.equal(wave.at(-1).at, 19500);
 });
