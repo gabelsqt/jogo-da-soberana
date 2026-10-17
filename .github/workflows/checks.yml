@@ -26,3 +26,10 @@ jobs:
             echo "Ainda há referência a JS externo no HTML único"
             exit 1
           fi
+
+      - name: Disponibilizar jogo HTML para teste
+        uses: actions/upload-artifact@v4
+        with:
+          name: soberana-v1-playtest
+          path: itch-build/index.html
+          retention-days: 14
