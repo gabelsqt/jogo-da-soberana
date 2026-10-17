@@ -23,7 +23,7 @@ export class LabSetupScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(35);
     this.drawButton(635, 125, '▶', () => this.setConfig(changeLabWave(this.config, 1)), 64);
 
-    this.add.text(W / 2, 174, 'NÍVEIS DE CADA PAÍS (0–4)', {
+    this.add.text(W / 2, 174, 'NÍVEIS DE CADA PAÍS (0–5)', {
       fontFamily: 'monospace', fontSize: '16px', color: '#ecf5fa',
     }).setOrigin(0.5).setDepth(35);
     this.levelTexts = {};
@@ -39,8 +39,8 @@ export class LabSetupScene extends Phaser.Scene {
       this.drawButton(682, y, '+', () => {
         const updated = changeLabLevel(this.config, country.id, 1);
         if (updated.levels[country.id] === this.config.levels[country.id] &&
-          this.config.levels[country.id] === 2) {
-          this.infoText.setText('LIMITE DE DUAS TORRES. REDUZA OUTRO PAÍS ABAIXO DO NÍVEL 3.');
+          this.config.levels[country.id] === 4) {
+          this.infoText.setText('LIMITE DE DUAS TORRES. REDUZA OUTRO PAÍS ABAIXO DO NÍVEL 5.');
         } else this.setConfig(updated);
       }, 49);
     });
@@ -74,6 +74,6 @@ export class LabSetupScene extends Phaser.Scene {
     }
     const towers = configuredTowerCountries(this.config);
     this.infoText.setText('TORRES: ' + towers.length + '/2  •  ESPECIAIS NÍVEL 4 ATIVOS AUTOMATICAMENTE' +
-      '  •  NÍVEIS 5–10 AINDA NÃO JOGÁVEIS');
+      '  •  NÍVEIS 6–10 AINDA NÃO JOGÁVEIS');
   }
 }
