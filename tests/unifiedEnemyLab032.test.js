@@ -35,9 +35,9 @@ test('cinco botões invocam tipos 1–5, inclusive formação e níveis superior
       assert.equal(scheduledEnemyCount([event])>0,true);
     }
   }
-  assert.deepEqual(labEnemyEvent(2,1),{type:2,level:1,group:true,count:3});
-  assert.deepEqual(labEnemyEvent(2,2),{type:2,level:2,pattern:'orbit',count:10});
-  assert.deepEqual(labEnemyEvent(1,2),{type:1,level:2,pattern:'line',count:10});
+  assert.deepEqual(labEnemyEvent(2,1),{type:2,level:1,pattern:'tactical',group:true,count:3});
+  assert.deepEqual(labEnemyEvent(2,2),{type:2,level:2,pattern:'tactical',group:true,count:4});
+  assert.deepEqual(labEnemyEvent(1,2),{type:1,level:2,pattern:'swarm',count:5});
   assert.equal(labEnemyEvent(3,2)?.pattern,undefined);
   assert.equal(labEnemyEvent(0,2),null);
   assert.equal(labEnemyEvent(6,2),null);
