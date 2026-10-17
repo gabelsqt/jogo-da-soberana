@@ -93,12 +93,9 @@ test('bloqueia a terceira torre no nível 5, mantendo outros upgrades', () => {
   const two = { choices: [...Array(5).fill('br'), ...Array(5).fill('us')] };
   assert.equal(MAX_SUPPORT_TOWERS, 2);
   assert.deepEqual(activeTowerCountries(two), ['br','us']);
-  const state = { choices: [...two.choices, ...Array(4).fill('jp')] };
-  const option = nextUpgradeOptions(state).find(item => item.id === 'jp');
-  assert.equal(option.level, 5);
-  assert.equal(option.locked, true);
-  assert.equal(option.reason, 'DUAS TORRES JÁ INSTALADAS');
-  assert.equal(chooseCampaignUpgrade(state,'jp'), null);
+  assert.equal(chooseCampaignUpgrade(two, 'jp'), null, 'a campanha tem dez escolhas');
+  assert.equal(nextUpgradeOptions(two).find(item => item.id === 'jp').level, 1);
+  assert.equal(nextUpgradeOptions(two).find(item => item.id === 'br').level, 6);
   assert.equal(canInstallTower(['br','us'],'jp'), false);
   assert.equal(canInstallTower(['br','us'],'br'), true);
 });
