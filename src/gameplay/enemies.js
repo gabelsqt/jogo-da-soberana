@@ -42,7 +42,7 @@ export function advanceBomberHover(shotTimer, phaseAge, dt,
   return {
     shots,
     shotTimer: Math.max(0, timer - shots * interval),
-    retreat: phaseAge >= duration,
+    retreat: phaseAge + 1e-8 >= duration,
   };
 }
 
