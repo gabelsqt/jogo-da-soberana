@@ -13,7 +13,7 @@ export function labEnemyEvent(type, level = 1) {
   return {
     type, level: tier,
     ...(type === 1 ? { pattern: 'swarm',
-      count: Math.min(20, 3 + Math.round((tier - 1) * 17 / 9)) } : {}),
+      count: Math.min(18, 3 + Math.round((tier - 1) * 15 / 9)) } : {}),
     ...(type === 2 ? { pattern: 'tactical', group: true,
       count: Math.min(8, 3 + Math.round((tier - 1) * 5 / 9)) } : {}),
   };
