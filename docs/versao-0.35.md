@@ -53,6 +53,6 @@ Implementação em PR draft, aguardando avaliação visual e de balanceamento.
 - Arena Livre, Tipo 1 nível 10: **18 naves** (antes 20).
 - Vida do Tipo 1 por nível 1–10: **1, 2, 2, 3, 3, 3, 4, 4, 4, 4 HP** (antes 1 até 10 HP, aumentando 1 por nível).
 - Tipos 2 a 5 não alterados. Dificuldade do Tipo 1 continua vindo principalmente da quantidade e da coreografia, não de um HP alto.
-- **Reteste 14B pendente**, conferir sensação de jogo e desempenho; preservar Teste 14 como PARCIAL.
+- **Teste 14B — PASSOU** (confirmado pelo usuário): quantidade de 18 naves e resistência de 4 HP no nível 10 aprovadas; manter os novos valores. Teste 14 original permanece como histórico PARCIAL.
 
-**Status:** código/testes automatizados concluídos; validação visual/manual e ajustes de balanceamento pendentes.
+**Status:** Tipo 1 validado no Teste 14B. Próxima verificação: **Teste 15 — manobras e ataque em formação dos Tipo 2**, seguido de balanceamento da campanha.
