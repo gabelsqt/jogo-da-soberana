@@ -45,6 +45,7 @@ import {
 } from '../gameplay/waves.js';
 import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
@@ -282,6 +283,9 @@ export class GameScene extends Phaser.Scene {
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
+    // A batalha é vista como transmissão de TV. O filtro é somente visual:
+    // fica acima das naves, mas abaixo dos textos e controles do HUD.
+    this.crtOverlay = createCombatCrtOverlay(this, W, H);
     if (this.unifiedLab) this.createEnemyLabPanel();
     this.drawShield();
 
@@ -2929,6 +2933,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time, delta) {
+    // Também anima durante a contagem 3–2–1 e as telas de resultado,
+    // sem consumir eventos de mouse e sem alterar o ritmo do combate.
+    this.crtOverlay?.update(this.time.now);
     const pointer = this.input.activePointer;
     this.drawSpecialAim(pointer);
     if (this.tutorialComplete) {
