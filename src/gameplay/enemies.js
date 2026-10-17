@@ -30,6 +30,11 @@ export const ENEMY_TYPES = {
   },
 };
 
+// Ciclo do Bombardeiro Tipo 3: sobrevoa uma defesa por seis segundos,
+// solta uma bomba a cada três segundos e então se afasta para retornar.
+export const BOMBER_HOVER_SECONDS = 6;
+export const BOMBER_SHOT_INTERVAL_SECONDS = 3;
+
 export const ENEMY_SHOT_COLOR = 0xffda6d;
 
 export function enemyDefinition(type) {
@@ -82,7 +87,7 @@ export function enemyStats(type, level = 1) {
     color: tint ?? base.color,
     tintColor: tint ?? (advanced ? 0xffd5a0 : 0xffffff),
     speed: Math.round(base.speed * (advanced ? 1.17 : 1)),
-    shotInterval: type === 3 ? (advanced ? 1.7 : 2.4)
+    shotInterval: type === 3 ? BOMBER_SHOT_INTERVAL_SECONDS
       : type === 5 ? (advanced ? 2.1 : 2.8) : null,
     // A partir do nível 2, bombardeiros soltam duas bombas convergentes.
     volleyCount: type === 3 && advanced ? 2 : 1,
@@ -91,7 +96,7 @@ export function enemyStats(type, level = 1) {
     warningDuration: type === 4 ? (advanced ? 0.85 : 1.4) : null,
     // No nível 3+, a formação e o bombardeiro mantêm pressão por mais tempo.
     formationWaitBonus: tier >= 3 ? 1.8 : 0,
-    bomberHoverDuration: tier >= 3 ? 12.5 : advanced ? 9 : 11,
+    bomberHoverDuration: BOMBER_HOVER_SECONDS,
     fighterExtraPasses: tier >= 3 ? 1 : 0,
   };
 }
