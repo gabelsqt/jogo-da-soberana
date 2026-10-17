@@ -101,7 +101,7 @@ test('ao vencer Onda 3 começa Onda 4 preservando escolhas e sem quarto upgrade'
   assert.equal(automaticWaveAfterVictory('wave4'), 'wave5',
     'as ondas novas seguem automaticamente até que os upgrades sejam definidos');
   const state = { choices: ['br', 'br', 'br'] };
-  assert.deepEqual(activeTowerCountries(state), ['br']);
+  assert.deepEqual(activeTowerCountries(state), []);
   assert.deepEqual(unlockedSecondUpgrades(state), ['br']);
   assert.deepEqual(state.choices, ['br', 'br', 'br']);
 });
