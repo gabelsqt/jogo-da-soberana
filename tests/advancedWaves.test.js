@@ -30,8 +30,8 @@ function scheduledComposition(events) {
 }
 
 const expected = {
-  wave5: { level: 4, seconds: 79, counts: [40, 32, 5, 6, 0], total: 83,
-    last: 74000, title: 'ONDA 5 — CERCO AÉREO' },
+  wave5: { level: 4, seconds: 48, counts: [28, 15, 3, 3, 0], total: 49,
+    last: 44500, title: 'ONDA 5 — CERCO AÉREO' },
   wave6: { level: 5, seconds: 82, counts: [45, 17, 9, 6, 0], total: 77,
     last: 75000, title: 'ONDA 6 — CHUVA DE FERRO' },
   wave7: { level: 6, seconds: 90, counts: [44, 28, 2, 4, 0], total: 78,
@@ -70,10 +70,10 @@ test('as cinco ondas têm identidades próprias e usam só inimigos conhecidos',
   const w8 = getWaveEvents('wave8');
   const w9 = getWaveEvents('wave9');
 
-  assert.equal(w5.filter((e) => e.pattern === 'escort').length, 3,
-    'Onda 5: 3 bombardeiros com escoltas Tipo 2');
+  assert.equal(w5.filter((e) => e.pattern === 'escort').length, 2,
+    'Onda 5: 2 bombardeiros com escoltas Tipo 2');
   assert.deepEqual(w5.filter((e) => e.pattern === 'escort').map((e) => e.center),
-    [350, 610, 470]);
+    [350, 610]);
   assert.equal(w6.filter((e) => e.pattern === 'bomberFan').length, 2,
     'Onda 6: duas formações de três bombardeiros');
   assert.equal(w7.filter((e) => e.pattern === 'orbit').length, 2,

@@ -32,6 +32,7 @@ import {
 import {
   MODES, getWaveEvents, waveIsFinished, WAVE_COUNTDOWN_SECONDS,
 } from '../gameplay/waves.js';
+import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
@@ -91,6 +92,7 @@ export class GameScene extends Phaser.Scene {
       ? { choices: [data.upgradeId] } : {};
     this.campaign = normalizeCampaignState(data.campaign ?? legacy);
     this.upgradeId = this.campaign.choices.at(-1) ?? null;
+    this.fourthIds = this.mode === 'upgradeLab' ? [] : unlockedFourthUpgradeCountries(this.campaign);
     this.upgradeIds = this.mode === 'upgradeLab'
       ? normalizeLabUpgrades(data.upgradeIds) : [];
     this.labSecondIds = this.mode === 'upgradeLab'
@@ -1794,6 +1796,47 @@ export class GameScene extends Phaser.Scene {
     );
     this.lastSpecialFire = this.time.now;
     this.createProjectile(target.angle, true, target.distance);
+    // Coreia 4: raio no trajeto, mantendo a detonação no ponto marcado.
+    if (this.fourthIds.includes('jp')) this.fireSpecialLaser(target);
+  }
+
+  fireSpecialLaser(target) {
+    const originX = CANNON.x;
+    const originY = CANNON.y;
+    const beam = this.add.graphics().setDepth(48);
+    beam.lineStyle(16, 0x55ddff, 0.28);
+    beam.lineBetween(originX, originY, target.x, target.y);
+    beam.lineStyle(4, 0xf3ffff, 1);
+    beam.lineBetween(originX, originY, target.x, target.y);
+    for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
+      const enemy = this.enemies[i];
+      if (laserHitsTarget(originX, originY, target.x, target.y,
+        enemy.sprite.x, enemy.sprite.y, 9, enemyContactRadius(enemy.type))) {
+        this.impactInvader(i, 2, 0, '#bcfaff');
+      }
+    }
+    this.tweens.add({ targets: beam, alpha: 0, duration: 240,
+      onComplete: () => beam.destroy() });
+  }
+
+  launchSpecialDrone(x, y, country) {
+    const target = chooseTowerAttackTarget(x, y, this.enemies, 1050);
+    if (!target) return;
+    const color = country === 'br' ? 0x45ebae : 0xffc65d;
+    const bullet = this.add.circle(x, y, country === 'br' ? 7 : 5, color)
+      .setStrokeStyle(2, 0xffffff, 0.85).setDepth(44);
+    const dx = target.sprite.x - x;
+    const dy = target.sprite.y - y;
+    const distance = Math.max(1, Math.hypot(dx, dy));
+    const speed = country === 'br' ? 340 : 390;
+    this.supportProjectiles.push({
+      sprite: bullet, targetId: target.uid, guided: true,
+      age: 0, speed, weapon: {
+        type: 'drone', damage: country === 'br' ? 2 : 1.25,
+        color, knockback: 0,
+      },
+      vx: dx / distance * speed, vy: dy / distance * speed,
+    });
   }
 
   createProjectile(angle, special, distance = 0, effects = null, centerGlow = false) {
@@ -1870,6 +1913,44 @@ export class GameScene extends Phaser.Scene {
       hits: new Set(),
       graphics: this.add.graphics().setDepth(39),
     });
+    // EUA 4: explosão adicional ampla, sem reações em cadeia.
+    if (this.fourthIds.includes('us')) {
+      for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
+        const enemy = this.enemies[i];
+        if (Math.hypot(enemy.sprite.x - x, enemy.sprite.y - y)
+          <= 170 + enemyContactRadius(enemy.type)) {
+          this.impactInvader(i, 1.5, 0, '#ffbb81');
+        }
+      }
+      const shockwave = this.add.circle(x, y, 170, 0xffa057, 0.13)
+        .setStrokeStyle(4, 0xffd5aa).setDepth(38);
+      this.tweens.add({ targets: shockwave, alpha: 0, scale: 1.15,
+        duration: 450, onComplete: () => shockwave.destroy() });
+    }
+    // Rússia 4: três bombas derivadas. Não reativam os efeitos de outros países.
+    if (this.fourthIds.includes('ru')) {
+      for (const [dx, dy] of [[-85, -30], [0, -90], [85, -30]]) {
+        const blast = this.add.circle(x + dx, y + dy, 38, 0xff7050, 0.25)
+          .setStrokeStyle(2, 0xffc69b).setDepth(39);
+        this.tweens.add({ targets: blast, alpha: 0, scale: 1.3, duration: 360,
+          onComplete: () => blast.destroy() });
+        for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
+          const enemy = this.enemies[i];
+          if (Math.hypot(enemy.sprite.x - (x + dx), enemy.sprite.y - (y + dy))
+            <= 38 + enemyContactRadius(enemy.type)) {
+            this.impactInvader(i, 1.25, 0, '#ffbd93');
+          }
+        }
+      }
+    }
+    if (this.fourthIds.includes('br')) this.launchSpecialDrone(x, y, 'br');
+    if (this.fourthIds.includes('cn')) {
+      for (let i = 0; i < 3; i += 1) {
+        this.time.delayedCall(i * 125, () => {
+          if (!this.tutorialComplete) this.launchSpecialDrone(x + (i - 1) * 18, y, 'cn');
+        });
+      }
+    }
   }
 
   hitEnemyWithBlast(index) {
@@ -2288,7 +2369,7 @@ export class GameScene extends Phaser.Scene {
     if (this.tutorialComplete) return;
     this.tutorialComplete = true;
 
-    if (this.mode === 'wave0' || this.mode === 'wave1' || this.mode === 'wave2') {
+    if (/^wave[0-8]$/.test(this.mode)) {
       this.scene.start('UpgradeScene', {
         campaign: this.campaign,
         completedWave: Number(this.mode.at(-1)),
@@ -2297,7 +2378,7 @@ export class GameScene extends Phaser.Scene {
     }
     const automaticNext = automaticWaveAfterVictory(this.mode);
     if (automaticNext) {
-      // Ondas 4–9 mantêm o conjunto de três aliados, sem upgrades fictícios.
+      // Avanço automático de compatibilidade; ondas 0–8 agora usam mesa.
       this.scene.start('GameScene', { mode: automaticNext, campaign: this.campaign });
       return;
     }

@@ -2,7 +2,7 @@
 // A cor e o HP são determinados pelo nível (Onda 5 = nível IV, etc).
 // Nenhuma destas ondas adiciona upgrades: o jogador mantém as 3 escolhas.
 export const ADVANCED_WAVE_METADATA = {
-  wave5: { title: 'ONDA 5 — CERCO AÉREO', minDuration: 79000 },
+  wave5: { title: 'ONDA 5 — CERCO AÉREO', minDuration: 48000 },
   wave6: { title: 'ONDA 6 — CHUVA DE FERRO', minDuration: 82000 },
   wave7: { title: 'ONDA 7 — ENXAME ORGANIZADO', minDuration: 90000 },
   wave8: { title: 'ONDA 8 — SUPERUNIDADES', minDuration: 94000 },
@@ -22,28 +22,21 @@ function arranged(events) {
 export function getAdvancedWaveEvents(mode) {
   if (mode === 'wave5') {
     // Cerco Aéreo: grupos Tipo 2 ESCOLTAM bombardeiros.
-    // 40 básicos + 32 de formação + 5 bombardeiros + 6 caças = 83.
+    // Versão curta para testar a quarta escolha: 47 inimigos agendados.
     const level = 4;
     return arranged([
-      ...basicStream(level, 24, 700, 2950),
-      { at: 9000, type: 1, level, pattern: 'spread', count: 4 },
-      { at: 15500, type: 3, level, pattern: 'escort', count: 4, center: 350,
+      ...basicStream(level, 16, 700, 2630),
+      { at: 6800, type: 1, level, pattern: 'spread', count: 4 },
+      { at: 11500, type: 3, level, pattern: 'escort', count: 3, center: 350,
         warning: 'ALERTA! BOMBARDEIRO COM ESCOLTA!' },
-      { at: 22500, type: 1, level, pattern: 'spread', count: 4 },
-      { at: 26000, type: 4, level, pattern: 'pincer' },
-      { at: 27000, type: 2, level, pattern: 'orbit', count: 8 },
-      { at: 34000, type: 3, level, pattern: 'escort', count: 4, center: 610 },
-      { at: 39000, type: 4, level, side: 'left' },
-      { at: 41000, type: 3, level },
-      { at: 45500, type: 1, level, pattern: 'spread', count: 4 },
-      { at: 53000, type: 2, level, pattern: 'orbit', count: 8 },
-      { at: 57000, type: 3, level, pattern: 'escort', count: 4, center: 470,
-        warning: 'NOVA FROTA ESCOLTADA!' },
-      { at: 60000, type: 4, level, side: 'right' },
-      { at: 64000, type: 3, level },
-      { at: 65000, type: 4, level, pattern: 'pincer' },
-      { at: 70000, type: 1, level, pattern: 'spread', count: 4 },
-      { at: 74000, type: 2, level, group: true, count: 4 },
+      { at: 16500, type: 1, level, pattern: 'spread', count: 4 },
+      { at: 20000, type: 4, level, pattern: 'pincer' },
+      { at: 22500, type: 2, level, pattern: 'orbit', count: 6 },
+      { at: 29500, type: 3, level, pattern: 'escort', count: 3, center: 610 },
+      { at: 34000, type: 4, level, side: 'left' },
+      { at: 37000, type: 3, level },
+      { at: 41500, type: 1, level, pattern: 'spread', count: 4 },
+      { at: 44500, type: 2, level, group: true, count: 3, warning: 'ÚLTIMA ESCOLTA!' },
     ]);
   }
   if (mode === 'wave6') {

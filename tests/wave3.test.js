@@ -16,7 +16,7 @@ test('Onda 3 é desbloqueada pela terceira escolha e não antes', () => {
   assert.equal(nextWaveAfterChoice({ choices: ['br', 'br'] }), 'wave2');
   assert.equal(nextWaveAfterChoice({ choices: ['br', 'br', 'br'] }), 'wave3');
   assert.equal(nextWaveAfterChoice({ choices: ['br', 'us', 'jp'] }), 'wave3');
-  assert.equal(nextWaveAfterChoice({ choices: ['br', 'br', 'br', 'br'] }), null);
+  assert.equal(nextWaveAfterChoice({ choices: ['br', 'br', 'br', 'br'] }), 'wave4');
   assert.equal(WAVE_COUNTDOWN_SECONDS, 3);
 });
 

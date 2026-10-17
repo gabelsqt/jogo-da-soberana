@@ -1,3 +1,4 @@
+import { FOURTH_UPGRADES } from './fourthUpgrades.js';
 import { FIRST_UPGRADES } from './upgrades.js';
 import { SECOND_UPGRADES, secondUpgradeCountries } from './secondUpgrades.js';
 
@@ -60,6 +61,7 @@ export function nextUpgradeOptions(state) {
         reason: installed >= MAX_SUPPORT_TOWERS ? 'DUAS TORRES JÁ INSTALADAS' : '',
       };
     }
+    if (level === 4) return { ...first, ...FOURTH_UPGRADES[first.id], level, locked: false };
     return {
       ...first, level, title: 'EM DESENVOLVIMENTO',
       description: 'Este nível será adicionado nas próximas versões.',
@@ -78,9 +80,7 @@ export function chooseCampaignUpgrade(state, countryId) {
 
 export function nextWaveAfterChoice(state) {
   const count = normalizeCampaignState(state).choices.length;
-  return count === 1 ? 'wave1'
-    : count === 2 ? 'wave2'
-      : count === 3 ? 'wave3' : null;
+  return count >= 1 && count <= 9 ? `wave${count}` : null;
 }
 
 // Upgrades 4–9 ainda estão em planejamento. Enquanto isso, as Ondas 4–9
