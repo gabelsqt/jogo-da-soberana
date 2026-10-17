@@ -22,7 +22,7 @@ export function changeLabLevel(config, country, delta) {
   if (!LAB_COUNTRIES.includes(country)) return current;
   const next = Math.max(0, Math.min(LAB_MAX_LEVEL, current.levels[country] + delta));
   const levels = { ...current.levels, [country]: next };
-  if (LAB_COUNTRIES.filter(id => levels[id] >= 3).length > LAB_MAX_TOWERS) return current;
+  if (LAB_COUNTRIES.filter(id => levels[id] >= 5).length > LAB_MAX_TOWERS) return current;
   return { wave: current.wave, levels };
 }
 
