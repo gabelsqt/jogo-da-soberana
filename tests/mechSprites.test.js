@@ -48,7 +48,7 @@ test('mira do canhão move-se independentemente e sem ultrapassar meia-volta', (
 test('GameScene carrega sprites modulares sem movimentar o corpo no recuo', () => {
   const src = readFileSync(new URL('../src/scenes/GameScene.js', import.meta.url), 'utf8');
   assert.match(src, /preloadMechSprites\(this\)/);
-  assert.match(src, /createMechSprites\(this, id, x, y, 26, position\.side === 'right'\)/);
+  assert.match(src, /createMechSprites\(this, role === 'destroyer'/);
   assert.match(src, /tower\.visual\.aimAt\(enemy\.sprite\.x, enemy\.sprite\.y, dt\)/);
   assert.match(src, /tower\.visual\.recoil\(\)/);
   assert.doesNotMatch(src, /targets: tower\.sprite/);
