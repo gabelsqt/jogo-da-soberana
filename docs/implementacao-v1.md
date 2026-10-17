@@ -42,3 +42,7 @@ Branch separada de `feat/enxames-esquadrilhas-v035`, preservando o jogo antigo.
 ## Decisão 73 — Brasil 2: alternativas adicionais solicitadas (sem escolha definitiva)
 
 O usuário escolheu **D — explorar outras ideias** em vez de aprovar as três opções iniciais. Preservar o papel do nível 2 (especial + escudo) e reservar a estreia da eletricidade ofensiva para Brasil 4, as correntes para Brasil 6 e a defesa elétrica avançada para Brasil 8. Alternativas para deliberação: E Escudo de Retalhos (impactos bloqueados carregam especial ampliado); F Protocolo de Última Hora (reset emergencial do especial, uma vez por onda); G Reciclagem de Guerra (abates do especial restauram escudo); H Escudo Sanfona (especial expande escudo e empurra ameaças). **Nenhuma opção de Brasil 2 aprovada. Não implementar código.**
+
+## Decisão 74 — Brasil 2: J, explorar outra direção (17/10/2026)
+
+As propostas E–H para Brasil 2 não foram escolhidas. Continuar exploração de conceito sem aprovar uma mecânica ainda. Brasil 2 deve criar interação significativa entre tiro especial e escudo, sem introduzir a temática elétrica reservada a Brasil 4 (eletricidade ativa), Brasil 6 (descargas em cadeia) e Brasil 8 (defesa elétrica avançada). A revisão permanece estritamente documental; nenhuma alteração no código.
