@@ -108,7 +108,7 @@ test('China: apenas a terceira bala ganha destaque central e flash triplo', () =
   const upgraded = applySecondUpgradeStats(base, ['cn']);
   assert.equal(base.bulletsPerShot, 2);
   assert.equal(upgraded.bulletsPerShot, 3);
-  assert.equal(upgraded.basicInterval, base.basicInterval);
+  assert.equal(upgraded.basicInterval, Math.round(base.basicInterval / 1.25));
   assert.equal(shotAngles(-Math.PI / 2, 3).length, 3);
   assert.match(source, /muzzlePositions = volleySize >= 3 \? \[-1, 0, 1\] : \[-1, 1\]/);
   assert.match(source, /isChinaCenterProjectile\(/);
