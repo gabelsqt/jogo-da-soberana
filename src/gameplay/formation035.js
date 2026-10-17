@@ -11,7 +11,7 @@ export const V035_SWARM_SIZES = Object.freeze([
   [3, 5], [3, 5], [3, 5],
   [6, 10], [6, 10], [6, 10],
   [10, 15], [10, 15],
-  [15, 20], [15, 20],
+  [15, 18], [15, 18],
 ]);
 export const V035_SQUAD_SIZES = Object.freeze([
   [3, 4], [3, 4], [3, 4],
@@ -35,7 +35,7 @@ export function progressiveGroupCount(wave, type, progress) {
 
 // Preserva eventos de bombardeiros, caças, cruzadores e escoltas. Substitui
 // naves básicas isoladas por poucos grupos, sem multiplicar os 30 spawns
-// originais por 20 na última noite. Densidade cresce dentro da noite.
+// originais por 18 na última noite. Densidade cresce dentro da noite.
 export function getV035WaveEvents(mode, legacyEvents) {
   const wave = campaignWaveIndex(mode);
   if (wave === null) return legacyEvents.map(event => ({ ...event }));
