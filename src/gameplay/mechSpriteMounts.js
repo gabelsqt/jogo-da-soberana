@@ -54,12 +54,13 @@ export function preloadMechSprites(scene) {
   }
 }
 
-export function createMechSprites(scene, countryId, x, y, depth = 26) {
+export function createMechSprites(scene, countryId, x, y, depth = 26, mirrored = false) {
   const country = visualCountryId(countryId);
   const cfg = MECH_VISUALS[country];
   if (!cfg) throw new Error(`Torre visual desconhecida: ${countryId}`);
 
   const sprite = scene.add.container(x, y).setDepth(depth);
+  if (mirrored) sprite.setScale(-1, 1);
   const body = scene.add.image(0, 0, `mech_${country}_body`)
     .setOrigin(0.5, 1)
     .setDisplaySize(cfg.bodySize[0] * cfg.scale, cfg.bodySize[1] * cfg.scale);
@@ -77,7 +78,9 @@ export function createMechSprites(scene, countryId, x, y, depth = 26) {
   return {
     sprite, body, weapon, mount,
     aimAt(targetX, targetY, dt = 1) {
-      const angle = mechAimAngle(x + mount.x, y + mount.y, targetX, targetY);
+      const mountWorldX = x + (mirrored ? -mount.x : mount.x);
+      const worldAngle = mechAimAngle(mountWorldX, y + mount.y, targetX, targetY);
+      const angle = mirrored ? Math.PI - worldAngle : worldAngle;
       weapon.rotation = rotateMechWeapon(weapon.rotation, angle, 6 * dt);
     },
     recoil() {
