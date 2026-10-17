@@ -23,7 +23,7 @@ test('todos os tipos preservam os dois primeiros níveis e aceitam níveis refor
   }
   assert.equal(enemyStats(3, 1).shotInterval, 3);
   assert.equal(enemyStats(3, 2).shotInterval, 3);
-  assert.equal(enemyStats(3, 2).bomberHoverDuration, 6);
+  assert.equal(enemyStats(3, 2).bomberHoverDuration, 12);
   assert.equal(enemyStats(3, 1).volleyCount, 1);
   assert.equal(enemyStats(3, 2).volleyCount, 2);
   assert.ok(enemyStats(4, 2).warningDuration < enemyStats(4, 1).warningDuration);
