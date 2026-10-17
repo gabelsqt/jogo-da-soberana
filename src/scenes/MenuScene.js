@@ -6,6 +6,7 @@ import {
   drawRioBackdrop,
 } from '../config/scenery.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import { GAME_VERSION_LABEL } from '../config/version.js';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -71,6 +72,14 @@ export class MenuScene extends Phaser.Scene {
     this.add.text(W / 2, 442, 'ESC OU P: PAUSAR     R: REINICIAR', {
       fontFamily: 'monospace', fontSize: '13px', color: '#9fc1dd',
     }).setOrigin(0.5).setDepth(22);
+
+    // Rodapé de versão visível tanto no navegador quanto no HTML do itch.io.
+    // Fora do painel central para não competir com os botões ou o título.
+    this.add.text(W - 16, H - 12, GAME_VERSION_LABEL, {
+      fontFamily: 'monospace', fontSize: '13px',
+      color: '#bfd2e9',
+      stroke: '#061124', strokeThickness: 3,
+    }).setOrigin(1, 1).setDepth(24);
 
     this.add.text(W / 2, 497, 'PRESSIONE ENTER PARA COMEÇAR', {
       fontFamily: 'monospace', fontSize: '13px', color: '#f5e69b',
