@@ -43,6 +43,7 @@ import {
 import {
   TOWER_DEFINITIONS, SUPPORT_TOWER_POSITIONS,
   towerDefinition, upgradedTowerWeapon, chooseTowerAttackTarget, canInstallTower,
+  towerBlindZoneY, towerSeesEnemy, towerChargeProgress, chooseSuitableTowerTarget,
 } from '../gameplay/towers.js';
 import {
   SHOCK_BLAST_RADIUS, SHOCK_KNOCKBACK,
@@ -76,6 +77,7 @@ import {
 const W = 960;
 const H = 540;
 const CANNON = { x: 480, y: 494 };
+const TOWER_BLIND_ZONE_Y = towerBlindZoneY(H);
 const SHIELD_REGEN_RATE = 3.5;
 const SHIELD_REGEN_DELAY = 4000;
 const ENEMY_IMPACT_DAMAGE = 46;
@@ -258,6 +260,7 @@ export class GameScene extends Phaser.Scene {
     this.shieldGraphics = this.add.graphics().setDepth(23);
     this.enemyHealthGraphics = this.add.graphics().setDepth(27);
     this.towerStatusGraphics = this.add.graphics().setDepth(35);
+    this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
     this.drawShield();
@@ -398,6 +401,8 @@ export class GameScene extends Phaser.Scene {
       countdownItems.forEach((object) => object.destroy());
       this.countdownActive = false;
       this.elapsed = 0;
+      // A carga só começa quando a defesa fica liberada para lutar.
+      for (const tower of this.supportTowers) tower.lastAttackAt = this.time.now;
       this.scheduleWaveEvents();
     });
   }
@@ -413,6 +418,7 @@ export class GameScene extends Phaser.Scene {
     for (const bullet of this.supportProjectiles) bullet.sprite.destroy();
     this.supportProjectiles.length = 0;
     this.supportTowers.length = 0;
+    this.towerChargeGraphics?.clear();
 
     countryIds.slice(0, SUPPORT_TOWER_POSITIONS.length).forEach((entry, index) => {
       const id = typeof entry === 'string' ? entry : entry.id;
@@ -437,7 +443,7 @@ export class GameScene extends Phaser.Scene {
         shield: definition.shieldMax,
         shieldMax: definition.shieldMax,
         lastDamageAt: -10000,
-        lastAttackAt: -definition.interval,
+        lastAttackAt: this.time.now,
         electricLastFire: -Infinity,
       });
     });
@@ -465,16 +471,47 @@ export class GameScene extends Phaser.Scene {
   updateSupportTowers(dt) {
     for (const tower of this.supportTowers) {
       if (tower.health <= 0) continue;
-      // O pivô visual acompanha alvos mesmo durante o intervalo de recarga;
-      // a cadência e a seleção de alvo para disparar continuam idênticas.
-      const enemy = chooseTowerAttackTarget(
-        tower.x, tower.y - 22, this.enemies, tower.definition.range,
-      );
-      if (!enemy) continue;
-      tower.visual.aimAt(enemy.sprite.x, enemy.sprite.y, dt);
-      if (this.time.now - tower.lastAttackAt < tower.definition.interval) continue;
+      // Sem alvo adequado, a carga chega a 100% e fica armazenada.
+      // A seleção não detecta inimigos na faixa cega superior.
+      const enemy = chooseSuitableTowerTarget(tower, this.enemies, TOWER_BLIND_ZONE_Y);
+      if (enemy) tower.visual.aimAt(enemy.sprite.x, enemy.sprite.y, dt);
+      if (!enemy || towerChargeProgress(
+        tower.lastAttackAt, this.time.now, tower.definition.interval,
+      ) < 1) continue;
       tower.lastAttackAt = this.time.now;
       this.fireTowerWeapon(tower, enemy);
+    }
+    this.drawTowerCharges();
+  }
+
+  drawTowerCharges() {
+    const graphics = this.towerChargeGraphics;
+    graphics.clear();
+    for (const tower of this.supportTowers) {
+      if (tower.health <= 0) continue;
+      const progress = towerChargeProgress(
+        tower.lastAttackAt, this.time.now, tower.definition.interval,
+      );
+      const ready = progress >= 1;
+      // O corpo e o canhão clareiam durante a carga, mantendo o sprite original.
+      const brightness = Math.round(105 + 150 * progress);
+      const tint = Phaser.Display.Color.GetColor(brightness, brightness, brightness);
+      tower.visual.body.setTint(tint);
+      tower.visual.weapon.setTint(tint);
+      const glow = ready ? 0.78 + Math.sin(this.time.now * 0.012) * 0.18 : 0.20 + progress * 0.38;
+      const x = tower.x, y = tower.y - 89, color = tower.definition.color;
+      graphics.fillStyle(color, glow * 0.14);
+      graphics.fillCircle(x, y, 16 + progress * 9);
+      graphics.lineStyle(3, 0x23374a, 0.75);
+      graphics.strokeCircle(x, y, 21);
+      if (progress > 0) {
+        graphics.lineStyle(3.5, ready ? 0xffffff : color, glow);
+        graphics.beginPath();
+        graphics.arc(x, y, 21, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+        graphics.strokePath();
+      }
+      graphics.fillStyle(ready ? 0xffffff : color, ready ? glow : glow * 0.65);
+      graphics.fillCircle(x, y, ready ? 5.5 : 2.5 + 2.5 * progress);
     }
   }
 
@@ -527,6 +564,7 @@ export class GameScene extends Phaser.Scene {
     // A queda é suave: alvos centrais sofrem dano cheio, bordas dano reduzido.
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y)) continue;
       const distance = Math.hypot(enemy.sprite.x - x, enemy.sprite.y - y);
       const damage = shockBlastDamage(
         distance, enemyContactRadius(enemy.type), weapon.damage, SHOCK_BLAST_RADIUS,
@@ -593,6 +631,7 @@ export class GameScene extends Phaser.Scene {
     let impact = atDestination;
     if (!impact) {
       for (const enemy of this.enemies) {
+        if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y)) continue;
         if (segmentHitsCircle(
           oldX, oldY, nextX, nextY, enemy.sprite.x, enemy.sprite.y,
           enemyContactRadius(enemy.type) + 9,
@@ -637,12 +676,14 @@ export class GameScene extends Phaser.Scene {
         onComplete: () => beam.destroy(),
       });
       const hits = weapon.pierce ? this.enemies.filter(e => {
+        if (!towerSeesEnemy(e, TOWER_BLIND_ZONE_Y)) return false;
         const ax = fromX, ay = fromY, bx = enemy.sprite.x, by = enemy.sprite.y;
         const dx = bx-ax, dy = by-ay, len = Math.max(1, dx*dx+dy*dy);
         const t = Phaser.Math.Clamp(((e.sprite.x-ax)*dx+(e.sprite.y-ay)*dy)/len, 0, 1);
         return Math.hypot(e.sprite.x-(ax+t*dx),e.sprite.y-(ay+t*dy)) < 24;
       }) : [enemy];
       for (const hitEnemy of hits) {
+        if (!towerSeesEnemy(hitEnemy, TOWER_BLIND_ZONE_Y)) continue;
         const index = this.enemies.findIndex(item => item.uid === hitEnemy.uid);
         if (index >= 0) this.impactInvader(index, weapon.damage, 0, '#e6b1ff');
       }
@@ -651,7 +692,8 @@ export class GameScene extends Phaser.Scene {
 
     const count = weapon.count ?? 1;
     const swarmTargets = tower.role === 'swarm'
-      ? this.enemies.filter(e => Math.hypot(e.sprite.x - fromX, e.sprite.y - fromY) <= weapon.range)
+      ? this.enemies.filter(e => towerSeesEnemy(e, TOWER_BLIND_ZONE_Y) &&
+        Math.hypot(e.sprite.x - fromX, e.sprite.y - fromY) <= weapon.range)
         .sort((a,b) => b.sprite.y - a.sprite.y) : [];
     for (let i = 0; i < count; i += 1) {
       const shotTarget = swarmTargets[i % swarmTargets.length] ?? enemy;
@@ -688,10 +730,12 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
       if (shot.guided) {
-        let target = this.enemies.find((enemy) => enemy.uid === shot.targetId);
+        let target = this.enemies.find((enemy) => enemy.uid === shot.targetId &&
+          towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y));
         if (!target) {
           target = chooseTowerAttackTarget(
-            shot.sprite.x, shot.sprite.y, this.enemies, 850,
+            shot.sprite.x, shot.sprite.y,
+            this.enemies.filter(enemy => towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y)), 850,
           );
           if (target) shot.targetId = target.uid;
         }
@@ -711,6 +755,7 @@ export class GameScene extends Phaser.Scene {
       let hit = false;
       for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
         const enemy = this.enemies[j];
+        if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y)) continue;
         if (Phaser.Math.Distance.Between(
           shot.sprite.x, shot.sprite.y, enemy.sprite.x, enemy.sprite.y,
         ) > enemyContactRadius(enemy.type) + 7) continue;
@@ -727,7 +772,8 @@ export class GameScene extends Phaser.Scene {
         });
         if (shot.weapon.splashRadius) {
           const radius = shot.weapon.splashRadius;
-          const nearby = this.enemies.filter(e => Math.hypot(e.sprite.x-shot.sprite.x, e.sprite.y-shot.sprite.y) <= radius);
+          const nearby = this.enemies.filter(e => towerSeesEnemy(e, TOWER_BLIND_ZONE_Y) &&
+            Math.hypot(e.sprite.x-shot.sprite.x, e.sprite.y-shot.sprite.y) <= radius);
           for (const extra of nearby) {
             const idx = this.enemies.findIndex(e => e.uid === extra.uid);
             if (idx >= 0) this.impactInvader(idx, shot.weapon.damage * 0.75, 0, '#a6d5ff');
