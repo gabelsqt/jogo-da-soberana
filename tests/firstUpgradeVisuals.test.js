@@ -135,6 +135,7 @@ test('rastro visual e recuo são puramente gráficos, com limpeza por bala', () 
   assert.match(src, /bullet\.trail\?\.destroy\(\)/);
   assert.match(src, /showHeavyImpact\(x, y\)/);
   assert.match(src, /cannonRecoil \*= Math\.exp\(-19 \* dt\)/);
-  assert.match(src, /this\.cameras\.main\.shake\(60, 0\.0011\)/);
+  assert.doesNotMatch(src, /this\.cameras\.main\.shake\(60, 0\.0011\)/,
+    'canhão russo não sacode a tela ao disparar');
   assert.match(src, /const shards = this\.add\.graphics\(\)/);
 });
