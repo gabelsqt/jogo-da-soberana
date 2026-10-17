@@ -79,22 +79,27 @@ export function enemyTierColor(level) {
   return ENEMY_TIER_COLORS[tier] ?? null;
 }
 
-// Mantém os níveis 1 e 2 já testados. A partir do nível 3,
-// aumenta HP em cada nível: +1 nos Tipos 1/2/4; +2 no bombardeiro.
+// A v0.35 mantém HP dos níveis 1 e 2, mas reduz bastante a
+// resistência do Tipo 1: o perigo dos enxames está no número de naves.
+// Os Tipos 2–5 conservam sua progressão de blindagem anterior.
 // A velocidade dos níveis 3+ NÃO continua aumentando: resistência,
 // e não aceleração descontrolada, é a base da dificuldade.
+export const BASIC_INVADER_HP_BY_LEVEL = Object.freeze([
+  1, 2, 2, 3, 3, 3, 4, 4, 4, 4,
+]);
 export function enemyStats(type, level = 1) {
   const base = enemyDefinition(type);
   const tier = Math.max(1, Math.min(10, Math.trunc(level) || 1));
   const advanced = tier >= 2;
-  const baseBonus = { 1: 0, 2: 1, 3: 2, 4: 1, 5: 8 };
-  const hpPerLevel = { 1: 1, 2: 1, 3: 2, 4: 1, 5: 4 };
+  const baseBonus = { 2: 1, 3: 2, 4: 1, 5: 8 };
+  const hpPerLevel = { 2: 1, 3: 2, 4: 1, 5: 4 };
   const tint = enemyTierColor(tier);
   return {
     ...base,
     level: tier,
-    hp: base.hp + (advanced ? baseBonus[type] : 0)
-      + Math.max(0, tier - 2) * hpPerLevel[type],
+    hp: type === 1 ? BASIC_INVADER_HP_BY_LEVEL[tier - 1]
+      : base.hp + (advanced ? baseBonus[type] : 0)
+        + Math.max(0, tier - 2) * hpPerLevel[type],
     color: tint ?? base.color,
     tintColor: tint ?? (advanced ? 0xffd5a0 : 0xffffff),
     speed: Math.round(base.speed * (advanced ? 1.17 : 1)),
