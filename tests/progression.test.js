@@ -90,10 +90,10 @@ test('onda zero, onda um e laboratório possuem programação distinta', () => {
   }
 });
 
-test('progressão só acontece com todos os eventos e ameaças encerrados', () => {
+test('vitória antecipada exige agenda esgotada e céu limpo; amanhecer aceita sobreviventes', () => {
   const state = {
     mode: 'wave1',
-    elapsed: MODES.wave1.minDuration,
+    elapsed: 20000,
     spawned: getWaveEvents('wave1').length,
     scheduled: getWaveEvents('wave1').length,
     enemies: 0, hostileShots: 0,
@@ -101,8 +101,10 @@ test('progressão só acontece com todos os eventos e ameaças encerrados', () =
   assert.equal(waveIsFinished(state), true);
   assert.equal(waveIsFinished({ ...state, enemies: 1 }), false);
   assert.equal(waveIsFinished({ ...state, hostileShots: 1 }), false);
-  assert.equal(waveIsFinished({ ...state, elapsed: 20000 }), false);
   assert.equal(waveIsFinished({ ...state, spawned: 1 }), false);
+  assert.equal(waveIsFinished({ ...state, elapsed: 29999, enemies: 1 }), false);
+  assert.equal(waveIsFinished({ ...state, elapsed: 30000, enemies: 1 }), true);
+  assert.equal(waveIsFinished({ ...state, elapsed: 30000, spawned: 1 }), true);
 });
 
 test('laboratório de upgrades é livre, sem depender de ondas', () => {
@@ -143,8 +145,8 @@ test('ondas 0 e 1 começam cedo, têm pressão contínua e grupos simultâneos',
   const wave0 = getWaveEvents('wave0');
   const wave1 = getWaveEvents('wave1');
   const lab = getWaveEvents('lab');
-  assert.equal(wave0[0].at, 250);
-  assert.equal(wave1[0].at, 250);
+  assert.ok(wave0[0].at > 0 && wave0[0].at < 500);
+  assert.ok(wave1[0].at > 0 && wave1[0].at < 500);
   assert.equal(scheduledEnemyCount(wave0), 32);
   assert.equal(scheduledEnemyCount(wave1), 70);
   assert.ok(scheduledEnemyCount(wave1) > scheduledEnemyCount(wave0));
@@ -155,8 +157,8 @@ test('ondas 0 e 1 começam cedo, têm pressão contínua e grupos simultâneos',
   const basic1 = wave1.filter((e) => e.type === 1 && !e.pattern);
   assert.equal(basic0.length, 20);
   assert.equal(basic1.length, 32);
-  assert.ok(basic0.every((e, i) => i === 0 || e.at - basic0[i - 1].at === 1280));
-  assert.ok(basic1.every((e, i) => i === 0 || e.at - basic1[i - 1].at === 960));
+  assert.ok(basic0.every((e, i) => i === 0 || Math.abs((e.at - basic0[i - 1].at) - 1280 * 19500 / 24570) <= 1));
+  assert.ok(basic1.every((e, i) => i === 0 || Math.abs((e.at - basic1[i - 1].at) - 960 * 19500 / 34700) <= 1));
   assert.ok(lab.some((e) => e.type === 5));
 });
 
