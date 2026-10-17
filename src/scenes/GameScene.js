@@ -435,7 +435,7 @@ export class GameScene extends Phaser.Scene {
       const sprite = visual.sprite;
 
       this.supportTowers.push({
-        id: 'tower-' + id + '-' + role, countryId: id, role,
+        id: 'tower-' + id + '-' + role, countryId: id, role, level,
         definition, x, y, shieldRadius: 46,
         sprite, visual,
         health: definition.healthMax,
@@ -493,6 +493,7 @@ export class GameScene extends Phaser.Scene {
         tower.lastAttackAt, this.time.now, tower.definition.interval,
       );
       const ready = progress >= 1;
+      const evolved = tower.role === 'swarm' ? tower.level >= 6 : tower.level >= 8;
       // O corpo e o canhão clareiam durante a carga, mantendo o sprite original.
       const brightness = Math.round(105 + 150 * progress);
       const tint = Phaser.Display.Color.GetColor(brightness, brightness, brightness);
@@ -509,6 +510,16 @@ export class GameScene extends Phaser.Scene {
         graphics.beginPath();
         graphics.arc(x, y, 21, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
         graphics.strokePath();
+      }
+      if (evolved) {
+        // Evolução visível: segundo circuito luminoso, distinto do aumento numérico.
+        graphics.lineStyle(2, color, 0.25 + 0.55 * progress);
+        graphics.strokeCircle(x, y, 27);
+        if (ready) {
+          graphics.fillStyle(0xffffff, glow * 0.85);
+          graphics.fillCircle(x + Math.cos(this.time.now * 0.006) * 27,
+            y + Math.sin(this.time.now * 0.006) * 27, 2.8);
+        }
       }
       graphics.fillStyle(ready ? 0xffffff : color, ready ? glow : glow * 0.65);
       graphics.fillCircle(x, y, ready ? 5.5 : 2.5 + 2.5 * progress);
@@ -658,6 +669,14 @@ export class GameScene extends Phaser.Scene {
     const fromX = tower.x;
     const fromY = tower.y - 35;
 
+    // Descarga visível da energia acumulada, sem screenshake ao atirar.
+    const discharge = this.add.circle(fromX, fromY, tower.role === 'destroyer' ? 19 : 13,
+      weapon.color, 0.78).setStrokeStyle(2, 0xffffff, 0.85).setDepth(40);
+    this.tweens.add({
+      targets: discharge, scale: tower.role === 'destroyer' ? 2.6 : 2,
+      alpha: 0, duration: tower.role === 'destroyer' ? 280 : 190,
+      onComplete: () => discharge.destroy(),
+    });
     // Recuo visual aplicado apenas ao canhão lateral, jamais ao corpo.
     tower.visual.recoil();
     if (weapon.type === 'shell') {
