@@ -42,12 +42,13 @@ import {
 } from '../gameplay/progression.js';
 import {
   TOWER_DEFINITIONS, SUPPORT_TOWER_POSITIONS,
-  towerDefinition, upgradedTowerWeapon, chooseTowerAttackTarget, canInstallTower,
+  towerDefinition, upgradedTowerWeapon, canInstallTower,
   towerBlindZoneY, towerSeesEnemy, towerChargeProgress, chooseSuitableTowerTarget,
+  advanceGuidedTowerShot, chooseTowerHomingTarget,
 } from '../gameplay/towers.js';
 import {
   SHOCK_BLAST_RADIUS, SHOCK_KNOCKBACK,
-  predictShockImpact, segmentHitsCircle, shockBlastDamage, advanceShockOffset,
+  segmentHitsCircle, shockBlastDamage, advanceShockOffset,
 } from '../gameplay/shockArtillery.js';
 import {
   ELECTRIC_FENCE_DAMAGE, ELECTRIC_FENCE_RADIUS_BONUS,
@@ -473,7 +474,7 @@ export class GameScene extends Phaser.Scene {
       if (tower.health <= 0) continue;
       // Sem alvo adequado, a carga chega a 100% e fica armazenada.
       // A seleção não detecta inimigos na faixa cega superior.
-      const enemy = chooseSuitableTowerTarget(tower, this.enemies, TOWER_BLIND_ZONE_Y);
+      const enemy = chooseSuitableTowerTarget(tower, this.enemies, TOWER_BLIND_ZONE_Y, 390, W);
       if (enemy) tower.visual.aimAt(enemy.sprite.x, enemy.sprite.y, dt);
       if (!enemy || towerChargeProgress(
         tower.lastAttackAt, this.time.now, tower.definition.interval,
@@ -530,16 +531,6 @@ export class GameScene extends Phaser.Scene {
     const weapon = tower.definition;
     const fromX = tower.x;
     const fromY = tower.y - 35;
-    const lead = predictShockImpact(
-      fromX, fromY, enemy.sprite.x, enemy.sprite.y,
-      enemy.velocityX, enemy.velocityY, weapon.speed,
-    );
-    // A artilharia não atira para fora da área visível ou sobre o canhão.
-    const aimX = Phaser.Math.Clamp(lead.x, 35, W - 35);
-    const aimY = Phaser.Math.Clamp(lead.y, 45, H - 95);
-    const dx = aimX - fromX;
-    const dy = aimY - fromY;
-    const distance = Math.max(1, Math.hypot(dx, dy));
 
     const shell = this.add.circle(fromX, fromY, 9, 0xff9b49)
       .setStrokeStyle(3, 0xffe6a7).setDepth(42);
@@ -549,13 +540,17 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => muzzle.destroy(),
     });
 
+    // Diferente da antiga artilharia preditiva, o Urso acompanha a nave
+    // durante todo o trajeto e não detona em uma coordenada vazia.
     this.supportProjectiles.push({
       kind: 'shock-shell',
       sprite: shell,
       weapon,
-      vx: dx / distance * weapon.speed,
-      vy: dy / distance * weapon.speed,
-      aimX, aimY, age: 0, smokeTimer: 0,
+      targetId: enemy.uid,
+      role: tower.role,
+      speed: weapon.speed,
+      vx: 0, vy: 0,
+      age: 0, smokeTimer: 0,
     });
   }
 
@@ -575,7 +570,7 @@ export class GameScene extends Phaser.Scene {
     // A queda é suave: alvos centrais sofrem dano cheio, bordas dano reduzido.
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
-      if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y)) continue;
+      if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W)) continue;
       const distance = Math.hypot(enemy.sprite.x - x, enemy.sprite.y - y);
       const damage = shockBlastDamage(
         distance, enemyContactRadius(enemy.type), weapon.damage, SHOCK_BLAST_RADIUS,
@@ -621,47 +616,51 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.shake(100, 0.0021);
   }
 
+  // A transferência de alvo é compartilhada por balas, drones,
+  // mísseis e projéteis pesados: nenhum prossegue rumo ao vazio.
+  acquireGuidedTowerTarget(shot) {
+    const original = this.enemies.find(enemy =>
+      enemy.uid === shot.targetId &&
+      towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W));
+    if (original) return original;
+    const next = chooseTowerHomingTarget(
+      shot.sprite.x, shot.sprite.y, this.enemies,
+      TOWER_BLIND_ZONE_Y, W, shot.role,
+    );
+    if (next) shot.targetId = next.uid;
+    return next;
+  }
+
   updateShockShell(shot, dt) {
-    const oldX = shot.sprite.x;
-    const oldY = shot.sprite.y;
-    const aimDistance = Math.hypot(shot.aimX - oldX, shot.aimY - oldY);
-    const step = shot.weapon.speed * dt;
-    const atDestination = aimDistance <= step + 6;
-    const nextX = atDestination ? shot.aimX : oldX + shot.vx * dt;
-    const nextY = atDestination ? shot.aimY : oldY + shot.vy * dt;
-    shot.sprite.setPosition(nextX, nextY);
+    const target = this.acquireGuidedTowerTarget(shot);
+    // Se não restar nenhuma nave detectável, a munição desaparece
+    // silenciosamente — não explode no canto ou na zona morta.
+    if (!target || shot.age > 5) return true;
+
+    const oldX = shot.sprite.x, oldY = shot.sprite.y;
+    const next = advanceGuidedTowerShot(oldX, oldY,
+      target.sprite.x, target.sprite.y, shot.speed, dt);
+    shot.sprite.setPosition(next.x, next.y);
+    shot.vx = next.vx;
+    shot.vy = next.vy;
 
     shot.smokeTimer += dt;
     if (shot.smokeTimer >= 0.065) {
       shot.smokeTimer = 0;
-      this.makeShockSmoke(nextX, nextY);
+      this.makeShockSmoke(next.x, next.y);
     }
 
-    let impactX = nextX;
-    let impactY = nextY;
-    let impact = atDestination;
-    if (!impact) {
-      for (const enemy of this.enemies) {
-        if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y)) continue;
-        if (segmentHitsCircle(
-          oldX, oldY, nextX, nextY, enemy.sprite.x, enemy.sprite.y,
-          enemyContactRadius(enemy.type) + 9,
-        )) {
-          // Se uma nave cruzar o caminho, a bomba explode no impacto real.
-          impactX = enemy.sprite.x;
-          impactY = enemy.sprite.y;
-          impact = true;
-          break;
-        }
+    // A bomba só explode se interceptar uma nave real, nunca ao
+    // atingir um ponto de previsão ou quando esgota seu tempo.
+    for (const enemy of this.enemies) {
+      if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W)) continue;
+      if (segmentHitsCircle(oldX, oldY, next.x, next.y,
+        enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 9)) {
+        this.detonateShockArtillery(enemy.sprite.x, enemy.sprite.y, shot.weapon);
+        return true;
       }
     }
-    if (!impact && shot.age >= 4) {
-      impact = true;
-      impactX = Phaser.Math.Clamp(nextX, 35, W - 35);
-      impactY = Phaser.Math.Clamp(nextY, 45, H - 95);
-    }
-    if (impact) this.detonateShockArtillery(impactX, impactY, shot.weapon);
-    return impact;
+    return false;
   }
 
   fireTowerWeapon(tower, enemy) {
@@ -695,14 +694,14 @@ export class GameScene extends Phaser.Scene {
         onComplete: () => beam.destroy(),
       });
       const hits = weapon.pierce ? this.enemies.filter(e => {
-        if (!towerSeesEnemy(e, TOWER_BLIND_ZONE_Y)) return false;
+        if (!towerSeesEnemy(e, TOWER_BLIND_ZONE_Y, W)) return false;
         const ax = fromX, ay = fromY, bx = enemy.sprite.x, by = enemy.sprite.y;
         const dx = bx-ax, dy = by-ay, len = Math.max(1, dx*dx+dy*dy);
         const t = Phaser.Math.Clamp(((e.sprite.x-ax)*dx+(e.sprite.y-ay)*dy)/len, 0, 1);
         return Math.hypot(e.sprite.x-(ax+t*dx),e.sprite.y-(ay+t*dy)) < 24;
       }) : [enemy];
       for (const hitEnemy of hits) {
-        if (!towerSeesEnemy(hitEnemy, TOWER_BLIND_ZONE_Y)) continue;
+        if (!towerSeesEnemy(hitEnemy, TOWER_BLIND_ZONE_Y, W)) continue;
         const index = this.enemies.findIndex(item => item.uid === hitEnemy.uid);
         if (index >= 0) this.impactInvader(index, weapon.damage, 0, '#e6b1ff');
       }
@@ -711,7 +710,7 @@ export class GameScene extends Phaser.Scene {
 
     const count = weapon.count ?? 1;
     const swarmTargets = tower.role === 'swarm'
-      ? this.enemies.filter(e => towerSeesEnemy(e, TOWER_BLIND_ZONE_Y) &&
+      ? this.enemies.filter(e => towerSeesEnemy(e, TOWER_BLIND_ZONE_Y, W) &&
         Math.hypot(e.sprite.x - fromX, e.sprite.y - fromY) <= weapon.range)
         .sort((a,b) => b.sprite.y - a.sprite.y) : [];
     for (let i = 0; i < count; i += 1) {
@@ -721,7 +720,8 @@ export class GameScene extends Phaser.Scene {
       const dx = shotTarget.sprite.x - x;
       const dy = shotTarget.sprite.y - y;
       const distance = Math.max(1, Math.hypot(dx, dy));
-      const guided = weapon.type === 'missile' || weapon.type === 'drone';
+      // Todos os projéteis das torres têm guia ativo, inclusive balas comuns.
+      const guided = true;
       const bullet = weapon.type === 'shell'
         ? this.add.rectangle(x, y, 12, 14, weapon.color).setStrokeStyle(2, 0xffffff)
         : this.add.circle(x, y, weapon.type === 'bullet' ? 4 : 6, weapon.color)
@@ -729,7 +729,7 @@ export class GameScene extends Phaser.Scene {
       bullet.setDepth(40);
       this.supportProjectiles.push({
         sprite: bullet,
-        targetId: shotTarget.uid,
+        targetId: shotTarget.uid, role: tower.role,
         guided, age: 0, speed: weapon.speed, weapon,
         vx: dx / distance * weapon.speed,
         vy: dy / distance * weapon.speed,
@@ -748,42 +748,36 @@ export class GameScene extends Phaser.Scene {
         }
         continue;
       }
-      if (shot.guided) {
-        let target = this.enemies.find((enemy) => enemy.uid === shot.targetId &&
-          towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y));
-        if (!target) {
-          target = chooseTowerAttackTarget(
-            shot.sprite.x, shot.sprite.y,
-            this.enemies.filter(enemy => towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y)), 850,
-          );
-          if (target) shot.targetId = target.uid;
-        }
-        if (target) {
-          const dx = target.sprite.x - shot.sprite.x;
-          const dy = target.sprite.y - shot.sprite.y;
-          const distance = Math.max(1, Math.hypot(dx, dy));
-          // Acompanhamento suave, sem teleportar mísseis ao mudar de alvo.
-          const smooth = Math.min(1, 8 * dt);
-          shot.vx = Phaser.Math.Linear(shot.vx, dx / distance * shot.speed, smooth);
-          shot.vy = Phaser.Math.Linear(shot.vy, dy / distance * shot.speed, smooth);
-        }
+
+      // A orientação de TODOS os tiros é recalculada a cada quadro.
+      // Se o alvo morrer ou sair do radar, outro é adquirido. Sem
+      // alvo na tela, a bala some sem voar rumo ao canto.
+      const target = this.acquireGuidedTowerTarget(shot);
+      if (!target || shot.age > 5) {
+        shot.sprite.destroy();
+        this.supportProjectiles.splice(i, 1);
+        continue;
       }
-      shot.sprite.x += shot.vx * dt;
-      shot.sprite.y += shot.vy * dt;
+      const oldX = shot.sprite.x, oldY = shot.sprite.y;
+      const next = advanceGuidedTowerShot(
+        oldX, oldY, target.sprite.x, target.sprite.y, shot.speed, dt,
+      );
+      shot.sprite.setPosition(next.x, next.y);
+      shot.vx = next.vx;
+      shot.vy = next.vy;
 
       let hit = false;
       for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
         const enemy = this.enemies[j];
-        if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y)) continue;
-        if (Phaser.Math.Distance.Between(
-          shot.sprite.x, shot.sprite.y, enemy.sprite.x, enemy.sprite.y,
-        ) > enemyContactRadius(enemy.type) + 7) continue;
+        if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W)) continue;
+        if (!segmentHitsCircle(oldX, oldY, next.x, next.y,
+          enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 7)) continue;
+
         this.impactInvader(
           j, shot.weapon.damage, shot.weapon.knockback ?? 0, '#fff3b9',
         );
         const flash = this.add.circle(
-          shot.sprite.x, shot.sprite.y, shot.weapon.type === 'shell' ? 20 : 12,
-          shot.weapon.color, 0.45,
+          next.x, next.y, 12, shot.weapon.color, 0.45,
         ).setDepth(44);
         this.tweens.add({
           targets: flash, alpha: 0, scale: 1.8, duration: 180,
@@ -791,8 +785,9 @@ export class GameScene extends Phaser.Scene {
         });
         if (shot.weapon.splashRadius) {
           const radius = shot.weapon.splashRadius;
-          const nearby = this.enemies.filter(e => towerSeesEnemy(e, TOWER_BLIND_ZONE_Y) &&
-            Math.hypot(e.sprite.x-shot.sprite.x, e.sprite.y-shot.sprite.y) <= radius);
+          const nearby = this.enemies.filter(e =>
+            towerSeesEnemy(e, TOWER_BLIND_ZONE_Y, W) &&
+            Math.hypot(e.sprite.x - next.x, e.sprite.y - next.y) <= radius);
           for (const extra of nearby) {
             const idx = this.enemies.findIndex(e => e.uid === extra.uid);
             if (idx >= 0) this.impactInvader(idx, shot.weapon.damage * 0.75, 0, '#a6d5ff');
@@ -801,9 +796,7 @@ export class GameScene extends Phaser.Scene {
         hit = true;
         break;
       }
-      if (hit || shot.age > 5 ||
-          shot.sprite.x < -40 || shot.sprite.x > W + 40 ||
-          shot.sprite.y < -40 || shot.sprite.y > H + 40) {
+      if (hit) {
         shot.sprite.destroy();
         this.supportProjectiles.splice(i, 1);
       }
