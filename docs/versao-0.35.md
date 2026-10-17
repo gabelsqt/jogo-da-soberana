@@ -56,3 +56,14 @@ Implementação em PR draft, aguardando avaliação visual e de balanceamento.
 - **Teste 14B — PASSOU** (confirmado pelo usuário): quantidade de 18 naves e resistência de 4 HP no nível 10 aprovadas; manter os novos valores. Teste 14 original permanece como histórico PARCIAL.
 
 **Status:** Tipo 1 validado no Teste 14B. Próxima verificação: **Teste 15 — manobras e ataque em formação dos Tipo 2**, seguido de balanceamento da campanha.
+
+
+## Filtro CRT no combate (solicitação de entrega, 17/10/2026)
+
+- Campo de batalha e Arena Livre usam um filtro de transmissão CRT leve.
+- Scanlines horizontais estáticas a cada 4 px; vinheta escurece só as bordas; um brilho horizontal quase transparente percorre a imagem aproximadamente a cada 8,5 s.
+- Usa `src/ui/crtOverlay.js` com objetos Graphics e Rectangle nativos do Phaser, **sem shader, texturas adicionais, imagens remotas ou pós-processamento**. O filtro é criado uma única vez por GameScene; a atualização só move o brilho e ajusta alpha.
+- Profundidades 90–92: acima do cenário, naves e tiros; abaixo do HUD, botões e telas de resultado. Não captura input (sem `setInteractive`); não muda mira, colisões, dano ou cronômetro.
+- Não altera menu nem tela de negociação do boteco; a transição CRT completa prevista no GDD é um recurso distinto, ainda pendente.
+- Testes automatizados: `tests/crtOverlay035.test.js` (geometria, alpha e respeito à interface).
+- Teste manual de entrega: iniciar Onda 0, observar scanlines/vinheta sem perder legibilidade dos projéteis vermelhos e texto branco; conferir pausa, onda 9 e Arena Livre, depois exportar itch.io.
