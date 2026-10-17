@@ -421,7 +421,7 @@ export class GameScene extends Phaser.Scene {
       const { x, y } = position;
 
       // Corpo e canhão são imagens independentes. Somente a arma gira no pivô.
-      const visual = createMechSprites(this, id, x, y);
+      const visual = createMechSprites(this, id, x, y, 26, position.side === 'right');
       const sprite = visual.sprite;
 
       this.supportTowers.push({
