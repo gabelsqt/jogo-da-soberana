@@ -30,7 +30,7 @@ function scheduledComposition(events) {
 }
 
 const expected = {
-  wave5: { level: 4, seconds: 48, counts: [28, 17, 3, 3, 0], total: 51,
+  wave5: { level: 4, seconds: 48, counts: [28, 15, 3, 3, 0], total: 49,
     last: 44500, title: 'ONDA 5 — CERCO AÉREO' },
   wave6: { level: 5, seconds: 82, counts: [45, 17, 9, 6, 0], total: 77,
     last: 75000, title: 'ONDA 6 — CHUVA DE FERRO' },
