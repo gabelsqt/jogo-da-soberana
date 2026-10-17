@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
-import { normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout } from '../gameplay/labConfig.js';
+import {
+  normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout,
+  LAB_ENEMY_NAMES, LAB_MAX_ENEMY_LEVEL, labEnemyEvent,
+} from '../gameplay/labConfig.js';
 import { preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import { assetUrl } from '../config/assetUrl.js';
 import { preloadMechSprites, createMechSprites } from '../gameplay/mechSpriteMounts.js';
@@ -187,7 +190,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   clearTestEnemies() {
-    if (this.mode !== 'upgradeLab' && this.mode !== 'lab') return;
+    if (!this.unifiedLab && this.mode !== 'upgradeLab' && this.mode !== 'lab') return;
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) this.removeEnemy(i);
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) this.removeEnemyBullet(i);
     for (const bullet of this.projectiles) {
@@ -248,6 +251,7 @@ export class GameScene extends Phaser.Scene {
     this.nextBlastId = 1;
     this.elapsed = 0;
     this.countdownActive = false;
+    this.labEnemyLevel = 1;
     this.eventsSpawned = 0;
     this.waveEvents = getWaveEvents(this.mode);
     this.lastBasicFire = -this.combat.basicInterval;
@@ -270,6 +274,7 @@ export class GameScene extends Phaser.Scene {
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
+    if (this.unifiedLab) this.createEnemyLabPanel();
     this.drawShield();
 
     // Mira de impacto do tiro especial, sem consumir mouse nem bloquear HUD.
@@ -307,7 +312,10 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    if (this.mode.startsWith('wave')) {
+    if (this.unifiedLab && this.mode === 'lab') {
+      // Arena livre: nenhum spawn agendado e nenhuma duração limite.
+      this.waveEvents = [];
+    } else if (this.mode.startsWith('wave')) {
       this.startWaveCountdown();
     } else {
       this.scheduleWaveEvents();
@@ -343,30 +351,135 @@ export class GameScene extends Phaser.Scene {
       // Exibe a seleção logo ao entrar; ela pode ser reaberta com U.
       this.time.delayedCall(1, () => this.openUpgradeLab());
     }
-    if (this.mode === 'upgradeLab' || this.mode === 'lab') {
+    if (this.unifiedLab || this.mode === 'upgradeLab' || this.mode === 'lab') {
       this.input.keyboard.on('keydown', (event) => {
         if (!this.scene.isActive('GameScene') || this.tutorialComplete) return;
-        // Event.code identifica a tecla física mesmo com Shift pressionado,
-        // quando event.key vira !, @, #, etc.
+        // Teclas físicas 1–5, inclusive Shift+1–5 no layout brasileiro.
         const match = /^(?:Digit|Numpad)([1-5])$/.exec(event.code || '');
         if (!match) return;
-        const type = Number(match[1]);
-        const level = event.shiftKey ? 2 : 1;
-        this.spawnWaveEvent({
-          type, level,
-          group: type === 2 && level === 1,
-          pattern: level === 2 && type === 1 ? 'line'
-            : level === 2 && type === 2 ? 'orbit' : undefined,
-          count: 10,
-        });
-        if (level === 2 && type >= 3) {
-          this.showAttackWarning('TIPO ' + type + ' • NÍVEL 2');
-        }
+        this.spawnLabEnemy(Number(match[1]), event.shiftKey ? 2 : this.labEnemyLevel);
       });
       this.input.keyboard.on('keydown-C', () => {
         if (this.scene.isActive('GameScene')) this.clearTestEnemies();
       });
     }
+    if (this.unifiedLab) {
+      this.input.keyboard.on('keydown-I', () => {
+        if (this.scene.isActive('GameScene')) {
+          this.setEnemyLabPanelOpen(!this.enemyLabPanelOpen);
+        }
+      });
+      this.input.keyboard.on('keydown-L', () => {
+        if (this.scene.isActive('GameScene')) {
+          this.scene.start('LabSetupScene', { config: this.labConfig });
+        }
+      });
+    }
+  }
+
+  spawnLabEnemy(type, level = 1) {
+    if (this.tutorialComplete || this.countdownActive) return false;
+    const event = labEnemyEvent(type, level);
+    if (!event) return false;
+    this.spawnWaveEvent(event);
+    return true;
+  }
+
+  // Painel retrátil no campo do laboratório, sem bloquear a mira quando
+  // fechado. Funciona tanto na Arena Livre quanto no teste de uma onda.
+  createEnemyLabPanel() {
+    this.enemyLabPanelOpen = this.mode === 'lab';
+    const toggleBg = this.add.rectangle(825, 69, 260, 33, 0x173d50, 0.98)
+      .setStrokeStyle(2, 0x87ddeb).setDepth(108)
+      .setInteractive({ useHandCursor: true });
+    this.enemyLabToggle = this.add.text(825, 69, '', {
+      fontFamily: 'monospace', fontSize: '14px',
+      fontStyle: 'bold', color: '#f3f9ff',
+    }).setOrigin(0.5).setDepth(109);
+    toggleBg.on('pointerover', () => toggleBg.setFillStyle(0x286476));
+    toggleBg.on('pointerout', () => toggleBg.setFillStyle(0x173d50));
+    toggleBg.on('pointerdown', (pointer, _x, _y, event) => {
+      event?.stopPropagation();
+      if (pointer.leftButtonDown()) this.setEnemyLabPanelOpen(!this.enemyLabPanelOpen);
+    });
+
+    const panel = this.add.container(0, 0).setDepth(108);
+    this.enemyLabPanel = panel;
+    this.enemyLabInputs = [];
+    const background = this.add.rectangle(825, 284, 268, 388, 0x071527, 0.96)
+      .setStrokeStyle(2, 0x63a8bc);
+    background.setInteractive().on('pointerdown', (_pointer, _x, _y, event) => {
+      event?.stopPropagation();
+    });
+    panel.add(background);
+    panel.add(this.add.text(825, 112, 'GERAR INIMIGOS • TIPO 1–5', {
+      fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold', color: '#9ef0db',
+    }).setOrigin(0.5));
+
+    const addButton = (x, y, width, height, label, onClick, primary = false) => {
+      const baseColor = primary ? 0x205661 : 0x142a3f;
+      const hoverColor = primary ? 0x307985 : 0x23506c;
+      const button = this.add.rectangle(x, y, width, height, baseColor, 0.98)
+        .setStrokeStyle(1.5, primary ? 0x8de8cf : 0x759db9)
+        .setInteractive({ useHandCursor: true });
+      const text = this.add.text(x, y, label, {
+        fontFamily: 'monospace', fontSize: '13px',
+        color: '#f2faff', fontStyle: 'bold',
+      }).setOrigin(0.5);
+      button.on('pointerover', () => button.setFillStyle(hoverColor));
+      button.on('pointerout', () => button.setFillStyle(baseColor));
+      button.on('pointerdown', (pointer, _lx, _ly, event) => {
+        event?.stopPropagation();
+        if (pointer.leftButtonDown()) onClick();
+      });
+      panel.add([button, text]);
+      this.enemyLabInputs.push(button);
+      return { button, text };
+    };
+
+    LAB_ENEMY_NAMES.forEach((name, index) => {
+      addButton(825, 152 + index * 41, 232, 34,
+        (index + 1) + '  ' + name,
+        () => this.spawnLabEnemy(index + 1, this.labEnemyLevel));
+    });
+    panel.add(this.add.text(825, 366, 'NÍVEL DOS INIMIGOS', {
+      fontFamily: 'monospace', fontSize: '12px', color: '#a8bed8',
+    }).setOrigin(0.5));
+    addButton(745, 389, 42, 29, '−', () => this.setLabEnemyLevel(this.labEnemyLevel - 1));
+    this.enemyLabLevelLabel = this.add.text(825, 389, '', {
+      fontFamily: 'monospace', fontSize: '16px', fontStyle: 'bold',
+      color: '#f9e6ae',
+    }).setOrigin(0.5);
+    panel.add(this.enemyLabLevelLabel);
+    addButton(905, 389, 42, 29, '+', () => this.setLabEnemyLevel(this.labEnemyLevel + 1));
+    addButton(825, 425, 232, 31, 'C  LIMPAR INIMIGOS', () => this.clearTestEnemies());
+    addButton(825, 462, 232, 28, 'L  CONFIGURAR LAB', () =>
+      this.scene.start('LabSetupScene', { config: this.labConfig }));
+    this.setLabEnemyLevel(1);
+    this.setEnemyLabPanelOpen(this.enemyLabPanelOpen);
+  }
+
+  setLabEnemyLevel(level) {
+    this.labEnemyLevel = Math.max(1, Math.min(
+      LAB_MAX_ENEMY_LEVEL, Math.trunc(Number(level) || 1),
+    ));
+    this.enemyLabLevelLabel?.setText('NÍVEL ' + this.labEnemyLevel);
+  }
+
+  setEnemyLabPanelOpen(open) {
+    this.enemyLabPanelOpen = Boolean(open);
+    this.enemyLabPanel.setVisible(this.enemyLabPanelOpen);
+    for (const button of this.enemyLabInputs) {
+      if (this.enemyLabPanelOpen) button.setInteractive({ useHandCursor: true });
+      else button.disableInteractive();
+    }
+    this.enemyLabToggle.setText(this.enemyLabPanelOpen
+      ? 'INIMIGOS [I] ▲' : 'INIMIGOS [I] ▼');
+  }
+
+  pointerOverEnemyLabControls(pointer) {
+    return this.unifiedLab && pointer.x >= 691 && pointer.x <= 960 &&
+      pointer.y >= 52 && pointer.y <= (this.enemyLabPanelOpen ? 488 : 87);
   }
 
   scheduleWaveEvents() {
@@ -2647,7 +2760,9 @@ export class GameScene extends Phaser.Scene {
         '  |  PROJ ' + stats.bulletsPerShot,
       );
     } else {
-      this.tutorialText.setText('TESTE: 1–5 TIPOS   SHIFT+1–5: NÍVEL 2   C: LIMPAR');
+      this.tutorialText.setText(this.unifiedLab
+        ? 'ARENA LIVRE: 1–5 OU PAINEL [I]  •  C LIMPAR  •  L CONFIGURAR LAB'
+        : 'TESTE: 1–5 TIPOS   SHIFT+1–5: NÍVEL 2   C: LIMPAR');
     }
   }
 
@@ -2674,7 +2789,7 @@ export class GameScene extends Phaser.Scene {
     }
     this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     this.barrel.rotation = this.aimAngle + Math.PI / 2;
-    if (pointer.leftButtonDown()) this.shootBasic(pointer);
+    if (pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer)) this.shootBasic(pointer);
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
     // volta ao lugar sem alterar a origem física das balas.
     this.cannonRecoil *= Math.exp(-19 * dt);
@@ -2709,14 +2824,18 @@ export class GameScene extends Phaser.Scene {
     this.drawTowerStatus();
     this.updateHud();
 
-    const outcome = waveOutcome({
-      mode: this.mode,
-      elapsed: this.elapsed,
-      spawned: this.eventsSpawned,
-      scheduled: this.waveEvents.length,
-      enemies: this.enemies.length,
-      hostileShots: this.enemyBullets.length,
-    });
-    if (outcome) this.showWaveComplete(outcome);
+    // A Arena Livre deve continuar indefinidamente, inclusive quando o
+    // jogador eliminar todas as naves de treino.
+    if (!(this.unifiedLab && this.mode === 'lab')) {
+      const outcome = waveOutcome({
+        mode: this.mode,
+        elapsed: this.elapsed,
+        spawned: this.eventsSpawned,
+        scheduled: this.waveEvents.length,
+        enemies: this.enemies.length,
+        hostileShots: this.enemyBullets.length,
+      });
+      if (outcome) this.showWaveComplete(outcome);
+    }
   }
 }
