@@ -47,6 +47,13 @@ export function rotateMechWeapon(currentAngle, targetAngle, radiansPerFrame) {
   return currentAngle + Math.sign(delta) * change;
 }
 
+export function mechAimAligned(currentAngle, targetAngle, tolerance = 0.18) {
+  return Math.abs(Math.atan2(
+    Math.sin(targetAngle - currentAngle),
+    Math.cos(targetAngle - currentAngle),
+  )) <= tolerance;
+}
+
 export function preloadMechSprites(scene) {
   for (const [country, cfg] of Object.entries(MECH_VISUALS)) {
     scene.load.image(`mech_${country}_body`, assetUrl(`assets/torres/${cfg.body}`));
@@ -82,6 +89,9 @@ export function createMechSprites(scene, countryId, x, y, depth = 26, mirrored =
       const worldAngle = mechAimAngle(mountWorldX, y + mount.y, targetX, targetY);
       const angle = mirrored ? Math.PI - worldAngle : worldAngle;
       weapon.rotation = rotateMechWeapon(weapon.rotation, angle, 6 * dt);
+      // Só libera o disparo quando o canhão visual está alinhado;
+      // o medidor de carga continua completo durante o giro.
+      return mechAimAligned(weapon.rotation, angle);
     },
     recoil() {
       scene.tweens.killTweensOf(weapon);
