@@ -41,7 +41,7 @@ test('campanha registra escolhas independentes por país e mantém progressão g
 
 test('segunda escolha repetida libera melhoria de nível 2 e Onda 2, SEM instalar animal', () => {
   const titles = {
-    br: 'Minha Casa, Meu Escudo',
+    br: 'Gambiarra Balística II',
     us: 'Dano Colateral',
     jp: 'Encore!',
     ru: 'Recuo Estratégico',
@@ -64,17 +64,17 @@ test('segunda escolha repetida libera melhoria de nível 2 e Onda 2, SEM instala
   }
 });
 
-test('primeira torre aparece apenas após TERCEIRA escolha do mesmo país', () => {
+test('primeira torre aparece apenas na QUINTA escolha do país', () => {
   for (const country of ['br', 'us', 'jp', 'ru', 'cn']) {
-    const before = { choices: [country, country] };
-    const option = nextUpgradeOptions(before).find((item) => item.id === country);
-    assert.equal(option.level, 3);
+    const choices = [country, country, country, country];
+    assert.equal(nextUpgradeOptions({choices:[country,country]}).find(x=>x.id===country).tower, false);
+    assert.equal(nextUpgradeOptions({choices:[country,country,country]}).find(x=>x.id===country).tower, false);
+    const option = nextUpgradeOptions({choices}).find(item => item.id === country);
+    assert.equal(option.level, 5);
     assert.equal(option.tower, true);
     assert.equal(option.locked, false);
-    const third = chooseCampaignUpgrade(before, country);
-    assert.deepEqual(third.choices, [country, country, country]);
-    assert.deepEqual(activeTowerCountries(third), [country]);
-    assert.equal(nextWaveAfterChoice(third), 'wave3', 'terceira escolha abre Onda 3');
+    assert.deepEqual(activeTowerCountries({choices}), []);
+    assert.deepEqual(activeTowerCountries({choices:[...choices,country]}), [country]);
   }
 });
 
@@ -89,21 +89,18 @@ test('trocar de aliado acumula primeiras melhorias sem pular o nível 2 de cada 
   assert.equal(countryLevel(second, 'cn'), 1);
 });
 
-test('bloqueia instalação da TERCEIRA torre e não pula níveis bloqueados', () => {
-  const two = { choices: ['br', 'br', 'br', 'us', 'us', 'us'] };
+test('bloqueia a terceira torre no nível 5, mantendo outros upgrades', () => {
+  const two = { choices: [...Array(5).fill('br'), ...Array(5).fill('us')] };
   assert.equal(MAX_SUPPORT_TOWERS, 2);
-  assert.deepEqual(activeTowerCountries(two), ['br', 'us']);
-  const state = { choices: [...two.choices, 'jp', 'jp'] };
-  const jpOption = nextUpgradeOptions(state).find((option) => option.id === 'jp');
-  assert.equal(jpOption.level, 3);
-  assert.equal(jpOption.locked, true);
-  assert.equal(jpOption.reason, 'DUAS TORRES JÁ INSTALADAS');
-  assert.equal(chooseCampaignUpgrade(state, 'jp'), null);
-  assert.deepEqual(chooseCampaignUpgrade(two, 'br')?.choices, [...two.choices, 'br'], 'nível 4 liberado');
-  assert.equal(chooseCampaignUpgrade(two, 'inexistente'), null);
-  assert.equal(chooseCampaignUpgrade({ choices: Array(10).fill('br') }, 'us'), null);
-  assert.equal(canInstallTower(['br', 'us'], 'jp'), false);
-  assert.equal(canInstallTower(['br', 'us'], 'br'), true);
+  assert.deepEqual(activeTowerCountries(two), ['br','us']);
+  const state = { choices: [...two.choices, ...Array(4).fill('jp')] };
+  const option = nextUpgradeOptions(state).find(item => item.id === 'jp');
+  assert.equal(option.level, 5);
+  assert.equal(option.locked, true);
+  assert.equal(option.reason, 'DUAS TORRES JÁ INSTALADAS');
+  assert.equal(chooseCampaignUpgrade(state,'jp'), null);
+  assert.equal(canInstallTower(['br','us'],'jp'), false);
+  assert.equal(canInstallTower(['br','us'],'br'), true);
 });
 
 test('cada torre tem arma própria, defesa independente e alvos dentro do alcance', () => {
