@@ -43,7 +43,7 @@ import {
 } from '../gameplay/progression.js';
 import {
   TOWER_DEFINITIONS, SUPPORT_TOWER_POSITIONS,
-  towerDefinition, upgradedTowerWeapon, canInstallTower,
+  towerDefinition, upgradedTowerWeapon, canInstallTower, chooseTowerAttackTarget,
   towerBlindZoneY, towerSeesEnemy, towerChargeProgress, chooseSuitableTowerTarget,
   advanceGuidedTowerShot, chooseTowerHomingTarget,
 } from '../gameplay/towers.js';
