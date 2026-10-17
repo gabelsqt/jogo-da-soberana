@@ -68,5 +68,5 @@ test('a arma visual só libera disparo ao alinhar e respeita ângulos equivalent
   assert.equal(mechAimAligned(-1.1, -0.9), false);
   assert.equal(mechAimAligned(-Math.PI, Math.PI), true);
   const scene = readFileSync(new URL('../src/scenes/GameScene.js', import.meta.url), 'utf8');
-  assert.match(scene, /if \(!enemy \|\| !aimed \|\| towerChargeProgress\(/);
+  assert.match(scene, /if \(!firingTarget \|\| !aimed \|\| towerChargeProgress\(/);
 });
