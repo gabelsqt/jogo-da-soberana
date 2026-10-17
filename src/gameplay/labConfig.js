@@ -1,3 +1,23 @@
+// Composição das invocações manuais. Separada da cena para poder testar
+// as cinco famílias e suas formações sem iniciar uma onda de campanha.
+export const LAB_ENEMY_NAMES = Object.freeze([
+  'BÁSICO', 'FORMAÇÃO', 'BOMBARDEIRO', 'CAÇA', 'CRUZADOR',
+]);
+export const LAB_MAX_ENEMY_LEVEL = 10;
+
+export function labEnemyEvent(type, level = 1) {
+  if (!Number.isInteger(type) || type < 1 || type > LAB_ENEMY_NAMES.length) return null;
+  const tier = Math.max(1, Math.min(
+    LAB_MAX_ENEMY_LEVEL, Math.trunc(Number(level) || 1),
+  ));
+  return {
+    type, level: tier,
+    ...(type === 2 && tier === 1 ? { group: true, count: 3 } : {}),
+    ...(type === 1 && tier >= 2 ? { pattern: 'line', count: 10 } : {}),
+    ...(type === 2 && tier >= 2 ? { pattern: 'orbit', count: 10 } : {}),
+  };
+}
+
 // Configuração livre do laboratório. Nenhum limite de escolhas da campanha.
 export const LAB_COUNTRIES = ['br', 'us', 'jp', 'ru', 'cn'];
 export const LAB_MAX_LEVEL = 8;
