@@ -110,13 +110,34 @@ export function createMechSprites(scene, countryId, x, y, depth = 26,
     .setRotation(-Math.PI / 3);
   sprite.add(weapon);
 
+  // As novas artes têm um canhão pintado no corpo. Acrescentamos uma
+  // extremidade luminosa ao canhão independente para que o jogador veja
+  // claramente qual peça gira para acompanhar a nave.
+  const barrelLength = (cfg.weaponSize[0] - cfg.weaponPivot[0]) *
+    weaponScale * (secondary ? 0.8 : 0.72);
+  const muzzleGlow = secondary ? scene.add.circle(0, 0, 3.2, 0xffefac, 0.92)
+    .setStrokeStyle(1.3, 0xff754d, 0.9) : null;
+  if (muzzleGlow) sprite.add(muzzleGlow);
+  const syncMuzzle = () => {
+    const localX = mount.x + Math.cos(weapon.rotation) * barrelLength;
+    const localY = mount.y + Math.sin(weapon.rotation) * barrelLength;
+    muzzleGlow?.setPosition(localX, localY);
+    return {
+      x: x + (mirrored ? -localX : localX),
+      y: y + localY,
+    };
+  };
+  syncMuzzle();
+
   return {
-    sprite, body, weapon, mount,
+    sprite, body, weapon, mount, secondary,
+    muzzlePosition: syncMuzzle,
     aimAt(targetX, targetY, dt = 1) {
       const mountWorldX = x + (mirrored ? -mount.x : mount.x);
       const worldAngle = mechAimAngle(mountWorldX, y + mount.y, targetX, targetY);
       const angle = mirrored ? Math.PI - worldAngle : worldAngle;
       weapon.rotation = rotateMechWeapon(weapon.rotation, angle, 6 * dt);
+      syncMuzzle();
       // Só libera o disparo quando o canhão visual está alinhado;
       // o medidor de carga continua completo durante o giro.
       return mechAimAligned(weapon.rotation, angle);
