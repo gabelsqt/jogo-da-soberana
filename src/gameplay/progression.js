@@ -42,6 +42,10 @@ export function unlockedSecondUpgrades(state) {
   return secondUpgradeCountries(normalizeCampaignState(state));
 }
 
+export function unlockedThirdUpgradeCountries(state) {
+  return COUNTRIES.filter((id) => countryLevel(state, id) >= 3);
+}
+
 export function activeTowerCountries(state) {
   const seen = new Map();
   const towers = [];
