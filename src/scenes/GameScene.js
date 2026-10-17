@@ -1077,10 +1077,11 @@ export class GameScene extends Phaser.Scene {
       enemy.formationWait = 2.6 + index * 0.65 + definition.formationWaitBonus;
     } else if (type === 3) {
       enemy.phase = 'approach';
-      this.setRoute(enemy,
-        options.pattern === 'escort' || options.pattern === 'bomberFan'
-          ? options.center : Phaser.Math.Between(235, 725),
-        Phaser.Math.Between(170, 220));
+      // Bombardeiro escolhe uma defesa na entrada; as formações com escolta
+      // preservam a sua coluna e os demais voam até a coluna da defesa.
+      const hoverX = options.pattern === 'escort' || options.pattern === 'bomberFan'
+        ? options.center : Phaser.Math.Clamp(enemy.target.x, 235, 725);
+      this.setRoute(enemy, hoverX, Phaser.Math.Between(170, 220));
     } else if (type === 4) {
       enemy.phase = 'flyby';
       enemy.direction = startX < 0 ? 1 : -1;
@@ -1177,16 +1178,28 @@ export class GameScene extends Phaser.Scene {
           enemy.shotTimer = 0;
         }
       } else if (enemy.phase === 'hover') {
-        // Bombardeiro mantém posição, dispara projéteis interceptáveis e depois avança.
+        // Tipo 3: ataca a MESMA defesa durante seis segundos.
+        // Faz duas salvas, aos 3 s e 6 s; não mergulha nem some ao fim.
         enemy.sprite.x += Math.sin(enemy.age * 1.2) * 15 * dt;
         enemy.shotTimer += dt;
         if (enemy.shotTimer >= enemy.definition.shotInterval) {
-          enemy.shotTimer = 0;
-          this.fireEnemyProjectile(enemy);
+          enemy.shotTimer -= enemy.definition.shotInterval;
+          this.fireEnemyProjectile(enemy, enemy.target);
         }
         if (enemy.phaseAge >= enemy.definition.bomberHoverDuration) {
-          enemy.phase = 'dive';
-          this.assignInvaderTarget(enemy, enemy.target);
+          enemy.phase = 'retreat';
+          enemy.phaseAge = 0;
+          this.setRoute(enemy, enemy.sprite.x, -78);
+        }
+      } else if (enemy.phase === 'retreat') {
+        // Sai pela parte de cima e retorna à mesma noite para outra passada.
+        if (this.moveAlongRoute(enemy, dt)) {
+          enemy.target = this.chooseDefenseTarget();
+          enemy.phase = 'approach';
+          enemy.phaseAge = 0;
+          this.setRoute(enemy,
+            Phaser.Math.Clamp(enemy.target.x, 235, 725),
+            Phaser.Math.Between(170, 220));
         }
       } else if (enemy.phase === 'flyby') {
         const slow = this.time.now < enemy.electricSlowUntil ? ELECTRIC_SLOW_FACTOR : 1;
@@ -1312,8 +1325,7 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  fireEnemyProjectile(enemy) {
-    const target = this.chooseDefenseTarget();
+  fireEnemyProjectile(enemy, target = this.chooseDefenseTarget()) {
     const count = enemy.definition.volleyCount;
     for (let i = 0; i < count; i += 1) {
       // A versão II do bombardeiro dispara duas bombas das laterais,
