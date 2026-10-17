@@ -632,29 +632,38 @@ export class GameScene extends Phaser.Scene {
       tower.visual.body.setTint(tint);
       tower.visual.weapon.setTint(tint);
       const glow = ready ? 0.78 + Math.sin(this.time.now * 0.012) * 0.18 : 0.20 + progress * 0.38;
-      const x = tower.x, y = tower.y - 89, color = tower.definition.color;
+      // O indicador do Lobo não pode flutuar acima do sprite.
+      // Em cada animal secundário, ele acompanha o ombro/encaixe
+      // do canhão; o anel compacto deixa a silhueta e a arma legíveis.
+      const mount = tower.visual.secondary
+        ? tower.visual.mountWorldPosition() : null;
+      const x = mount?.x ?? tower.x;
+      const y = mount?.y ?? (tower.y - 89);
+      const ring = mount ? 12 : 21;
+      const color = tower.definition.color;
       graphics.fillStyle(color, glow * 0.14);
-      graphics.fillCircle(x, y, 16 + progress * 9);
-      graphics.lineStyle(3, 0x23374a, 0.75);
-      graphics.strokeCircle(x, y, 21);
+      graphics.fillCircle(x, y, ring * (0.75 + progress * 0.42));
+      graphics.lineStyle(2.5, 0x23374a, 0.75);
+      graphics.strokeCircle(x, y, ring);
       if (progress > 0) {
-        graphics.lineStyle(3.5, ready ? 0xffffff : color, glow);
+        graphics.lineStyle(mount ? 2.2 : 3.5, ready ? 0xffffff : color, glow);
         graphics.beginPath();
-        graphics.arc(x, y, 21, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+        graphics.arc(x, y, ring, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
         graphics.strokePath();
       }
       if (evolved) {
-        // Evolução visível: segundo circuito luminoso, distinto do aumento numérico.
-        graphics.lineStyle(2, color, 0.25 + 0.55 * progress);
-        graphics.strokeCircle(x, y, 27);
+        // Circuito de evolução proporcional ao tamanho da torre.
+        graphics.lineStyle(1.8, color, 0.25 + 0.55 * progress);
+        graphics.strokeCircle(x, y, ring + 6);
         if (ready) {
           graphics.fillStyle(0xffffff, glow * 0.85);
-          graphics.fillCircle(x + Math.cos(this.time.now * 0.006) * 27,
-            y + Math.sin(this.time.now * 0.006) * 27, 2.8);
+          graphics.fillCircle(x + Math.cos(this.time.now * 0.006) * (ring + 6),
+            y + Math.sin(this.time.now * 0.006) * (ring + 6), 2.4);
         }
       }
       graphics.fillStyle(ready ? 0xffffff : color, ready ? glow : glow * 0.65);
-      graphics.fillCircle(x, y, ready ? 5.5 : 2.5 + 2.5 * progress);
+      graphics.fillCircle(x, y,
+        mount ? (ready ? 3.2 : 1.8 + 1.5 * progress) : (ready ? 5.5 : 2.5 + 2.5 * progress));
     }
   }
 
