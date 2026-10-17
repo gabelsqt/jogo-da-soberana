@@ -38,3 +38,7 @@ Branch separada de `feat/enxames-esquadrilhas-v035`, preservando o jogo antigo.
 ## Decisão 72 — Brasil 3: Pressão Máxima (direção escolhida, detalhamento pendente)
 
 **Opção B escolhida:** ao atingir 100% de calor, o tiro principal do canhão passa a perfurar o primeiro inimigo, podendo acertar um segundo. A propriedade depende do calor gerado por Brasil 1; não deve repetir aumento de cadência. Os parâmetros exatos de perfuração, dano, leitura visual e combinação entre países serão decididos posteriormente. Brasil 5 permanece dedicado ao aumento de porte e força dos projéteis. Próxima revisão na ordem normal: Brasil 2. **Apenas planejamento; nenhuma implementação autorizada.**
+
+## Decisão 73 — Brasil 2: alternativas adicionais solicitadas (sem escolha definitiva)
+
+O usuário escolheu **D — explorar outras ideias** em vez de aprovar as três opções iniciais. Preservar o papel do nível 2 (especial + escudo) e reservar a estreia da eletricidade ofensiva para Brasil 4, as correntes para Brasil 6 e a defesa elétrica avançada para Brasil 8. Alternativas para deliberação: E Escudo de Retalhos (impactos bloqueados carregam especial ampliado); F Protocolo de Última Hora (reset emergencial do especial, uma vez por onda); G Reciclagem de Guerra (abates do especial restauram escudo); H Escudo Sanfona (especial expande escudo e empurra ameaças). **Nenhuma opção de Brasil 2 aprovada. Não implementar código.**
