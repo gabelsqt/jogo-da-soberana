@@ -34,6 +34,7 @@ jobs:
           test -f src/scenes/V1PlaytestScene.js
           test -f src/gameplay/arraialBrasil2.js
           grep -q 'BUILD ARRAIAL' src/scenes/V1PlaytestScene.js
+          grep -q 'const ringCount = Math.ceil(count / 2)' src/gameplay/arraialBrasil2.js
           grep -q 'TESTAR UPGRADES V1' src/scenes/MenuScene.js
           ! grep -q "scene.start('LabSetupScene')" src/scenes/MenuScene.js
       - name: Configurar Node
