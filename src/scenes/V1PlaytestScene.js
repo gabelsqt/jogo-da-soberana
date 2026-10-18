@@ -10,16 +10,16 @@ export class V1PlaytestScene extends Phaser.Scene {
   constructor() { super({ key: 'V1PlaytestScene' }); }
   init() {
     this.country = 'br';
-    this.level = 10;
+    this.level = 2;
   }
   preload() { preloadRioBackdrop(this); }
   create() {
     drawRioBackdrop(this);
     this.add.rectangle(W / 2, H / 2, W, H, 0x051021, 0.93).setDepth(30);
-    this.add.text(W / 2, 50, 'PLAYTEST — UPGRADES V1', {
+    this.add.text(W / 2, 50, 'PLAYTEST — BRASIL 2 / ARRAIAL BALÍSTICO', {
       fontFamily:'monospace', fontSize:'31px', fontStyle:'bold', color:'#ffe3a0',
     }).setOrigin(0.5).setDepth(35);
-    this.add.text(W / 2, 91, 'SEM ANIMAIS  •  5 PAÍSES  •  10 NÍVEIS POR PAÍS', {
+    this.add.text(W / 2, 91, 'BUILD ARRAIAL • SELECIONE BRASIL / NÍVEL 2', {
       fontFamily:'monospace', fontSize:'14px', color:'#9ce9db',
     }).setOrigin(0.5).setDepth(35);
     this.countryButtons = [];
