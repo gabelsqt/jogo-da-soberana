@@ -74,6 +74,12 @@ export class V1PlaytestScene extends Phaser.Scene {
       primary:true,onClick:()=>this.play(),depth:45});
     addMenuButton(this,{x:792,y:484,width:270,height:42,text:'BR+EUA+CHINA',
       onClick:()=>this.playMixed(),depth:45});
+    const previewDeath = () => this.scene.start('GameScene', {
+      mode: 'wave1', campaign: { choices: [] }, v1Playtest: true, previewDestruction: true,
+    });
+    addMenuButton(this, { x:480, y:522, width:360, height:25,
+      text:'D: TESTAR DESTRUIÇÃO DO CANHÃO', depth:45, onClick:previewDeath });
+    this.input.keyboard.on('keydown-D', previewDeath);
     this.input.keyboard.on('keydown-ENTER',()=>this.play());
     this.refresh();
   }

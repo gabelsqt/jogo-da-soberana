@@ -1,3 +1,4 @@
+import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
 import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame, firePulseRadius } from '../gameplay/arraialBrasil2.js';
@@ -110,6 +111,8 @@ export class GameScene extends Phaser.Scene {
   init(data = {}) {
     this.mode = MODES[data.mode] ? data.mode : 'wave0';
     this.v1Playtest = Boolean(data.v1Playtest);
+    this.previewDestruction = Boolean(data.previewDestruction);
+    this.deathSequence = null;
     this.unifiedLab = Boolean(data.labConfig);
     this.labConfig = this.unifiedLab ? normalizeLabConfig(data.labConfig) : null;
     // Compatibilidade com saves antigos que tinham apenas "upgradeId".
@@ -455,6 +458,15 @@ export class GameScene extends Phaser.Scene {
       this.startWaveCountdown();
     } else {
       this.scheduleWaveEvents();
+    }
+
+    if (this.previewDestruction) {
+      this.time.delayedCall(4300, () => {
+        if (this.tutorialComplete) return;
+        this.shield = 0;
+        this.cannonHealth = 0;
+        this.showDefeat();
+      });
     }
 
     if (this.mode === 'upgradeLab') {
@@ -3763,6 +3775,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   damageCannon(amount) {
+    if (this.tutorialComplete) return;
     if(this.isV1Campaign && this.shield>0)this.reactV1ShieldImpact();
     this.lastDamageAt = this.time.now;
     if (this.mode === 'upgradeLab' || this.mode === 'lab') {
@@ -4085,6 +4098,31 @@ export class GameScene extends Phaser.Scene {
 
   showDefeat(reason='cannon') {
     if (this.tutorialComplete) return;
+    if (reason === 'cannon') { this.beginCannonDestruction(); return; }
+    this.finishDefeat(reason);
+  }
+
+  beginCannonDestruction() {
+    if (this.deathSequence || this.tutorialComplete) return;
+    this.tutorialComplete = true;
+    this.gameOver = true;
+    this.closeSupremeCode();
+    this.specialAimGraphics.clear();
+    this.shieldGraphics.clear();
+    this.time.removeAllEvents();
+    this.tweens.killAll();
+    this.statusText.setText('SINAL PERDIDO');
+    this.healthText.setText('CANHÃO 0 | DEFESA PERDIDA');
+    this.deathSequence = createCannonDestruction(this, {
+      x: CANNON.x, y: CANNON.y, width: W, height: H,
+      onComplete: () => {
+        this.deathSequence = null;
+        this.finishDefeat('cannon');
+      },
+    });
+  }
+
+  finishDefeat(reason='cannon') {
     this.music.stop();
     if (this.mode==='wave11') {this.showFinaleDefeat(reason);return;}
     this.tutorialComplete = true;
@@ -4324,6 +4362,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time, delta) {
+    if (this.deathSequence) {
+      this.deathSequence.update(delta, this.input.activePointer);
+      return;
+    }
     // Também anima durante a contagem 3–2–1 e as telas de resultado,
     // sem consumir eventos de mouse e sem alterar o ritmo do combate.
     this.crtOverlay?.update(this.time.now);

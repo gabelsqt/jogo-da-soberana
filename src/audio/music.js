@@ -38,6 +38,7 @@ export class MusicPlayer {
     this.storage = storage;
     this.doc = doc;
     this.volume = 0.4;
+    this.gain = 1;
     this.muted = false;
     this.paused = false;
     try {
@@ -57,11 +58,12 @@ export class MusicPlayer {
     if (this.key === key && this.audio?.loop === loop) { this.sync(); return; }
     this.stop();
     this.key = key;
+    this.gain = 1;
     const audio = this.audio = this.createAudio();
     audio.preload = 'none';
     audio.src = assetUrl('assets/musicas/' + MUSIC[key]);
     audio.loop = loop;
-    audio.volume = this.volume;
+    audio.volume = this.volume * this.gain;
     audio.addEventListener('error', () => {
       if (this.audio === audio) console.warn('Não foi possível carregar a música:', MUSIC[key]);
     });
@@ -83,12 +85,16 @@ export class MusicPlayer {
 
   sync() {
     if (!this.audio) return;
-    this.audio.volume = this.volume;
+    this.audio.volume = this.volume * this.gain;
     this.audio.muted = this.muted;
     if (this.paused || this.doc?.hidden || this.muted || this.volume === 0) this.audio.pause();
     else this.tryPlay();
   }
 
+  setGain(value) {
+    this.gain = Math.max(0, Math.min(1, value));
+    if (this.audio) this.audio.volume = this.volume * this.gain;
+  }
   setPaused(value) { this.paused = value; this.sync(); }
   setVolume(value) {
     if (!Number.isFinite(value)) return;

@@ -233,3 +233,19 @@ A campanha passa a seguir **Onda 0 → escolha 1 → ... → Onda 9 → escolha 
 **Correção de código aprovada (opção A), aplicada em `src/scenes/GameScene.js`:** voo lateral `flyby` usa um único quadro fixo para cada sentido (frame **2** para direita, **4** para esquerda), em vez de repetir continuamente a animação de dash com rastros de fogo. Quadros laterais passaram a ser animações de um frame sem repetição. A lógica de curvas `swoop1`/`swoop2` usa histerese (+/-105 px/s para alternar lateralmente; abaixo de 45 px/s, propulsão frontal) e trava trocas por **140 ms**. A animação de dash (quadros 6/7) só aparece brevemente no começo de `swoop2`. O frame de impacto 10 fica preservado por 160 ms e a pose lateral é restaurada uma única vez após o dano. Não há espelhamento horizontal desnecessário; mantidos física, colisões, vida e comportamento original.
 
 **Verificação:** `tests/enemyType4Spritesheet.test.js` atualizado com simulações das transições, contenção do jitter e restauração pós-dano; testes e build de CI aprovados. **Pendente:** novo teste visual do jogador. Caso persistam pixels laranja desconectados, é necessário limpar/recortar a arte da spritesheet (opção B), pois a correção A não edita os pixels do PNG.
+
+## Destruição do canhão — sequência dramática (18/10/2026)
+
+Ao perder toda a vida do canhão, uma sequência de aproximadamente **4,8 segundos** precede a interface de derrota:
+
+1. **0–2,7 s:** trinta explosões em salvas ocupam a faixa inferior, com fumaça, estilhaços, clarão localizado e tremor. A última explosão é centrada no canhão.
+2. **0–2,1 s:** a mira perde progressivamente a resposta ao mouse, deriva para baixo e o cano cede. Disparos e habilidades cessam na destruição. A música perde volume até silenciar em 1,9 s, preservando o volume escolhido pelo jogador.
+3. **2,7–3,35 s:** a imagem real da tela, incluindo o HUD, é comprimida verticalmente como uma TV de tubo desligando.
+4. **3,35–4,15 s:** a linha luminosa se contrai em um ponto e apaga.
+5. **4,15–4,8 s:** pausa em preto; depois aparecem as opções normais de derrota. Na onda 11, continuam válidas as regras de resistência e de acesso ao epílogo.
+
+A sequência dispara uma vez por destruição. A batalha e seu cronômetro param; não há novas ondas ou disparos durante a cena. Derrota por tempo esgotado mantém o fluxo direto, pois não houve destruição do canhão. Reiniciar limpa o estado da sequência.
+
+**Prévia:** menu TESTAR UPGRADES V1 → TESTAR DESTRUIÇÃO DO CANHÃO (ou D). Abre uma onda de teste e provoca a destruição após a contagem inicial.
+
+Implementação em `src/ui/cannonDestruction.js` e `GameScene`. Efeitos geométricos, sem novos sprites ou sons de explosão; a música existente desvanece. Uma única captura de tela e uma Graphics de explosões limitam a criação de objetos. A validação visual final deve ser feita no navegador do jogador.

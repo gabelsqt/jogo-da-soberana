@@ -68,3 +68,12 @@ test('vinheta não reinicia depois de terminar', async () => {
   doc.dispatchEvent(new Event('pointerdown')); assert.equal(audios[0].plays, 1);
   p.destroy();
 });
+
+test('fade da destruição não sobrescreve volume salvo; próxima faixa volta ao volume escolhido', async () => {
+  const { player: p, audios, storage } = fixture();
+  p.setVolume(0.7); p.play('early'); await settle();
+  p.setGain(0.2); assert.ok(Math.abs(audios[0].volume - 0.14) < 0.0001);
+  const saved = new MusicPlayer({ storage }); assert.equal(saved.volume, 0.7);
+  p.play('menu'); assert.equal(audios[1].volume, 0.7);
+  saved.destroy(); p.destroy();
+});
