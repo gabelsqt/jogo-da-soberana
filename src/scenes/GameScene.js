@@ -1111,6 +1111,12 @@ export class GameScene extends Phaser.Scene {
       for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
         const enemy = this.enemies[j];
         if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+        if(enemy.type===6){
+          hit=hitType6Segment(this,enemy,oldX,oldY,next.x,next.y,
+            shot.weapon.damage,7);
+          if(hit)break;
+          continue;
+        }
         if (!segmentHitsCircle(oldX, oldY, next.x, next.y,
           enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 7)) continue;
 
@@ -2253,7 +2259,11 @@ export class GameScene extends Phaser.Scene {
       ) < 14) {
         const reflected=this.reflectV1ShieldProjectile(shot);
         this.removeEnemyBullet(i);
-        if(!reflected)this.damageTarget(shot.target, shot.damage??ENEMY_BULLET_DAMAGE);
+        if(!reflected){
+          if(shot.frostMs)this.cannonFrozenUntil=Math.max(this.cannonFrozenUntil,
+            this.elapsed+shot.frostMs);
+          this.damageTarget(shot.target, shot.damage??ENEMY_BULLET_DAMAGE);
+        }
         if (this.gameOver) return;
       } else if (shot.sprite.y > H + 30 || shot.sprite.x < -30 || shot.sprite.x > W + 30) {
         this.removeEnemyBullet(i);
@@ -2872,6 +2882,10 @@ export class GameScene extends Phaser.Scene {
     // explosões recursivas. O atraso abaixo é SOMENTE para o visual.
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6At(this,enemy,x,y,COLLATERAL_DAMAGE,COLLATERAL_RADIUS);
+        continue;
+      }
       if (fragmentHitsTarget(
         x, y, enemy.sprite.x, enemy.sprite.y,
         enemyContactRadius(enemy.type), COLLATERAL_RADIUS,
@@ -2911,6 +2925,10 @@ export class GameScene extends Phaser.Scene {
     let casualty = firstDestroyed;
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6At(this,enemy,x,y,FRAGMENT_DAMAGE,FRAGMENT_RADIUS);
+        continue;
+      }
       if (enemy.uid === directTargetId) continue;
       if (fragmentHitsTarget(
         x, y, enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type),
@@ -3610,6 +3628,24 @@ export class GameScene extends Phaser.Scene {
   hitEnemyWithBlast(index) {
     const enemy = this.enemies[index];
     if (!enemy) return;
+    if(enemy.type===6){
+      for(const blast of this.specialBlasts){
+        const radius=specialBlastRadius(this.time.now-blast.bornAt);
+        const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
+        const targets=type6AreaTargets(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+          blast.x,blast.y,radius);
+        for(const id of targets){
+          const key=enemy.uid+':'+id;
+          if(blast.hits.has(key))continue;
+          const rect=rects.find(r=>r.id===id);
+          if(!rect)continue;
+          blast.hits.add(key);
+          hitType6At(this,enemy,rect.x,rect.y,
+            4*(this.isV1Campaign?this.combat.specialAmplifier:1),0,true);
+        }
+      }
+      return;
+    }
     for (const blast of this.specialBlasts) {
       if (blast.hits.has(enemy.uid)) continue;
       if (!blastCatchesTarget(
