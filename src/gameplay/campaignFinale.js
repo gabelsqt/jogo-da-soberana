@@ -165,11 +165,22 @@ const ENDINGS = {
 export function finaleEnding(state = {}, won = false) {
   const {country,fullBrazil,coalition}=resolveFinalOpponent(state);
   const ending=ENDINGS[country][won?'win':'lose'];
+  const multi=coalition.length>1;
+  const partners=coalition.map(id=>FINALE_COUNTRIES[id].name).join(' + ');
+  const slides=ending.slides.map(([title,description])=>[title,description]);
+  if(multi)slides[0]=[
+    won?'COALIZÃO REPELIDA':'COALIZÃO VITORIOSA',
+    won ? `Os antigos aliados (${partners}) tentaram tomar o Brasil juntos. O canhão conseguiu derrubar todos os comandantes.`
+      : `Os antigos aliados (${partners}) uniram suas frotas para tomar o Brasil. A resistência não conseguiu impedir a ocupação.`,
+  ];
   return {
     id:`${country}-${won?'win':'lose'}`,
     country,fullBrazil,coalition,won,
     color:FINALE_COUNTRIES[country].color,
     ...ending,
+    subtitle:multi ? (won?'BRASIL DERROTA COALIZÃO':'BRASIL CAI DIANTE DA COALIZÃO')
+      : ending.subtitle,
+    slides,
   };
 }
 
