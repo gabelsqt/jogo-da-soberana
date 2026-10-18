@@ -5,16 +5,24 @@ export const ARRAIAL = Object.freeze({
   flameReach: 15, flameInterval: 500, flameDamage: 0.5,
 });
 export function fireworkSchedule(count = ARRAIAL.fireworkCount, duration = ARRAIAL.duration) {
-  // Intervalos decrescentes: começa espaçado e acelera, sem colidir com o final.
-  const weights = Array.from({length: count}, (_, i) => count - i);
-  const sum = weights.reduce((a,b) => a+b, 0);
-  let elapsed = 0;
-  return weights.map((weight,i) => {
-    elapsed += weight / sum * duration * 0.94;
-    const angle = -Math.PI/2 + 2*Math.PI*i/count;
-    return {at: Math.round(elapsed), x: Math.cos(angle)*ARRAIAL.orbitRadius,
-      y: Math.sin(angle)*ARRAIAL.orbitRadius};
+  // Seis estouros simultâneos formam o anel no instante zero.
+  // Os seis restantes percorrem uma espiral que fecha sobre o balão.
+  const ringCount = Math.ceil(count / 2);
+  const spiralCount = count - ringCount;
+  const ring = Array.from({length:ringCount},(_,i)=>{
+    const angle=-Math.PI/2+2*Math.PI*i/ringCount;
+    return {at:0,x:Math.cos(angle)*ARRAIAL.orbitRadius,
+      y:Math.sin(angle)*ARRAIAL.orbitRadius};
   });
+  const spiral = Array.from({length:spiralCount},(_,i)=>{
+    const progress=(i+1)/(spiralCount+1);
+    const angle=-Math.PI/2+progress*Math.PI*3.5;
+    const radius=ARRAIAL.orbitRadius*(1-progress);
+    // Cadência crescente, convergindo antes da detonação do balão aos 4 s.
+    const time=duration*(1-Math.pow(1-progress,0.65))*0.96;
+    return {at:Math.round(time),x:Math.cos(angle)*radius,y:Math.sin(angle)*radius};
+  });
+  return [...ring,...spiral];
 }
 export function withinBlast(ex, ey, x, y, enemyRadius, blastRadius) {
   return Math.hypot(x-ex,y-ey) <= blastRadius + enemyRadius;
