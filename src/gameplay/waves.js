@@ -79,8 +79,7 @@ function getOriginalWaveEvents(mode) {
     return events.sort((a, b) => a.at - b.at);
   }
   if (mode === 'wave2') {
-    // Nova ameaça: bombardeiros que disparam contra escudos e caças velozes,
-    // com básicos mantendo a pressão. A Onda 2 ainda não é uma luta de chefe.
+    // Onda 2 introdutória: apenas Tipo 1 (básico) e Tipo 2 (formação).
     const events = Array.from({ length: 32 }, (_, index) => ({
       at: 320 + index * 1070,
       type: 1,
@@ -90,16 +89,11 @@ function getOriginalWaveEvents(mode) {
     events.push(
       { at: 6300, type: 1, pattern: 'spread', count: 3 },
       { at: 8000, type: 2, group: true },
-      { at: 11400, type: 3 },
       { at: 16000, type: 1, pattern: 'spread', count: 4 },
       { at: 19000, type: 2, group: true, level: 2 },
-      { at: 20400, type: 3 },
       { at: 23900, type: 1, level: 2, pattern: 'spread', count: 5 },
-      { at: 26500, type: 4 },
       { at: 29000, type: 2, level: 2, pattern: 'orbit', count: 10 },
-      { at: 31800, type: 3, level: 2 },
       { at: 32800, type: 1, level: 2, pattern: 'spread', count: 5 },
-      { at: 36600, type: 4 },
       { at: 39900, type: 1, level: 2, pattern: 'line', count: 10 },
     );
     return events.sort((a, b) => a.at - b.at);
