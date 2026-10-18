@@ -5,7 +5,7 @@ export const SWARM_DANCES = Object.freeze([
   'serpentine', 'traverse', 'cross', 'spiral', 'scattered',
 ]);
 export const SWARM_ENTRIES = Object.freeze(['together', 'staggered']);
-export const TACTICAL_FORMATIONS = Object.freeze(['v', 'line', 'column']);
+export const TACTICAL_FORMATIONS = Object.freeze(['triangle', 'square']);
 
 export const V035_SWARM_SIZES = Object.freeze([
   [3, 5], [3, 5], [3, 5],
@@ -14,10 +14,10 @@ export const V035_SWARM_SIZES = Object.freeze([
   [15, 18], [15, 18],
 ]);
 export const V035_SQUAD_SIZES = Object.freeze([
-  [3, 4], [3, 4], [3, 4],
-  [3, 5], [4, 6], [4, 6],
-  [5, 7], [5, 7],
-  [6, 8], [6, 8],
+  [6, 8], [6, 8], [7, 9],
+  [8, 10], [8, 11], [9, 12],
+  [10, 13], [10, 14],
+  [12, 15], [12, 16],
 ]);
 
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
