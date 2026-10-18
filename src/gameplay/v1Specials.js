@@ -15,6 +15,10 @@ export function v1SpecialLoadout(state = {}) {
     levels[id]++;
     if(!primary && levels[id]===2) primary=id;
   }
+  if(Array.isArray(state.resistanceLevels))for(const level of state.resistanceLevels)
+    if(Number.isInteger(level)&&level>=1&&level<=10)
+      levels.br=Math.max(levels.br,level);
+  if(!primary && levels.br>=2)primary='br';
   const stages = Object.fromEntries(SPECIAL_COUNTRIES.map(id=>[id,specialStage(levels[id])]));
   return {primary,levels,stages,active:SPECIAL_COUNTRIES.filter(id=>stages[id]>0)};
 }
