@@ -3524,6 +3524,64 @@ export class GameScene extends Phaser.Scene {
         graphics.fillTriangle(fx-3,fy,fx+3,fy,fx,fy-flicker*(pulsing?1.8:1));
       }
     }
+    // Acessórios de escudo combináveis, desenhados sobre a mesma barra de HP.
+    if(this.isV1Campaign && this.specialBuild && this.shield>0){
+      const stages=this.specialBuild.stages;
+      const fraction=this.shield/this.shieldMax;
+      const cx=CANNON.x,cy=CANNON.y+10,rad=68+
+        (this.combat.electricFence?ELECTRIC_FENCE_RADIUS_BONUS:0);
+      // EUA: duas antenas laterais de choque, sem tiro ofensivo.
+      if(stages.us)for(const side of [-1,1]){
+        const x=cx+side*(rad-6), y=cy+5, h=11+stages.us*8;
+        graphics.lineStyle(4,0xffaa60,fraction);
+        graphics.lineBetween(x,y,x,y-h);
+        graphics.fillStyle(0xffdfac,fraction);
+        graphics.fillCircle(x,y-h,3+stages.us);
+        graphics.lineStyle(2,0xffd697,0.6*fraction);
+        graphics.strokeCircle(x,y-h,5+stages.us*2);
+      }
+      // Rússia: placas cristalinas de proteção.
+      if(stages.ru){
+        const maximum=3+stages.ru*2;
+        for(let i=0;i<maximum;i++){
+          const a=Math.PI+(i+0.5)*Math.PI/maximum;
+          const x=cx+rad*Math.cos(a),y=cy+rad*Math.sin(a),size=4+stages.ru*2;
+          graphics.fillStyle(0x9cefff,0.35+fraction*0.6);
+          graphics.fillTriangle(x-size,y+size/2,x,y-size*1.5,x+size,y+size/2);
+          graphics.lineStyle(1,0xffffff,0.8*fraction);
+          graphics.lineBetween(x,y-size*1.5,x+size,y+size/2);
+        }
+      }
+      // China: caixinhas maiores nos níveis altos; desaparecem com o HP.
+      if(stages.cn){
+        const maximum=2+stages.cn*2,count=Math.ceil(maximum*fraction);
+        for(let i=0;i<count;i++){
+          const a=Math.PI+(i+0.5)*Math.PI/maximum;
+          const x=cx+(rad-4)*Math.cos(a),y=cy+(rad-4)*Math.sin(a);
+          const size=7+stages.cn*2;
+          graphics.fillStyle(0xb97b41,0.94);
+          graphics.fillRect(x-size/2,y-size/2,size,size);
+          graphics.lineStyle(1,0xffe3a3,0.9);
+          graphics.strokeRect(x-size/2,y-size/2,size,size);
+          graphics.lineBetween(x,y-size/2,x,y+size/2);
+        }
+      }
+      // Coreia: painéis de espelho girando ao redor do canhão.
+      if(stages.jp){
+        const maximum=2+stages.jp*2,count=Math.ceil(maximum*fraction);
+        for(let i=0;i<count;i++){
+          const a=Math.PI+(i+0.5)*Math.PI/maximum+
+            0.1*Math.sin(this.time.now*0.001);
+          const x=cx+(rad+9)*Math.cos(a),y=cy+(rad+9)*Math.sin(a);
+          const size=6+stages.jp;
+          graphics.fillStyle(0xe9b0ff,0.84);
+          graphics.fillTriangle(x,y-size,x+size,y,x,y+size);
+          graphics.fillTriangle(x,y-size,x-size,y,x,y+size);
+          graphics.lineStyle(1,0xffffff,0.88);
+          graphics.lineBetween(x,y-size,x+size,y);
+        }
+      }
+    }
     for (const tower of this.supportTowers) {
       if (tower.health > 0) {
         dome(tower.x, tower.y, tower.shieldRadius, tower.shield, tower.shieldMax);
