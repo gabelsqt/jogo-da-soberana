@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { v1CombatStats } from '../src/gameplay/v1Upgrades.js';
-import { finaleBossHp, estimatedBossDps, finaleBossFirePattern } from '../src/gameplay/finaleBalance.js';
+import { finaleBossHp, estimatedBossDps, finaleBossFirePattern, finaleCounterattack } from '../src/gameplay/finaleBalance.js';
 import { betrayalCoalition } from '../src/gameplay/wave11Rules.js';
 
 const build = id => v1CombatStats({choices:Array(10).fill(id)});
@@ -62,4 +62,52 @@ test('epílogo não lança a onda zero automaticamente e volta ao menu',()=>{
   assert.match(scene,/this\.scene\.start\('MenuScene'\)/);
   assert.match(scene,/VOLTAR AO MENU/);
   assert.doesNotMatch(scene,/this\.scene\.start\('GameScene'/);
+});
+
+test('novas fases criam salvas progressivas sem aumentar o HP do chefe',()=>{
+  const combat=build('br');
+  const originalHp10=finaleBossHp('wave10',combat);
+  const originalHp11=finaleBossHp('wave11',combat);
+  for(const mode of ['wave10','wave11']){
+    const base=finaleBossFirePattern(mode,1,1);
+    const phase2=finaleBossFirePattern(mode,1,2);
+    const phase3=finaleBossFirePattern(mode,1,3);
+    assert.equal(base.volleyCount,2);
+    assert.equal(phase2.volleyCount,3);
+    assert.equal(phase3.volleyCount,4);
+    assert.ok(phase3.damage>base.damage);
+    assert.ok(phase3.intervalMultiplier<phase2.intervalMultiplier);
+    assert.ok(phase2.intervalMultiplier<base.intervalMultiplier);
+  }
+  assert.equal(finaleBossHp('wave10',combat),originalHp10);
+  assert.equal(finaleBossHp('wave11',combat),originalHp11);
+});
+
+test('coalizão numerosa aumenta volume com limite para não lotar tela',()=>{
+  const first=finaleBossFirePattern('wave11',4,1);
+  const furious=finaleBossFirePattern('wave11',4,3);
+  assert.equal(first.volleyCount,1);
+  assert.equal(furious.volleyCount,2);
+  assert.ok(furious.intervalMultiplier<first.intervalMultiplier);
+  for(const phase of [2,3]){
+    const p=finaleCounterattack('wave11',phase,4);
+    assert.equal(p.fighters,1);
+    assert.equal(p.bombers,0);
+    assert.equal(p.maxTriggers,3);
+  }
+  const solo=finaleCounterattack('wave11',3,1);
+  assert.equal(solo.fighters,2);
+  assert.equal(solo.bombers,1);
+  const fortress=finaleCounterattack('wave10',3);
+  assert.equal(fortress.maxTriggers,2);
+});
+
+test('salvas orbitais Full Brazil e contra-ataques por fase têm avisos antes de atingir',()=>{
+  const source=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
+  assert.match(source,/FROTA ALIENÍGENA: SALVA ORBITAL!/);
+  assert.match(source,/this\.time\.delayedCall\(580,/);
+  assert.match(source,/this\.time\.delayedCall\(660,/);
+  assert.match(source,/this\.queueFinaleCounterattack\(enemy,phase\)/);
+  assert.match(source,/config\.maxTriggers/);
+  assert.match(source,/this\.fireEnemyProjectile\(enemy\)/);
 });
