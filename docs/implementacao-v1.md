@@ -104,3 +104,7 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 89 — Brasil 2: dano da Fogueira de São João (APROVADA)
 
 **Opção B:** cada pulso da Fogueira causa **0,5 HP de dano por inimigo** a cada **0,5 segundo**, equivalente a **1 HP/s** durante exposição contínua. O alcance continua sendo 15 px além da borda do escudo ativo, com dano interrompido imediatamente ao sair da área ou quando o escudo fica inativo; não existe queimadura residual (Decisões 85–88). Dano fracionário deve ser contabilizado sem arredondamento indevido. Apenas planejamento; não implementar código.
+
+## Decisão 90 — Brasil 2: recarga do Arraial Balístico (APROVADA)
+
+**Opção B:** o tiro especial Arraial Balístico mantém **8 segundos de recarga**. Núcleo permanece por 4 segundos, com fogos circulares acelerando e uma explosão final concentrada; a Fogueira de São João do escudo é passiva e não depende da recarga do especial. Na proposta-base, o tempo de recarga é o intervalo entre ativações (não confundir com duração do núcleo); como a interação exata entre contagem de cooldown e permanência ainda não havia sido explicitada, fica para decisão de implementação/balanceamento. **Apenas GDD; nenhum código alterado.**
