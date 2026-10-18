@@ -108,3 +108,7 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 90 — Brasil 2: recarga do Arraial Balístico (APROVADA)
 
 **Opção B:** o tiro especial Arraial Balístico mantém **8 segundos de recarga**. Núcleo permanece por 4 segundos, com fogos circulares acelerando e uma explosão final concentrada; a Fogueira de São João do escudo é passiva e não depende da recarga do especial. Na proposta-base, o tempo de recarga é o intervalo entre ativações (não confundir com duração do núcleo); como a interação exata entre contagem de cooldown e permanência ainda não havia sido explicitada, fica para decisão de implementação/balanceamento. **Apenas GDD; nenhum código alterado.**
+
+## Decisão 91 — Brasil 2: início da recarga (APROVADA)
+
+**Opção A:** a recarga de **8 segundos começa no instante do disparo** do Arraial Balístico. O núcleo permanece ativo por **4 segundos**, e o próximo especial pode ser usado **8 segundos após o disparo anterior** — portanto, em condições normais, há 4 segundos entre o desaparecimento do núcleo e a próxima ativação. A recarga não começa depois da explosão final. Reduções futuras de cooldown devem respeitar as regras de equilíbrio e sobreposição que venham a ser definidas. **Somente atualização do GDD; nenhuma implementação.**
