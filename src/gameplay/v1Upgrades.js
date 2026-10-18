@@ -5,25 +5,25 @@ export const V1_UPGRADES = {
     {
       "level": 1,
       "title": "Gambiarra Balística",
-      "description": "Cadência básica 50% maior.",
+      "description": "Metralhadora rápida desde o início, com varredura horizontal e aceleração em ondas.",
       "kind": "primary"
     },
     {
       "level": 2,
       "title": "Arraial Balístico",
-      "description": "Especial: balão junino com 12 fogos, final de 5 HP. Escudo: Fogueira de São João, 1 HP/s perto da borda.",
+      "description": "Arraial Balístico: 4 fogos, turbo de cadência por 5 s e Fogueira de São João defensiva.",
       "kind": "secondary-shield"
     },
     {
       "level": 3,
       "title": "Motor Esquentando",
-      "description": "Cadência cresce com disparo contínuo.",
+      "description": "Rajadas em ondas mais densas, com motor esquentando.",
       "kind": "primary"
     },
     {
       "level": 4,
       "title": "Minha Casa, Meu Escudo",
-      "description": "Especial elétrico; escudo recebe cerca elétrica.",
+      "description": "8 fogos, turbo mais forte e cerca elétrica defensiva.",
       "kind": "secondary-shield"
     },
     {
@@ -35,7 +35,7 @@ export const V1_UPGRADES = {
     {
       "level": 6,
       "title": "220V",
-      "description": "Especial cria descargas em cadeia; escudo dá choques fortes.",
+      "description": "16 fogos, turbo reforçado e descargas em cadeia.",
       "kind": "secondary-shield"
     },
     {
@@ -47,7 +47,7 @@ export const V1_UPGRADES = {
     {
       "level": 8,
       "title": "Usina de Gambiarra",
-      "description": "Múltiplas descargas do especial; escudo pulsa.",
+      "description": "32 fogos, turbo máximo e escudo pulsante.",
       "kind": "secondary-shield"
     },
     {
@@ -59,7 +59,7 @@ export const V1_UPGRADES = {
     {
       "level": 10,
       "title": "Metralhadora da Soberania",
-      "description": "Tiros extremamente rápidos e fortes, com spread horizontal paralelo e rastros verdes/dourados.",
+      "description": "Feixe quase contínuo de projéteis físicos; picos de superaquecimento absurdos, ampliados pelo turbo junino.",
       "kind": "transformation"
     }
   ],
@@ -357,16 +357,18 @@ export function v1CombatStats(state = {}, base = {}) {
     shieldBonus:0, shieldRegen:3.5, heat:false, horizontalSpread:0,
     duplicateChance:0, missileEvery:0, extraBurstEvery:0, electricDamage:1,
     laserDamage:3, shockRadius:0, slowShot:false, specialAmplifier:1,
-    shieldIntercept:false, shieldPulse:false, ultimate:v1SupremeFor(state),
+    shieldIntercept:false, shieldPulse:false, brazilTurboMultiplier:1, brazilFireworkCount:0, brazilHeatPeak:0, ultimate:v1SupremeFor(state),
     transformed:null};
-  if(n.br>=1)stats.basicInterval/=1.5;
-  if(n.br>=2){/* Arraial Balístico: cooldown-base de 8 s, escudo incendiário sem HP extra. */}
-  if(n.br>=3)stats.heat=true;
-  if(n.br>=4)stats.electricFence=true;
-  if(n.br>=5)stats.basicDamage*=1.45;
-  if(n.br>=6){stats.electricDamage=1.7;stats.specialAmplifier+=0.25;}
-  if(n.br>=7)stats.horizontalSpread=5;
-  if(n.br>=8){stats.electricDamage=2.5;stats.shieldPulse=true;stats.specialAmplifier+=0.2;}
+  // Brasil: metralhadora potente desde o nível 1; picos de calor cíclicos.
+  if(n.br>=1){stats.basicInterval/=2;stats.heat=true;stats.brazilHeatPeak=0.65;stats.horizontalSpread=6;}
+  if(n.br>=2){stats.brazilFireworkCount=4;stats.brazilTurboMultiplier=1.5;}
+  if(n.br>=3){stats.basicInterval/=1.3;stats.brazilHeatPeak=0.9;}
+  if(n.br>=4){stats.electricFence=true;stats.brazilFireworkCount=8;stats.brazilTurboMultiplier=2;}
+  if(n.br>=5){stats.basicInterval/=1.25;stats.basicDamage*=1.45;stats.brazilHeatPeak=1.15;}
+  if(n.br>=6){stats.electricDamage=1.7;stats.specialAmplifier+=0.25;stats.brazilFireworkCount=16;stats.brazilTurboMultiplier=2.5;}
+  if(n.br>=7){stats.basicInterval/=1.3;stats.brazilHeatPeak=1.5;stats.horizontalSpread=11;}
+  if(n.br>=8){stats.electricDamage=2.5;stats.shieldPulse=true;stats.specialAmplifier+=0.2;stats.brazilFireworkCount=32;stats.brazilTurboMultiplier=3;}
+  if(n.br>=10){stats.basicInterval/=1.9;stats.brazilHeatPeak=2.4;stats.horizontalSpread=16;}
   if(n.us>=1)stats.fragmentation=true;
   if(n.us>=2){stats.specialAmplifier+=0.25;stats.shieldBonus+=12;}
   if(n.us>=3)stats.collateral=true;
