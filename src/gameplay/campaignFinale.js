@@ -1,3 +1,4 @@
+import { betrayalCoalition } from './wave11Rules.js';
 // Onda 11 e finais: regras puras para teste isolado.
 // A presença de ajuda estrangeira leva à tentativa de colonização na última onda.
 // Empate de investimento: vence o primeiro país estrangeiro escolhido no histórico.
@@ -12,18 +13,16 @@ export const FINALE_COUNTRIES = Object.freeze({
 export function resolveFinalOpponent(state = {}) {
   const choices = Array.isArray(state?.choices) ? state.choices.slice(0,10) : [];
   const counts = {us:0,ru:0,cn:0,jp:0};
-  for(const id of choices) if(Object.hasOwn(counts,id))counts[id]++;
-  let country='br', highest=0;
-  for(const id of choices) {
-    if(!Object.hasOwn(counts,id))continue;
-    if(counts[id]>highest) {country=id;highest=counts[id];}
-  }
-  return {country,fullBrazil:country==='br',countryName:FINALE_COUNTRIES[country].name,
-    foreignUpgrades:highest,counts};
+  for(const id of choices)if(Object.hasOwn(counts,id))counts[id]++;
+  const coalition=betrayalCoalition(choices);
+  const country=coalition[0]??'br';
+  return {country,coalition,fullBrazil:coalition.length===0,
+    countryName:FINALE_COUNTRIES[country].name,
+    foreignUpgrades:counts[country]??0,counts};
 }
 
 export function finalePrelude(state = {}) {
-  const {country,fullBrazil}=resolveFinalOpponent(state);
+  const {country,fullBrazil,coalition}=resolveFinalOpponent(state);
   if(fullBrazil)return {
     title:'ONDA 11 — SOBERANIA TOTAL',
     lines:[
@@ -42,8 +41,8 @@ export function finalePrelude(state = {}) {
     title:'ONDA 11 — A TRAIÇÃO',
     lines:[
       'A INVASÃO ALIENÍGENA FOI CONTIDA.',
-      messages[country],
-      `ENFRENTE ${FINALE_COUNTRIES[country].name.toUpperCase()} E DEFENDA A SOBERANIA.`,
+      coalition.length>1 ? 'OS ALIADOS ESTRANGEIROS MAIS FORTES FORMARAM UMA COALIZÃO PARA COBRAR A AJUDA.' : messages[country],
+      `ENFRENTE ${coalition.map(id=>FINALE_COUNTRIES[id].name).join(' + ')} E DEFENDA A SOBERANIA.`,
     ],
   };
 }
@@ -164,11 +163,11 @@ const ENDINGS = {
 };
 
 export function finaleEnding(state = {}, won = false) {
-  const {country,fullBrazil}=resolveFinalOpponent(state);
+  const {country,fullBrazil,coalition}=resolveFinalOpponent(state);
   const ending=ENDINGS[country][won?'win':'lose'];
   return {
     id:`${country}-${won?'win':'lose'}`,
-    country,fullBrazil,won,
+    country,fullBrazil,coalition,won,
     color:FINALE_COUNTRIES[country].color,
     ...ending,
   };
