@@ -56,6 +56,7 @@ jobs:
           grep -q 'swarmHold' src/scenes/GameScene.js
           grep -q 'activeSpawnPortals' src/scenes/GameScene.js
           grep -q 'esquadrilhas de 6–16' tests/formation035.test.js
+          grep -q 'boundToScreen:true' src/scenes/GameScene.js
           grep -q "Onda 2 usa apenas Tipo 1 e Tipo 2" tests/towers.test.js
           grep -q 'TESTAR UPGRADES V1' src/scenes/MenuScene.js
           ! grep -q "scene.start('LabSetupScene')" src/scenes/MenuScene.js
