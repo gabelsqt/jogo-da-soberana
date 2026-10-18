@@ -2,9 +2,9 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.39
+## Versão atual — 0.40
 
-Trilhas integradas aos menus e às ondas, sprites do Tipo 4 corrigidos e sequência de destruição do canhão com explosões centrais, perda gradual da mira, chiado e desligamento CRT. [Notas da versão 0.39](docs/versao-0.39.md).
+Zoom gradual de 1× a 1,65× no canhão durante a destruição; interferência e tremor duram 4 s, seguidos por um desligamento de TV mais rápido. Inclui as músicas e correções da versão anterior. [Notas da versão 0.40](docs/versao-0.40.md).
 
 Para conferir a sequência: **TESTAR UPGRADES V1 → TESTAR DESTRUIÇÃO DO CANHÃO** (atalho D).
 

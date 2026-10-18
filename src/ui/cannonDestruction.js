@@ -3,16 +3,18 @@ import { restrictedAimAngle } from '../gameplay/combat.js';
 
 const clamp = (v) => Math.max(0, Math.min(1, v));
 const smooth = (v) => { const t = clamp(v); return t * t * (3 - 2 * t); };
-export const DESTRUCTION_DURATION = 4800;
-export const TV_COLLAPSE_AT = 2700;
+export const DESTRUCTION_DURATION = 4700;
+export const TV_COLLAPSE_AT = 4000;
 
 export function destructionState(ms) {
   return {
+    zoom: 1 + 0.65 * smooth(ms / 2700),
+    focus: smooth(ms / 2700),
     control: 1 - smooth(ms / 2100),
     gain: 1 - smooth(ms / 1900),
-    collapse: smooth((ms - TV_COLLAPSE_AT) / 650),
-    line: 1 - smooth((ms - 3400) / 450),
-    point: 1 - smooth((ms - 3850) / 300),
+    collapse: smooth((ms - TV_COLLAPSE_AT) / 220),
+    line: 1 - smooth((ms - 4200) / 170),
+    point: 1 - smooth((ms - 4370) / 100),
     done: ms >= DESTRUCTION_DURATION,
   };
 }
@@ -29,6 +31,12 @@ export function failingAim(current, target, ms, delta) {
 // Uma Graphics para as explosões; no máximo uma captura 960x540 para o CRT.
 export function createCannonDestruction(scene, { x, y, width = 960, height = 540, onComplete }) {
   const music = scene.music;
+  const camera = scene.cameras.main;
+  const originalCamera = { zoomX: camera.zoomX, zoomY: camera.zoomY, scrollX: camera.scrollX, scrollY: camera.scrollY };
+  const restoreCamera = () => {
+    camera.setZoom(originalCamera.zoomX, originalCamera.zoomY);
+    camera.setScroll(originalCamera.scrollX, originalCamera.scrollY);
+  };
   const keyboard = scene.input.keyboard;
   const keyboardEnabled = keyboard?.enabled;
   const canvas = scene.game.canvas;
@@ -47,14 +55,14 @@ export function createCannonDestruction(scene, { x, y, width = 960, height = 540
   let elapsed = 0, finished = false, snapshot, black;
   let reticle = { x: scene.input.activePointer.x, y: scene.input.activePointer.y };
   // Detonações concentradas no corpo e na área imediatamente acima do canhão.
-  const bursts = Array.from({ length: 30 }, (_, i) => ({
+  const bursts = Array.from({ length: 46 }, (_, i) => ({
     at: i * 74,
-    x: i === 29 ? x : x + Math.sin(i * 2.4) * (i % 4 === 0 ? 125 : 70),
-    y: i === 29 ? y - 20 : y - 90 + ((i * 37) % 110),
-    radius: i === 29 ? 105 : 22 + (i % 5) * 8,
+    x: i === 45 ? x : x + Math.sin(i * 2.4) * (i % 4 === 0 ? 125 : 70),
+    y: i === 45 ? y - 20 : y - 90 + ((i * 37) % 110),
+    radius: i === 45 ? 105 : 22 + (i % 5) * 8,
   }));
   const staticSound = createTvStaticSound(scene);
-  scene.cameras.main.shake(2300, 0.0035);
+  camera.shake(TV_COLLAPSE_AT, 0.0045);
 
   function cleanup() {
     finished = true;
@@ -62,7 +70,8 @@ export function createCannonDestruction(scene, { x, y, width = 960, height = 540
     if (keyboard) keyboard.enabled = keyboardEnabled;
     canvas.style.cursor = cursor;
     for (const object of objects) object.destroy();
-    scene.cameras.main.shakeEffect.reset();
+    camera.shakeEffect.reset();
+    restoreCamera();
     scene.events.off('shutdown', cleanup);
   }
   scene.events.once('shutdown', cleanup);
@@ -72,14 +81,20 @@ export function createCannonDestruction(scene, { x, y, width = 960, height = 540
       if (finished) return;
       elapsed += Math.min(Math.max(delta, 0), 80);
       const state = destructionState(elapsed);
+      if (!snapshot) {
+        camera.setZoom(state.zoom);
+        camera.centerOn(width / 2 + (x - width / 2) * state.focus,
+          height / 2 + (y - 85 - height / 2) * state.focus);
+      }
+      const worldPointer = camera.getWorldPoint(pointer.x, pointer.y);
       music?.setGain(state.gain);
       if (elapsed >= 1900 && music?.audio) music.stop();
       scene.barrel.rotation = scene.aimAngle = failingAim(
-        scene.aimAngle, restrictedAimAngle(x, y, pointer.x, pointer.y), elapsed, delta);
+        scene.aimAngle, restrictedAimAngle(x, y, worldPointer.x, worldPointer.y), elapsed, delta);
       scene.barrel.rotation += Math.PI / 2;
       const response = 1 - Math.exp(-18 * state.control * delta / 1000);
-      reticle.x += (pointer.x - reticle.x) * response;
-      reticle.y += (pointer.y - reticle.y) * response + (1 - state.control) * delta * 0.025;
+      reticle.x += (worldPointer.x - reticle.x) * response;
+      reticle.y += (worldPointer.y - reticle.y) * response + (1 - state.control) * delta * 0.025;
       aim.clear();
       if (elapsed < TV_COLLAPSE_AT) {
         aim.lineStyle(2, 0xffb782, 0.8 * (1 - smooth((elapsed - 1400) / 1100)));
@@ -144,7 +159,12 @@ export function createCannonDestruction(scene, { x, y, width = 960, height = 540
         // Captura o campo e o HUD antes de adicionar a máscara preta.
         const display = scene.children.list.filter(o => o.visible && o !== block);
         snapshot = scene.add.renderTexture(0, 0, width, height);
+        snapshot.camera.setZoom(camera.zoomX, camera.zoomY);
+        snapshot.camera.setScroll(camera.scrollX, camera.scrollY);
         snapshot.draw(display);
+        // O enquadramento ampliado fica na captura; a TV fecha em tela inteira.
+        camera.setZoom(1);
+        camera.setScroll(0, 0);
         snapshot.setOrigin(0.5).setPosition(width / 2, height / 2).setDepth(501);
         black = scene.add.rectangle(width / 2, height / 2, width, height, 0x000000)
           .setDepth(500);
@@ -153,13 +173,13 @@ export function createCannonDestruction(scene, { x, y, width = 960, height = 540
       }
       if (snapshot) {
         snapshot.setScale(1 + state.collapse * 0.03, Math.max(0.002, 1 - state.collapse));
-        snapshot.setAlpha(1 - smooth((elapsed - 3250) / 100));
-        if (elapsed >= 3200 && elapsed < 3850) {
+        snapshot.setAlpha(1 - smooth((elapsed - 4160) / 60));
+        if (elapsed >= 4160 && elapsed < 4370) {
           interference.fillStyle(0xd8ffff, 0.18);
           interference.fillRect(width / 2 - width * state.line / 2, height / 2 - 5, width * state.line, 10);
           interference.fillStyle(0xf4ffff, 0.95);
           interference.fillRect(width / 2 - width * state.line / 2, height / 2 - 1, width * state.line, 2);
-        } else if (elapsed >= 3850 && state.point > 0) {
+        } else if (elapsed >= 4370 && state.point > 0) {
           interference.fillStyle(0xd8ffff, state.point);
           interference.fillCircle(width / 2, height / 2, 3 * state.point);
         }

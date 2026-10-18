@@ -1,6 +1,6 @@
 # Game Soberana — GDD (decisões de identidade e Supremos)
 
-> Atualizado em 18/10/2026 — versão jogável 0.39. Documento de design; **não representa implementação concluída**. Esta seção registra decisões aprovadas em conversa. A tabela de upgrades atual está em `src/gameplay/v1Upgrades.js`; mecânicas em código podem ainda divergir.
+> Atualizado em 18/10/2026 — versão jogável 0.40. Documento de design; **não representa implementação concluída**. Esta seção registra decisões aprovadas em conversa. A tabela de upgrades atual está em `src/gameplay/v1Upgrades.js`; mecânicas em código podem ainda divergir.
 
 ## Princípios de identidade
 
@@ -255,3 +255,7 @@ Implementação em `src/ui/cannonDestruction.js` e `GameScene`. Efeitos geométr
 ## Registro de versão — 0.39 (18/10/2026)
 
 Versão exibida no menu atualizada para **0.39**. Este lançamento reúne a integração musical, a correção do Tipo 4 e a sequência de destruição com refinamentos de interferência e explosões centrais. Notas e situação dos testes em `docs/versao-0.39.md`. Próximas entregas jogáveis devem atualizar o número visível e seu registro de mudanças.
+
+## Versão 0.40 — zoom e ritmo da destruição (18/10/2026)
+
+Refinamento solicitado após playtest: zoom gradual até **1,65×**, com foco no canhão e nas explosões. Interferência visual/sonora e tremor duram **4 segundos**; as salvas centrais continuam até o fim desse trecho. O fechamento em linha leva **220 ms**, a linha e o ponto apagam até **4,47 s** e o resultado entra em **4,7 s**. Essa temporização substitui a da versão 0.39. A captura de desligamento preserva o enquadramento ampliado; zoom e posição da câmera são restaurados ao terminar ou sair da cena.
