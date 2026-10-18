@@ -30,7 +30,7 @@ test('coalizões dividem o HP e nunca precisam lutar com 4 chefes completos',()=
   assert.ok(finaleBossHp('wave11',s,2)<base);
   assert.ok(finaleBossHp('wave11',s,3)<finaleBossHp('wave11',s,2));
   assert.ok(finaleBossHp('wave11',s,4)<finaleBossHp('wave11',s,3));
-  assert.equal(betrayalCoalition(['br','br','br','br']),[]);
+  assert.deepEqual(betrayalCoalition(['br','br','br','br']),[]);
 });
 
 test('a resistência não recupera HP dos chefes ao melhorar armas',()=>{
