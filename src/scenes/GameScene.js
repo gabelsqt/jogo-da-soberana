@@ -3704,8 +3704,48 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  showFinaleDefeat() {
+    this.tutorialComplete=true;
+    this.gameOver=true;
+    const next=continueResistanceAfterDefeat(
+      this.campaign.choices,this.brazilResistanceLevels);
+    const canRetry=!this.finale.fullBrazil&&next.outcome==='retry';
+    this.add.rectangle(W/2,H/2,W,H,0x070c1c,0.90)
+      .setInteractive().setDepth(220);
+    this.add.text(W/2,118,
+      canRetry?'O BRASIL AINDA RESISTE':'SOBERANIA PERDIDA',{
+        fontFamily:'monospace',fontSize:'34px',fontStyle:'bold',
+        color:canRetry?'#ffe3a0':'#ff9ca1',align:'center',
+      }).setOrigin(0.5).setDepth(222);
+    const caption=this.finale.fullBrazil
+      ? 'A ÚLTIMA FROTA ALIENÍGENA ROMPEU AS DEFESAS.\\nO BRASIL LUTOU SOZINHO.'
+      : canRetry
+        ? `A COLIGAÇÃO QUEBROU AS DEFESAS.\\nRESISTÊNCIA BRASILEIRA: MELHORIA NÍVEL ${next.awardedLevel} DISPONÍVEL.\\nREINICIAR TODA A BATALHA CONTRA OS MESMOS CHEFES?`
+        : 'OS RECURSOS DA RESISTÊNCIA SE ESGOTARAM.\\nA COALIZÃO TOMOU O BRASIL.';
+    this.add.text(W/2,235,caption,{
+      fontFamily:'monospace',fontSize:'17px',fontStyle:'bold',
+      color:'#e9f0ff',align:'center',wordWrap:{width:825},lineSpacing:8,
+    }).setOrigin(0.5).setDepth(223);
+    if(canRetry)addMenuButton(this,{
+      x:W/2,y:355,width:460,height:49,
+      text:`▶ RESISTIR — BRASIL NÍVEL ${next.awardedLevel}`,
+      primary:true,depth:225,onClick:()=>this.scene.start('GameScene',{
+        mode:'wave11',campaign:this.campaign,
+        brazilResistanceLevels:next.awardedLevels,
+      }),
+    });
+    addMenuButton(this,{
+      x:W/2,y:canRetry?431:371,width:390,height:46,
+      text:canRetry?'ACEITAR DERROTA / VER FINAL':'VER FINAL DA DERROTA',
+      depth:225,onClick:()=>this.scene.start('EndingScene',{
+        campaign:this.campaign,won:false,
+      }),
+    });
+  }
+
   showDefeat() {
     if (this.tutorialComplete) return;
+    if (this.mode==='wave11') {this.showFinaleDefeat();return;}
     this.tutorialComplete = true;
     this.gameOver = true;
     this.statusText.setText('CANHÃO DESTRUÍDO');
@@ -3741,6 +3781,14 @@ export class GameScene extends Phaser.Scene {
     if (this.tutorialComplete) return;
     this.tutorialComplete = true;
 
+    if (this.mode === 'wave11') {
+      this.statusText.setText('CONFRONTO FINAL VENCIDO — BRASIL SOBERANO!');
+      this.tutorialText.setText('');
+      this.time.delayedCall(1250,()=>this.scene.start('EndingScene',{
+        campaign:this.campaign,won:true,
+      }));
+      return;
+    }
     if (this.mode === 'wave10') {
       this.statusText.setText('FORTALEZA-MÃE DESTRUÍDA');
       this.time.delayedCall(1200, () => this.advanceAfterWave());
@@ -3794,6 +3842,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   advanceAfterWave() {
+    if(this.mode==='wave10') {
+      this.scene.start('GameScene',{
+        mode:'wave11',campaign:this.campaign,brazilResistanceLevels:[],
+        v1Playtest:this.v1Playtest,
+      });
+      return;
+    }
     if (!this.unifiedLab && /^wave[0-9]$/.test(this.mode)) {
       this.scene.start('UpgradeScene', {
         campaign: this.campaign,
