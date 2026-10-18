@@ -34,7 +34,7 @@ test('o congelamento secundário atrai, mas não retransmite automaticamente',()
   applyRussianFreeze(a,100,1000);
   spreadRussianFrost(a,[a,b,c],100,1000,32);
   assert.equal(b.frozenUntil,700);
-  assert.equal(b.russianFrostPrimary,undefined);
+  assert.equal(b.russianFrostPrimary,false);
   assert.deepEqual(spreadRussianFrost(b,[a,b,c],100,1000,40),[]);
   applyRussianFreeze(b,150,1000);
   assert.equal(b.russianFrostPrimary,true);
