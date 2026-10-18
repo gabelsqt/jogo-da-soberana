@@ -1456,6 +1456,18 @@ export class GameScene extends Phaser.Scene {
       target: formationGroup ? null : this.chooseDefenseTarget(),
     };
 
+    if(type===5&&options.finalBoss&&this.mode==='wave10'){
+      // Chefe alienígena tipo 6 ainda sem sprite/IA final: casco tipo 5 como placeholder.
+      enemy.bossLabel=this.add.text(startX,startY-58,
+        'FORTALEZA-MÃE — CHEFE FINAL ALIENÍGENA',{
+          fontFamily:'monospace',fontSize:'15px',fontStyle:'bold',
+          color:'#f6faff',backgroundColor:'#233747df',padding:{x:6,y:4},
+        }).setOrigin(0.5).setDepth(25);
+      enemy.maxHp=Math.round(enemy.maxHp*1.45);
+      enemy.hp=enemy.maxHp;
+      enemy.box?.setStrokeStyle(5,0xf4ffff);
+    }
+
     if (type===5 && options.finalBoss && this.mode==='wave11') {
       const color=FINALE_COUNTRIES[options.bossCountry]?.color??0x6ee9ed;
       enemy.definition={...enemy.definition,color};
@@ -4001,17 +4013,24 @@ export class GameScene extends Phaser.Scene {
         this.tutorialText.setText('Proteja o canhão! Escudos regeneram sem dano.');
       }
     } else if (this.mode.startsWith('wave')) {
-      const history = this.campaign.choices.map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' + ');
+      const history = this.combatCampaign.choices.map((id) =>
+        getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' + ');
       const special = this.combat.plasmaEvery ? ' | LIGHTSTICK: ' +
         (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/' + PLASMA_EVERY_SHOTS
         : this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
       const towerLabel = this.supportTowers.map((tower) => tower.definition.label).join(' + ');
-      const levelTwo = unlockedSecondUpgrades(this.campaign)
+      const levelTwo = unlockedSecondUpgrades(this.combatCampaign)
         .map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' + ');
+      const enemies=this.mode==='wave11'&&this.finale?.coalition.length
+        ? ' | TRAIDORES: '+this.finale.coalition
+          .map(id=>FINALE_COUNTRIES[id].name).join('+') : '';
+      const resistance=this.brazilResistanceLevels.length
+        ? ' | RESISTÊNCIA BR N'+Math.max(...this.brazilResistanceLevels) : '';
       this.tutorialText.setText(
         'ALIADOS: ' + (history || 'NENHUM') +
         (levelTwo ? ' | N2: ' + levelTwo : '') +
-        (towerLabel ? ' | TORRE: ' + towerLabel : '') + special,
+        (towerLabel ? ' | TORRE: ' + towerLabel : '') +
+        enemies + resistance + special,
       );
     } else if (this.mode === 'upgradeLab' && !this.v1Playtest) {
       this.tutorialText.setText('1–5: GERAR   SHIFT+1–5: NÍVEL 2   C: LIMPAR   U: UPGRADES');
