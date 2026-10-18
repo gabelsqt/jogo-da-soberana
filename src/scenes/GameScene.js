@@ -2706,6 +2706,11 @@ export class GameScene extends Phaser.Scene {
     const initialHitIds = new Set();
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6Segment(this,enemy,startX,startY,endX,endY,
+          this.isV1Campaign ? this.combat.laserDamage : PLASMA_DAMAGE,PLASMA_HALF_WIDTH);
+        continue;
+      }
       if (laserHitsTarget(
         startX, startY, endX, endY,
         enemy.sprite.x, enemy.sprite.y,
@@ -2984,6 +2989,10 @@ export class GameScene extends Phaser.Scene {
       onComplete:()=>ring.destroy()});
     for (let i = this.enemies.length-1; i>=0; i--) {
       const e = this.enemies[i];
+      if(e.type===6){
+        hitType6At(this,e,x,y,damage,radius);
+        continue;
+      }
       if (Math.hypot(e.sprite.x-x,e.sprite.y-y) <= radius+enemyContactRadius(e.type)) {
         if (slow) e.electricSlowUntil=this.time.now+2400;
         this.impactInvader(i,damage,slow?0.25:0,'#'+color.toString(16).padStart(6,'0'));
@@ -3296,6 +3305,10 @@ export class GameScene extends Phaser.Scene {
     beam.lineBetween(originX, originY, target.x, target.y);
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6Segment(this,enemy,originX,originY,target.x,target.y,2,9);
+        continue;
+      }
       if (laserHitsTarget(originX, originY, target.x, target.y,
         enemy.sprite.x, enemy.sprite.y, 9, enemyContactRadius(enemy.type))) {
         this.impactInvader(i, 2, 0, '#bcfaff');
@@ -3469,6 +3482,7 @@ export class GameScene extends Phaser.Scene {
     // Iteração reversa preserva índices quando inimigos morrem.
     for(let i=this.enemies.length-1;i>=0;i--){
       const enemy=this.enemies[i];
+      if(enemy.type===6){hitType6At(this,enemy,x,y,amount,radius);continue;}
       if(withinBlast(x,y,enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type),radius))
         this.impactInvader(i,amount,0,color);
     }
@@ -3820,6 +3834,26 @@ export class GameScene extends Phaser.Scene {
       if (!remove && !bullet.special) {
         for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
           const enemy = this.enemies[j];
+          if(enemy.type===6){
+            const target=type6PointTarget(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+              bullet.sprite.x,bullet.sprite.y,Math.max(7,bullet.usRadius));
+            const key=enemy.uid+':'+target;
+            if(target!==null&&bullet.hitEnemyIds.has(key))continue;
+            if(target!==null)bullet.hitEnemyIds.add(key);
+            const hit=hitType6Bullet(this,enemy,bullet.sprite.x,bullet.sprite.y,
+              bullet.damage,Math.max(7,bullet.usRadius));
+            if(!hit.blocked)continue;
+            if(bullet.fragmentation)this.explodeFragments(bullet.sprite.x,bullet.sprite.y,
+              enemy.uid);
+            if(bullet.usGrowthMax>1)this.explodeAmericanPrimary(bullet.sprite.x,
+              bullet.sprite.y,enemy.uid,bullet.damage,20+bullet.usRadius);
+            if(bullet.knockback>0)this.showHeavyImpact(bullet.sprite.x,bullet.sprite.y);
+            if(bullet.fragmentation){remove=true;break;}
+            bullet.pierceLeft-=1;
+            remove=hit.target===null||bullet.pierceLeft<=0;
+            if(remove)break;
+            continue;
+          }
           if (bullet.hitEnemyIds.has(enemy.uid)) continue;
           if (Phaser.Math.Distance.Between(
             bullet.sprite.x, bullet.sprite.y, enemy.sprite.x, enemy.sprite.y,
