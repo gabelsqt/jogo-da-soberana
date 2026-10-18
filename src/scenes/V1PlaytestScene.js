@@ -11,6 +11,7 @@ export class V1PlaytestScene extends Phaser.Scene {
   init() {
     this.country = 'br';
     this.level = 2;
+    this.arenaIndex = 7; // Padrão anterior: onda 6. Última opção = arena livre.
   }
   preload() { preloadRioBackdrop(this); }
   create() {
@@ -55,6 +56,16 @@ export class V1PlaytestScene extends Phaser.Scene {
       fontFamily:'monospace',fontSize:'12px',color:'#b7d8ee',align:'center',
       wordWrap:{width:850},
     }).setOrigin(0.5).setDepth(40);
+    this.add.text(W/2,421,'CENÁRIO DE TESTE', {
+      fontFamily:'monospace',fontSize:'13px',fontStyle:'bold',color:'#cde5f7',
+    }).setOrigin(0.5).setDepth(40);
+    addMenuButton(this,{x:290,y:448,width:62,height:34,text:'◀',
+      onClick:()=>{this.arenaIndex=(this.arenaIndex+11)%12;this.refresh();},depth:40});
+    this.arenaText=this.add.text(W/2,448,'',{
+      fontFamily:'monospace',fontSize:'16px',fontStyle:'bold',color:'#ffe3a0',
+    }).setOrigin(0.5).setDepth(40);
+    addMenuButton(this,{x:670,y:448,width:62,height:34,text:'▶',
+      onClick:()=>{this.arenaIndex=(this.arenaIndex+1)%12;this.refresh();},depth:40});
     addMenuButton(this,{x:175,y:484,width:245,height:42,text:'⌂  MENU',
       onClick:()=>this.scene.start('MenuScene'),depth:45});
     addMenuButton(this,{x:480,y:484,width:340,height:43,text:'▶  TESTAR ESTA BUILD',
@@ -68,6 +79,7 @@ export class V1PlaytestScene extends Phaser.Scene {
     const item=this.level>0?V1_UPGRADES[this.country][this.level-1]:null;
     const stats=v1CombatStats({choices:Array(this.level).fill(this.country)});
     this.levelText.setText('NÍVEL '+this.level+' / 10');
+    this.arenaText.setText(this.arenaIndex===11?'ARENA LIVRE — INIMIGOS CONTÍNUOS':'ONDA '+this.arenaIndex);
     this.upgradeText.setText(item ? item.title.toUpperCase() : 'SEM UPGRADES');
     this.infoText.setText(item ? item.description+
       (stats.ultimate?'  •  ESPAÇO: '+V1_UPGRADES[this.country][8].title:'') :
@@ -82,13 +94,15 @@ export class V1PlaytestScene extends Phaser.Scene {
   play() {
     const choices=Array(this.level).fill(this.country);
     this.scene.start('GameScene',{
-      mode:this.level===10?'wave10':this.level>=9?'wave9':'wave6',
+      mode:this.arenaIndex===11?'upgradeLab':'wave'+this.arenaIndex,
+      v1Playtest:true,
       campaign:{choices},
     });
   }
   playMixed() {
     this.scene.start('GameScene',{
-      mode:'wave8',
+      mode:this.arenaIndex===11?'upgradeLab':'wave'+this.arenaIndex,
+      v1Playtest:true,
       campaign:{choices:['br','us','cn','br','us','cn','br','us','cn']},
     });
   }
