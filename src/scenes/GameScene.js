@@ -48,6 +48,7 @@ import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
+import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
@@ -144,6 +145,7 @@ export class GameScene extends Phaser.Scene {
     this.isV1Campaign = !this.unifiedLab && (/^wave(?:[0-9]|10)$/.test(this.mode) || (this.v1Playtest && this.mode === 'upgradeLab'));
     if (this.isV1Campaign) {
       this.combat = v1CombatStats(this.campaign);
+      this.specialBuild = v1SpecialConfig(this.campaign);
       // Legado de torres e especiais das árvores antigas fica disponível somente no laboratório.
       this.thirdIds = [];
       this.fourthIds = [];
@@ -289,6 +291,8 @@ export class GameScene extends Phaser.Scene {
     this.cannonRecoil = 0;
     this.lastHeavyShake = -Infinity;
     this.lastSpecialFire = -this.combat.specialCooldown;
+    this.lastV1ShieldPulse = -Infinity;
+    this.shieldReflectCount = 0;
     this.tutorialComplete = false;
     this.gameOver = false;
     this.cannonHealth = 100;
@@ -305,6 +309,12 @@ export class GameScene extends Phaser.Scene {
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
+    if (this.isV1Campaign && this.specialBuild?.primary) {
+      this.specialLabel=this.add.text(CANNON.x-170,CANNON.y-63,'',{
+        fontFamily:'monospace',fontSize:'11px',fontStyle:'bold',
+        color:'#e9f6ff',backgroundColor:'#142030dd',padding:{x:5,y:4},
+      }).setDepth(105);
+    }
     if (this.isV1Campaign && this.combat.ultimate) {
       this.ultimateLabel = this.add.text(CANNON.x + 75, CANNON.y - 61, '', {
         fontFamily: 'monospace', fontSize: '11px', fontStyle: 'bold',
@@ -2537,19 +2547,162 @@ export class GameScene extends Phaser.Scene {
   }
 
   shootSpecial(pointer) {
-    if (this.tutorialComplete || this.countdownActive) return;
+    if (this.tutorialComplete || this.countdownActive || this.supremeTyping || this.supremeCinematic) return;
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
-    const target = specialTargetPoint(
-      CANNON.x, CANNON.y, pointer.x, pointer.y,
-    );
-    this.lastSpecialFire = this.time.now;
-    if (this.isV1Campaign && this.combat.brazilTurboMultiplier > 1) this.brazilTurboUntil = this.time.now + 5000;
-    if (this.isV1Campaign && this.combat.electricFence && this.combat.specialAmplifier > 1.3) {
-      this.pulseV1Area(target.x, target.y, 100, this.combat.electricDamage, 0x70f9ac);
+    const target=specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
+    this.lastSpecialFire=this.time.now;
+    if (this.isV1Campaign && this.combat.brazilTurboMultiplier>1)
+      this.brazilTurboUntil=this.time.now+5000;
+    const shot=this.createProjectile(target.angle,true,target.distance);
+    const build=this.isV1Campaign ? this.specialBuild : null;
+    if(build?.primary && shot) {
+      shot.hybridConfig=build;
+      const color=specialPalette(build.primary);
+      if(shot.visual) {
+        shot.sprite.setFillStyle(color);
+        shot.sprite.setStrokeStyle(3,0xffffff,0.95);
+        // Formato principal depende do PRIMEIRO país com especial desbloqueado.
+        const scale=build.primary==='us' ? 2.2*Math.sqrt(build.usMissileScale) :
+          build.primary==='cn'?1.7*build.cnDropScale:
+          build.primary==='ru'?1.8:build.primary==='jp'?2:1.5;
+        shot.sprite.setScale(Math.min(6,scale));
+      }
     }
-    this.createProjectile(target.angle, true, target.distance);
-    // Coreia 4: raio no trajeto, mantendo a detonação no ponto marcado.
-    if (this.fourthIds.includes('jp')) this.fireSpecialLaser(target);
+    // Caminho do laboratório legado: não interferir nas árvores antigas.
+    if(!this.isV1Campaign && this.fourthIds.includes('jp'))this.fireSpecialLaser(target);
+  }
+
+  // Cada ativação resolve um único projétil híbrido, em fases finitas.
+  detonateV1HybridSpecial(x,y,build) {
+    const {br,us,ru,cn,jp}=build.stages;
+    // 1. Rússia congela primeiro e cria centros de atração para a detonação.
+    if(ru) {
+      const radius=Math.max(build.ruBurstRadius,build.cnDropRadius,build.usBlastRadius,65);
+      for(const enemy of this.enemies) {
+        if(Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y)<=radius+enemyContactRadius(enemy.type))
+          enemy.frozenUntil=Math.max(enemy.frozenUntil||0,this.elapsed+build.ruFreezeMs);
+      }
+    }
+    // 2. China distribui a CARGA do mesmo projétil, sem lançar drones auxiliares.
+    if(cn) {
+      const count=build.cnPayloads;
+      for(let i=0;i<count;i++){
+        const angle=-Math.PI/2+(i-1)*Math.PI*2/Math.max(3,count-1);
+        const offset=i===0?0:Math.min(95,build.cnDropRadius*0.8);
+        const cx=x+Math.cos(angle)*offset,cy=y+Math.sin(angle)*offset;
+        this.pulseV1Area(cx,cy,build.cnDropRadius,build.cnDamage,0xffd562);
+      }
+    }
+    // 3. Explosão-base, fogos e estilhaços — cada país mantém seu dano próprio.
+    if(br)this.createArraial(x,y);
+    if(ru)this.detonateRussianMatryoshka(x,y,build);
+    if(us) {
+      const blastRadius=build.usBlastRadius,shockRadius=build.usShockRadius;
+      for(let i=this.enemies.length-1;i>=0;i--){
+        const enemy=this.enemies[i];
+        const d=Math.max(0,Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y)-enemyContactRadius(enemy.type));
+        // O anel de choque só causa 50% do dano FORA da explosão principal.
+        if(d<=blastRadius)this.impactInvader(i,build.usDamage,0,'#ffcc88');
+        else if(d<=shockRadius)this.impactInvader(i,build.usDamage*0.5,0,'#ffca83');
+      }
+      this.drawV1SpecialPulse(x,y,blastRadius,0xffa54d);
+    }
+    // Sem componentes estrangeiros nem Arraial, preserva dano-base do especial.
+    if(!br&&!us&&!ru&&!cn&&!jp)this.pulseV1Area(x,y,70,3,0x80e8ff);
+    // 4. Reflexos da Coreia: quantidade fixa POR ATIVAÇÃO, não por tiro.
+    if(jp)this.fireV1DiscoReflections(x,y,build);
+    // 5. Empurrão americano acontece por último e nunca causa dano adicional.
+    if(us)this.pushV1EnemiesUp(x,y,build.usShockRadius,build.usPush);
+  }
+
+  drawV1SpecialPulse(x,y,radius,color) {
+    const ring=this.add.circle(x,y,radius,color,0.14)
+      .setStrokeStyle(3,color,0.85).setDepth(55).setScale(0.25);
+    this.tweens.add({targets:ring,scale:1.15,alpha:0,duration:360,
+      onComplete:()=>ring.destroy()});
+  }
+
+  // Matryoshka: estilhaços atingem outros congelados e iniciam uma nova detonação,
+  // mas cada inimigo congelado pode explodir uma única vez por ativação.
+  detonateRussianMatryoshka(x,y,build) {
+    const alreadyBurst=new Set();
+    const queue=this.enemies.filter(enemy=>enemy.frozenUntil>this.elapsed &&
+      Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y)<build.ruBurstRadius+enemyContactRadius(enemy.type))
+      .map(enemy=>enemy.uid);
+    if(!queue.length)this.pulseV1Area(x,y,build.ruBurstRadius,build.ruDamage,0x8ce6ff);
+    const visuals=this.add.graphics().setDepth(57);
+    let drawn=0;
+    while(queue.length) {
+      const uid=queue.shift();
+      if(alreadyBurst.has(uid))continue;
+      const frozen=this.enemies.find(enemy=>enemy.uid===uid);
+      if(!frozen)continue;
+      alreadyBurst.add(uid);
+      const bx=frozen.sprite.x,by=frozen.sprite.y;
+      if(drawn++<16) {
+        visuals.lineStyle(2,0x9eeeff,0.8);
+        visuals.strokeCircle(bx,by,Math.min(28,build.ruBurstRadius*0.5));
+      }
+      const damaged=new Set();
+      for(let ray=0;ray<build.ruShards;ray++) {
+        const angle=Math.PI*2*ray/build.ruShards;
+        const length=build.ruBurstRadius*1.4;
+        const tx=bx+Math.cos(angle)*length,ty=by+Math.sin(angle)*length;
+        if(drawn<=16) {
+          visuals.lineStyle(1.5,0xd7faff,0.68);
+          visuals.lineBetween(bx,by,tx,ty);
+        }
+        for(const enemy of [...this.enemies]){
+          if(enemy.uid===uid||damaged.has(enemy.uid))continue;
+          if(!segmentHitsCircle(bx,by,tx,ty,enemy.sprite.x,enemy.sprite.y,
+            enemyContactRadius(enemy.type)+5))continue;
+          damaged.add(enemy.uid);
+          const stillFrozen=enemy.frozenUntil>this.elapsed;
+          const index=this.enemies.findIndex(e=>e.uid===enemy.uid);
+          if(index>=0)this.impactInvader(index,build.ruDamage,0,'#b4f1ff',false);
+          if(stillFrozen&&!alreadyBurst.has(enemy.uid))queue.push(enemy.uid);
+        }
+      }
+      const selfIndex=this.enemies.findIndex(enemy=>enemy.uid===uid);
+      if(selfIndex>=0)this.impactInvader(selfIndex,build.ruDamage,0,'#b4f1ff',false);
+    }
+    this.tweens.add({targets:visuals,alpha:0,duration:380,
+      onComplete:()=>visuals.destroy()});
+  }
+
+  fireV1DiscoReflections(x,y,build) {
+    const g=this.add.graphics().setDepth(58);
+    const targets=[...this.enemies].sort((a,b)=>
+      Math.hypot(a.sprite.x-x,a.sprite.y-y)-Math.hypot(b.sprite.x-x,b.sprite.y-y));
+    const count=build.krReflections;
+    for(let ray=0;ray<count;ray++){
+      const target=targets[ray];
+      const angle=(ray/count)*Math.PI*2-Math.PI/2;
+      const tx=target?.sprite.x ?? x+Math.cos(angle)*260;
+      const ty=target?.sprite.y ?? y+Math.sin(angle)*260;
+      g.lineStyle(ray%2?2:3,ray%3===0?0xffffff:0xe69aff,0.72);
+      g.lineBetween(x,y,tx,ty);
+      if(target){
+        const index=this.enemies.findIndex(enemy=>enemy.uid===target.uid);
+        if(index>=0){
+          if(build.stages.ru)target.frozenUntil=Math.max(target.frozenUntil||0,
+            this.elapsed+build.ruFreezeMs);
+          this.impactInvader(index,build.krReflectDamage,0,'#f1baff',false);
+        }
+      }
+    }
+    this.tweens.add({targets:g,alpha:0,duration:350,onComplete:()=>g.destroy()});
+  }
+
+  pushV1EnemiesUp(x,y,radius,strength) {
+    for(const enemy of this.enemies){
+      const d=Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y);
+      if(d>radius+enemyContactRadius(enemy.type))continue;
+      // Offset físico-visual vertical em direção à origem alienígena (topo).
+      enemy.shockOffset.vy=Math.min(enemy.shockOffset.vy||0,-strength);
+      if(enemy.phase==='dive')
+        enemy.recoilSpeed=applyRecoilImpulse(enemy.recoilSpeed,strength,420);
+    }
   }
 
   fireSpecialLaser(target) {
@@ -3030,7 +3183,8 @@ export class GameScene extends Phaser.Scene {
         bullet.sprite.x, bullet.sprite.y, bullet.tx, bullet.ty,
       ) <= 300 * dt + 6) {
         bullet.sprite.setPosition(bullet.tx, bullet.ty);
-        this.explode(bullet.tx, bullet.ty);
+        if(bullet.hybridConfig)this.detonateV1HybridSpecial(bullet.tx,bullet.ty,bullet.hybridConfig);
+        else this.explode(bullet.tx,bullet.ty);
         remove = true;
       }
 
@@ -3481,6 +3635,12 @@ export class GameScene extends Phaser.Scene {
         .padStart(2, '0') + 's | ' : '';
     this.statusText.setText(clock + (remaining
       ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO'));
+    if(this.specialLabel) {
+      const titles={br:'ARRAIAL',us:'CHOQUE E PAVOR',ru:'MATRYOSHKA',
+        cn:'ENTREGA',jp:'DISCOTECA'};
+      const base=titles[this.specialBuild.primary] || 'ESPECIAL';
+      this.specialLabel.setText(`DIR. ${base} — ${remaining?remaining.toFixed(1)+'s':'PRONTO'}`);
+    }
     if (this.ultimateLabel) {
       const title = V1_SUPREMES[this.combat.ultimate]?.title ?? 'SUPREMA';
       this.ultimateLabel.setText(`${this.ultimateUsed ? 'SUPREMO USADO' : this.elapsed >= WAVE_DURATION_MS-5000 ? '🔴 ESPAÇO — '+title : 'SUPREMO — AGUARDE'}`);
