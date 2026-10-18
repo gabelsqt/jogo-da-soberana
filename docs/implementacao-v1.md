@@ -124,3 +124,7 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 94 — Brasil 2: dano da explosão final (APROVADA)
 
 **Opção B:** a explosão final concentrada do Arraial Balístico causa **5 HP de dano por inimigo atingido**, depois de 4 segundos de núcleo ativo e 12 fogos de 1 HP cada. O alcance exato da explosão final e a possibilidade de acertos repetidos por fogos diferentes continuam pendentes de decisão. **Somente GDD; não alterar código.**
+
+## Decisão 95 — Brasil 2: raio da explosão final (APROVADA)
+
+**Opção B:** a explosão final do Arraial Balístico causa **5 HP** em cada inimigo dentro de **50 px de raio a partir do núcleo**, após os 4 segundos de duração. O círculo coreografado de 12 fogos permanece com extensão de 100 px do núcleo, 1 HP por fogo. O raio de 50 px é exclusivo da detonação final. Ficam pendentes o raio individual de cada fogo, regras de acerto repetido e eventuais detalhes de VFX. **Somente GDD; nenhuma modificação no código.**
