@@ -1152,9 +1152,9 @@ export class GameScene extends Phaser.Scene {
     const group = {
       kind, count, centerX: center, target: null,
       duration: kind === 'swarm'
-        ? Phaser.Math.FloatBetween(6, 8)
+        ? Phaser.Math.FloatBetween(7.5, 9.5)
         : Phaser.Math.FloatBetween(7.5, 9),
-      holdDuration: kind === 'tactical' ? 1.8 : 0,
+      holdDuration: kind === 'tactical' ? 1.8 : Phaser.Math.FloatBetween(1.2, 1.8),
       portalY: type===1?68:125,
       finalFormation: Phaser.Math.Between(0,1)?'triangle':'square',
       pattern: kind === 'swarm'
@@ -1469,6 +1469,16 @@ export class GameScene extends Phaser.Scene {
             Phaser.Math.Linear(group.centerX,pos.x,emergence),
             Phaser.Math.Linear(group.portalY,pos.y,emergence));
           if (danceAge >= group.duration) {
+            enemy.phase='swarmHold';
+            enemy.phaseAge=0;
+            enemy.sprite.setPosition(pos.x,pos.y);
+          }
+        }
+      } else if (enemy.phase === 'swarmHold') {
+        // Breve pausa em formação antes da investida coletiva.
+        const pos=swarmDancePosition(group,enemy.formationIndex,group.duration);
+        enemy.sprite.setPosition(pos.x,pos.y);
+        if(enemy.phaseAge>=group.holdDuration){
             if (!group.target) {
               group.target = this.chooseV035GroupTarget(group,
                 swarmDanceCenter(group, group.duration));
@@ -1476,7 +1486,6 @@ export class GameScene extends Phaser.Scene {
             enemy.phase = 'dive';
             enemy.phaseAge = 0;
             this.assignInvaderTarget(enemy, group.target);
-          }
         }
       } else if (enemy.phase === 'tacticalManeuver') {
         // Inclinação da nave acompanha o giro; ao parar volta à vertical.
