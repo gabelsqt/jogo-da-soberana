@@ -2493,8 +2493,8 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  arraialFirework(x, y, hue) {
-    this.arraialDamage(x,y,ARRAIAL.fireworkRadius,ARRAIAL.fireworkDamage,'#ffe8b7');
+  arraialFirework(x, y, hue, damaging = true) {
+    if(damaging) this.arraialDamage(x,y,ARRAIAL.fireworkRadius,ARRAIAL.fireworkDamage,'#ffe8b7');
     // Uma única Graphics em posição fixa; desenhamos o crescimento local a cada frame.
     // Não usar scale/tweens nem coordenadas mundiais dentro da Graphics:
     // isso causava deslocamento visual em direção ao canto inferior direito.
@@ -2535,7 +2535,7 @@ export class GameScene extends Phaser.Scene {
       const n=this.arraialNuclei[i], age=this.time.now-n.bornAt;
       while(n.next<n.events.length && age>=n.events[n.next].at){
         const f=n.events[n.next];
-        this.arraialFirework(n.x+f.x,n.y+f.y,n.next);
+        this.arraialFirework(n.x+f.x,n.y+f.y,n.next,f.damaging);
         n.next++;
       }
       if(age>=ARRAIAL.duration){
