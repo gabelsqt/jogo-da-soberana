@@ -976,8 +976,9 @@ export class GameScene extends Phaser.Scene {
     if (!target || shot.age > 5) return true;
 
     const oldX = shot.sprite.x, oldY = shot.sprite.y;
+    const aim=type6AimPosition(target);
     const next = advanceGuidedTowerShot(oldX, oldY,
-      target.sprite.x, target.sprite.y, shot.speed, dt);
+      aim.x, aim.y, shot.speed, dt);
     shot.sprite.setPosition(next.x, next.y);
     shot.vx = next.vx;
     shot.vy = next.vy;
@@ -992,6 +993,15 @@ export class GameScene extends Phaser.Scene {
     // atingir um ponto de previsão ou quando esgota seu tempo.
     for (const enemy of this.enemies) {
       if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+      if(enemy.type===6){
+        const targets=type6AreaTargets(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+          next.x,next.y,9);
+        if(targets.length){
+          this.detonateShockArtillery(next.x,next.y,shot.weapon);
+          return true;
+        }
+        continue;
+      }
       if (segmentHitsCircle(oldX, oldY, next.x, next.y,
         enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 9)) {
         this.detonateShockArtillery(enemy.sprite.x, enemy.sprite.y, shot.weapon);
@@ -1058,8 +1068,9 @@ export class GameScene extends Phaser.Scene {
       const shotTarget = swarmTargets[i % swarmTargets.length] ?? enemy;
       const x = fromX + (i - (count - 1) / 2) * 18;
       const y = fromY;
-      const dx = shotTarget.sprite.x - x;
-      const dy = shotTarget.sprite.y - y;
+      const aim=type6AimPosition(shotTarget);
+      const dx = aim.x - x;
+      const dy = aim.y - y;
       const distance = Math.max(1, Math.hypot(dx, dy));
       // Todos os projéteis das torres têm guia ativo, inclusive balas comuns.
       const guided = true;
@@ -1100,8 +1111,9 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
       const oldX = shot.sprite.x, oldY = shot.sprite.y;
+      const aim=type6AimPosition(target);
       const next = advanceGuidedTowerShot(
-        oldX, oldY, target.sprite.x, target.sprite.y, shot.speed, dt,
+        oldX, oldY, aim.x, aim.y, shot.speed, dt,
       );
       shot.sprite.setPosition(next.x, next.y);
       shot.vx = next.vx;
@@ -3342,8 +3354,9 @@ export class GameScene extends Phaser.Scene {
     const color = country === 'br' ? 0x45ebae : 0xffc65d;
     const bullet = this.add.circle(x, y, country === 'br' ? 7 : 5, color)
       .setStrokeStyle(2, 0xffffff, 0.85).setDepth(44);
-    const dx = target.sprite.x - x;
-    const dy = target.sprite.y - y;
+    const aim=type6AimPosition(target);
+    const dx = aim.x - x;
+    const dy = aim.y - y;
     const distance = Math.max(1, Math.hypot(dx, dy));
     const speed = country === 'br' ? 340 : 390;
     this.supportProjectiles.push({
