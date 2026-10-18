@@ -2243,6 +2243,33 @@ export class GameScene extends Phaser.Scene {
       // Bombas de pulso são barreiras: inimigos entram nelas durante o movimento.
       this.hitEnemyWithBlast(i);
     }
+    // O gelo se espalha uma única vez por origem primária; alvos secundários
+    // continuam congelados e atraindo, mas não infectam novas gerações.
+    if(this.combat.russianSpreadRadius>0)
+      for(const enemy of [...this.enemies])this.spreadRussianCold(enemy);
+  }
+
+  freezeRussianEnemy(enemy,durationMs,secondary=false) {
+    return applyRussianFreeze(enemy,this.elapsed,durationMs,secondary);
+  }
+
+  spreadRussianCold(enemy,multiplier=1) {
+    if(!this.combat.russianSpreadRadius || !enemy?.russianFrostPrimary)return;
+    const radius=this.combat.russianSpreadRadius*multiplier;
+    const targets=spreadRussianFrost(enemy,this.enemies,this.elapsed,
+      enemy.russianFrostDurationMs||this.combat.russianFreezeMs,
+      this.combat.russianSpreadRadius,multiplier);
+    if(!targets.length)return;
+    // Pulso de cristalização local e ligações rápidas aos contagiados.
+    const g=this.add.graphics().setDepth(47);
+    g.fillStyle(0x90ddf4,0.10).fillCircle(enemy.sprite.x,enemy.sprite.y,radius);
+    g.lineStyle(2,0xbaf5ff,0.78).strokeCircle(enemy.sprite.x,enemy.sprite.y,radius);
+    for(const target of targets){
+      g.lineStyle(2,0xe9ffff,0.80).lineBetween(enemy.sprite.x,enemy.sprite.y,
+        target.sprite.x,target.sprite.y);
+      g.fillStyle(0xc4f5ff,0.35).fillCircle(target.sprite.x,target.sprite.y,12);
+    }
+    this.tweens.add({targets:g,alpha:0,duration:310,onComplete:()=>g.destroy()});
   }
 
   fireEnemyProjectile(enemy, target = this.chooseDefenseTarget()) {
@@ -2343,8 +2370,7 @@ export class GameScene extends Phaser.Scene {
       for(const enemy of this.enemies) {
         if(Math.hypot(enemy.sprite.x-CANNON.x,enemy.sprite.y-CANNON.y) <
           build.ruShieldRadius+enemyContactRadius(enemy.type))
-          enemy.frozenUntil=Math.max(enemy.frozenUntil||0,
-            this.elapsed+build.ruShieldFreezeMs);
+          this.freezeRussianEnemy(enemy,build.ruShieldFreezeMs);
       }
       this.drawV1SpecialPulse(CANNON.x,CANNON.y-10,build.ruShieldRadius,0x8de7ff);
     }
@@ -2559,6 +2585,8 @@ export class GameScene extends Phaser.Scene {
     }
     const killed = enemy.hp <= 0;
     if (killed) {
+      // O gelo primário também estoura ao morrer, antes de remover a nave.
+      if(enemy.russianFrostPrimary)this.spreadRussianCold(enemy,1.35);
       this.showEnemyDeath(enemy);
       this.removeEnemy(index);
       if (enemy.finalBoss && this.mode==='wave11')this.finaleBossesKilled++;
@@ -3179,7 +3207,7 @@ export class GameScene extends Phaser.Scene {
       const radius=Math.max(build.ruBurstRadius,build.cnDropRadius,build.usBlastRadius,65);
       for(const enemy of this.enemies) {
         if(Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y)<=radius+enemyContactRadius(enemy.type))
-          enemy.frozenUntil=Math.max(enemy.frozenUntil||0,this.elapsed+build.ruFreezeMs);
+          this.freezeRussianEnemy(enemy,build.ruFreezeMs);
       }
     }
     // 2. China distribui a CARGA do mesmo projétil, sem lançar drones auxiliares.
@@ -3322,8 +3350,7 @@ export class GameScene extends Phaser.Scene {
       }
       const index=this.enemies.findIndex(enemy=>enemy.uid===target.uid);
       if(index>=0){
-        if(build.stages.ru)target.frozenUntil=Math.max(target.frozenUntil||0,
-          this.elapsed+build.ruFreezeMs);
+        if(build.stages.ru)this.freezeRussianEnemy(target,build.ruFreezeMs);
         this.impactInvader(index,build.krReflectDamage,0,'#f1baff',false);
       }
     }
@@ -3956,8 +3983,11 @@ export class GameScene extends Phaser.Scene {
           const knockback = this.combat.strategicRecoil && bullet.knockback > 0
             ? strategicKnockback(bullet.knockback, enemy.sprite.y)
             : bullet.knockback;
-          if(this.combat.russianFreezeMs && bullet.damage<1000000)
-            enemy.frozenUntil=Math.max(enemy.frozenUntil || 0,this.elapsed+this.combat.russianFreezeMs);
+          if(this.combat.russianFreezeMs && bullet.damage<1000000){
+            this.freezeRussianEnemy(enemy,this.combat.russianFreezeMs);
+            // Acertos repetidos espalham um pouco além do raio passivo.
+            if(enemy.russianFrostHits>=2)this.spreadRussianCold(enemy,1.18);
+          }
           const destroyed = this.impactInvader(
             j, bullet.damage, knockback, bullet.impactColor,
             true, this.combat.strategicRecoil ? 720 : 400,
