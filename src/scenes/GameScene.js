@@ -2495,20 +2495,39 @@ export class GameScene extends Phaser.Scene {
 
   arraialFirework(x, y, hue) {
     this.arraialDamage(x,y,ARRAIAL.fireworkRadius,ARRAIAL.fireworkDamage,'#ffe8b7');
-    // IMPORTANTE: usar coordenadas LOCAIS. Escalar Graphics desenhado em
-    // coordenadas mundiais deslocava os fogos para baixo e à direita.
-    const g=this.add.graphics().setPosition(x,y).setDepth(42);
-    const colors=[0xffc947,0xff6157,0x6cf1a0,0x75caff,0xf59afa];
-    const color=colors[hue%colors.length];
-    g.lineStyle(2,color,0.95);
-    for(let k=0;k<8;k++){
-      const a=k*Math.PI/4;
-      g.lineBetween(Math.cos(a)*3,Math.sin(a)*3,
-        Math.cos(a)*ARRAIAL.fireworkRadius,Math.sin(a)*ARRAIAL.fireworkRadius);
-    }
-    g.fillStyle(0xffedb4,1);g.fillCircle(0,0,3);
-    // Só escala e transparência: a posição de cada estouro permanece fixa.
-    this.tweens.add({targets:g,alpha:0,scale:1.3,duration:280,onComplete:()=>g.destroy()});
+    // Uma única Graphics em posição fixa; desenhamos o crescimento local a cada frame.
+    // Não usar scale/tweens nem coordenadas mundiais dentro da Graphics:
+    // isso causava deslocamento visual em direção ao canto inferior direito.
+    const gfx=this.add.graphics().setPosition(x,y).setDepth(46);
+    const palette=[0xffe36b,0xff576a,0x60ffaf,0x69d4ff,0xf5a0f9];
+    const color=palette[hue%palette.length];
+    const started=this.time.now;
+    const duration=570;
+    const paint=()=>{
+      if(!gfx.active)return;
+      const t=Math.min(1,(this.time.now-started)/duration);
+      const radius=3+25*Math.sin(Math.PI*Math.min(1,t*0.92));
+      const fade=1-t*t;
+      gfx.clear();
+      gfx.fillStyle(color,0.25*fade);gfx.fillCircle(0,0,radius+9);
+      gfx.fillStyle(0xfff8d6,0.78*fade);gfx.fillCircle(0,0,Math.max(1,7*(1-t)));
+      for(let k=0;k<12;k++){
+        const angle=k*Math.PI/6;
+        const outer=radius*(k%2===0?1:0.82);
+        gfx.lineStyle(k%2===0?3:2,k%3===0?0xffffff:color,fade);
+        gfx.lineBetween(Math.cos(angle)*Math.max(2,outer*0.28),
+          Math.sin(angle)*Math.max(2,outer*0.28),
+          Math.cos(angle)*outer,Math.sin(angle)*outer);
+        gfx.fillStyle(k%2===0?0xfff4bc:color,fade);
+        gfx.fillCircle(Math.cos(angle)*outer,Math.sin(angle)*outer,2.6);
+      }
+    };
+    paint();
+    this.time.addEvent({delay:32,repeat:Math.ceil(duration/32),callback:()=>{
+      if(!gfx.active)return;
+      if(this.time.now-started>=duration){gfx.destroy();return;}
+      paint();
+    }});
   }
 
   updateArraial() {
@@ -2521,20 +2540,34 @@ export class GameScene extends Phaser.Scene {
       }
       if(age>=ARRAIAL.duration){
         this.arraialDamage(n.x,n.y,ARRAIAL.finaleRadius,ARRAIAL.finaleDamage,'#fff2aa');
-        const finale=this.add.graphics().setPosition(n.x,n.y).setDepth(46);
-        const colors=[0xffda62,0xff6b72,0x6df5af,0x9bcbff,0xf2a4ff];
-        for(let ring=0;ring<3;ring++){
-          finale.lineStyle(3,colors[ring],0.9);
-          finale.strokeCircle(0,0,18+ring*15);
-        }
-        for(let k=0;k<16;k++){
-          const a=k*Math.PI/8;
-          finale.lineStyle(2,colors[k%colors.length],1);
-          finale.lineBetween(Math.cos(a)*8,Math.sin(a)*8,
-            Math.cos(a)*52,Math.sin(a)*52);
-        }
-        this.tweens.add({targets:finale,alpha:0,scale:1.2,duration:450,
-          onComplete:()=>finale.destroy()});
+        // Clarão final mais expressivo, também ancorado no balão sem escala.
+        const finale=this.add.graphics().setPosition(n.x,n.y).setDepth(48);
+        const startFinal=this.time.now;
+        const shades=[0xffe46b,0xff6b72,0x6df5af,0x9bcbff,0xf2a4ff];
+        const paintFinal=()=>{
+          if(!finale.active)return;
+          const t=Math.min(1,(this.time.now-startFinal)/680);
+          const fade=1-t*t;
+          const radius=8+58*t;
+          finale.clear();
+          finale.fillStyle(0xffefaf,0.22*fade);finale.fillCircle(0,0,radius+12);
+          for(let ring=0;ring<3;ring++){
+            finale.lineStyle(4,shades[ring],fade);
+            finale.strokeCircle(0,0,radius*(0.5+ring*0.24));
+          }
+          for(let k=0;k<20;k++){
+            const angle=k*Math.PI/10;
+            finale.lineStyle(3,shades[k%shades.length],fade);
+            finale.lineBetween(Math.cos(angle)*radius*0.35,Math.sin(angle)*radius*0.35,
+              Math.cos(angle)*radius,Math.sin(angle)*radius);
+          }
+        };
+        paintFinal();
+        this.time.addEvent({delay:32,repeat:22,callback:()=>{
+          if(!finale.active)return;
+          if(this.time.now-startFinal>=680){finale.destroy();return;}
+          paintFinal();
+        }});
         n.graphics.destroy(); this.arraialNuclei.splice(i,1);
         continue;
       }
