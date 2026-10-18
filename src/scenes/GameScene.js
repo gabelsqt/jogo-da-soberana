@@ -1458,6 +1458,7 @@ export class GameScene extends Phaser.Scene {
 
     if (type===5 && options.finalBoss && this.mode==='wave11') {
       const color=FINALE_COUNTRIES[options.bossCountry]?.color??0x6ee9ed;
+      enemy.definition={...enemy.definition,color};
       enemy.box?.setFillStyle(color).setStrokeStyle(4,0xffffff);
       const name=options.bossCountry==='alien'?'FROTA ALIENÍGENA':
         (FINALE_COUNTRIES[options.bossCountry]?.name??'ALIADO');
@@ -1815,7 +1816,7 @@ export class GameScene extends Phaser.Scene {
         }
         if (enemy.spawnTimer >= enemy.definition.spawnInterval) {
           enemy.spawnTimer = 0;
-          const campaignMiniboss = this.mode === 'wave8' || this.mode === 'wave9';
+          const campaignMiniboss = ['wave8','wave9','wave10','wave11'].includes(this.mode);
           const liveMinions = campaignMiniboss
             ? this.enemies.filter((unit) => unit.sourceBossId === enemy.uid).length : 0;
           const count = campaignMiniboss
@@ -2136,9 +2137,12 @@ export class GameScene extends Phaser.Scene {
     if (killed) {
       this.showEnemyDeath(enemy);
       this.removeEnemy(index);
-      if (this.mode === 'wave10' && enemy.type === 5 && !enemy.sourceBossId) {
-        this.showWaveComplete('cleared');
-      }
+      if (enemy.finalBoss && this.mode==='wave11')this.finaleBossesKilled++;
+      if (!this.supremeFinishing && (
+        (this.mode === 'wave10' && enemy.finalBoss) ||
+        (this.mode === 'wave11' && enemy.finalBoss &&
+          this.finaleBossesKilled>=this.finaleBossesNeeded)
+      )) this.showWaveComplete('cleared');
     } else {
       enemy.lastHitAt = this.time.now;
       if (enemy.box) enemy.box.setFillStyle(0xffffff);
@@ -2155,7 +2159,7 @@ export class GameScene extends Phaser.Scene {
     if (this.unifiedLab) return Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 1);
     return this.mode === 'upgradeLab'
       ? this.upgradeIds
-      : unlockedFirstUpgrades(this.campaign);
+      : unlockedFirstUpgrades(this.combatCampaign);
   }
 
   showMuzzleFlash(angle, effects = shotVfxFor(this.activeUpgradeIds())) {
@@ -2593,7 +2597,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   openSupremeCode() {
-    if (!this.isV1Campaign || !this.combat.ultimate || this.ultimateUsed || this.tutorialComplete || this.countdownActive || this.supremeCinematic || this.elapsed < WAVE_DURATION_MS - 5000) return;
+    if (!this.isV1Campaign || !this.combat.ultimate || this.ultimateUsed || this.tutorialComplete || this.countdownActive || this.supremeCinematic || this.elapsed < this.waveDurationMs - 5000) return;
     this.supremeTyping = true;
     this.supremeCode = '';
     this.supremePrompt?.destroy();
@@ -2655,11 +2659,15 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(frames.length*1350,()=>{
       objects.forEach(object=>object.destroy());
       if(!this.scene.isActive('GameScene'))return;
-      // A suprema elimina toda a frota restante, independentemente do HP.
+      // Garante que os quadros acabem antes de encerrar a onda por morte do chefe.
+      this.supremeFinishing=true;
       for(let i=this.enemies.length-1;i>=0;i--){
-        this.impactInvader(i,1000000,0,'#ffffff');
+        this.impactInvader(i,1000000,0,'#ffffff',false);
       }
+      this.supremeFinishing=false;
       this.supremeCinematic=false;
+      if((this.mode==='wave10'||this.mode==='wave11')&&!this.tutorialComplete)
+        this.showWaveComplete('cleared');
     });
     return true;
   }
@@ -3844,7 +3852,7 @@ export class GameScene extends Phaser.Scene {
       0, (this.lastSpecialFire + this.combat.specialCooldown - this.time.now) / 1000,
     );
     const clock = this.mode.startsWith('wave')
-      ? 'NOITE ' + String(Math.ceil(Math.max(0, WAVE_DURATION_MS - this.elapsed) / 1000))
+      ? 'NOITE ' + String(Math.ceil(Math.max(0, this.waveDurationMs - this.elapsed) / 1000))
         .padStart(2, '0') + 's | ' : '';
     this.statusText.setText(clock + (remaining
       ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO'));
@@ -3856,7 +3864,7 @@ export class GameScene extends Phaser.Scene {
     }
     if (this.ultimateLabel) {
       const title = V1_SUPREMES[this.combat.ultimate]?.title ?? 'SUPREMA';
-      this.ultimateLabel.setText(`${this.ultimateUsed ? 'SUPREMO USADO' : this.elapsed >= WAVE_DURATION_MS-5000 ? '🔴 ESPAÇO — '+title : 'SUPREMO — AGUARDE'}`);
+      this.ultimateLabel.setText(`${this.ultimateUsed ? 'SUPREMO USADO' : this.elapsed >= this.waveDurationMs-5000 ? '🔴 ESPAÇO — '+title : 'SUPREMO — AGUARDE'}`);
     }
     this.healthText.setText(
       'CANHÃO ' + Math.ceil(this.cannonHealth) +
@@ -3925,12 +3933,13 @@ export class GameScene extends Phaser.Scene {
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += delta;
     if (this.sunriseOverlay) {
-      const sunrise = Math.max(0, 1 - (WAVE_DURATION_MS - this.elapsed) / 5000);
+      const sunrise = Math.max(0, 1 - (this.waveDurationMs - this.elapsed) / 5000);
       this.sunriseOverlay.setAlpha(sunrise * 0.28);
     }
     // À meia-noite de 30 segundos, sobreviver basta — mesmo com inimigos vivos.
     // A verificação vem ANTES das atualizações hostis do quadro final.
-    if (this.mode === 'wave10' && this.elapsed >= 60000) {
+    if ((this.mode === 'wave10' || this.mode === 'wave11') &&
+        this.elapsed >= this.waveDurationMs) {
       this.showDefeat();
       return;
     }
