@@ -2058,9 +2058,13 @@ export class GameScene extends Phaser.Scene {
 
   shootBasic(pointer) {
     if (this.tutorialComplete || this.countdownActive) return;
-    if (this.combat.heat && this.heatStartedAt === null) this.heatStartedAt = this.time.now;
-    const heat = this.combat.heat ? Math.min(1.35, (this.time.now - this.heatStartedAt) / 1750) : 0;
-    if (this.time.now - this.lastBasicFire < this.combat.basicInterval / (1 + heat)) return;
+    // Aceleração automática em ondas: aquece, sustenta o pico e desacelera.
+    const heatCycle = 5200;
+    const phase = (this.time.now % heatCycle) / heatCycle;
+    const wave = phase < 0.36 ? phase / 0.36 : phase < 0.64 ? 1 : (1 - phase) / 0.36;
+    const heat = this.combat.heat ? Math.max(0, wave) * (this.combat.brazilHeatPeak || 0.65) : 0;
+    const turbo = this.time.now < (this.brazilTurboUntil || 0) ? this.combat.brazilTurboMultiplier : 1;
+    if (this.time.now - this.lastBasicFire < this.combat.basicInterval / ((1 + heat) * turbo)) return;
     this.lastBasicFire = this.time.now;
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     const nextShot = this.basicShotCount + 1;
@@ -2425,6 +2429,7 @@ export class GameScene extends Phaser.Scene {
       CANNON.x, CANNON.y, pointer.x, pointer.y,
     );
     this.lastSpecialFire = this.time.now;
+    if (this.isV1Campaign && this.combat.brazilTurboMultiplier > 1) this.brazilTurboUntil = this.time.now + 5000;
     if (this.isV1Campaign && this.combat.electricFence && this.combat.specialAmplifier > 1.3) {
       this.pulseV1Area(target.x, target.y, 100, this.combat.electricDamage, 0x70f9ac);
     }
@@ -2601,7 +2606,7 @@ export class GameScene extends Phaser.Scene {
   createArraial(x, y) {
     const graphics = this.add.graphics().setDepth(39);
     const nucleus = {x, y, graphics, bornAt:this.time.now,
-      events:fireworkSchedule(), next:0, finished:false};
+      events:fireworkSchedule(this.combat.brazilFireworkCount || ARRAIAL.fireworkCount), next:0, finished:false};
     this.arraialNuclei.push(nucleus);
     this.firePulse={bornAt:this.time.now,hits:new Set()};
   }
@@ -3388,7 +3393,7 @@ export class GameScene extends Phaser.Scene {
     this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     this.barrel.rotation = this.aimAngle + Math.PI / 2;
     if (pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer)) this.shootBasic(pointer);
-    else this.heatStartedAt = null;
+    // O ciclo de calor continua mesmo quando o jogador solta o disparo.
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
     // volta ao lugar sem alterar a origem física das balas.
     this.cannonRecoil *= Math.exp(-19 * dt);
