@@ -150,3 +150,41 @@ Esta seção registra as decisões finais e o **código acrescentado**, prevalec
 **Controles técnicos:** `src/gameplay/v1Specials.js` mantém progressão e identidade; `src/scenes/GameScene.js` processa efeitos, escudos e placeholders; `src/gameplay/v1Upgrades.js` contém nomes e descrições atualizados. Testes adicionados em `tests/v1Specials.test.js`.
 
 **Estado de validação:** sintaxe dos módulos verificada, progressões por níveis checadas e resolução combinada executada em simulação com substitutos leves de Phaser (incluindo cadeia de Matryoshka). Ainda faltam `npm test`, `npm run build`, desempenho e interação de navegador, arte definitiva, sons e balanceamento. Os valores de dano, raio, reflexão e empurrão são provisórios.
+
+## Campanha — Ondas 10 e 11 e dez finais (base implementada em 18/10/2026)
+
+A campanha passa a seguir **Onda 0 → escolha 1 → ... → Onda 9 → escolha 10 → Onda 10 → Onda 11 → final narrativo**. Não há 11ª escolha de upgrade.
+
+### Onda 10 — Fortaleza-Mãe alienígena
+
+- Confronto de **60 segundos** com um chefe central, escoltas, bombardeiro, caças e formações. **Destruir a Fortaleza-Mãe dentro do prazo** avança à Onda 11; tempo esgotado ou canhão destruído permitem repetir a Onda 10.
+- **Placeholder gráfico/técnico:** enquanto não existir o chefe Tipo 6 definitivo, reutiliza-se o **Cruzador Tipo 5** reforçado, com faixa de identificação **FORTALEZA-MÃE** e HP adicional. Isso **não substitui** a especificação futura do Tipo 6.
+- As dez melhorias acumuladas continuam ativas no confronto, inclusive as transformações de nível 10. Supremo quando desbloqueado usa a janela correta dos cinco segundos finais da onda de 60 segundos.
+
+### Onda 11 — Batalha pela soberania
+
+- Se há países estrangeiros na build, **todos os estrangeiros empatados na maior quantidade de escolhas traem simultaneamente**, usando as regras preexistentes de `src/gameplay/wave11Rules.js`. Brasil puro nunca é traído.
+- O confronto cria **um chefe placeholder Tipo 5 por país traidor**, identificado por país e nível próprio. O HP individual recebe o fator de coalizão já definido: **1 chefe 100%, 2 chefes 65%, 3 chefes 45%, 4 chefes 35%**. Os valores finais de vida e habilidade ainda requerem balanceamento.
+- Poderes provisórios das frotas adversárias: **EUA** salva extra de mísseis, **Rússia** geada que bloqueia brevemente disparos brasileiros, **China** drones/OVNIs de reforço e **Coreia do Sul** lasers rosados telegrafados. Frequência/carga crescem conforme o nível efetivamente adquirido daquele país.
+- Todos os upgrades dos traidores **somem do armamento do jogador durante a Onda 11**. Os demais, inclusive os brasileiros, continuam.
+- **Brasil puro (10 escolhas brasileiras):** em vez de traidores, Onda 11 traz a **derradeira nave alienígena**, preservando as duas conclusões Full Brazil.
+- A batalha dura no máximo **60 segundos**. É preciso destruir **todos os chefes principais** para vencer; sobrevivência até o relógio zerar não garante vitória.
+- Após derrota numa campanha com traidores, aparece a opção **“Continuar resistindo”**, que concede o próximo nível brasileiro disponível, de acordo com `continueResistanceAfterDefeat`, e **reinicia toda a Onda 11 com os chefes originais**. A opção de aceitar a derrota leva ao final de colonização. Depois de esgotar os níveis disponíveis, a derrota se torna definitiva. Não se regeneram upgrades estrangeiros traidores. Níveis de resistência funcionam inicialmente como desbloqueios de arma/escudo; torres de animais legadas não reaparecem.
+- O Supremo, se ainda disponível na build sobrevivente, respeita a cinemática estática aprovada. O relógio usa o limite de 60 segundos. Os chefes não podem encerrar a onda antes de terminarem os quadros do Supremo.
+
+### Finais: 10 roteiros canônicos
+
+| Estado | Vitória | Derrota |
+|---|---|---|
+| **Full Brazil** | Soberania Absoluta | A Última Noite |
+| **EUA** | Liberdade, sem a Marca Registrada | Brasil Prime™ |
+| **Rússia** | Nem um Palmo de Gelo | Inverno em Copacabana |
+| **China** | Pedido Devolvido | Colônia com Frete Grátis |
+| **Coreia do Sul** | Encore da Independência | Brasil World Tour |
+
+- Todos os finais possuem **quatro painéis estáticos com texto original**, navegáveis com botão ou Enter/Espaço. A arte ainda é placeholder geométrica em estilo slide/anime.
+- Quando vários traidores empatam, o texto reconhece **toda a coalizão**; para preservar dez finais canônicos, o roteiro temático principal segue o primeiro traidor na ordem técnica de coalizão aprovada **EUA → Coreia → Rússia → China**.
+- O epílogo pode ser visto depois de vencer ou de aceitar/sofrer a derrota; o menu permite iniciar uma nova campanha.
+- Fonte de regras/roteiros: `src/gameplay/campaignFinale.js`; interface: `src/scenes/EndingScene.js`; encontros: `src/gameplay/waves.js` e `src/scenes/GameScene.js`. A Onda 11 foi exposta no menu de playtest V1.
+
+**Estado técnico:** arquivos e testes foram adicionados à branch de desenvolvimento. Foram verificadas sintaxe e regras puras de coalizão/roteiros, mas **não foi executado `npm run build` nem um playtest real no navegador**. Os chefes e as cenas são placeholders deliberados, sujeitos a aprimoramento artístico e balanceamento.
