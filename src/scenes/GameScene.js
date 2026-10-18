@@ -2593,8 +2593,9 @@ export class GameScene extends Phaser.Scene {
     this.lastFlameTick=this.time.now;
     for(let i=this.enemies.length-1;i>=0;i--){
       const enemy=this.enemies[i];
-      if(withinFlame(CANNON.x,CANNON.y+10,62,enemy.sprite.x,enemy.sprite.y,
-        enemyContactRadius(enemy.type)))
+      if(withinFlame(CANNON.x,CANNON.y+ARRAIAL.shieldRingOffsetY,
+        ARRAIAL.shieldRingRadius,enemy.sprite.x,enemy.sprite.y,
+        enemyContactRadius(enemy.type),true))
         this.impactInvader(i,ARRAIAL.flameDamage,0,'#ffb85b',false);
     }
   }
@@ -2922,7 +2923,8 @@ export class GameScene extends Phaser.Scene {
   drawShield() {
     const graphics = this.shieldGraphics;
     graphics.clear();
-    const dome = (x, y, radius, shield, max) => {
+    const brazilRing = this.isV1Campaign && v1CountryLevels(this.campaign).br >= 2;
+    const dome = (x, y, radius, shield, max, fullRing = false, centerOffsetY = 10) => {
       if (shield <= 0) return;
       // A melhoria brasileira AUMENTA visualmente a cúpula e sua faixa
       // de detecção, sem alterar a resistência total (HP) do escudo.
@@ -2931,7 +2933,8 @@ export class GameScene extends Phaser.Scene {
       const color = fraction > 0.6 ? 0x70e6ec : fraction > 0.3 ? 0xf4c15e : 0xf06c77;
       graphics.lineStyle(3, color, Math.max(0.35, fraction));
       graphics.beginPath();
-      graphics.arc(x, y + 10, drawRadius, Math.PI, Math.PI * 2, false);
+      graphics.arc(x, y + centerOffsetY, drawRadius,
+        fullRing ? 0 : Math.PI, Math.PI * 2, false);
       graphics.strokePath();
       if (this.combat.electricFence) {
         // Verde de cerca elétrica + cacos de vidro acompanhando a borda.
@@ -2984,12 +2987,16 @@ export class GameScene extends Phaser.Scene {
         }
       }
     };
-    dome(CANNON.x, CANNON.y, 62, this.shield, this.shieldMax);
-    if (this.isV1Campaign && v1CountryLevels(this.campaign).br >= 2 && this.shield > 0) {
+    dome(CANNON.x, CANNON.y,
+      brazilRing ? ARRAIAL.shieldRingRadius : 62,
+      this.shield, this.shieldMax, brazilRing,
+      brazilRing ? ARRAIAL.shieldRingOffsetY : 10);
+    if (brazilRing && this.shield > 0) {
       // Chamas e brasas permanecem na borda superior da cúpula.
       for(let i=0;i<17;i++){
-        const angle=Math.PI+i*Math.PI/16;
-        const fx=CANNON.x+62*Math.cos(angle), fy=CANNON.y+10+62*Math.sin(angle);
+        const angle=i*Math.PI*2/17;
+        const fx=CANNON.x+ARRAIAL.shieldRingRadius*Math.cos(angle);
+        const fy=CANNON.y+ARRAIAL.shieldRingOffsetY+ARRAIAL.shieldRingRadius*Math.sin(angle);
         const flicker=2+3*(0.5+0.5*Math.sin(this.time.now*0.012+i*2.3));
         graphics.fillStyle(i%2?0xffa23a:0xffdb6a,0.8);
         graphics.fillTriangle(fx-3,fy,fx+3,fy,fx,fy-flicker-4);
