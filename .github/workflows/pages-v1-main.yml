@@ -43,6 +43,7 @@ jobs:
           grep -q 'duration: 2200, fireworkCount: 20' src/gameplay/arraialBrasil2.js
           grep -q 'fireworkRadius: 37' src/gameplay/arraialBrasil2.js
           grep -q 'finaleRadius: 150' src/gameplay/arraialBrasil2.js
+          grep -q 'Onda 2 introdutória' src/gameplay/waves.js
           grep -q 'TESTAR UPGRADES V1' src/scenes/MenuScene.js
           ! grep -q "scene.start('LabSetupScene')" src/scenes/MenuScene.js
       - name: Configurar Node
