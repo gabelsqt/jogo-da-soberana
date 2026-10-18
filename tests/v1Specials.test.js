@@ -1,0 +1,78 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  specialStage,v1SpecialLoadout,v1SpecialConfig,specialPalette,
+} from '../src/gameplay/v1Specials.js';
+
+const countryAt=(id,level)=>({choices:Array(level).fill(id)});
+
+test('especiais só são desbloqueados no nível 2 e progridem no 4/6/8',()=>{
+  assert.deepEqual([0,1,2,3,4,5,6,7,8,9,10].map(specialStage),
+    [0,0,1,1,2,2,3,3,4,4,4]);
+  assert.equal(v1SpecialLoadout(countryAt('br',1)).primary,null);
+});
+
+test('primeiro especial desbloqueado fixa a identidade, não primeiro país escolhido',()=>{
+  const state={choices:['br','us','us','br','br','br','ru','ru','cn','cn']};
+  const b=v1SpecialLoadout(state);
+  assert.equal(b.primary,'us');
+  assert.deepEqual(b.stages,{br:2,us:1,ru:1,cn:1,jp:0});
+  assert.deepEqual(new Set(b.active),new Set(['br','us','ru','cn']));
+});
+
+test('cada país fortalece somente o próprio efeito dentro do especial híbrido',()=>{
+  const first=v1SpecialConfig({choices:['br','br','us','us']});
+  const evolved=v1SpecialConfig({choices:['br','br','us','us','br','br']});
+  assert.equal(first.primary,'br');
+  assert.equal(evolved.primary,'br');
+  assert.equal(first.fireworks,4);
+  assert.equal(evolved.fireworks,8);
+  assert.equal(first.usMissileScale,evolved.usMissileScale);
+  assert.equal(first.usDamage,evolved.usDamage);
+});
+
+test('fogos brasileiros e turbo têm progressões aprovadas',()=>{
+  for(const [tier,fireworks,turbo] of [[2,4,1.5],[4,8,2],[6,16,2.5],[8,32,3]]){
+    const b=v1SpecialConfig(countryAt('br',tier));
+    assert.equal(b.fireworks,fireworks);
+    assert.equal(b.brazilTurbo,turbo);
+  }
+});
+
+test('míssil dos EUA escala 1/2/4/8, e ondas superam o raio da explosão',()=>{
+  for(const [tier,scale] of [[2,1],[4,2],[6,4],[8,8]]){
+    const b=v1SpecialConfig(countryAt('us',tier));
+    assert.equal(b.usMissileScale,scale);
+    assert.ok(b.usShockRadius>b.usBlastRadius);
+    assert.ok(b.usPush>0);
+  }
+});
+
+test('matryoshka tem 8/12/16/24 estilhaços e escudo congela mais que o tiro',()=>{
+  for(const [tier,shards] of [[2,8],[4,12],[6,16],[8,24]]){
+    const b=v1SpecialConfig(countryAt('ru',tier));
+    assert.equal(b.ruShards,shards);
+    assert.ok(b.ruShieldFreezeMs>b.ruFreezeMs);
+    assert.ok(b.ruShieldRadius>0);
+  }
+});
+
+test('encomendas e espelhos evoluem sem projéteis recursivos adicionais',()=>{
+  for(const [tier,payloads,rays] of [[2,1,3],[4,2,6],[6,3,12],[8,4,24]]){
+    assert.equal(v1SpecialConfig(countryAt('cn',tier)).cnPayloads,payloads);
+    const kr=v1SpecialConfig(countryAt('jp',tier));
+    assert.equal(kr.krReflections,rays);
+    assert.ok(kr.krShieldChance>0&&kr.krShieldChance<=1);
+  }
+});
+
+test('os cinco países oferecem uma cor própria, mas nenhum efeito não desbloqueado',()=>{
+  const b=v1SpecialConfig({});
+  assert.equal(b.primary,null);
+  assert.equal(b.active.length,0);
+  assert.equal(b.fireworks,0);
+  assert.equal(b.krReflections,0);
+  assert.equal(b.cnPayloads,0);
+  assert.equal(b.ruShards,0);
+  for(const id of ['br','us','ru','cn','jp'])assert.ok(specialPalette(id)>0);
+});
