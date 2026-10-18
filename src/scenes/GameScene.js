@@ -1480,6 +1480,8 @@ export class GameScene extends Phaser.Scene {
         this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type)+8);
         this.frostGraphics.lineStyle(1,0xe2ffff,0.72);
         this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type)+13);
+        // Congelar não dá imunidade às explosões que já estejam ativas.
+        this.hitEnemyWithBlast(i);
         continue;
       }
       const previousX = enemy.sprite.x;
