@@ -1,12 +1,12 @@
 // Brasil 2 — Arraial Balístico, decisões 77–101. Funções puras para testes.
 export const ARRAIAL = Object.freeze({
-  duration: 2200, fireworkCount: 20, damageFireworkCount: 12, ringCount: 6, orbitRadius: 100,
-  fireworkRadius: 12, fireworkDamage: 1, finaleRadius: 50, finaleDamage: 5,
+  duration: 2200, fireworkCount: 20, ringCount: 6, orbitRadius: 100,
+  fireworkRadius: 37, fireworkDamage: 1, finaleRadius: 78, finaleDamage: 5,
   flameReach: 15, flameInterval: 500, flameDamage: 0.5,
 });
 export function fireworkSchedule(count = ARRAIAL.fireworkCount, duration = ARRAIAL.duration) {
   // Seis estouros simultâneos formam o anel no instante zero.
-  // Os seis restantes percorrem uma espiral que fecha sobre o balão.
+  // Os demais percorrem uma espiral que fecha sobre o balão.
   const ringCount = Math.min(ARRAIAL.ringCount, count);
   const spiralCount = count - ringCount;
   const ring = Array.from({length:ringCount},(_,i)=>{
@@ -18,9 +18,9 @@ export function fireworkSchedule(count = ARRAIAL.fireworkCount, duration = ARRAI
     const progress=(i+1)/(spiralCount+1);
     const angle=-Math.PI/2+progress*Math.PI*3.5;
     const radius=ARRAIAL.orbitRadius*(1-progress);
-    // Cadência crescente, convergindo antes da detonação do balão aos 4 s.
+    // Cadência crescente, convergindo antes da detonação do balão aos 2,2 s.
     const time=duration*(1-Math.pow(1-progress,1.6))*0.96;
-    return {at:Math.round(time),x:Math.cos(angle)*radius,y:Math.sin(angle)*radius, damaging:i<ARRAIAL.damageFireworkCount-ringCount};
+    return {at:Math.round(time),x:Math.cos(angle)*radius,y:Math.sin(angle)*radius, damaging:true};
   });
   return [...ring,...spiral];
 }
