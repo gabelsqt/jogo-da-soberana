@@ -92,3 +92,7 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 86 — Brasil 2: alcance da Fogueira de São João (APROVADA)
 
 **Opção A:** as chamas permanentes do escudo ativo causam dano leve em inimigos a até **15 px da borda do escudo**, não do centro do canhão. É uma defesa de contato próximo, não uma aura ampla. Frequência e valor numérico do dano ainda pendentes de balanceamento. Apenas GDD, nenhuma modificação no código.
+
+## Decisão 87 — Brasil 2: periodicidade do dano da Fogueira (APROVADA)
+
+**Opção B:** a Fogueira de São João aplica um pulso de dano leve a cada **0,5 segundo** a inimigos dentro de **15 px da borda do escudo ativo**. Fora desse alcance ou com escudo inativo, não aplica pulsos. Intensidade numérica por pulso e se o dano deixa efeito residual permanecem pendentes. Somente atualização de design, sem implementação.
