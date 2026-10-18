@@ -3,12 +3,14 @@ import assert from 'node:assert/strict';
 import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame } from '../src/gameplay/arraialBrasil2.js';
 import { v1CombatStats, V1_UPGRADES } from '../src/gameplay/v1Upgrades.js';
 
-test('Arraial: doze fogos aceleram em círculo antes do final',()=>{
+test('Arraial: anel imediato e explosões fixas em espiral rumo ao centro',()=>{
   const e=fireworkSchedule();
   assert.equal(e.length,12);
   assert.equal(e[0].at,0);
   assert.equal(e.filter(f=>f.at===0).length,6);
   assert.ok(e.at(-1).at<4000);
+  const radii=e.slice(6).map(f=>Math.hypot(f.x,f.y));
+  assert.ok(radii.every((r,i)=>i===0||r<radii[i-1]));
   assert.ok(Math.hypot(e.at(-1).x,e.at(-1).y)<Math.hypot(e[6].x,e[6].y));
   assert.ok(e[7].at-e[6].at>e.at(-1).at-e.at(-2).at);
   for(const f of e.slice(0,6))assert.ok(Math.abs(Math.hypot(f.x,f.y)-100)<1e-9);
