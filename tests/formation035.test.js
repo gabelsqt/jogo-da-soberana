@@ -55,10 +55,10 @@ test('Tipo 1 chega em enxames progressivos reais de 3–5 até 15–18', () => {
   assert.equal(SWARM_DANCES.length,5);
 });
 
-test('Tipo 2 substitui entradas soltas ou órbitas por esquadrilhas de 3–8', () => {
-  assert.deepEqual(V035_SQUAD_SIZES[0],[3,4]);
-  assert.deepEqual(V035_SQUAD_SIZES[9],[6,8]);
-  assert.deepEqual(TACTICAL_FORMATIONS,['v','line','column']);
+test('Tipo 2 substitui entradas soltas ou órbitas por esquadrilhas de 6–16', () => {
+  assert.deepEqual(V035_SQUAD_SIZES[0],[6,8]);
+  assert.deepEqual(V035_SQUAD_SIZES[9],[12,16]);
+  assert.deepEqual(TACTICAL_FORMATIONS,['triangle','square']);
   for(let wave=1;wave<=9;wave++){
     const events=getV035WaveEvents('wave'+wave,getWaveEvents('wave'+wave));
     const squads=events.filter(e=>e.type===2);
@@ -97,7 +97,7 @@ test('cinco danças animam o centro sem alterar posições dos sobreviventes', (
 });
 
 test('manobra tática 2–4s alterna V, linha e coluna sem preencher lacunas', () => {
-  const g={ duration:3,centerX:480,count:8,direction:-1,attackOrigin:{x:480,y:164},
+  const g={ duration:3,centerX:480,count:8,direction:-1,finalFormation:'square',attackOrigin:{x:480,y:164},
     target:{x:280,y:425},attackDuration:3.8 };
   assert.notDeepEqual(tacticalFormationOffset('v',0,8),
     tacticalFormationOffset('line',0,8));
@@ -114,7 +114,7 @@ test('manobra tática 2–4s alterna V, linha e coluna sem preencher lacunas', (
   const slot=tacticalAttackPosition(g,missingSlot,2);
   assert.ok(alive.every(p=>p.x!==slot.x||p.y!==slot.y));
   const last=tacticalAttackPosition(g,2,g.attackDuration);
-  const offset=tacticalFormationOffset('column',2,8);
+  const offset=tacticalFormationOffset('square',2,8);
   assert.ok(Math.abs(last.x-(g.target.x+offset.x))<1e-9);
   assert.ok(Math.abs(last.y-(g.target.y+offset.y))<1e-9);
 });
@@ -148,7 +148,7 @@ test('GameScene usa grupos completos e recarrega alvo se torre cai', () => {
 });
 
 test('Tipo 2 faz círculos completos e para em formação antes de descer', () => {
-  const group={duration:6,holdDuration:1.6,centerX:480,count:4};
+  const group={duration:6,holdDuration:1.6,centerX:480,count:4,finalFormation:'triangle'};
   const start=tacticalManeuverPosition(group,0,0);
   const moving=tacticalManeuverPosition(group,0,1.1);
   const stopped=tacticalManeuverPosition(group,0,4.4);
@@ -156,13 +156,13 @@ test('Tipo 2 faz círculos completos e para em formação antes de descer', () =
   assert.deepEqual(tacticalManeuverPosition(group,0,5),stopped);
   assert.deepEqual(tacticalManeuverPosition(group,0,6),stopped);
   assert.deepEqual(tacticalManeuverPosition(group,0,7),stopped);
-  const column=tacticalFormationOffset('column',0,4);
+  const column=tacticalFormationOffset('triangle',0,4);
   assert.ok(Math.abs(stopped.x-(480+column.x))<1e-9);
-  assert.ok(Math.abs(stopped.y-(126+column.y))<1e-9);
+  assert.ok(Math.abs(stopped.y-(125+column.y))<1e-9);
 });
 test('Tipo 1 e Tipo 2 têm manobras mais longas antes da descida',()=>{
   const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
-  assert.match(scene,/FloatBetween\(6, 8\)/);
-  assert.match(scene,/FloatBetween\(5\.5, 6\.5\)/);
-  assert.match(scene,/holdDuration: kind === 'tactical' \? 1\.6 : 0/);
+  assert.match(scene,/FloatBetween\(7\.5, 9\.5\)/);
+  assert.match(scene,/FloatBetween\(7\.5, 9\)/);
+  assert.match(scene,/holdDuration: kind === 'tactical' \? 1\.8 : Phaser\.Math\.FloatBetween\(1\.2, 1\.8\)/);
 });
