@@ -79,7 +79,7 @@ export class EndingScene extends Phaser.Scene {
     // Último quadro não fecha sozinho: deixa o jogador ler o final.
     // A área clicável muda de função no último painel.
     if(this.next?.label?.setText)this.next.label.setText(
-      this.frame===this.ending.slides.length-1?'↻  JOGAR NOVAMENTE':'PRÓXIMO QUADRO ▶');
+      this.frame===this.ending.slides.length-1?'⌂  VOLTAR AO MENU':'PRÓXIMO QUADRO ▶');
   }
 
   advance() {
@@ -87,7 +87,9 @@ export class EndingScene extends Phaser.Scene {
       this.frame++;
       this.paintFrame();
     } else {
-      this.scene.start('GameScene',{mode:'wave0',campaign:{choices:[]}});
+      // Após os créditos, sempre voltar ao menu. Uma nova campanha deve começar
+      // somente por escolha explícita, com os sistemas reinicializados.
+      this.scene.start('MenuScene');
     }
   }
 }
