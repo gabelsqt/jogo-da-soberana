@@ -215,3 +215,13 @@ A campanha passa a seguir **Onda 0 → escolha 1 → ... → Onda 9 → escolha 
 - A **onda 11 Full Brazil** tem uma nova **salva orbital alienígena** aproximadamente a cada **8,5 s** enquanto o chefe está vivo, com aviso de **580 ms** e projéteis interceptáveis.
 - Preservados: HP anterior dos chefes, tempo máximo de **60 s**, Supremo com eliminação final, melhorias brasileiras da resistência, mecanismos dos outros países e inimigos das Ondas 0–9.
 - Testes: `tests/finaleBalancing.test.js` e `tests/campaignFinale.test.js` verificam eventos antecipados, escalonamento de tiros, limites da coalizão e travas de progressão. **Playtest manual ainda pendente** para verificar se este novo ajuste é suficiente.
+
+## Spritesheet inimigo Tipo 4 — Caça Relâmpago (18/10/2026)
+
+- **Arte aprovada:** **Opção C**, caça alienígena ágil de dois estabilizadores, pontas alongadas, asas curvas, casco grafite/aço e núcleos laranja-vermelhos, em **pixel art 16-bit**, simples e legível. Visual distinto do Tipo 3 (Bombardeiro), porém da mesma família industrial alienígena.
+- **Imagem pronta para uso:** 512×384 px, fundo transparente, **grade 4×3 de quadros 128×128 px**. O PNG deve ser colocado no clone local em `public/assets/inimigos/tipo4/spritesheet.png` e versionado por Git. A imagem é fornecida separadamente ao desenvolvedor, **não acompanha os commits de código** desta etapa.
+- **Animações Phaser:** quadros **0–1** voo normal; **2–3** curva à esquerda; **4–5** curva à direita; **6–7** investida/ataque veloz; **8–9** propulsão; **10** dano; **11** destruição. A spritesheet se encaixa nas fases já existentes do Tipo 4 (`flyby`, `swoop1`, `swoop2`, `telegraph`, `laser`).
+- O jogo usa o PNG se a textura estiver carregada; caso contrário mantém o visual vetorial anterior. **IA, HP, velocidade, raio de colisão, rota e dano do Tipo 4 permanecem intactos.** Sprite em campo: 70×70 px, com possibilidade de ajuste visual após teste.
+- Arquivo alterado: `src/scenes/GameScene.js`. Testes adicionados: `tests/enemyType4Spritesheet.test.js`; o CI de testes e build passou.
+- **Correção adjacente:** o temporizador de invocação de escoltas dos chefes finais passou a usar o perfil de fase calculado, eliminando uma referência a variável `intensity` não definida que poderia interromper a batalha.
+- **Próximo teste manual:** criar/colocar o PNG nessa pasta do clone, atualizar código com `Pull origin`, abrir a campanha ou laboratório que gera o Tipo 4 e confirmar voo lateral, curvas, hit e explosão. Somente após `commit` e `push` do PNG o asset fica disponível nos builds do repositório/Pages.
