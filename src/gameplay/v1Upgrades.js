@@ -66,62 +66,62 @@ export const V1_UPGRADES = {
   "us": [
     {
       "level": 1,
-      "title": "Munição de Fragmentação",
-      "description": "Tiros explodem em área.",
+      "title": "Super Size Me™",
+      "description": "Tiros crescem durante o voo, aumentando tamanho e área de acerto.",
       "kind": "primary"
     },
     {
       "level": 2,
-      "title": "Defesa Preventiva",
-      "description": "Especial explode mais forte; escudo contra-ataca.",
+      "title": "Defesa Preventiva™",
+      "description": "Especial Choque e Pavor: míssil enorme; escudo intercepta ameaças.",
       "kind": "secondary-shield"
     },
     {
       "level": 3,
-      "title": "Dano Colateral",
-      "description": "Explosões de abates provocam detonação secundária.",
+      "title": "Freedom Seeker™",
+      "description": "Projéteis crescentes corrigem a rota e perseguem inimigos.",
       "kind": "primary"
     },
     {
       "level": 4,
-      "title": "Entrega de Democracia",
-      "description": "Especial teleguiado; escudo intercepta tiros.",
+      "title": "Entrega de Democracia™",
+      "description": "Especial teleguiado ganha explosão maior; escudo aprimora interceptação.",
       "kind": "secondary-shield"
     },
     {
       "level": 5,
       "title": "Complexo Militar-Industrial",
-      "description": "Cada cinco tiros, um minimíssil.",
+      "description": "Projéteis crescem mais e causam mais dano ao atingir o alvo.",
       "kind": "primary"
     },
     {
       "level": 6,
-      "title": "Cláusula de Segurança",
-      "description": "Especial espalha estilhaços; escudo reflete dano.",
+      "title": "Choque e Pavor™",
+      "description": "Especial lança míssil colossal com onda de choque; escudo contra-ataca.",
       "kind": "secondary-shield"
     },
     {
       "level": 7,
-      "title": "Privatização da Guerra",
-      "description": "Minimísseis fragmentam no impacto.",
+      "title": "Bigger Is Better™",
+      "description": "Projéteis tornam-se absurdamente grandes e seguem alvos com maior precisão.",
       "kind": "primary"
     },
     {
       "level": 8,
-      "title": "Proteção Premium",
-      "description": "Especial detona em sequência; escudo reforçado temporariamente.",
+      "title": "Proteção Premium™",
+      "description": "Especial amplia a explosão em cadeia; escudo reforçado temporariamente.",
       "kind": "secondary-shield"
     },
     {
       "level": 9,
-      "title": "Destino Manifesto",
-      "description": "ESPAÇO: míssil colossal explode em cadeia na área da mira.",
+      "title": "Operação Liberdade Duradoura™",
+      "description": "Supremo: código nos últimos 5 s; bombardeiros gigantes e míssil descomunal finalizam a onda.",
       "kind": "ultimate"
     },
     {
       "level": 10,
-      "title": "Liberdade Irrestrita",
-      "description": "Metralhadora de explosões e detonações múltiplas vermelho-azuis.",
+      "title": "Liberdade Irrestrita™",
+      "description": "Transformação: projéteis gigantes, teleguiados e crescentes, com explosões espetaculares.",
       "kind": "transformation"
     }
   ],
@@ -190,62 +190,62 @@ export const V1_UPGRADES = {
   "ru": [
     {
       "level": 1,
-      "title": "Camarada Canhão",
-      "description": "Projéteis pesados e empurrão.",
+      "title": "Vórtice Siberiano",
+      "description": "Tiros aplicam frio e desaceleram inimigos.",
       "kind": "primary"
     },
     {
       "level": 2,
-      "title": "Cortina de Ferro",
-      "description": "Especial com onda de choque; escudo reforçado.",
+      "title": "Matryoshka de Estilhaços",
+      "description": "Especial rompe gelo acumulado; escudo ganha proteção criogênica.",
       "kind": "secondary-shield"
     },
     {
       "level": 3,
-      "title": "Artilharia de Impacto",
-      "description": "Tiros emitem pequenos choques em área.",
+      "title": "Inverno Russo",
+      "description": "Tiros podem congelar alvos após acumular frio.",
       "kind": "primary"
     },
     {
       "level": 4,
-      "title": "Boneca Matrioska",
-      "description": "Especial se divide em três; escudo repele projéteis.",
+      "title": "Boneca Matryoshka",
+      "description": "Especial espalha fragmentos que atingem outros inimigos; escudo reforça a proteção.",
       "kind": "secondary-shield"
     },
     {
       "level": 5,
-      "title": "Inverno Russo",
-      "description": "Balas desaceleram invasores.",
+      "title": "Gravidade Siberiana",
+      "description": "Alvos congelados atraem inimigos próximos para o gelo.",
       "kind": "primary"
     },
     {
       "level": 6,
       "title": "Frente Fria",
-      "description": "Especial cria lentidão; escudo diminui velocidade dos próximos.",
+      "description": "Especial estilhaça grupos congelados; escudo desacelera ameaças próximas.",
       "kind": "secondary-shield"
     },
     {
       "level": 7,
-      "title": "Martelo de Guerra",
-      "description": "Impactos geram choques mais amplos.",
+      "title": "Zero Absoluto",
+      "description": "Tiros congelam mais rápido e intensificam a atração ao gelo.",
       "kind": "primary"
     },
     {
       "level": 8,
-      "title": "Defesa Profunda",
-      "description": "Especial em choques sucessivos; escudo repele ameaças.",
+      "title": "Tempestade de Estilhaços",
+      "description": "Especial amplia a detonação criogênica; escudo pulsa ondas de frio.",
       "kind": "secondary-shield"
     },
     {
       "level": 9,
-      "title": "Mãe Rússia",
-      "description": "ESPAÇO: superbomba na mira com subexplosões.",
+      "title": "Protocolo Cortina de Ferro",
+      "description": "Supremo: código nos últimos 5 s; cúpula metálica protege o Rio e satélite dispara raio orbital que finaliza a onda.",
       "kind": "ultimate"
     },
     {
       "level": 10,
-      "title": "Artilharia Vermelha Suprema",
-      "description": "Disparos gigantes rápidos com tremor e clarões vermelhos.",
+      "title": "Inverno Orbital",
+      "description": "Transformação: tiros de gelo e atração intensificados, com estilhaçamento em grande escala.",
       "kind": "transformation"
     }
   ],
@@ -315,9 +315,9 @@ export const V1_UPGRADES = {
 
 export const V1_SUPREMES = Object.freeze({
   br: {title:'Operação Soberania',scope:'sky',color:0x4de88c},
-  us: {title:'Destino Manifesto',scope:'target',color:0xffae59},
+  us: {title:'Operação Liberdade Duradoura™',scope:'target',color:0xffae59},
   jp: {title:'Raio da Amizade',scope:'beam',color:0xe68aff},
-  ru: {title:'Mãe Rússia',scope:'target',color:0xff6b69},
+  ru: {title:'Protocolo Cortina de Ferro',scope:'target',color:0xff6b69},
   cn: {title:'Liquidação Total',scope:'sky',color:0xffdb5d},
 });
 
