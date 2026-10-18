@@ -1132,8 +1132,9 @@ export class GameScene extends Phaser.Scene {
     const group = {
       kind, count, centerX: center, target: null,
       duration: kind === 'swarm'
-        ? Phaser.Math.FloatBetween(3, 5)
-        : Phaser.Math.FloatBetween(2, 4),
+        ? Phaser.Math.FloatBetween(6, 8)
+        : Phaser.Math.FloatBetween(5.5, 6.5),
+      holdDuration: kind === 'tactical' ? 1.6 : 0,
       pattern: kind === 'swarm'
         ? SWARM_DANCES[Phaser.Math.Between(0, SWARM_DANCES.length - 1)] : 'tactical',
       entry: kind === 'swarm'
