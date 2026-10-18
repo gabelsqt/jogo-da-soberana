@@ -1100,6 +1100,26 @@ export class GameScene extends Phaser.Scene {
       if (level > 1) sprite.setTint(definition.tintColor);
       return { sprite, box: null };
     }
+    if (type === 2) {
+      // Protótipo vetorial Phaser: nave triangular industrial, núcleo vermelho.
+      // Partes separadas permitem validar rotação e propulsão antes da sprite sheet.
+      const sprite=this.add.container(x,y).setDepth(19);
+      const hull=this.add.graphics();
+      hull.fillStyle(0x171d29).fillTriangle(-23,14,0,-24,23,14);
+      hull.fillStyle(0x3e4b5b).fillTriangle(-17,10,0,-17,17,10);
+      hull.fillStyle(0x101722).fillTriangle(-26,11,-12,2,-10,19);
+      hull.fillTriangle(26,11,12,2,10,19);
+      hull.lineStyle(2,0x82909c).strokeTriangle(-23,14,0,-24,23,14);
+      hull.fillStyle(0xf0343e).fillCircle(0,-2,6);
+      hull.fillStyle(0xff8790,0.9).fillCircle(0,-3,2);
+      const thruster=this.add.graphics();
+      thruster.fillStyle(0xff4b31,0.8).fillTriangle(-8,14,0,25,8,14);
+      thruster.fillStyle(0xffbb5e,0.9).fillTriangle(-4,14,0,20,4,14);
+      sprite.add([thruster,hull]);
+      sprite.setData('thruster',thruster);
+      if(level>1) hull.setTint(definition.tintColor);
+      return {sprite,box:null};
+    }
     const sprite = this.add.container(x, y).setDepth(19);
     const box = this.add.rectangle(0, 0, definition.width, definition.height, definition.color)
       .setStrokeStyle(level > 1 ? 3 : 2, level >= 3 ? 0xffffff : level > 1 ? 0xffd26e : 0xf7efff);
@@ -1409,6 +1429,13 @@ export class GameScene extends Phaser.Scene {
           }
         }
       } else if (enemy.phase === 'tacticalManeuver') {
+        // Inclinação da nave acompanha o giro; ao parar volta à vertical.
+        const movingAge=Math.min(enemy.age,Math.max(0.5,group.duration-group.holdDuration));
+        const angle=4*Math.PI*(movingAge/Math.max(0.5,group.duration-group.holdDuration));
+        enemy.sprite.setRotation(enemy.age<group.duration-group.holdDuration
+          ? Math.sin(angle)*0.30*group.direction : 0);
+        const thruster=enemy.sprite.getData('thruster');
+        if(thruster)thruster.setAlpha(0.6+0.4*Math.sin(this.time.now*0.018+enemy.formationIndex));
         const position = tacticalManeuverPosition(group, enemy.formationIndex, enemy.age);
         enemy.sprite.setPosition(position.x, position.y);
         if (enemy.age >= group.duration) {
@@ -1429,6 +1456,9 @@ export class GameScene extends Phaser.Scene {
           enemy.phaseAge = 0;
         }
       } else if (enemy.phase === 'tacticalAttack') {
+        enemy.sprite.setRotation(0);
+        const thruster=enemy.sprite.getData('thruster');
+        if(thruster)thruster.setAlpha(0.95);
         const attackAge = Math.max(0, enemy.age - group.attackStartAge);
         const position = tacticalAttackPosition(group, enemy.formationIndex, attackAge);
         enemy.sprite.setPosition(position.x, position.y);
