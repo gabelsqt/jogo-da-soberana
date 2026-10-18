@@ -1,7 +1,7 @@
 // Brasil 2 — Arraial Balístico, decisões 77–101. Funções puras para testes.
 export const ARRAIAL = Object.freeze({
   duration: 2200, fireworkCount: 20, ringCount: 6, orbitRadius: 100,
-  fireworkRadius: 37, fireworkDamage: 1, finaleRadius: 78, finaleDamage: 5,
+  fireworkRadius: 37, fireworkDamage: 1, finaleRadius: 150, finaleDamage: 5,
   flameReach: 15, flameInterval: 500, flameDamage: 0.5,
 });
 export function fireworkSchedule(count = ARRAIAL.fireworkCount, duration = ARRAIAL.duration) {
