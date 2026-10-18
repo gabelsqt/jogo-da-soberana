@@ -268,3 +268,17 @@ Refinamento solicitado após playtest: zoom gradual até **1,65×**, com foco no
 - Reflexos não reativam globos nem geram cópias recursivas. Dano por raio e congelamento russo compatível preservados. Escudo coreano mantém as regras existentes.
 - Em especiais híbridos, os demais componentes resolvem no impacto e o componente coreano permanece como globo. A vida começa na chegada. Múltiplas ativações têm globos independentes; cada tiro acerta primeiro o globo mais próximo em sua trajetória.
 - Contador de duração visível. Globos são retirados ao expirar, limpar a arena ou encerrar o combate.
+
+
+## Tipo 6 e traidor único — planejamento aprovado (18/10/2026)
+
+**Esta decisão substitui as regras anteriores de coalizão. Implementação pendente; versão jogável permanece 0.41.**
+
+- O Tipo 6 será uma fortaleza enorme e horizontal, ocupando o alto da tela como uma grande barra. Todas as versões compartilham a estrutura, com aparência e ataques próprios para o chefe alienígena e cada país traidor.
+- Apenas um país estrangeiro trai. O país com mais upgrades estrangeiros escolhidos é o adversário; em empate, sorteia-se um dos empatados.
+- O sorteio ocorre uma única vez por campanha e seu resultado deve ser preservado ao continuar resistindo ou repetir a batalha.
+- Não existem coalizões nem vários chefes de países simultâneos. Os fatores de HP por quantidade de chefes serão retirados quando esta regra for implementada.
+- Full Brazil enfrenta a versão alienígena.
+- A perda de upgrades de países não sorteados ainda precisa ser definida; não aplicar automaticamente a antiga remoção de todos os empatados.
+
+**Ainda são propostas, não decisões aprovadas:** núcleo central, duas alas, quatro posições de armas, hangares inferiores, ocupação de 80–90% da largura e 20–25% da altura, módulos destrutíveis, janelas de vulnerabilidade e padrões específicos de cada país. Próxima decisão: interação entre núcleo e módulos durante a luta.
