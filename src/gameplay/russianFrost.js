@@ -30,6 +30,7 @@ export function applyRussianFreeze(target,now,durationMs,secondary=false) {
     if(!target.russianFrostPrimary && !target.russianFrostSpreadUsed)
       target.russianFrostPrimary=true;
     target.russianFrostHits=(target.russianFrostHits||0)+1;
+    target.russianFrostDurationMs=durationMs;
   }
   target.frozenUntil=Math.max(target.frozenUntil??-Infinity,now+durationMs);
   return true;
