@@ -32,6 +32,10 @@ export function spawnType6Encounter(scene, options={}) {
   state.introDuration=1500;
   state.introComplete=false;
   scene.showAttackWarning('INTERFERÊNCIA! CONTATO GIGANTE NO CÉU!');
+  const interference=scene.add.rectangle(W/2,H/2,W,H,0x030914,0.33)
+    .setDepth(24);
+  scene.tweens.add({targets:interference,alpha:0,duration:1400,
+    onComplete:()=>interference.destroy()});
   scene.cameras.main.shake(340,0.0024);
   scene.cameras.main.flash(220,90,38,56);
   drawType6Ship(graphics,state,scene.elapsed);
@@ -190,9 +194,14 @@ function hitTarget(scene,enemy,id,damage) {
   const module=id==='core'?null:state.modules[id];
   const x=enemy.sprite.x+(module?.offsetX??0);
   const y=enemy.sprite.y;
-  burst(scene,x,y,result.shieldBroken?p.glow:p.light,
-    result.shieldBroken?42:result.moduleDestroyed?48:8);
+  const previousHitAt=module?.hitAt??state.hitAt;
+  if(result.shieldBroken||result.moduleDestroyed||result.defeated||
+      result.coreExposed||scene.time.now-previousHitAt>=110){
+    burst(scene,x,y,result.shieldBroken?p.glow:p.light,
+      result.shieldBroken?42:result.moduleDestroyed?48:8);
+  }
   if(module)module.hitAt=scene.time.now;
+  else state.hitAt=scene.time.now;
   if(result.shieldBroken)scene.showAttackWarning('ESCUDO INIMIGO DESTRUÍDO!');
   if(result.moduleDestroyed){
     module.deadAt=scene.time.now;
@@ -312,6 +321,12 @@ export function fireType6Doom(scene,enemy) {
     scene.shield=0;scene.cannonHealth=0;
     scene.showDefeat('cannon');
   });
+}
+export function type6AimPosition(enemy) {
+  if(enemy?.type!==6||!enemy.type6)return {x:enemy.sprite.x,y:enemy.sprite.y};
+  const state=enemy.type6;
+  const module=type6AliveModules(state)[1]??type6AliveModules(state)[0];
+  return {x:enemy.sprite.x+(module?.offsetX??0),y:enemy.sprite.y};
 }
 export function type6NextDeadline(scene) {
   const remaining=scene.waveDurationMs-scene.elapsed;
