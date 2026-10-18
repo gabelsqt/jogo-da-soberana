@@ -128,7 +128,8 @@ test('o aumento russo não modifica velocidade, dano ou alcance físico', () => 
 test('rastro visual e recuo são puramente gráficos, com limpeza por bala', () => {
   const src = readFileSync(new URL('../src/scenes/GameScene.js', import.meta.url), 'utf8');
   assert.match(src, /brazilAlternatingAngle\(angle, nextShot, this\.combat\.brazilZigzag\)/);
-  assert.match(src, /shotAngles\(aimed, this\.combat\.bulletsPerShot\)/);
+  assert.match(src, /horizontalOffsets\(count,0\.065\)/);
+  assert.match(src, /: shotAngles\(aimed,count\)/);
   assert.match(src, /this\.fireLightstickBeam\(angle\)/,
     'laser coreano mantém a direção da mira original');
   assert.match(src, /drawProjectileTrail\(bullet\)/);
