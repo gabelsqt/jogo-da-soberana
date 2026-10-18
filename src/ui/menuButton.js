@@ -40,5 +40,7 @@ export function addMenuButton(scene, {
     onClick();
   });
 
+  // Permite atualizar a legenda de botões narrativos sem recriar o componente.
+  background.label = label;
   return background;
 }
