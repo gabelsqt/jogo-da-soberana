@@ -101,6 +101,12 @@
         color: #bdd0e0;
       }
       .portrait-mode #game { visibility: hidden; }
+      #build-version {
+        position: fixed; right: 12px; bottom: 6px; z-index: 1000;
+        font: 12px monospace; color: #a8c5d9;
+        background: rgba(8, 15, 29, .75); padding: 3px 7px;
+        border-radius: 4px; pointer-events: none;
+      }
     </style>
   </head>
   <body>
@@ -114,6 +120,7 @@
         </div>
       </div>
     </main>
+    <div id="build-version" aria-label="Versão do jogo">v0.1.1</div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
