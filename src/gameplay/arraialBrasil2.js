@@ -3,7 +3,7 @@ export const ARRAIAL = Object.freeze({
   duration: 2200, fireworkCount: 20, ringCount: 6, orbitRadius: 100,
   fireworkRadius: 37, fireworkDamage: 1, finaleRadius: 150, finaleDamage: 5,
   flameReach: 15, flameInterval: 500, flameDamage: 0.5,
-  shieldDomeRadius: 110, fireRingRadius: 40, fireRingMaxRadius: 94,
+  shieldDomeRadius: 110, fireRingRadius: 43, fireRingMaxRadius: 122, fireRingFlatten: 0.38,
   fireRingOffsetY: -43, firePulseDuration: 650, firePulseDamage: 1,
 });
 export function fireworkSchedule(count = ARRAIAL.fireworkCount, duration = ARRAIAL.duration) {
