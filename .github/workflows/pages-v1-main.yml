@@ -51,6 +51,7 @@ jobs:
           grep -q 'Container não implementa setTintFill' src/scenes/GameScene.js
           grep -q 'showSpawnPortal' src/scenes/GameScene.js
           grep -q 'build-version' index.html
+          grep -q 'showSpawnPortal(center,portalY' src/scenes/GameScene.js
           grep -q "Onda 2 usa apenas Tipo 1 e Tipo 2" tests/towers.test.js
           grep -q 'TESTAR UPGRADES V1' src/scenes/MenuScene.js
           ! grep -q "scene.start('LabSetupScene')" src/scenes/MenuScene.js
