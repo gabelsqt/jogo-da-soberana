@@ -96,3 +96,7 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 87 — Brasil 2: periodicidade do dano da Fogueira (APROVADA)
 
 **Opção B:** a Fogueira de São João aplica um pulso de dano leve a cada **0,5 segundo** a inimigos dentro de **15 px da borda do escudo ativo**. Fora desse alcance ou com escudo inativo, não aplica pulsos. Intensidade numérica por pulso e se o dano deixa efeito residual permanecem pendentes. Somente atualização de design, sem implementação.
+
+## Decisão 88 — Brasil 2: sem queimadura residual (APROVADA)
+
+**Opção A:** a Fogueira de São João **não aplica queimadura residual**. Os pulsos de dano leve ocorrem a cada 0,5 segundo apenas enquanto inimigos estiverem dentro dos 15 px medidos a partir da borda do escudo ativo; ao sair da área ou ao desativar o escudo, não há dano adicional pelo fogo. Valor de dano por pulso ainda pendente de balanceamento. Apenas registro no GDD, sem implementação.
