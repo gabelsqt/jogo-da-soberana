@@ -2620,10 +2620,14 @@ export class GameScene extends Phaser.Scene {
         shot.sprite.setFillStyle(color);
         shot.sprite.setStrokeStyle(3,0xffffff,0.95);
         // Formato principal depende do PRIMEIRO país com especial desbloqueado.
-        const scale=build.primary==='us' ? 2.2*Math.sqrt(build.usMissileScale) :
+        // EUA: a escala é literalmente 1×/2×/4×/8× do mesmo míssil enorme.
+        // Como só existe um projétil especial, não precisamos limitar seu tamanho.
+        const scale=build.primary==='us'?1.6*build.usMissileScale:
           build.primary==='cn'?1.7*build.cnDropScale:
           build.primary==='ru'?1.8:build.primary==='jp'?2:1.5;
-        shot.sprite.setScale(Math.min(6,scale));
+        shot.sprite.setScale(build.primary==='us'?scale:Math.min(6,scale));
+        if(build.primary==='us')shot.specialMarker.setScale(
+          Math.min(5,Math.max(1,build.usMissileScale*0.7)));
       }
     }
     // Caminho do laboratório legado: não interferir nas árvores antigas.
