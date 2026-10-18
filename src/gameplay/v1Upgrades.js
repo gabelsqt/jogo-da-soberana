@@ -121,7 +121,7 @@ export const V1_UPGRADES = {
     {
       "level": 10,
       "title": "Liberdade Irrestrita™",
-      "description": "Transformação: projéteis gigantes, teleguiados e crescentes, com explosões espetaculares.",
+      "description": "Transformação: projéteis teleguiados crescem durante o voo até 12× de diâmetro e explodem ao atingir inimigos.",
       "kind": "transformation"
     }
   ],
@@ -183,7 +183,7 @@ export const V1_UPGRADES = {
     {
       "level": 10,
       "title": "Encore Infinito",
-      "description": "Lasers ultrarrápidos perfurantes e explosões de plasma.",
+      "description": "Transformação: tiro principal vira um laser contínuo e perfurante enquanto a mira está acionada.",
       "kind": "transformation"
     }
   ],
@@ -244,8 +244,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 10,
-      "title": "Inverno Orbital",
-      "description": "Transformação: tiros de gelo e atração intensificados, com estilhaçamento em grande escala.",
+      "title": "Inverno Eterno",
+      "description": "Transformação: cada tiro congela por 3 s e reúne os inimigos em vórtices siberianos de até 160 px.",
       "kind": "transformation"
     }
   ],
@@ -307,18 +307,18 @@ export const V1_UPGRADES = {
     {
       "level": 10,
       "title": "Estoque Infinito",
-      "description": "Tiro principal ultrarrápido, múltiplo e replicante, vermelho/dourado.",
+      "description": "Transformação: dispara 10 projéteis vermelhos/dourados, que se dividem uma vez em 20.",
       "kind": "transformation"
     }
   ]
 };
 
 export const V1_SUPREMES = Object.freeze({
-  br: {title:'Operação Soberania',scope:'sky',color:0x4de88c},
+  br: {title:'Réveillon de Copacabana',scope:'sky',color:0x4de88c},
   us: {title:'Operação Liberdade Duradoura™',scope:'target',color:0xffae59},
-  jp: {title:'Raio da Amizade',scope:'beam',color:0xe68aff},
+  jp: {title:'Último Encore',scope:'beam',color:0xe68aff},
   ru: {title:'Protocolo Cortina de Ferro',scope:'target',color:0xff6b69},
-  cn: {title:'Liquidação Total',scope:'sky',color:0xffdb5d},
+  cn: {title:'Seu Pedido Chegou!',scope:'sky',color:0xffdb5d},
 });
 
 export const MAX_VISUAL_PROJECTILES = 95;
@@ -358,7 +358,8 @@ export function v1CombatStats(state = {}, base = {}) {
     duplicateChance:0, missileEvery:0, extraBurstEvery:0, electricDamage:1,
     laserDamage:3, shockRadius:0, slowShot:false, specialAmplifier:1,
     shieldIntercept:false, shieldPulse:false, brazilTurboMultiplier:1, brazilFireworkCount:0, brazilHeatPeak:0, ultimate:v1SupremeFor(state),
-    transformed:null};
+    usGrowthMax:1, usHoming:0, russianFreezeMs:0, russianAttractRadius:0,
+    chinaSplitCount:1, koreaContinuous:false, transformed:null};
   // Brasil: metralhadora potente desde o nível 1; picos de calor cíclicos.
   if(n.br>=1){stats.basicInterval/=2;stats.heat=true;stats.brazilHeatPeak=0.65;stats.horizontalSpread=6;}
   if(n.br>=2){stats.brazilFireworkCount=4;stats.brazilTurboMultiplier=1.5;}
@@ -369,7 +370,10 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.br>=7){stats.basicInterval/=1.3;stats.brazilHeatPeak=1.5;stats.horizontalSpread=11;}
   if(n.br>=8){stats.electricDamage=2.5;stats.shieldPulse=true;stats.specialAmplifier+=0.2;stats.brazilFireworkCount=32;stats.brazilTurboMultiplier=3;}
   if(n.br>=10){stats.basicInterval/=1.9;stats.brazilHeatPeak=2.4;stats.horizontalSpread=16;}
-  if(n.us>=1)stats.fragmentation=true;
+  if(n.us>=1){stats.fragmentation=true;stats.usGrowthMax=2;}
+  if(n.us>=3){stats.usGrowthMax=4;stats.usHoming=1.8;}
+  if(n.us>=5){stats.usGrowthMax=6;stats.usHoming=2.1;}
+  if(n.us>=7){stats.usGrowthMax=8;stats.usHoming=2.6;}
   if(n.us>=2){stats.specialAmplifier+=0.25;stats.shieldBonus+=12;}
   if(n.us>=3)stats.collateral=true;
   if(n.us>=4)stats.shieldIntercept=true;
@@ -385,7 +389,10 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.jp>=6){stats.specialCooldown*=0.86;stats.shieldRegen+=1.1;}
   if(n.jp>=7){stats.plasmaEvery=1;stats.laserDamage+=1;}
   if(n.jp>=8){stats.specialAmplifier+=0.45;stats.shieldPulse=true;}
-  if(n.ru>=1){stats.basicDamage*=1.75;stats.knockback=0.12;}
+  if(n.ru>=1){stats.basicDamage*=1.75;stats.knockback=0.12;stats.russianFreezeMs=1000;stats.russianAttractRadius=40;}
+  if(n.ru>=3){stats.russianFreezeMs=1500;stats.russianAttractRadius=60;}
+  if(n.ru>=5){stats.russianFreezeMs=2000;stats.russianAttractRadius=90;}
+  if(n.ru>=7){stats.russianFreezeMs=2500;stats.russianAttractRadius=120;}
   if(n.ru>=2)stats.shieldBonus+=20;
   if(n.ru>=3)stats.shockRadius=38;
   if(n.ru>=4){stats.strategicRecoil=true;stats.shieldPulse=true;}
@@ -397,21 +404,35 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.cn>=2){stats.specialAmplifier+=0.2;stats.shieldRegen+=1.1;}
   if(n.cn>=3)stats.bulletsPerShot=3;
   if(n.cn>=4)stats.shieldIntercept=true;
-  if(n.cn>=5)stats.duplicateChance=0.35;
+  if(n.cn>=5){stats.bulletsPerShot=3;stats.chinaSplitCount=2;}
+  if(n.cn>=7)stats.bulletsPerShot=5;
   if(n.cn>=6){stats.specialAmplifier+=0.25;stats.shieldRegen+=0.8;}
   if(n.cn>=7)stats.extraBurstEvery=11;
   if(n.cn>=8){stats.specialAmplifier+=0.4;stats.shieldIntercept=true;}
-  for(const id of ['br','us','jp','ru','cn'])if(n[id]>=10){
-    stats.transformed=id;stats.basicDamage*=id==='ru'?2.6:2;
-    stats.basicInterval*=id==='br'?0.28:id==='ru'?0.5:0.42;
-    stats.basicSpeed*=1.35;
-    if(id==='br')stats.horizontalSpread=8;
-    if(id==='cn'){stats.bulletsPerShot=Math.max(4,stats.bulletsPerShot);stats.duplicateChance=0.65;}
-    if(id==='jp'){stats.plasmaEvery=1;stats.laserDamage*=1.8;}
-    if(id==='us')stats.fragmentation=true;
-    if(id==='ru'){stats.knockback*=1.5;stats.shockRadius=Math.max(stats.shockRadius,85);}
+  // Nível 10 é uma transformação de mecânica, não somente um multiplicador.
+  if(n.br>=10){
+    stats.transformed='br';stats.basicInterval*=0.28;stats.basicDamage*=2;
+    stats.brazilHeatPeak=2.4;stats.horizontalSpread=16;stats.basicSpeed*=1.35;
   }
-  stats.basicInterval=Math.max(55,Math.round(stats.basicInterval));
+  if(n.us>=10){
+    stats.transformed='us';stats.basicDamage*=2;stats.basicInterval*=0.42;
+    stats.basicSpeed*=1.35;stats.usGrowthMax=12;stats.usHoming=3.2;
+  }
+  if(n.ru>=10){
+    stats.transformed='ru';stats.basicDamage*=2.6;stats.basicInterval*=0.5;
+    stats.basicSpeed*=1.35;stats.russianFreezeMs=3000;
+    stats.russianAttractRadius=160;stats.shockRadius=Math.max(stats.shockRadius,85);
+  }
+  if(n.cn>=10){
+    stats.transformed='cn';stats.basicDamage*=2;stats.basicInterval*=0.42;
+    stats.basicSpeed*=1.35;stats.bulletsPerShot=10;
+    stats.chinaSplitCount=2;stats.duplicateChance=0;
+  }
+  if(n.jp>=10){
+    stats.transformed='jp';stats.basicInterval=90;stats.basicDamage*=2;
+    stats.laserDamage*=1.8;stats.koreaContinuous=true;
+  }
+  stats.basicInterval=Math.max(stats.transformed==='br'?32:55,Math.round(stats.basicInterval));
   stats.specialCooldown=Math.max(1800,Math.round(stats.specialCooldown));
   return stats;
 }
