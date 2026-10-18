@@ -282,6 +282,9 @@ export class GameScene extends Phaser.Scene {
     this.lastBasicFire = -this.combat.basicInterval;
     this.heatStartedAt = null;
     this.ultimateUsed = false;
+    this.supremeTyping = false;
+    this.supremeCode = '';
+    this.supremeCinematic = false;
     this.basicShotCount = 0;
     this.cannonRecoil = 0;
     this.lastHeavyShake = -Infinity;
@@ -333,7 +336,17 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard.addCapture('SPACE');
     this.input.keyboard.on('keydown-SPACE', (event) => {
       event.preventDefault();
-      if (this.scene.isActive('GameScene') && !this.scene.isPaused('GameScene')) this.activateUltimate();
+      if (this.scene.isActive('GameScene') && !this.scene.isPaused('GameScene')) this.openSupremeCode();
+    });
+    this.input.keyboard.on('keydown', (event) => {
+      if (!this.supremeTyping) return;
+      if (event.key === 'Escape') { this.closeSupremeCode(); return; }
+      if (event.key === 'Backspace') this.supremeCode = this.supremeCode.slice(0,-1);
+      else if (/^[a-z]$/i.test(event.key)) this.supremeCode += event.key.toUpperCase();
+      const expected = this.supremeExpectedCode();
+      if (this.supremeCode === expected) { this.closeSupremeCode(); this.activateUltimate(); return; }
+      if (this.supremeCode.length > expected.length) this.supremeCode = this.supremeCode.slice(-expected.length);
+      if (this.supremePrompt) this.supremePrompt.setText(`PROTOCOLO SUPREMO: ${expected}\nDIGITE: ${this.supremeCode}_\nBACKSPACE corrige • ESC cancela`);
     });
 
     if (import.meta.env.DEV && this.mode.startsWith('wave')) {
@@ -2374,6 +2387,26 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  supremeExpectedCode() {
+    return {br:'REVEILLON',us:'FREEDOM',ru:'SPUTNIK',cn:'ENTREGA',kr:'ENCORE',jp:'ENCORE'}[this.combat.ultimate] || 'REVEILLON';
+  }
+
+  closeSupremeCode() {
+    this.supremeTyping = false;
+    this.supremePrompt?.destroy();
+    this.supremePrompt = null;
+  }
+
+  openSupremeCode() {
+    if (!this.isV1Campaign || !this.combat.ultimate || this.ultimateUsed || this.tutorialComplete || this.countdownActive || this.supremeCinematic || this.elapsed < WAVE_DURATION_MS - 5000) return;
+    this.supremeTyping = true;
+    this.supremeCode = '';
+    this.supremePrompt?.destroy();
+    this.supremePrompt = this.add.text(W/2, H/2, `PROTOCOLO SUPREMO: ${this.supremeExpectedCode()}\\nDIGITE: _\\nBACKSPACE corrige • ESC cancela`, {
+      fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',color:'#ffeded',backgroundColor:'#690b19',align:'center',padding:{x:22,y:18}
+    }).setOrigin(0.5).setDepth(300);
+  }
+
   // Apenas uma suprema por partida é possível: 9 das 10 escolhas seriam do mesmo país.
   activateUltimate() {
     if (!this.isV1Campaign || this.tutorialComplete || this.countdownActive ||
@@ -2382,6 +2415,8 @@ export class GameScene extends Phaser.Scene {
     const config=V1_SUPREMES[country];
     if (!config) return false;
     this.ultimateUsed=true;
+    this.supremeCinematic = true;
+    this.time.delayedCall(3200,()=>{this.supremeCinematic=false;});
     this.cameras.main.shake(430,0.004);
     this.showAttackWarning(config.title.toUpperCase()+' — SUPREMA!');
     const p=this.input.activePointer;
@@ -3310,7 +3345,7 @@ export class GameScene extends Phaser.Scene {
       ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO'));
     if (this.ultimateLabel) {
       const title = V1_SUPREMES[this.combat.ultimate]?.title ?? 'SUPREMA';
-      this.ultimateLabel.setText(`ESPAÇO — ${title}\n${this.ultimateUsed ? 'USADA' : 'PRONTA'}`);
+      this.ultimateLabel.setText(`${this.ultimateUsed ? 'SUPREMO USADO' : this.elapsed >= WAVE_DURATION_MS-5000 ? '🔴 ESPAÇO — '+title : 'SUPREMO — AGUARDE'}`);
     }
     this.healthText.setText(
       'CANHÃO ' + Math.ceil(this.cannonHealth) +
@@ -3375,6 +3410,8 @@ export class GameScene extends Phaser.Scene {
     // Sem disparos, movimentação ou cronômetro de onda antes do "1".
     if (this.countdownActive) return;
     const dt = Math.min(delta / 1000, 0.05);
+    if (this.supremeTyping) delta *= 0.1;
+    if (this.supremeCinematic) delta = 0;
     this.elapsed += delta;
     if (this.sunriseOverlay) {
       const sunrise = Math.max(0, 1 - (WAVE_DURATION_MS - this.elapsed) / 5000);
