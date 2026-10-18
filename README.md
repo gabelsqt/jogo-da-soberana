@@ -2,6 +2,16 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
+## Versão atual — 0.39
+
+Trilhas integradas aos menus e às ondas, sprites do Tipo 4 corrigidos e sequência de destruição do canhão com explosões centrais, perda gradual da mira, chiado e desligamento CRT. [Notas da versão 0.39](docs/versao-0.39.md).
+
+Para conferir a sequência: **TESTAR UPGRADES V1 → TESTAR DESTRUIÇÃO DO CANHÃO** (atalho D).
+
+**Registro de versões:** a cada nova versão jogável, atualizar o número visível em `src/config/version.js`, o equivalente semântico em `package.json`, este resumo e as notas em `docs/versao-<versão>.md`. Registrar mudanças de design no GDD e distinguir testes automatizados de validação visual pelo jogador. A versão 0.39 reúne as mudanças recentes; não atribui retrospectivamente versões 0.36–0.38.
+
+## Histórico anterior
+
 > **Protótipo 0.26 — Torres mecanizadas com sprites independentes.** Substituímos os retângulos provisórios das primeiras cinco torres por 10 PNGs transparentes, cada corpo e sua arma lateral em texturas separadas. Os canhões apontam suavemente para o alvo e recuam sozinhos; o animal não gira nem recua ao disparar. A lógica de danos, alcance, alvos, HP, escudo e intervalo das torres permanece intacta. O identificador 'jp' continua mapeado ao sprite KR/Kkachi sem alterar os saves. As artes aprovadas foram reduzidas a 128 px na maior dimensão, com 48 cores, para publicação mais leve; os PNGs de alta resolução permanecem preservados no pacote original.\n\n> **Protótipo 0.25 — Identidade da Coreia do Sul.** Os nomes mostrados ao jogador foram atualizados: **Coreia do Sul (KR)**, **Lightstick Tático** (nível 1), **Encore!** (nível 2) e **Projeto Kkachi I / KKACHI** (torre do nível 3). HUD, cartões, laboratório e histórico de escolhas exibem a identidade coreana. O identificador interno legado `jp` permanece para preservar a progressão e as combinações já existentes. Nenhuma mecânica de combate, valor de dano ou arma foi alterado.
 
 > **Protótipo 0.24 — Feedback de impacto e destruição de OVNIs.** Todos os tipos de inimigo implementados (1–5) ganharam piscar branco curto e sacudida ao sobreviver a um disparo, além de explosões geométricas escalonadas ao serem abatidos. O Tipo 4 (Caça Relâmpago) recebe explosão rosa/branca em duas etapas, anel, estilhaços e microtremida; o Tipo 5 recebe celebração ainda maior e em duas etapas. O Tipo 6 já possui parâmetros de VFX planejados, mas **ainda não existe nas ondas jogáveis**. Nenhum atributo de HP, dano, movimento ou cooldown foi modificado.
