@@ -19,7 +19,7 @@ export function fireworkSchedule(count = ARRAIAL.fireworkCount, duration = ARRAI
     const angle=-Math.PI/2+progress*Math.PI*3.5;
     const radius=ARRAIAL.orbitRadius*(1-progress);
     // Cadência crescente, convergindo antes da detonação do balão aos 4 s.
-    const time=duration*(1-Math.pow(1-progress,0.65))*0.96;
+    const time=duration*(1-Math.pow(1-progress,1.6))*0.96;
     return {at:Math.round(time),x:Math.cos(angle)*radius,y:Math.sin(angle)*radius};
   });
   return [...ring,...spiral];
