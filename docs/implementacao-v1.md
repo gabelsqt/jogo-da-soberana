@@ -144,3 +144,7 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 99 — Brasil 2: núcleo em forma de Balão de São João (APROVADA)
 
 **Opção B:** o núcleo suspenso do Arraial Balístico é um **balão junino em pixel art**, com brilho interno, que permanece no ar durante 4 segundos, libera 12 fogos multicoloridos em sequência circular crescente e **explode na finalização** (5 HP em raio de 50 px). O balão é elemento de fantasia visual, não um mecanismo real. Preservar leitura dos inimigos e a estética pixel art. Aparência precisa da explosão final ainda será detalhada. **Somente GDD; não implementar código.**
+
+## Decisão 100 — Brasil 2: explosão final multicolorida (APROVADA)
+
+**Opção B:** ao completar os quatro segundos, o **balão de São João** explode num grande espetáculo multicolorido em forma de **estrela de fogos com vários anéis luminosos**. A detonação mantém os parâmetros já aprovados: **5 HP de dano, raio de 50 px**, além dos 12 fogos anteriores. Os anéis e faíscas são representação visual da mesma detonação; não geram dano repetido adicional por si só. Priorizar leitura dos alvos e orçamento de partículas. A estética detalhada das chamas do escudo ainda poderá ser finalizada em decisão separada. **Somente GDD; não implementar código.**
