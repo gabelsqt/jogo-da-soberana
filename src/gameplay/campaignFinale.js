@@ -14,7 +14,7 @@ export function resolveFinalOpponent(state = {}) {
   const choices = Array.isArray(state?.choices) ? state.choices.slice(0,10) : [];
   const counts = {us:0,ru:0,cn:0,jp:0};
   for(const id of choices)if(Object.hasOwn(counts,id))counts[id]++;
-  const coalition=betrayalCoalition(choices);
+  const coalition=betrayalCoalition(choices,state.selectedBetrayer);
   const country=coalition[0]??'br';
   return {country,coalition,fullBrazil:coalition.length===0,
     countryName:FINALE_COUNTRIES[country].name,
@@ -41,8 +41,8 @@ export function finalePrelude(state = {}) {
     title:'ONDA 11 — A TRAIÇÃO',
     lines:[
       'A INVASÃO ALIENÍGENA FOI CONTIDA.',
-      coalition.length>1 ? 'OS ALIADOS ESTRANGEIROS MAIS FORTES FORMARAM UMA COALIZÃO PARA COBRAR A AJUDA.' : messages[country],
-      `ENFRENTE ${coalition.map(id=>FINALE_COUNTRIES[id].name).join(' + ')} E DEFENDA A SOBERANIA.`,
+      messages[country],
+      `ENFRENTE ${FINALE_COUNTRIES[country].name} E DEFENDA A SOBERANIA.`,
     ],
   };
 }
@@ -165,7 +165,7 @@ const ENDINGS = {
 export function finaleEnding(state = {}, won = false) {
   const {country,fullBrazil,coalition}=resolveFinalOpponent(state);
   const ending=ENDINGS[country][won?'win':'lose'];
-  const multi=coalition.length>1;
+  const multi=false;
   const partners=coalition.map(id=>FINALE_COUNTRIES[id].name).join(' + ');
   const slides=ending.slides.map(([title,description])=>[title,description]);
   if(multi)slides[0]=[

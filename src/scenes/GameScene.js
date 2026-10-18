@@ -52,7 +52,14 @@ import { addMenuButton } from '../ui/menuButton.js';
 import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
 import { resolveFinalOpponent, finalePrelude, FINALE_COUNTRIES } from '../gameplay/campaignFinale.js';
-import { hostileBosses, continueResistanceAfterDefeat } from '../gameplay/wave11Rules.js';
+import { hostileBosses, pickBetrayer, continueResistanceAfterDefeat } from '../gameplay/wave11Rules.js';
+import {
+  spawnType6Encounter, updateType6Encounter, hitType6At, hitType6Segment,
+  hitType6Bullet, defeatType6, type6NextDeadline, type6AimPosition,
+} from '../gameplay/type6Encounter.js';
+import {
+  type6AliveModules, type6PointTarget, type6AreaTargets, type6TargetRects,
+} from '../gameplay/type6Boss.js';
 import { finaleBossHp, finaleBossFirePattern, finaleCounterattack } from '../gameplay/finaleBalance.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import {
@@ -123,9 +130,11 @@ export class GameScene extends Phaser.Scene {
     this.brazilResistanceLevels=Array.isArray(data.brazilResistanceLevels)
       ? [...new Set(data.brazilResistanceLevels.filter(level=>
         Number.isInteger(level)&&level>=1&&level<=10))].sort((a,b)=>a-b):[];
-    this.finale=this.mode==='wave11'?resolveFinalOpponent(this.campaign):null;
-    this.finaleBossesNeeded=this.mode==='wave11'
-      ? Math.max(1,hostileBosses(this.campaign.choices).length):0;
+    this.selectedBetrayer=this.mode==='wave11'
+      ? (data.selectedBetrayer || pickBetrayer(this.campaign.choices)) : null;
+    this.finaleCampaign={...this.campaign,selectedBetrayer:this.selectedBetrayer};
+    this.finale=this.mode==='wave11'?resolveFinalOpponent(this.finaleCampaign):null;
+    this.finaleBossesNeeded=this.mode==='wave11'?1:0;
     this.finaleBossesKilled=0;
     this.supremeFinishing=false;
     const survivors=this.mode==='wave11'
@@ -187,7 +196,8 @@ export class GameScene extends Phaser.Scene {
       };
     }
     return { mode: this.mode, campaign: normalizeCampaignState(this.campaign),
-      brazilResistanceLevels:[...this.brazilResistanceLevels] };
+      brazilResistanceLevels:[...this.brazilResistanceLevels],
+      selectedBetrayer:this.selectedBetrayer };
   }
 
   refreshLabStats() {
@@ -357,7 +367,8 @@ export class GameScene extends Phaser.Scene {
     this.eventsSpawned = 0;
     // v0.35: a campanha usa grupos reais, com progressão dentro de cada noite.
     // Laboratórios e a agenda legada continuam acessíveis independentemente.
-    this.waveEvents = getV035WaveEvents(this.mode, getWaveEvents(this.mode,this.campaign));
+    this.waveEvents = getV035WaveEvents(this.mode,
+      getWaveEvents(this.mode,this.finaleCampaign));
     this.lastBasicFire = -this.combat.basicInterval;
     this.heatStartedAt = null;
     this.ultimateUsed = false;
@@ -375,6 +386,9 @@ export class GameScene extends Phaser.Scene {
     this.shieldReflectCount = 0;
     this.tutorialComplete = false;
     this.gameOver = false;
+    this.boss6Victory=false;
+    this.boss6DoomFired=false;
+    this.boss6WarningText=null;
     this.cannonHealth = 100;
     this.shieldMax = 80 + (this.thirdIds.length + this.fourthIds.length) * 8 + (this.isV1Campaign ? this.combat.shieldBonus : 0);
     this.shield = this.shieldMax;
@@ -441,19 +455,21 @@ export class GameScene extends Phaser.Scene {
     });
 
     if (import.meta.env.DEV && this.mode.startsWith('wave')) {
-      // Playtest local: Shift+5–9 abre a onda diretamente, sem afetar o itch.io.
+      // Playtest local: Shift+5–9 abre ondas intermediárias;
+      // Shift+0 e Shift+1 abrem os novos chefões 10 e 11.
+
       // Se entrar antes da terceira escolha, usa Brasil III como equipamento
       // padrão apenas no salto de testes, sem sobrescrever a campanha.
       this.input.keyboard.on('keydown', (event) => {
         if (!event.shiftKey) return;
-        const choice = /^Digit([5-9])$/.exec(event.code ?? '');
-        if (!choice) return;
+        const choice = /^Digit([0-9])$/.exec(event.code ?? '');
+        if (!choice || Number(choice[1])<5&&choice[1]!=='0'&&choice[1]!=='1') return;
         event.preventDefault();
-        this.scene.start('GameScene', {
-          mode: `wave${choice[1]}`,
-          campaign: this.campaign.choices.length >= 3
-            ? this.campaign : { choices: ['br', 'br', 'br'] },
-        });
+        const mode=choice[1]==='0'?'wave10':choice[1]==='1'?'wave11':`wave${choice[1]}`;
+        const campaign=this.campaign.choices.length>=3
+          ? this.campaign : {choices:['br','br','br','br','br','br','br','br','br','br']};
+        this.scene.start('GameScene',{mode,campaign});
+        
       });
     }
 
@@ -645,7 +661,7 @@ export class GameScene extends Phaser.Scene {
   scheduleWaveEvents() {
     this.waveEvents.forEach((event) => {
       this.time.delayedCall(event.at, () => {
-        if (this.tutorialComplete) return;
+        if (this.tutorialComplete || this.boss6Victory || this.boss6DoomFired) return;
         this.eventsSpawned += 1;
         this.spawnWaveEvent(event);
       });
@@ -655,7 +671,7 @@ export class GameScene extends Phaser.Scene {
   showFinalePrelude() {
     this.music.play('news', { loop: false });
     this.countdownActive=true;
-    const info=finalePrelude(this.campaign);
+    const info=finalePrelude(this.finaleCampaign);
     const panel=this.add.rectangle(W/2,H/2,W,H,0x071021,0.96)
       .setInteractive().setDepth(210);
     const title=this.add.text(W/2,87,info.title,{
@@ -895,6 +911,20 @@ export class GameScene extends Phaser.Scene {
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
       if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+      if(enemy.type===6){
+        const targets=type6AreaTargets(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+          x,y,SHOCK_BLAST_RADIUS);
+        const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
+        for(const id of targets){
+          const rect=rects.find(rect=>rect.id===id);
+          if(!rect)continue;
+          const distance=Math.hypot(rect.x-x,rect.y-y);
+          const damage=shockBlastDamage(distance,Math.max(rect.halfWidth,rect.halfHeight),
+            weapon.damage,SHOCK_BLAST_RADIUS);
+          if(damage>0)hitType6At(this,enemy,rect.x,rect.y,damage,0,true);
+        }
+        continue;
+      }
       const distance = Math.hypot(enemy.sprite.x - x, enemy.sprite.y - y);
       const damage = shockBlastDamage(
         distance, enemyContactRadius(enemy.type), weapon.damage, SHOCK_BLAST_RADIUS,
@@ -962,8 +992,9 @@ export class GameScene extends Phaser.Scene {
     if (!target || shot.age > 5) return true;
 
     const oldX = shot.sprite.x, oldY = shot.sprite.y;
+    const aim=type6AimPosition(target);
     const next = advanceGuidedTowerShot(oldX, oldY,
-      target.sprite.x, target.sprite.y, shot.speed, dt);
+      aim.x, aim.y, shot.speed, dt);
     shot.sprite.setPosition(next.x, next.y);
     shot.vx = next.vx;
     shot.vy = next.vy;
@@ -978,6 +1009,15 @@ export class GameScene extends Phaser.Scene {
     // atingir um ponto de previsão ou quando esgota seu tempo.
     for (const enemy of this.enemies) {
       if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+      if(enemy.type===6){
+        const targets=type6AreaTargets(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+          next.x,next.y,9);
+        if(targets.length){
+          this.detonateShockArtillery(next.x,next.y,shot.weapon);
+          return true;
+        }
+        continue;
+      }
       if (segmentHitsCircle(oldX, oldY, next.x, next.y,
         enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 9)) {
         this.detonateShockArtillery(enemy.sprite.x, enemy.sprite.y, shot.weapon);
@@ -1011,18 +1051,19 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (weapon.type === 'laser') {
+      const aim=type6AimPosition(enemy);
       const beam = this.add.graphics().setDepth(41);
       beam.lineStyle(11, 0x996af1, 0.22);
-      beam.lineBetween(fromX, fromY, enemy.sprite.x, enemy.sprite.y);
+      beam.lineBetween(fromX, fromY, aim.x, aim.y);
       beam.lineStyle(3, 0xedc4ff, 1);
-      beam.lineBetween(fromX, fromY, enemy.sprite.x, enemy.sprite.y);
+      beam.lineBetween(fromX, fromY, aim.x, aim.y);
       this.tweens.add({
         targets: beam, alpha: 0, duration: 260,
         onComplete: () => beam.destroy(),
       });
       const hits = weapon.pierce ? this.enemies.filter(e => {
         if (!towerSeesEnemy(e, TOWER_BLIND_ZONE_Y, W, H)) return false;
-        const ax = fromX, ay = fromY, bx = enemy.sprite.x, by = enemy.sprite.y;
+        const ax = fromX, ay = fromY, bx = aim.x, by = aim.y;
         const dx = bx-ax, dy = by-ay, len = Math.max(1, dx*dx+dy*dy);
         const t = Phaser.Math.Clamp(((e.sprite.x-ax)*dx+(e.sprite.y-ay)*dy)/len, 0, 1);
         return Math.hypot(e.sprite.x-(ax+t*dx),e.sprite.y-(ay+t*dy)) < 24;
@@ -1030,7 +1071,10 @@ export class GameScene extends Phaser.Scene {
       for (const hitEnemy of hits) {
         if (!towerSeesEnemy(hitEnemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
         const index = this.enemies.findIndex(item => item.uid === hitEnemy.uid);
-        if (index >= 0) this.impactInvader(index, weapon.damage, 0, '#e6b1ff');
+        if (index >= 0) {
+          if(hitEnemy.type===6)hitType6Segment(this,hitEnemy,fromX,fromY,aim.x,aim.y,weapon.damage,6);
+          else this.impactInvader(index,weapon.damage,0,'#e6b1ff');
+        }
       }
       return;
     }
@@ -1044,8 +1088,9 @@ export class GameScene extends Phaser.Scene {
       const shotTarget = swarmTargets[i % swarmTargets.length] ?? enemy;
       const x = fromX + (i - (count - 1) / 2) * 18;
       const y = fromY;
-      const dx = shotTarget.sprite.x - x;
-      const dy = shotTarget.sprite.y - y;
+      const aim=type6AimPosition(shotTarget);
+      const dx = aim.x - x;
+      const dy = aim.y - y;
       const distance = Math.max(1, Math.hypot(dx, dy));
       // Todos os projéteis das torres têm guia ativo, inclusive balas comuns.
       const guided = true;
@@ -1086,8 +1131,9 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
       const oldX = shot.sprite.x, oldY = shot.sprite.y;
+      const aim=type6AimPosition(target);
       const next = advanceGuidedTowerShot(
-        oldX, oldY, target.sprite.x, target.sprite.y, shot.speed, dt,
+        oldX, oldY, aim.x, aim.y, shot.speed, dt,
       );
       shot.sprite.setPosition(next.x, next.y);
       shot.vx = next.vx;
@@ -1097,6 +1143,12 @@ export class GameScene extends Phaser.Scene {
       for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
         const enemy = this.enemies[j];
         if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+        if(enemy.type===6){
+          hit=hitType6Segment(this,enemy,oldX,oldY,next.x,next.y,
+            shot.weapon.damage,7);
+          if(hit)break;
+          continue;
+        }
         if (!segmentHitsCircle(oldX, oldY, next.x, next.y,
           enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 7)) continue;
 
@@ -1475,6 +1527,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   spawnEnemy(type, options = {}) {
+    if(type===6){
+      let hp;
+      if(this.mode==='wave10')hp=finaleBossHp('wave10',this.combat);
+      else {
+        const originalStats=v1CombatStats({choices:this.campaign.choices.filter(id=>
+          id!==this.selectedBetrayer)});
+        hp=finaleBossHp('wave11',originalStats,1);
+      }
+      return spawnType6Encounter(this,{...options,hp});
+    }
     if(!options.portalReleased && !options.skipPortal) {
       const portalX=this.portalLane(type,options.x ?? options.center);
       const portalY=type===1?68:type===2?125:type===3?100:type===5?110:145;
@@ -1786,6 +1848,10 @@ export class GameScene extends Phaser.Scene {
     this.frostGraphics.clear();
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        updateType6Encounter(this,enemy,dt);
+        continue;
+      }
       // Desfaz o deslocamento visual anterior para não interferir no percurso
       // calculado pela nave (incluindo curvas, voos rasantes e órbitas).
       const previousShock = enemy.shockOffset;
@@ -2225,7 +2291,11 @@ export class GameScene extends Phaser.Scene {
       ) < 14) {
         const reflected=this.reflectV1ShieldProjectile(shot);
         this.removeEnemyBullet(i);
-        if(!reflected)this.damageTarget(shot.target, shot.damage??ENEMY_BULLET_DAMAGE);
+        if(!reflected){
+          if(shot.frostMs)this.cannonFrozenUntil=Math.max(this.cannonFrozenUntil,
+            this.elapsed+shot.frostMs);
+          this.damageTarget(shot.target, shot.damage??ENEMY_BULLET_DAMAGE);
+        }
         if (this.gameOver) return;
       } else if (shot.sprite.y > H + 30 || shot.sprite.x < -30 || shot.sprite.x > W + 30) {
         this.removeEnemyBullet(i);
@@ -2299,6 +2369,15 @@ export class GameScene extends Phaser.Scene {
     const graphics = this.enemyHealthGraphics;
     graphics.clear();
     for (const enemy of this.enemies) {
+      if(enemy.type===6){
+        if(!enemy.type6.coreExposed)continue;
+        const width=234,x=enemy.sprite.x-width/2,y=enemy.sprite.y+72;
+        const fraction=Math.max(0,enemy.type6.coreHp/enemy.type6.coreMaxHp);
+        graphics.fillStyle(0x091019,0.95).fillRect(x-3,y-3,width+6,16);
+        graphics.fillStyle(0xf66c75,0.96).fillRect(x,y,width*fraction,10);
+        graphics.lineStyle(2,0xffffff,0.9).strokeRect(x-3,y-3,width+6,16);
+        continue;
+      }
       if (enemy.maxHp <= 1) continue;
       const width=enemy.finalBoss?175:
         Phaser.Math.Clamp(enemy.definition.width + 2,33,110);
@@ -2458,6 +2537,13 @@ export class GameScene extends Phaser.Scene {
     showNumber = true, maxRecoil = 400) {
     const enemy = this.enemies[index];
     if (!enemy) return false;
+    if(enemy.type===6){
+      if(damage>=100000){defeatType6(this,enemy);return true;}
+      const first=type6AliveModules(enemy.type6)[0];
+      const hitX=enemy.sprite.x+(first?.offsetX??0);
+      const hitY=enemy.sprite.y;
+      return hitType6At(this,enemy,hitX,hitY,damage,0,true).defeated;
+    }
     if (showNumber) this.popHitNumber(enemy.sprite.x, enemy.sprite.y, damage, hitColor);
     enemy.hp -= damage;
     if(enemy.finalBoss && enemy.hp>0){
@@ -2662,6 +2748,11 @@ export class GameScene extends Phaser.Scene {
     const initialHitIds = new Set();
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6Segment(this,enemy,startX,startY,endX,endY,
+          this.isV1Campaign ? this.combat.laserDamage : PLASMA_DAMAGE,PLASMA_HALF_WIDTH);
+        continue;
+      }
       if (laserHitsTarget(
         startX, startY, endX, endY,
         enemy.sprite.x, enemy.sprite.y,
@@ -2823,6 +2914,10 @@ export class GameScene extends Phaser.Scene {
     // explosões recursivas. O atraso abaixo é SOMENTE para o visual.
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6At(this,enemy,x,y,COLLATERAL_DAMAGE,COLLATERAL_RADIUS);
+        continue;
+      }
       if (fragmentHitsTarget(
         x, y, enemy.sprite.x, enemy.sprite.y,
         enemyContactRadius(enemy.type), COLLATERAL_RADIUS,
@@ -2862,6 +2957,10 @@ export class GameScene extends Phaser.Scene {
     let casualty = firstDestroyed;
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6At(this,enemy,x,y,FRAGMENT_DAMAGE,FRAGMENT_RADIUS);
+        continue;
+      }
       if (enemy.uid === directTargetId) continue;
       if (fragmentHitsTarget(
         x, y, enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type),
@@ -2940,6 +3039,10 @@ export class GameScene extends Phaser.Scene {
       onComplete:()=>ring.destroy()});
     for (let i = this.enemies.length-1; i>=0; i--) {
       const e = this.enemies[i];
+      if(e.type===6){
+        hitType6At(this,e,x,y,damage,radius);
+        continue;
+      }
       if (Math.hypot(e.sprite.x-x,e.sprite.y-y) <= radius+enemyContactRadius(e.type)) {
         if (slow) e.electricSlowUntil=this.time.now+2400;
         this.impactInvader(i,damage,slow?0.25:0,'#'+color.toString(16).padStart(6,'0'));
@@ -3252,6 +3355,10 @@ export class GameScene extends Phaser.Scene {
     beam.lineBetween(originX, originY, target.x, target.y);
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6Segment(this,enemy,originX,originY,target.x,target.y,2,9);
+        continue;
+      }
       if (laserHitsTarget(originX, originY, target.x, target.y,
         enemy.sprite.x, enemy.sprite.y, 9, enemyContactRadius(enemy.type))) {
         this.impactInvader(i, 2, 0, '#bcfaff');
@@ -3267,8 +3374,9 @@ export class GameScene extends Phaser.Scene {
     const color = country === 'br' ? 0x45ebae : 0xffc65d;
     const bullet = this.add.circle(x, y, country === 'br' ? 7 : 5, color)
       .setStrokeStyle(2, 0xffffff, 0.85).setDepth(44);
-    const dx = target.sprite.x - x;
-    const dy = target.sprite.y - y;
+    const aim=type6AimPosition(target);
+    const dx = aim.x - x;
+    const dy = aim.y - y;
     const distance = Math.max(1, Math.hypot(dx, dy));
     const speed = country === 'br' ? 340 : 390;
     this.supportProjectiles.push({
@@ -3425,6 +3533,7 @@ export class GameScene extends Phaser.Scene {
     // Iteração reversa preserva índices quando inimigos morrem.
     for(let i=this.enemies.length-1;i>=0;i--){
       const enemy=this.enemies[i];
+      if(enemy.type===6){hitType6At(this,enemy,x,y,amount,radius);continue;}
       if(withinBlast(x,y,enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type),radius))
         this.impactInvader(i,amount,0,color);
     }
@@ -3552,6 +3661,24 @@ export class GameScene extends Phaser.Scene {
   hitEnemyWithBlast(index) {
     const enemy = this.enemies[index];
     if (!enemy) return;
+    if(enemy.type===6){
+      for(const blast of this.specialBlasts){
+        const radius=specialBlastRadius(this.time.now-blast.bornAt);
+        const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
+        const targets=type6AreaTargets(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+          blast.x,blast.y,radius);
+        for(const id of targets){
+          const key=enemy.uid+':'+id;
+          if(blast.hits.has(key))continue;
+          const rect=rects.find(r=>r.id===id);
+          if(!rect)continue;
+          blast.hits.add(key);
+          hitType6At(this,enemy,rect.x,rect.y,
+            4*(this.isV1Campaign?this.combat.specialAmplifier:1),0,true);
+        }
+      }
+      return;
+    }
     for (const blast of this.specialBlasts) {
       if (blast.hits.has(enemy.uid)) continue;
       if (!blastCatchesTarget(
@@ -3668,6 +3795,19 @@ export class GameScene extends Phaser.Scene {
       onComplete:()=>flash.destroy()});
     for(let k=this.enemies.length-1;k>=0;k--){
       const other=this.enemies[k];
+      if(other.type===6){
+        // A onda do projétil americano alcança outros módulos, além do alvo
+        // direto; o componente atingido pela bala não recebe o mesmo dano 2x.
+        const direct=type6PointTarget(other.type6,other.sprite.x,other.sprite.y,x,y,0);
+        const targets=type6AreaTargets(other.type6,other.sprite.x,other.sprite.y,x,y,radius);
+        const rects=type6TargetRects(other.type6,other.sprite.x,other.sprite.y);
+        for(const id of targets){
+          if(id===direct&&other.uid===primaryId)continue;
+          const rect=rects.find(rect=>rect.id===id);
+          if(rect)hitType6At(this,other,rect.x,rect.y,damage*0.5,0,true);
+        }
+        continue;
+      }
       if(other.uid===primaryId)continue;
       if(Math.hypot(other.sprite.x-x,other.sprite.y-y)<=radius+enemyContactRadius(other.type))
         this.impactInvader(k,damage*0.5,0,'#ffce87',false);
@@ -3776,6 +3916,26 @@ export class GameScene extends Phaser.Scene {
       if (!remove && !bullet.special) {
         for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
           const enemy = this.enemies[j];
+          if(enemy.type===6){
+            const target=type6PointTarget(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+              bullet.sprite.x,bullet.sprite.y,Math.max(7,bullet.usRadius));
+            const key=enemy.uid+':'+target;
+            if(target!==null&&bullet.hitEnemyIds.has(key))continue;
+            if(target!==null)bullet.hitEnemyIds.add(key);
+            const hit=hitType6Bullet(this,enemy,bullet.sprite.x,bullet.sprite.y,
+              bullet.damage,Math.max(7,bullet.usRadius));
+            if(!hit.blocked)continue;
+            if(bullet.fragmentation)this.explodeFragments(bullet.sprite.x,bullet.sprite.y,
+              enemy.uid);
+            if(bullet.usGrowthMax>1)this.explodeAmericanPrimary(bullet.sprite.x,
+              bullet.sprite.y,enemy.uid,bullet.damage,20+bullet.usRadius);
+            if(bullet.knockback>0)this.showHeavyImpact(bullet.sprite.x,bullet.sprite.y);
+            if(bullet.fragmentation){remove=true;break;}
+            bullet.pierceLeft-=1;
+            remove=hit.target===null||bullet.pierceLeft<=0;
+            if(remove)break;
+            continue;
+          }
           if (bullet.hitEnemyIds.has(enemy.uid)) continue;
           if (Phaser.Math.Distance.Between(
             bullet.sprite.x, bullet.sprite.y, enemy.sprite.x, enemy.sprite.y,
@@ -4117,7 +4277,7 @@ export class GameScene extends Phaser.Scene {
     this.tutorialComplete=true;
     this.gameOver=true;
     const next=continueResistanceAfterDefeat(
-      this.campaign.choices,this.brazilResistanceLevels);
+      this.campaign.choices,this.brazilResistanceLevels,this.selectedBetrayer);
     const canRetry=!this.finale.fullBrazil&&next.outcome==='retry';
     this.add.rectangle(W/2,H/2,W,H,0x070c1c,0.90)
       .setInteractive().setDepth(220);
@@ -4144,14 +4304,14 @@ export class GameScene extends Phaser.Scene {
       text:`▶ RESISTIR — BRASIL NÍVEL ${next.awardedLevel}`,
       primary:true,depth:225,onClick:()=>this.scene.start('GameScene',{
         mode:'wave11',campaign:this.campaign,
-        brazilResistanceLevels:next.awardedLevels,
+        brazilResistanceLevels:next.awardedLevels,selectedBetrayer:this.selectedBetrayer,
       }),
     });
     addMenuButton(this,{
       x:W/2,y:canRetry?431:371,width:390,height:46,
       text:canRetry?'ACEITAR DERROTA / VER FINAL':'VER FINAL DA DERROTA',
       depth:225,onClick:()=>this.scene.start('EndingScene',{
-        campaign:this.campaign,won:false,
+        campaign:this.finaleCampaign,won:false,
       }),
     });
   }
@@ -4231,7 +4391,7 @@ export class GameScene extends Phaser.Scene {
       this.statusText.setText('CONFRONTO FINAL VENCIDO — BRASIL SOBERANO!');
       this.tutorialText.setText('');
       this.time.delayedCall(1250,()=>this.scene.start('EndingScene',{
-        campaign:this.campaign,won:true,
+        campaign:this.finaleCampaign,won:true,
       }));
       return;
     }
@@ -4434,6 +4594,7 @@ export class GameScene extends Phaser.Scene {
     this.crtOverlay?.update(this.time.now);
     const pointer = this.input.activePointer;
     this.drawSpecialAim(pointer);
+    if(this.boss6Victory)return;
     if (this.tutorialComplete) {
       if (!this.gameOver) this.updateBlasts();
       return;
@@ -4451,10 +4612,13 @@ export class GameScene extends Phaser.Scene {
     }
     // À meia-noite de 30 segundos, sobreviver basta — mesmo com inimigos vivos.
     // A verificação vem ANTES das atualizações hostis do quadro final.
-    if ((this.mode === 'wave10' || this.mode === 'wave11') &&
-        this.elapsed >= this.waveDurationMs) {
-      this.showDefeat('timeout');
-      return;
+    if(this.mode==='wave10'||this.mode==='wave11'){
+      type6NextDeadline(this);
+      if(this.boss6DoomFired)return;
+      if(this.elapsed>=this.waveDurationMs){
+        this.showDefeat('timeout');
+        return;
+      }
     }
     if (/^wave[0-9]$/.test(this.mode) && this.elapsed >= WAVE_DURATION_MS) {
       this.showWaveComplete('survived');

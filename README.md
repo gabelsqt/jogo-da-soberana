@@ -2,7 +2,15 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.41
+## Versão atual — 0.42
+
+**Chefão Tipo 6 — primeira versão jogável.** Ondas 10 e 11 passam a usar uma nave colossal com quatro módulos independentes, escudos individuais e núcleo exposto na fase final; variantes alienígena, americana, russa, chinesa e sul-coreana, com **um único traidor estrangeiro sorteado** na Onda 11. Superarma carrega nos últimos 5 s e dispara no segundo final, caso o núcleo sobreviva. Os visuais de naves são **provisórios em Phaser Graphics**; spritesheets definitivas e ajustes de balanceamento ficam para a próxima etapa. [Notas da versão 0.42](docs/versao-0.42.md).
+
+### Teste rápido (ambiente de desenvolvimento)
+
+Em qualquer onda, **Shift+0** abre diretamente a Onda 10 (fortaleza alienígena) e **Shift+1** abre a Onda 11 (confronto final). Para testar traidores estrangeiros, comece com a campanha contendo uma escolha estrangeira; o sorteio considera apenas os países estrangeiros escolhidos. Esses atalhos funcionam somente com `npm run dev`, não na versão de produção.
+
+## Versão anterior — 0.41
 
 Especial coreano: globo estacionário por 4 segundos, gerando 3/6/12/24 reflexos direcionados aos inimigos por tiro recebido. Compatível com balas e pulsos do laser contínuo. [Notas da versão 0.41](docs/versao-0.41.md).
 

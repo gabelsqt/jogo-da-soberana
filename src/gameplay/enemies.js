@@ -28,6 +28,11 @@ export const ENEMY_TYPES = {
     behavior: 'boss',
     shotHp: 1,
   },
+  6: {
+    id: 6, name: 'Fortaleza Tipo 6', color: 0xff4967,
+    hp: 600, speed: 38, width: 790, height: 122,
+    behavior: 'boss6', shotHp: 2,
+  },
 };
 
 // Ciclo do Bombardeiro Tipo 3: sobrevoa uma defesa por doze segundos,
@@ -56,6 +61,7 @@ export function enemyDefinition(type) {
 
 export function enemyContactRadius(type) {
   const e = enemyDefinition(type);
+  if(type===6)return 55; // colisão real delegada aos cinco alvos independentes
   return Math.max(e.width, e.height) * 0.34;
 }
 
@@ -91,8 +97,8 @@ export function enemyStats(type, level = 1) {
   const base = enemyDefinition(type);
   const tier = Math.max(1, Math.min(10, Math.trunc(level) || 1));
   const advanced = tier >= 2;
-  const baseBonus = { 2: 1, 3: 2, 4: 1, 5: 8 };
-  const hpPerLevel = { 2: 1, 3: 2, 4: 1, 5: 4 };
+  const baseBonus = { 2: 1, 3: 2, 4: 1, 5: 8, 6: 0 };
+  const hpPerLevel = { 2: 1, 3: 2, 4: 1, 5: 4, 6: 0 };
   const tint = enemyTierColor(tier);
   return {
     ...base,

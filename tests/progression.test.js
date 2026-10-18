@@ -54,8 +54,9 @@ test('projétil extra chinês cria dois tiros simétricos', () => {
   assert.ok(edge.every((angle) => angle >= -Math.PI + Math.PI / 12));
 });
 
-test('cinco inimigos possuem HP e dimensões distintos, tipos 2-5 quadrados coloridos', () => {
-  assert.deepEqual(Object.keys(ENEMY_TYPES).map(Number), [1, 2, 3, 4, 5]);
+test('seis tipos definidos; cinco inimigos comuns e chefe colossal independente', () => {
+  assert.deepEqual(Object.keys(ENEMY_TYPES).map(Number), [1, 2, 3, 4, 5, 6]);
+  assert.equal(enemyDefinition(6).behavior, 'boss6');
   assert.equal(enemyDefinition(1).hp, 1);
   assert.equal(enemyDefinition(2).hp, 2);
   assert.ok(enemyDefinition(3).shotHp >= 1);

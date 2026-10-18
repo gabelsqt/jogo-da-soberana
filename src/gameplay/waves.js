@@ -57,7 +57,7 @@ export const MODES = {
 // todos os chefes principais, nunca pelo cronômetro ou pela escolta.
 export function getFinalWaveEvents(mode, state = {}) {
   if(mode==='wave10')return [
-    {at:1250,type:5,level:9,finalBoss:true,warning:'FORTALEZA-MÃE DETECTADA!'},
+    {at:1250,type:6,level:10,bossCountry:'alien',finalBoss:true,warning:'FORTALEZA-MÃE DETECTADA!'},
     // Antes o primeiro reforço chegava só aos 7,5 s: metralhadoras
     // brasileiras destruíam o chefe antes de as escoltas reagirem.
     {at:4200,type:2,level:9,group:true,count:4},
@@ -73,13 +73,13 @@ export function getFinalWaveEvents(mode, state = {}) {
     {at:42000,type:3,level:9,warning:'REFORÇOS FINAIS DA FORTALEZA!'},
   ];
   if(mode==='wave11'){
-    const coalition=hostileBosses(state?.choices??[]);
+    const coalition=hostileBosses(state?.choices??[],state?.selectedBetrayer);
     const invaders=coalition.length===0;
     const bosses=invaders?[{country:'alien',level:10}]:coalition;
     const count=bosses.length;
     return [
       ...bosses.map(({country,level},i)=>({
-        at:1450+i*900,type:5,level:10,x:480+(i-(count-1)/2)*220,
+        at:1450+i*900,type:6,level:10,x:480+(i-(count-1)/2)*220,
         bossCountry:country,bossLevel:level,coalitionSize:count,finalBoss:true,
         warning:i===0 ? invaders
           ? 'A ÚLTIMA FROTA ALIENÍGENA ATACA!'
