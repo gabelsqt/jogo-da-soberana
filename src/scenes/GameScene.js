@@ -309,9 +309,9 @@ export class GameScene extends Phaser.Scene {
     if (this.textures.exists('tipo4_sheet')) {
       const actions=[
         ['tipo4_voo',[0,1],4],
-        // Os quadros 2 e 4 já apontam para DIREITA e ESQUERDA.
+        // Os quadros 2 e 3 já apontam para DIREITA e ESQUERDA.
         // Segurar um único quadro lateral evita o 'balanço' em cada passada.
-        ['tipo4_banco_esquerda',[4],1],
+        ['tipo4_banco_esquerda',[3],1],
         ['tipo4_banco_direita',[2],1],
         ['tipo4_dash',[6,7],10],
         ['tipo4_propulsao',[8,9],8],
@@ -1752,14 +1752,14 @@ export class GameScene extends Phaser.Scene {
     enemy.type4NeedsRestore=false;
     if(next==='tipo4_banco_esquerda' || next==='tipo4_banco_direita'){
       sprite.anims.stop();
-      sprite.setFrame(next==='tipo4_banco_esquerda'?4:2);
+      sprite.setFrame(next==='tipo4_banco_esquerda'?3:2);
     }else{
       // Não reinicia a animação de loop todo frame.
       sprite.play(next,true);
     }
-    // As duas poses laterais existem na própria arte: não espelhar sobre
-    // elas, pois isso faria a orientação saltar entre quadros.
-    sprite.setFlipX(false);
+    // As poses laterais têm arte nativa. Só o dash, desenhado para a
+    // direita, precisa de espelhamento ao avançar para a esquerda.
+    sprite.setFlipX(next==='tipo4_dash' && dx<0);
   }
 
   updateEnemies(dt) {
@@ -2467,6 +2467,7 @@ export class GameScene extends Phaser.Scene {
       else if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
         enemy.sprite.anims.stop();
         enemy.sprite.setFrame(10);
+        enemy.sprite.setFlipX(false);
         this.time.delayedCall(160, () => {
           if (enemy.sprite.active && this.enemies.includes(enemy))
             enemy.sprite.play('tipo3_voo');
@@ -2475,6 +2476,7 @@ export class GameScene extends Phaser.Scene {
       else if (enemy.type === 4 && enemy.sprite.texture?.key === 'tipo4_sheet') {
         enemy.sprite.anims.stop();
         enemy.sprite.setFrame(10);
+        enemy.sprite.setFlipX(false);
         enemy.type4NeedsRestore=true; // recupera a pose ao sair do flash
         enemy.type4PoseLockUntil=this.time.now+160;
       }

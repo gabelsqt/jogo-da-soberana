@@ -39,7 +39,7 @@ test('Tipo 4 mantém spritesheet 4x3, fallback e quadros especiais',()=>{
   assert.match(source,/\.setDisplaySize\(70,70\)/);
   assert.match(source,/return \{ sprite, box:null \};/);
   assert.match(source,/const sprite = this\.add\.container\(x, y\)\.setDepth\(19\)/);
-  for(const sequence of ['0,1','4','2','6,7','8,9'])
+  for(const sequence of ['0,1','3','2','6,7','8,9'])
     assert.ok(source.includes(`[${sequence}]`),sequence);
   assert.match(source,/frameRate, repeat:frames\.length===1\?0:-1/);
 });
@@ -49,7 +49,7 @@ test('Voo horizontal segura apenas um quadro lateral, sem ficar tocando dash em 
   const scene={time:{now:2500}};
   const right=enemyType4('flyby',1);
   update.call(scene,right,140,150,0.2);
-  assert.equal(right.sprite.frame,2,'quadros 2 e 3 têm nariz virado à direita');
+  assert.equal(right.sprite.frame,2,'quadro 2 tem nariz virado à direita');
   assert.equal(right.type4Pose,'tipo4_banco_direita');
   assert.equal(right.sprite.playCalls,0,'bank é quadro estático');
   assert.equal(right.sprite.flipX,false);
@@ -59,7 +59,7 @@ test('Voo horizontal segura apenas um quadro lateral, sem ficar tocando dash em 
 
   const left=enemyType4('flyby',-1);
   update.call(scene,left,250,150,0.2);
-  assert.equal(left.sprite.frame,4,'quadros 4 e 5 têm nariz virado à esquerda');
+  assert.equal(left.sprite.frame,3,'quadro 3 tem nariz virado à esquerda');
   assert.equal(left.type4Pose,'tipo4_banco_esquerda');
   assert.equal(left.sprite.flipX,false,'usa arte esquerda nativa, sem flip');
 });
@@ -80,7 +80,7 @@ test('Transições laterais usam 140ms e histerese contra jitter em curvas',()=>
   scene.time.now=1150;
   update.call(scene,e,240,150,0.2);
   assert.equal(e.type4Pose,'tipo4_banco_esquerda');
-  assert.equal(e.sprite.frame,4);
+  assert.equal(e.sprite.frame,3);
   assert.equal(e.type4PoseLockUntil,1290);
 });
 
@@ -126,4 +126,22 @@ test('Morte permanece no frame 11 e a IA/hitbox do caça não foi alterada',()=>
   assert.match(source,/this\.updateType4Appearance\(enemy,previousX,previousY,dt\)/);
   assert.match(source,/enemy\.sprite\.destroy\(\)/);
   assert.match(source,/enemy\.phase = 'flyby'/);
+});
+
+// Confere os bytes do PNG real, para detectar substituições incompatíveis.
+test('Arte Tipo 4 tem exatamente doze células 128x128',()=>{
+  const png=readFileSync(new URL('../public/assets/inimigos/tipo4/spritesheet.png',import.meta.url));
+  assert.equal(png.readUInt32BE(16),512,'largura da folha');
+  assert.equal(png.readUInt32BE(20),384,'altura da folha');
+});
+
+test('Dash para a esquerda espelha a propulsão e restaura pose nativa depois',()=>{
+  const update=type4UpdateMethod(),scene={time:{now:1000}};
+  const e=enemyType4('swoop2',-1); e.phaseAge=0.1;
+  update.call(scene,e,250,150,0.2);
+  assert.equal(e.sprite.flipX,true);
+  scene.time.now=1200; e.phaseAge=0.4;
+  update.call(scene,e,250,150,0.2);
+  assert.equal(e.sprite.frame,3);
+  assert.equal(e.sprite.flipX,false);
 });
