@@ -73,7 +73,7 @@ export function getFinalWaveEvents(mode, state = {}) {
     const count=bosses.length;
     return [
       ...bosses.map(({country,level},i)=>({
-        at:1450+i*900,type:5,level:10,
+        at:1450+i*900,type:5,level:10,x:480+(i-(count-1)/2)*220,
         bossCountry:country,bossLevel:level,coalitionSize:count,finalBoss:true,
         warning:i===0 ? invaders
           ? 'A ÚLTIMA FROTA ALIENÍGENA ATACA!'
