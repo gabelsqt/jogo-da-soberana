@@ -26,10 +26,35 @@ export function finaleBossHp(mode, stats = {}, coalitionSize = 1) {
   return Math.max(65,Math.round(base*factor));
 }
 
+// As fases posteriores exigem reagir a barragens, não apenas reduzir HP.
+// Em coalizões grandes, cada chefe recebe menos tiros para manter legibilidade.
 export function finaleBossFirePattern(mode, coalitionSize=1, phase=1) {
   const safePhase=Math.max(1,Math.min(3,Math.trunc(phase)||1));
-  const volleyCount=mode==='wave10'?2:coalitionSize>1?1:2;
-  const damage=mode==='wave10'?11:coalitionSize>1?8:10;
-  const speedMultiplier=1+(safePhase-1)*0.25;
-  return {volleyCount,damage,speedMultiplier};
+  const coalition=mode==='wave11' && coalitionSize>1;
+  const volleyCount=coalition
+    ? (safePhase===3?2:1)
+    : [2,3,4][safePhase-1];
+  const damage=mode==='wave10'
+    ? [11,12,13][safePhase-1]
+    : coalition ? [8,8,9][safePhase-1]
+      : [10,11,12][safePhase-1];
+  const speedMultiplier=[1,1.20,1.40][safePhase-1];
+  const intervalMultiplier=[0.92,0.76,0.62][safePhase-1];
+  return {volleyCount,damage,speedMultiplier,intervalMultiplier};
+}
+
+// Contra-ataques ao romper a blindagem: pequenos e espaçados. A coalizão
+// tem uma quantidade compartilhada de eventos, evitando superlotação.
+export function finaleCounterattack(mode, phase, coalitionSize=1) {
+  const safePhase=Math.max(2,Math.min(3,Math.trunc(phase)||2));
+  const coalition=mode==='wave11' && coalitionSize>1;
+  return {
+    fighters:coalition?1:2,
+    bombers:safePhase===3 && !coalition?1:0,
+    // Máximo de dois acionamentos na Fortaleza e três em toda a coalizão.
+    maxTriggers:mode==='wave10'?2:coalition?3:2,
+    warning:safePhase===2
+      ? 'BLINDAGEM ROMPIDA — CONTRA-ATAQUE!'
+      : 'FÚRIA FINAL — ESCOLTAS CHEGANDO!',
+  };
 }
