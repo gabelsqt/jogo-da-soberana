@@ -104,6 +104,7 @@ export class GameScene extends Phaser.Scene {
 
   init(data = {}) {
     this.mode = MODES[data.mode] ? data.mode : 'wave0';
+    this.v1Playtest = Boolean(data.v1Playtest);
     this.unifiedLab = Boolean(data.labConfig);
     this.labConfig = this.unifiedLab ? normalizeLabConfig(data.labConfig) : null;
     // Compatibilidade com saves antigos que tinham apenas "upgradeId".
@@ -140,7 +141,7 @@ export class GameScene extends Phaser.Scene {
     // Valores provisórios para o playtest da árvore reorganizada.
     const jointStages = this.thirdIds.length + this.fourthIds.length;
     this.combat.specialCooldown = Math.round(this.combat.specialCooldown * Math.pow(0.93, jointStages));
-    this.isV1Campaign = !this.unifiedLab && /^wave(?:[0-9]|10)$/.test(this.mode);
+    this.isV1Campaign = !this.unifiedLab && (/^wave(?:[0-9]|10)$/.test(this.mode) || (this.v1Playtest && this.mode === 'upgradeLab'));
     if (this.isV1Campaign) {
       this.combat = v1CombatStats(this.campaign);
       // Legado de torres e especiais das árvores antigas fica disponível somente no laboratório.
@@ -385,11 +386,13 @@ export class GameScene extends Phaser.Scene {
           if (!this.tutorialComplete && this.enemies.length < 12) this.spawnEnemy(3);
         },
       });
-      this.input.keyboard.on('keydown-U', () => {
-        if (this.scene.isActive('GameScene')) this.openUpgradeLab();
-      });
-      // Exibe a seleção logo ao entrar; ela pode ser reaberta com U.
-      this.time.delayedCall(1, () => this.openUpgradeLab());
+      if (!this.v1Playtest) {
+        this.input.keyboard.on('keydown-U', () => {
+          if (this.scene.isActive('GameScene')) this.openUpgradeLab();
+        });
+        // Apenas laboratório legado abre o seletor de upgrades antigo.
+        this.time.delayedCall(1, () => this.openUpgradeLab());
+      }
     }
     if (this.unifiedLab || this.mode === 'upgradeLab' || this.mode === 'lab') {
       this.input.keyboard.on('keydown', (event) => {
@@ -1009,7 +1012,7 @@ export class GameScene extends Phaser.Scene {
       ...font, fontSize: '13px', color: '#e2ebfa',
     }).setDepth(101);
 
-    if (this.mode === 'upgradeLab') {
+    if (this.mode === 'upgradeLab' && !this.v1Playtest) {
       this.labUpgradeLabel = this.add.text(14, 98, '', {
         ...font, fontSize: '13px', color: '#a5ffe7',
         backgroundColor: '#0b1a2bcc', padding: { x: 7, y: 3 },
@@ -3184,7 +3187,7 @@ export class GameScene extends Phaser.Scene {
         (levelTwo ? ' | N2: ' + levelTwo : '') +
         (towerLabel ? ' | TORRE: ' + towerLabel : '') + special,
       );
-    } else if (this.mode === 'upgradeLab') {
+    } else if (this.mode === 'upgradeLab' && !this.v1Playtest) {
       this.tutorialText.setText('1–5: GERAR   SHIFT+1–5: NÍVEL 2   C: LIMPAR   U: UPGRADES');
       const names = this.upgradeIds.map((id) => getFirstUpgrade(id)?.flag).filter(Boolean);
       const secondNames = this.labSecondIds.map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join('+');
@@ -3278,7 +3281,7 @@ export class GameScene extends Phaser.Scene {
 
     // A Arena Livre deve continuar indefinidamente, inclusive quando o
     // jogador eliminar todas as naves de treino.
-    if (!(this.unifiedLab && this.mode === 'lab')) {
+    if (!(this.unifiedLab && this.mode === 'lab') && !(this.v1Playtest && this.mode === 'upgradeLab')) {
       const outcome = waveOutcome({
         mode: this.mode,
         elapsed: this.elapsed,
