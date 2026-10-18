@@ -1150,7 +1150,7 @@ export class GameScene extends Phaser.Scene {
     const kind = type === 1 ? 'swarm' : 'tactical';
     const center = this.portalLane(type,centerX);
     const group = {
-      kind, count, centerX: center, target: null,
+      kind, count, centerX: center, target: null, boundToScreen:true,
       duration: kind === 'swarm'
         ? Phaser.Math.FloatBetween(7.5, 9.5)
         : Phaser.Math.FloatBetween(7.5, 9),
