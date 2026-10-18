@@ -121,6 +121,17 @@ export function swarmDancePosition(group, index, elapsed) {
 
 export function tacticalFormationOffset(formation, index, count) {
   const i = index - (count - 1) / 2;
+  if (formation === 'square') {
+    const columns=Math.ceil(Math.sqrt(count)),rows=Math.ceil(count/columns);
+    return {x:(index%columns-(columns-1)/2)*38,
+      y:(Math.floor(index/columns)-(rows-1)/2)*35};
+  }
+  if (formation === 'triangle') {
+    let row=0,slot=index;
+    while(slot>=row+1){slot-=row+1;row++;}
+    const rows=Math.ceil((Math.sqrt(8*count+1)-1)/2);
+    return {x:(slot-row/2)*43,y:(row-(rows-1)/2)*37};
+  }
   if (formation === 'column') {
     return { x: (index % 2 === 0 ? -13 : 13), y: i * 29 };
   }
@@ -134,13 +145,13 @@ export function tacticalManeuverPosition(group, index, elapsed) {
   const moveDuration = Math.max(0.5, group.duration - hold);
   const t = clamp(elapsed / moveDuration, 0, 1);
   const eased = t * t * (3 - 2 * t);
-  const angle = Math.PI * 4 * eased;
-  const orbitRadius = 60;
+  const angle = Math.PI * 6 * eased * (group.direction ?? 1);
+  const orbitRadius = 78;
   // Centro retorna à posição inicial ao completar duas voltas.
   const cx = group.centerX + orbitRadius * Math.sin(angle);
-  const cy = 126 - orbitRadius * (1 - Math.cos(angle)) * 0.55;
-  const formA = tacticalFormationOffset('v',index,group.count);
-  const formB = tacticalFormationOffset('column',index,group.count);
+  const cy = (group.portalY ?? 125) - orbitRadius * (1 - Math.cos(angle)) * 0.55;
+  const formA = {x:0,y:0};
+  const formB = tacticalFormationOffset(group.finalFormation ?? 'triangle',index,group.count);
   // Em formação para toda a pausa, sem oscilação nem deslocamento.
   return { x:cx+mix(formA.x,formB.x,eased),
     y:cy+mix(formA.y,formB.y,eased) };
@@ -148,7 +159,7 @@ export function tacticalManeuverPosition(group, index, elapsed) {
 
 export function tacticalAttackPosition(group, index, elapsed) {
   const t = clamp(elapsed / group.attackDuration, 0, 1);
-  const form = tacticalFormationOffset('column', index, group.count);
+  const form = tacticalFormationOffset(group.finalFormation ?? 'triangle', index, group.count);
   const start = group.attackOrigin;
   const target = group.target;
   // O centro faz a investida; as posições relativas seguem intactas,
