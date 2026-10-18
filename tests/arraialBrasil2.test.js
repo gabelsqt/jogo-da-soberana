@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame } from '../src/gameplay/arraialBrasil2.js';
+import { getWaveEvents } from '../src/gameplay/waves.js';
+import { getV035WaveEvents } from '../src/gameplay/formation035.js';
 import { v1CombatStats, V1_UPGRADES } from '../src/gameplay/v1Upgrades.js';
 
 test('Arraial: anel imediato e explosões fixas em espiral rumo ao centro',()=>{
@@ -35,4 +37,12 @@ test('Brasil 2 conserva recarga original e título novo',()=>{
   const stats=v1CombatStats({choices:['br','br']});
   assert.equal(stats.specialCooldown,8000);
   assert.equal(V1_UPGRADES.br[1].title,'Arraial Balístico');
+});
+
+test('Onda 2 aceita exclusivamente inimigos Tipo 1 e Tipo 2, inclusive após formação 0.35',()=>{
+  const events=getV035WaveEvents('wave2',getWaveEvents('wave2'));
+  assert.ok(events.length>0);
+  assert.ok(events.some(event=>event.type===1));
+  assert.ok(events.some(event=>event.type===2));
+  assert.ok(events.every(event=>event.type===1||event.type===2));
 });
