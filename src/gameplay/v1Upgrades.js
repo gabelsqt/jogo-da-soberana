@@ -1,3 +1,5 @@
+import { russianFrostSpreadRadius } from './russianFrost.js';
+
 // Versão 1 — catálogo aprovado nas decisões 53–68. Animais antigos ficam arquivados.
 // 'jp' continua sendo o identificador técnico legado da COREIA DO SUL.
 export const V1_UPGRADES = {
@@ -191,13 +193,13 @@ export const V1_UPGRADES = {
     {
       "level": 1,
       "title": "Vórtice Siberiano",
-      "description": "Projéteis congelam inimigos e atraem outros para o gelo desde o nível 1.",
+      "description": "Sopro de névoa gelada: congela, atrai e contagia inimigos próximos com uma onda de frio limitada.",
       "kind": "primary"
     },
     {
       "level": 2,
       "title": "Matryoshka de Estilhaços",
-      "description": "Especial estilhaça alvos congelados e solta 8 fragmentos; escudo libera gelo que congela.",
+      "description": "Matryoshka estilhaça congelados com 8 fragmentos; recarga 25% menor e escudo criogênico.",
       "kind": "secondary-shield"
     },
     {
@@ -364,6 +366,7 @@ export function v1CombatStats(state = {}, base = {}) {
     laserDamage:3, shockRadius:0, slowShot:false, specialAmplifier:1,
     shieldIntercept:false, shieldPulse:false, brazilTurboMultiplier:1, brazilFireworkCount:0, brazilHeatPeak:0, ultimate:v1SupremeFor(state),
     usGrowthMax:1, usHoming:0, russianFreezeMs:0, russianAttractRadius:0,
+    russianSpreadRadius:0,
     chinaSplitCount:1, koreaContinuous:false, transformed:null};
   // Brasil: metralhadora potente desde o nível 1; picos de calor cíclicos.
   if(n.br>=1){stats.basicInterval/=2;stats.heat=true;stats.brazilHeatPeak=0.65;stats.horizontalSpread=6;}
@@ -398,7 +401,11 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.ru>=3){stats.russianFreezeMs=1500;stats.russianAttractRadius=60;}
   if(n.ru>=5){stats.russianFreezeMs=2000;stats.russianAttractRadius=90;}
   if(n.ru>=7){stats.russianFreezeMs=2500;stats.russianAttractRadius=120;}
-  if(n.ru>=2)stats.shieldBonus+=20;
+  if(n.ru>=2){
+    stats.shieldBonus+=20;
+    // Matryoshka recarrega 25% mais depressa; acumulável com bônus coreanos.
+    stats.specialCooldown*=0.75;
+  }
   if(n.ru>=3)stats.shockRadius=38;
   if(n.ru>=4){stats.strategicRecoil=true;stats.shieldPulse=true;}
   if(n.ru>=5)stats.slowShot=true;
@@ -428,6 +435,7 @@ export function v1CombatStats(state = {}, base = {}) {
     stats.basicSpeed*=1.35;stats.russianFreezeMs=3000;
     stats.russianAttractRadius=160;stats.shockRadius=Math.max(stats.shockRadius,85);
   }
+  stats.russianSpreadRadius=russianFrostSpreadRadius(n.ru);
   if(n.cn>=10){
     stats.transformed='cn';stats.basicDamage*=2;stats.basicInterval*=0.42;
     stats.basicSpeed*=1.35;stats.bulletsPerShot=10;
