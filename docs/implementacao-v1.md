@@ -84,3 +84,7 @@ Não selecionar as alternativas K–N. Voltar à definição da experiência de 
 ## Decisão 84 — Brasil 2: Fogueira de São João (APROVADA)
 
 O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a inimigos que chegam perto dele, com efeito visual de fogo junino. É a melhoria defensiva associada ao nível 2, **Arraial Balístico**. Preservar a distinção entre fogo no escudo (nível 2) e eletricidade nos níveis 4, 6 e 8. Raio, frequência do dano, duração/permanência e possibilidade de afetar projéteis inimigos permanecem para detalhamento; não presumir parâmetros não votados. Decisão apenas de design: **não modificar código**.
+
+## Decisão 85 — Brasil 2: chamas permanentes do escudo (APROVADA)
+
+**Opção A:** após adquirir **Arraial Balístico**, o escudo manifesta continuamente a **Fogueira de São João** enquanto estiver ativo. As chamas causam dano leve aos inimigos próximos de forma contínua (com aplicação periódica a ser balanceada), sem depender da ativação do especial e sem necessidade de receber impacto para acender. Ao ficar inativo/destruído, o escudo não causa dano de proximidade até voltar a ficar ativo. Alcance e cadência do dano ainda não definidos. Apenas atualização do GDD; nenhum código alterado.
