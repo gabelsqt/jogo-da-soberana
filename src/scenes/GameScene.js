@@ -307,8 +307,10 @@ export class GameScene extends Phaser.Scene {
     if (this.textures.exists('tipo4_sheet')) {
       const actions=[
         ['tipo4_voo',[0,1],4],
-        ['tipo4_banco_esquerda',[2,3],7],
-        ['tipo4_banco_direita',[4,5],7],
+        // Os quadros 2 e 4 já apontam para DIREITA e ESQUERDA.
+        // Segurar um único quadro lateral evita o 'balanço' em cada passada.
+        ['tipo4_banco_esquerda',[4],1],
+        ['tipo4_banco_direita',[2],1],
         ['tipo4_dash',[6,7],10],
         ['tipo4_propulsao',[8,9],8],
       ];
@@ -316,7 +318,7 @@ export class GameScene extends Phaser.Scene {
         if (this.anims.exists(key)) continue;
         this.anims.create({
           key, frames:this.anims.generateFrameNumbers('tipo4_sheet',{frames}),
-          frameRate, repeat:-1,
+          frameRate, repeat:frames.length===1?0:-1,
         });
       }
     }
@@ -1697,32 +1699,61 @@ export class GameScene extends Phaser.Scene {
   updateType4Appearance(enemy,previousX,previousY,dt) {
     const sprite=enemy.sprite;
     if (enemy.type!==4 || sprite.texture?.key!=='tipo4_sheet')return;
-    if (this.time.now-enemy.lastHitAt<160) return; // quadro 10 de dano
+
+    const now=this.time.now;
+    // Preserva o quadro 10 pelo tempo inteiro do flash de dano.
+    if(now-enemy.lastHitAt<160)return;
+
     const dx=(sprite.x-previousX)/Math.max(dt,0.001);
-    const dy=(sprite.y-previousY)/Math.max(dt,0.001);
-    let key='tipo4_voo';
+    const prior=enemy.type4Pose??'tipo4_voo';
+    let next=prior;
+
     switch(enemy.phase){
       case 'flyby':
-        key='tipo4_dash';break;
+        // O caça cruza a tela de LADO. Os frames de dash têm grandes
+        // rastros laranja, então não devem se repetir durante o voo lateral.
+        next=enemy.direction<0?'tipo4_banco_esquerda':'tipo4_banco_direita';
+        break;
       case 'swoop1':
       case 'swoop2':
-        key=dx < -35 ? 'tipo4_banco_direita' :
-          dx > 35 ? 'tipo4_banco_esquerda' : 'tipo4_propulsao';
+        // Histerese: só vira quando a curva tem velocidade lateral clara.
+        // Entre 45 e 105 px/s mantém a pose anterior, sem ficar oscilando.
+        if(dx>105)next='tipo4_banco_direita';
+        else if(dx < -105)next='tipo4_banco_esquerda';
+        else if(Math.abs(dx)<45)next='tipo4_propulsao';
+        // Dash curto apenas no começo da investida rápida, não no flyby.
+        if(enemy.phase==='swoop2' && enemy.phaseAge<0.24 &&
+          Math.abs(dx)>150)next='tipo4_dash';
         break;
       case 'laser':
-        key='tipo4_propulsao';break;
+        next='tipo4_propulsao';
+        break;
+      case 'telegraph':
       default:
-        key='tipo4_voo';
+        next='tipo4_voo';
+        break;
     }
-    if(sprite.anims.currentAnim?.key!==key || !sprite.anims.isPlaying)
-      sprite.play(key);
-    // As sprites da opção C já contêm inclinação. Apenas espelhamos
-    // a imagem no voo lateral; sem rodar o frame e distorcer os propulsores.
-    sprite.setFlipX(enemy.phase==='flyby' && enemy.direction<0);
-    // A orientação convencional retorna quando termina a investida.
-    // Numa fase parada, a nave fica na posição frontal do spritesheet.
-    if(enemy.phase==='telegraph' || enemy.phase==='laser')
-      sprite.setFlipX(false);
+
+    // Trocas de pose ficam travadas por 140 ms, mesmo com curvas rápidas.
+    // A recuperação do hit pode reimpor o quadro correto após o flash.
+    const recovering=Boolean(enemy.type4NeedsRestore);
+    if(next!==prior && !recovering && now<(enemy.type4PoseLockUntil??0))
+      return;
+    if(next===prior && !recovering)return;
+
+    enemy.type4Pose=next;
+    enemy.type4PoseLockUntil=now+140;
+    enemy.type4NeedsRestore=false;
+    if(next==='tipo4_banco_esquerda' || next==='tipo4_banco_direita'){
+      sprite.anims.stop();
+      sprite.setFrame(next==='tipo4_banco_esquerda'?4:2);
+    }else{
+      // Não reinicia a animação de loop todo frame.
+      sprite.play(next,true);
+    }
+    // As duas poses laterais existem na própria arte: não espelhar sobre
+    // elas, pois isso faria a orientação saltar entre quadros.
+    sprite.setFlipX(false);
   }
 
   updateEnemies(dt) {
@@ -2437,7 +2468,9 @@ export class GameScene extends Phaser.Scene {
       }
       else if (enemy.type === 4 && enemy.sprite.texture?.key === 'tipo4_sheet') {
         enemy.sprite.anims.stop();
-        enemy.sprite.setFrame(10); // o movimento restabelece a pose em 160 ms
+        enemy.sprite.setFrame(10);
+        enemy.type4NeedsRestore=true; // recupera a pose ao sair do flash
+        enemy.type4PoseLockUntil=this.time.now+160;
       }
       else enemy.sprite.setTintFill(0xffffff);
       if (enemy.phase === 'dive' && knockback > 0) {
