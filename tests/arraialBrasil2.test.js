@@ -6,7 +6,7 @@ import { v1CombatStats, V1_UPGRADES } from '../src/gameplay/v1Upgrades.js';
 test('Arraial: anel imediato e explosões fixas em espiral rumo ao centro',()=>{
   const e=fireworkSchedule();
   assert.equal(e.length,20);
-  assert.equal(e.filter(f=>f.damaging).length,12);
+  assert.equal(e.filter(f=>f.damaging).length,20);
   assert.equal(e[0].at,0);
   assert.equal(e.filter(f=>f.at===0).length,6);
   assert.ok(e.at(-1).at<2200);
@@ -17,8 +17,12 @@ test('Arraial: anel imediato e explosões fixas em espiral rumo ao centro',()=>{
   for(const f of e.slice(0,6))assert.ok(Math.abs(Math.hypot(f.x,f.y)-100)<1e-9);
 });
 test('Arraial: raios de explosões e escudo',()=>{
-  assert.ok(withinBlast(0,0,12,0,0,12));
-  assert.ok(!withinBlast(0,0,13,0,0,12));
+  assert.equal(ARRAIAL.fireworkRadius,37);
+  assert.equal(ARRAIAL.finaleRadius,78);
+  assert.ok(withinBlast(0,0,37,0,0,ARRAIAL.fireworkRadius));
+  assert.ok(!withinBlast(0,0,38,0,0,ARRAIAL.fireworkRadius));
+  assert.ok(withinBlast(0,0,78,0,0,ARRAIAL.finaleRadius));
+  assert.ok(!withinBlast(0,0,79,0,0,ARRAIAL.finaleRadius));
   assert.ok(withinFlame(0,0,62,0,-73,0));
   assert.ok(!withinFlame(0,0,62,0,-90,0));
   assert.ok(!withinFlame(0,0,62,0,73,0));
