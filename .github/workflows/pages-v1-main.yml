@@ -34,6 +34,7 @@ jobs:
           test -f src/scenes/V1PlaytestScene.js
           test -f src/gameplay/arraialBrasil2.js
           grep -q 'BUILD ARRAIAL' src/scenes/V1PlaytestScene.js
+          grep -q 'ARENA LIVRE' src/scenes/V1PlaytestScene.js
           grep -q 'const ringCount = Math.min(ARRAIAL.ringCount, count)' src/gameplay/arraialBrasil2.js
           grep -q 'const paintFinal=' src/scenes/GameScene.js
           grep -q 'const paint=()=>' src/scenes/GameScene.js
