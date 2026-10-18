@@ -49,7 +49,8 @@ import { addMenuButton } from '../ui/menuButton.js';
 import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
 import { resolveFinalOpponent, finalePrelude, FINALE_COUNTRIES } from '../gameplay/campaignFinale.js';
-import { hostileBosses, coalitionHpFactor, continueResistanceAfterDefeat } from '../gameplay/wave11Rules.js';
+import { hostileBosses, continueResistanceAfterDefeat } from '../gameplay/wave11Rules.js';
+import { finaleBossHp, finaleBossFirePattern } from '../gameplay/finaleBalance.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
@@ -1474,7 +1475,7 @@ export class GameScene extends Phaser.Scene {
       sourceBossId: options.sourceBossId ?? null,
       finalBoss:Boolean(options.finalBoss), bossCountry:options.bossCountry??null,
       bossLevel:options.bossLevel??0,bossLabel:null,
-      finalAbilityAge:0,finalAbilityCount:0,
+      finalAbilityAge:0,finalAbilityCount:0,finalAssaultPhase:1,
       laserGraphics: null,
       formationGroup,
       formationIndex: index,
@@ -1490,7 +1491,8 @@ export class GameScene extends Phaser.Scene {
           fontFamily:'monospace',fontSize:'15px',fontStyle:'bold',
           color:'#f6faff',backgroundColor:'#233747df',padding:{x:6,y:4},
         }).setOrigin(0.5).setDepth(25);
-      enemy.maxHp=Math.round(enemy.maxHp*1.45);
+      // Nível 10 pode provocar centenas de pontos de dano por segundo.
+      enemy.maxHp=finaleBossHp('wave10',this.combat);
       enemy.hp=enemy.maxHp;
       enemy.box?.setStrokeStyle(5,0xf4ffff);
     }
@@ -1506,8 +1508,13 @@ export class GameScene extends Phaser.Scene {
         fontFamily:'monospace',fontSize:'13px',fontStyle:'bold',
         color:'#ffffff',backgroundColor:'#1d2232dc',padding:{x:5,y:3}
       }).setOrigin(0.5).setDepth(25);
-      const hp=Math.max(12,Math.round(enemy.hp*
-        (coalitionHpFactor(options.coalitionSize||1)??1)));
+      // O HP considera os aliados que não traíram, ANTES de qualquer
+      // upgrade brasileiro recebido por repetir a Onda 11.
+      const survivingChoices=this.campaign.choices.filter(id=>
+        !this.finale.coalition.includes(id));
+      const originalStats=v1CombatStats({choices:survivingChoices});
+      const hp=finaleBossHp('wave11',originalStats,
+        options.coalitionSize||1);
       enemy.maxHp=hp;
       enemy.hp=hp;
     }
@@ -1906,18 +1913,25 @@ export class GameScene extends Phaser.Scene {
         enemy.sprite.y = enemy.bossAnchorY + Math.sin(enemy.phaseAge * 1.05) * 10;
         enemy.shotTimer += dt;
         enemy.spawnTimer += dt;
-        if (enemy.shotTimer >= enemy.definition.shotInterval) {
+        // Duas fases de fúria: mais salvas e escoltas abaixo de 70% e 35% HP.
+        const intensity=enemy.finalBoss?1+0.30*(enemy.finalAssaultPhase-1):1;
+        if (enemy.shotTimer >= enemy.definition.shotInterval/intensity) {
           enemy.shotTimer = 0;
           this.fireEnemyProjectile(enemy);
         }
-        if (enemy.spawnTimer >= enemy.definition.spawnInterval) {
+        if (enemy.spawnTimer >= enemy.definition.spawnInterval/intensity) {
           enemy.spawnTimer = 0;
           const campaignMiniboss = ['wave8','wave9','wave10','wave11'].includes(this.mode);
           const liveMinions = campaignMiniboss
             ? this.enemies.filter((unit) => unit.sourceBossId === enemy.uid).length : 0;
-          const count = campaignMiniboss
+          let count = campaignMiniboss
             ? minibossSummonCount(enemy.spawnedMinions, liveMinions,
               enemy.definition.spawnCount) : enemy.definition.spawnCount;
+          if(enemy.finalBoss && this.mode==='wave11') {
+            // A coalizão pode ter quatro chefes, mas nunca 24 escoltas simultâneas.
+            const allMinions=this.enemies.filter(unit=>unit.sourceBossId!==null).length;
+            count=Math.min(count,Math.max(0,10-allMinions));
+          }
           // Na campanha, minions herdam HP/cor do nível atual. O miniboss
           // tem no máximo 12 invocações totais e 6 vivas simultaneamente.
           for (let j = 0; j < count; j += 1) {
@@ -2009,7 +2023,10 @@ export class GameScene extends Phaser.Scene {
     if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
       enemy.sprite.play('tipo3_bombardeio', true);
     }
-    const count = enemy.definition.volleyCount;
+    const profile=enemy.finalBoss
+      ? finaleBossFirePattern(this.mode,
+        this.finale?.coalition.length||1,enemy.finalAssaultPhase) : null;
+    const count=profile?.volleyCount??enemy.definition.volleyCount;
     for (let i = 0; i < count; i += 1) {
       // A versão II do bombardeiro dispara duas bombas das laterais,
       // que convergem para o mesmo escudo e podem ser abatidas separadamente.
@@ -2024,8 +2041,9 @@ export class GameScene extends Phaser.Scene {
         sprite: projectile,
         hp: enemy.definition.shotHp ?? 1,
         target,
-        vx: dx / distance * 160,
-        vy: dy / distance * 160,
+        damage:profile?.damage??ENEMY_BULLET_DAMAGE,
+        vx: dx / distance * 160*(profile?.speedMultiplier??1),
+        vy: dy / distance * 160*(profile?.speedMultiplier??1),
       });
     }
   }
@@ -2047,7 +2065,7 @@ export class GameScene extends Phaser.Scene {
       ) < 14) {
         const reflected=this.reflectV1ShieldProjectile(shot);
         this.removeEnemyBullet(i);
-        if(!reflected)this.damageTarget(shot.target, ENEMY_BULLET_DAMAGE);
+        if(!reflected)this.damageTarget(shot.target, shot.damage??ENEMY_BULLET_DAMAGE);
         if (this.gameOver) return;
       } else if (shot.sprite.y > H + 30 || shot.sprite.x < -30 || shot.sprite.x > W + 30) {
         this.removeEnemyBullet(i);
@@ -2122,14 +2140,19 @@ export class GameScene extends Phaser.Scene {
     graphics.clear();
     for (const enemy of this.enemies) {
       if (enemy.maxHp <= 1) continue;
-      const width = Phaser.Math.Clamp(enemy.definition.width + 2, 33, 110);
-      const x = enemy.sprite.x - width / 2;
-      const y = enemy.sprite.y - enemy.definition.height / 2 - 15;
+      const width=enemy.finalBoss?175:
+        Phaser.Math.Clamp(enemy.definition.width + 2,33,110);
+      const x=Phaser.Math.Clamp(enemy.sprite.x-width/2,8,W-width-8);
+      const y=enemy.sprite.y-enemy.definition.height/2-
+        (enemy.finalBoss?41:15);
       graphics.fillStyle(0x061426, 0.95);
-      graphics.fillRect(x - 2, y - 2, width + 4, 8);
-      graphics.fillStyle(enemy.level >= 3 ? enemy.definition.color
-        : enemy.level > 1 ? 0xffc977 : 0x6df3ba, 0.95);
-      graphics.fillRect(x, y, width * Math.max(0, enemy.hp / enemy.maxHp), 4);
+      graphics.fillRect(x - 2, y - 2, width + 4, enemy.finalBoss?12:8);
+      const fraction=Math.max(0,Math.min(1,enemy.hp/enemy.maxHp));
+      graphics.fillStyle(enemy.finalBoss?
+        (fraction<=0.35?0xff6264:fraction<=0.70?0xffc96a:0x78e9dc)
+        : enemy.level >= 3 ? enemy.definition.color
+          : enemy.level > 1 ? 0xffc977 : 0x6df3ba,0.95);
+      graphics.fillRect(x,y,width*fraction,enemy.finalBoss?8:4);
     }
   }
 
@@ -2265,6 +2288,17 @@ export class GameScene extends Phaser.Scene {
     if (!enemy) return false;
     if (showNumber) this.popHitNumber(enemy.sprite.x, enemy.sprite.y, damage, hitColor);
     enemy.hp -= damage;
+    if(enemy.finalBoss && enemy.hp>0){
+      const fraction=enemy.hp/enemy.maxHp;
+      const phase=fraction<=0.35?3:fraction<=0.70?2:1;
+      if(phase>enemy.finalAssaultPhase){
+        enemy.finalAssaultPhase=phase;
+        // Uma transição por limiar, mesmo que uma rajada cruze dois níveis.
+        this.showAttackWarning(phase===2
+          ? 'ALERTA: CHEFE ENTROU EM FASE DE ASSALTO!'
+          : 'PERIGO: CHEFE EM FÚRIA MÁXIMA!');
+      }
+    }
     const killed = enemy.hp <= 0;
     if (killed) {
       this.showEnemyDeath(enemy);
