@@ -188,3 +188,16 @@ A campanha passa a seguir **Onda 0 → escolha 1 → ... → Onda 9 → escolha 
 - Fonte de regras/roteiros: `src/gameplay/campaignFinale.js`; interface: `src/scenes/EndingScene.js`; encontros: `src/gameplay/waves.js` e `src/scenes/GameScene.js`. A Onda 11 foi exposta no menu de playtest V1.
 
 **Estado técnico:** arquivos e testes foram adicionados à branch de desenvolvimento. Foram verificadas sintaxe e regras puras de coalizão/roteiros, mas **não foi executado `npm run build` nem um playtest real no navegador**. Os chefes e as cenas são placeholders deliberados, sujeitos a aprimoramento artístico e balanceamento.
+
+## Ajustes após o primeiro playtest dos finais — 18/10/2026
+
+**Feedback confirmado em jogo:** spritesheet do bombardeiro Tipo 3 aprovada; jogador concluiu a Onda 11 com dez melhorias brasileiras. Ondas 10 e 11 estavam fáceis demais, e o epílogo tentava abrir imediatamente a Onda 0, com travamento relatado.
+
+**Corrigido no código:**
+- Após o quarto quadro do epílogo, o botão indica **VOLTAR AO MENU**. Não é mais iniciado automaticamente um novo `GameScene` com a Onda 0; a pessoa escolhe iniciar a próxima campanha no menu.
+- Nova função pura `src/gameplay/finaleBalance.js` calibra o HP dos chefes das ondas 10 e 11 segundo o poder de fogo estimado da build que chegou à batalha, sem alterar as ondas anteriores. Para **dez escolhas brasileiras**, as referências atuais são **2.356 HP (Onda 10)** e **2.828 HP (Onda 11)**, em vez dos valores anteriores de aproximadamente **87 e 64 HP**.
+- Na Onda 11, o HP de cada chefe da coalizão é reduzido proporcionalmente à quantidade de chefes, respeitando as regras de 65%/45%/35% para 2/3/4 traidores. A resistência brasileira **não aumenta a vida dos adversários** ao melhorar o arsenal do jogador nas novas tentativas.
+- Chefes finais têm **duas transições de fúria**, nos limiares de 70% e 35% da vida, com avisos, salvas e invocações mais frequentes. A Fortaleza-Mãe dispara duas balas por salva; chefes de coalizões numerosas disparam uma cada, para manter legibilidade. Balas de chefe causam menos dano individualmente do que as bombas padrão do resto da campanha.
+- Barra de vida dos chefes ficou mais larga e muda de cor conforme a fase. Total de escoltas simultâneas fica limitado a dez durante a batalha com coalizão.
+
+**Validação:** teste automatizado específico `tests/finaleBalancing.test.js` foi incluído; expectativas de outros testes foram atualizadas para as mecânicas híbridas e fluxo de ondas presentes. A ação de CI **Verificação do protótipo** passou em 18/10/2026, executando testes e compilação. Falta **novo playtest real no navegador** para confirmar o nível de dificuldade e que retornar ao menu, iniciar outra campanha e jogar a Onda 0 não apresenta travamentos. A causa profunda do travamento original após reinício direto ainda não foi isolada.
