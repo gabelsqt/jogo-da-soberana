@@ -2,7 +2,15 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.42
+## Versão atual — 0.43
+
+**Rússia reformulada:** os tiros comuns passam a parecer sopros de névoa gelada branca-azulada, com volutas e partículas de gelo. O congelamento mantém a atração e agora **contagia** até quatro alvos próximos, com um único salto e duração menor nos alvos contagiados. O especial Matryoshka ganha **25% de redução no cooldown** (8 s → 6 s como base), preservando bônus de builds híbridas. [Notas da versão 0.43](docs/versao-0.43.md).
+
+### Como testar a Rússia
+
+No menu, use **TESTAR UPGRADES V1 → Rússia**: nível 1 para névoa e contágio, nível 2 para a Matryoshka com recarga de 6 segundos; níveis 3/5/7/10 ampliam o raio de propagação. Procure grupos de inimigos: o contágio ocorre quando se aproximam, quando a origem congelada recebe novos tiros ou quando morre. O jogo ainda precisa de validação visual e ajuste fino no navegador.
+
+## Versão anterior — 0.42
 
 **Chefão Tipo 6 — primeira versão jogável.** Ondas 10 e 11 passam a usar uma nave colossal com quatro módulos independentes, escudos individuais e núcleo exposto na fase final; variantes alienígena, americana, russa, chinesa e sul-coreana, com **um único traidor estrangeiro sorteado** na Onda 11. Superarma carrega nos últimos 5 s e dispara no segundo final, caso o núcleo sobreviva. Os visuais de naves são **provisórios em Phaser Graphics**; spritesheets definitivas e ajustes de balanceamento ficam para a próxima etapa. [Notas da versão 0.42](docs/versao-0.42.md).
 
