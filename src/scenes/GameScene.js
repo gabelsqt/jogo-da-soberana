@@ -300,6 +300,7 @@ export class GameScene extends Phaser.Scene {
     this.createTurret();
     this.shieldGraphics = this.add.graphics().setDepth(23);
     this.enemyHealthGraphics = this.add.graphics().setDepth(27);
+    this.frostGraphics = this.add.graphics().setDepth(46);
     this.towerStatusGraphics = this.add.graphics().setDepth(35);
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
@@ -1371,6 +1372,8 @@ export class GameScene extends Phaser.Scene {
       speed: definition.speed,
       recoilSpeed: 0,
       electricSlowUntil: -1,
+      frozenUntil: -1,
+      russianPullOffset: {x:0,y:0},
       velocityX: 0,
       velocityY: 0,
       shockOffset: { x: 0, y: 0, vx: 0, vy: 0 },
@@ -1446,6 +1449,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   updateEnemies(dt) {
+    this.frostGraphics.clear();
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
       // Desfaz o deslocamento visual anterior para não interferir no percurso
@@ -1453,8 +1457,20 @@ export class GameScene extends Phaser.Scene {
       const previousShock = enemy.shockOffset;
       // Remove o deslocamento do frame anterior ANTES de calcular a rota.
       // Hit shake e artilharia de choque permanecem efeitos independentes.
-      enemy.sprite.x -= previousShock.x + enemy.hitVisualOffsetX;
-      enemy.sprite.y -= previousShock.y;
+      const previousPull = enemy.russianPullOffset || {x:0,y:0};
+      enemy.sprite.x -= previousShock.x + enemy.hitVisualOffsetX + previousPull.x;
+      enemy.sprite.y -= previousShock.y + previousPull.y;
+      if (enemy.frozenUntil > this.elapsed) {
+        // A nave fica totalmente parada, inclusive contadores de ataques e rotas.
+        enemy.hitVisualOffsetX = 0;
+        enemy.shockOffset = {x:0,y:0,vx:0,vy:0};
+        enemy.russianPullOffset = {x:0,y:0};
+        this.frostGraphics.lineStyle(3,0x93ebff,0.85);
+        this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type)+8);
+        this.frostGraphics.lineStyle(1,0xe2ffff,0.72);
+        this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type)+13);
+        continue;
+      }
       const previousX = enemy.sprite.x;
       const previousY = enemy.sprite.y;
       enemy.age += dt;
@@ -1761,6 +1777,28 @@ export class GameScene extends Phaser.Scene {
       enemy.shockOffset = advanceShockOffset(previousShock, dt);
       enemy.sprite.x += enemy.shockOffset.x;
       enemy.sprite.y += enemy.shockOffset.y;
+      // Vórtices congelados somam atração, com limite de velocidade e alcance.
+      const radius = this.combat.russianAttractRadius || 0;
+      let ax=0, ay=0;
+      if (radius > 0) for (const frozen of this.enemies) {
+        if (frozen === enemy || frozen.frozenUntil <= this.elapsed) continue;
+        const dx=frozen.sprite.x-enemy.sprite.x;
+        const dy=frozen.sprite.y-enemy.sprite.y;
+        const d=Math.hypot(dx,dy);
+        if(d>12 && d<radius) {
+          const force=120*(1-d/radius);
+          ax+=dx/d*force; ay+=dy/d*force;
+        }
+      }
+      const pullSpeed=Math.hypot(ax,ay);
+      const limit=pullSpeed>140?140/pullSpeed:1;
+      const fade=pullSpeed?1:Math.exp(-dt*3);
+      enemy.russianPullOffset={
+        x:Phaser.Math.Clamp((previousPull.x+ax*limit*dt)*fade,-radius*0.8,radius*0.8),
+        y:Phaser.Math.Clamp((previousPull.y+ay*limit*dt)*fade,-radius*0.8,radius*0.8),
+      };
+      enemy.sprite.x += enemy.russianPullOffset.x;
+      enemy.sprite.y += enemy.russianPullOffset.y;
       this.updateEnemyHitVisual(enemy);
 
       // Bombas de pulso são barreiras: inimigos entram nelas durante o movimento.
@@ -2081,12 +2119,22 @@ export class GameScene extends Phaser.Scene {
     this.lastBasicFire = this.time.now;
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     const nextShot = this.basicShotCount + 1;
+    if (this.isV1Campaign && this.combat.koreaContinuous) {
+      this.basicShotCount=nextShot;
+      // Não cria balas físicas: o Lightstick torna-se o disparo principal.
+      this.fireLightstickBeam(angle,false);
+      return;
+    }
     // A alternância brasileira é aplicada à rajada INTEIRA; todos os
     // projéteis chineses continuam com seu spread simétrico em torno dela.
     const aimed = this.isV1Campaign ? angle
       : brazilAlternatingAngle(angle, nextShot, this.combat.brazilZigzag);
     const effects = shotVfxFor(this.activeUpgradeIds());
-    const volleyAngles = shotAngles(aimed, this.combat.bulletsPerShot);
+    // Dez tiros chineses permanecem numa abertura útil, não num leque de 100°.
+    const count=this.combat.bulletsPerShot;
+    const volleyAngles = this.isV1Campaign && count>3
+      ? horizontalOffsets(count,0.065).map(offset=>Phaser.Math.Clamp(aimed+offset,-Math.PI+Math.PI/12,-Math.PI/12))
+      : shotAngles(aimed,count);
     volleyAngles.forEach((firingAngle, index) => {
       const centerGlow = isChinaCenterProjectile(
         index, volleyAngles.length, effects.multiple,
@@ -2112,7 +2160,7 @@ export class GameScene extends Phaser.Scene {
     this.showMuzzleFlash(aimed, effects);
   }
 
-  fireLightstickBeam(angle) {
+  fireLightstickBeam(angle, drawFlash = true) {
     const startX = CANNON.x + Math.cos(angle) * 32;
     const startY = CANNON.y + Math.sin(angle) * 32;
     const endX = startX + Math.cos(angle) * PLASMA_RANGE;
@@ -2138,10 +2186,12 @@ export class GameScene extends Phaser.Scene {
         startX, startY, endX, endY, bullet.sprite.x, bullet.sprite.y, PLASMA_HALF_WIDTH, 7,
       )) this.removeEnemyBullet(i);
     }
-    if (this.combat.residualSlash) {
+    if (this.combat.residualSlash && drawFlash) {
       this.createResidualSlash(startX, startY, endX, endY, initialHitIds);
     }
 
+    // O nível 10 desenha um único feixe persistente no update, sem centenas de tweens.
+    if (!drawFlash) return;
     // Três traços luminosos sobrepostos criam um feixe de plasma bem visível.
     const beam = this.add.graphics().setDepth(48);
     beam.lineStyle(26, 0x7f43c7, 0.18);
@@ -2154,6 +2204,23 @@ export class GameScene extends Phaser.Scene {
       targets: beam, alpha: 0, duration: 280,
       onComplete: () => beam.destroy(),
     });
+  }
+
+  drawEncoreContinuousBeam(angle, active) {
+    if(!this.koreanContinuousGraphics && active)
+      this.koreanContinuousGraphics=this.add.graphics().setDepth(48);
+    const beam=this.koreanContinuousGraphics;
+    if(!beam)return;
+    beam.clear();
+    if(!active)return;
+    const x=CANNON.x+Math.cos(angle)*32, y=CANNON.y+Math.sin(angle)*32;
+    const tx=x+Math.cos(angle)*PLASMA_RANGE,ty=y+Math.sin(angle)*PLASMA_RANGE;
+    beam.lineStyle(24,0xa851ee,0.22);
+    beam.lineBetween(x,y,tx,ty);
+    beam.lineStyle(9,0xdc90ff,0.85);
+    beam.lineBetween(x,y,tx,ty);
+    beam.lineStyle(3,0xffffff,1);
+    beam.lineBetween(x,y,tx,ty);
   }
 
   createResidualSlash(x1, y1, x2, y2, initialHitIds = new Set()) {
@@ -2531,6 +2598,8 @@ export class GameScene extends Phaser.Scene {
     const y = origin?.y ?? CANNON.y + vy * 29;
     const style = shotVisualFor(this.activeUpgradeIds());
     if (this.isV1Campaign && this.combat.transformed === 'br') style.color = 0x55e99e;
+    if (this.isV1Campaign && this.combat.transformed === 'cn') style.color = centerGlow ? 0xffe56a : 0xff5651;
+    if (this.isV1Campaign && this.combat.transformed === 'ru') style.color = 0x8beaff;
     const vfx = special ? null : (effects ?? shotVfxFor(this.activeUpgradeIds()));
     // Somente a representação gráfica é limitada. Balas invisíveis continuam com física e dano.
     const visible = special || this.visibleProjectileCount < MAX_VISUAL_PROJECTILES;
@@ -2564,6 +2633,10 @@ export class GameScene extends Phaser.Scene {
       fragmentation: !special && this.combat.fragmentation,
       impactColor: style.impactColor,
       hitEnemyIds: new Set(),
+      distanceTravelled:0,
+      usGrowthMax:!special ? (this.combat.usGrowthMax || 1) : 1,
+      usRadius:7,
+      chinaSplit:!special && generation===0 && this.combat.chinaSplitCount>1,
     };
     this.projectiles.push(bullet);
     this.drawProjectileTrail(bullet);
@@ -2897,13 +2970,61 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  explodeAmericanPrimary(x,y,primaryId,damage,radius) {
+    // O alvo direto já recebeu o dano: onda secundária atinge apenas outros.
+    const flash=this.add.circle(x,y,radius,0xffca65,0.27)
+      .setStrokeStyle(3,0xffffff,0.7).setDepth(52);
+    this.tweens.add({targets:flash,scale:1.35,alpha:0,duration:210,
+      onComplete:()=>flash.destroy()});
+    for(let k=this.enemies.length-1;k>=0;k--){
+      const other=this.enemies[k];
+      if(other.uid===primaryId)continue;
+      if(Math.hypot(other.sprite.x-x,other.sprite.y-y)<=radius+enemyContactRadius(other.type))
+        this.impactInvader(k,damage*0.5,0,'#ffce87',false);
+    }
+  }
+
   updatePlayerProjectiles(dt) {
     for (let i = this.projectiles.length - 1; i >= 0; i -= 1) {
       const bullet = this.projectiles[i];
+      if (!bullet.special && bullet.usGrowthMax>1 && this.combat.usHoming>0 && this.enemies.length) {
+        // Curva angular limitada: o míssil americano persegue sem teletransportar.
+        let nearest=null, nearestDist=Infinity;
+        for(const target of this.enemies) {
+          const d=Math.hypot(target.sprite.x-bullet.sprite.x,target.sprite.y-bullet.sprite.y);
+          if(d<460 && d<nearestDist){nearest=target;nearestDist=d;}
+        }
+        if(nearest) {
+          const desired=Math.atan2(nearest.sprite.y-bullet.sprite.y,nearest.sprite.x-bullet.sprite.x);
+          const current=Math.atan2(bullet.vy,bullet.vx);
+          const change=Phaser.Math.Angle.Wrap(desired-current);
+          const turn=Phaser.Math.Clamp(change,-this.combat.usHoming*dt,this.combat.usHoming*dt);
+          const speed=Math.hypot(bullet.vx,bullet.vy);
+          bullet.vx=Math.cos(current+turn)*speed;
+          bullet.vy=Math.sin(current+turn)*speed;
+          if(bullet.visual)bullet.sprite.setRotation(current+turn+Math.PI/2);
+        }
+      }
+      bullet.distanceTravelled+=Math.hypot(bullet.vx,bullet.vy)*dt;
+      if(!bullet.special && bullet.usGrowthMax>1) {
+        const scale=1+(bullet.usGrowthMax-1)*Math.min(1,bullet.distanceTravelled/300);
+        bullet.usRadius=5.5*scale;
+        if(bullet.visual)bullet.sprite.setScale(scale);
+      }
       bullet.sprite.x += bullet.vx * dt;
       bullet.sprite.y += bullet.vy * dt;
       this.drawProjectileTrail(bullet);
       let remove = false;
+      if(bullet.chinaSplit && bullet.distanceTravelled>=100){
+        // Dez balas se dividem em vinte; filhos de geração 1 não se dividem.
+        const originalAngle=Math.atan2(bullet.vy,bullet.vx);
+        for(const offset of [-0.075,0.075]){
+          const child=this.createProjectile(originalAngle+offset,false,0,bullet.vfx,
+            bullet.centerGlow,0,bullet.generation+1,{x:bullet.sprite.x,y:bullet.sprite.y});
+          child.damage=bullet.damage;
+        }
+        remove=true;
+      }
 
       if (bullet.special && Phaser.Math.Distance.Between(
         bullet.sprite.x, bullet.sprite.y, bullet.tx, bullet.ty,
@@ -2920,7 +3041,7 @@ export class GameScene extends Phaser.Scene {
           const hostile = this.enemyBullets[j];
           if (Phaser.Math.Distance.Between(
             bullet.sprite.x, bullet.sprite.y, hostile.sprite.x, hostile.sprite.y,
-          ) >= 16) continue;
+          ) >= 9+Math.max(7,bullet.usRadius)) continue;
           hostile.hp -= bullet.damage;
           if (hostile.hp <= 0) this.removeEnemyBullet(j);
           else hostile.sprite.setFillStyle(0xfff5d0);
@@ -2936,7 +3057,7 @@ export class GameScene extends Phaser.Scene {
           if (bullet.hitEnemyIds.has(enemy.uid)) continue;
           if (Phaser.Math.Distance.Between(
             bullet.sprite.x, bullet.sprite.y, enemy.sprite.x, enemy.sprite.y,
-          ) >= enemyContactRadius(enemy.type) + 7) continue;
+          ) >= enemyContactRadius(enemy.type) + Math.max(7,bullet.usRadius)) continue;
 
           const directTargetId = enemy.uid;
           bullet.hitEnemyIds.add(directTargetId);
@@ -2944,10 +3065,15 @@ export class GameScene extends Phaser.Scene {
           const knockback = this.combat.strategicRecoil && bullet.knockback > 0
             ? strategicKnockback(bullet.knockback, enemy.sprite.y)
             : bullet.knockback;
+          if(this.combat.russianFreezeMs && bullet.damage<1000000)
+            enemy.frozenUntil=Math.max(enemy.frozenUntil || 0,this.elapsed+this.combat.russianFreezeMs);
           const destroyed = this.impactInvader(
             j, bullet.damage, knockback, bullet.impactColor,
             true, this.combat.strategicRecoil ? 720 : 400,
           );
+          if(bullet.usGrowthMax>1)
+            this.explodeAmericanPrimary(deathPosition.x,deathPosition.y,directTargetId,
+              bullet.damage,20+bullet.usRadius);
           if (bullet.knockback > 0) {
             if (this.combat.strategicRecoil) {
               this.showStrategicRecoilImpact(deathPosition.x, deathPosition.y);
@@ -3441,6 +3567,9 @@ export class GameScene extends Phaser.Scene {
     }
     this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     this.barrel.rotation = this.aimAngle + Math.PI / 2;
+    if(this.isV1Campaign && this.combat.koreaContinuous)
+      this.drawEncoreContinuousBeam(this.aimAngle,
+        pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer));
     if (pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer)) this.shootBasic(pointer);
     // O ciclo de calor continua mesmo quando o jogador solta o disparo.
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
