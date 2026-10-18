@@ -10,8 +10,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 2,
-      "title": "Reforço de Emergência",
-      "description": "Especial recarrega mais rápido; escudo regenera mais.",
+      "title": "Arraial Balístico",
+      "description": "Especial: balão junino com 12 fogos, final de 5 HP. Escudo: Fogueira de São João, 1 HP/s perto da borda.",
       "kind": "secondary-shield"
     },
     {
@@ -360,7 +360,7 @@ export function v1CombatStats(state = {}, base = {}) {
     shieldIntercept:false, shieldPulse:false, ultimate:v1SupremeFor(state),
     transformed:null};
   if(n.br>=1)stats.basicInterval/=1.5;
-  if(n.br>=2){stats.specialCooldown*=0.88;stats.shieldRegen+=1.2;stats.shieldBonus+=10;}
+  if(n.br>=2){/* Arraial Balístico: cooldown-base de 8 s, escudo incendiário sem HP extra. */}
   if(n.br>=3)stats.heat=true;
   if(n.br>=4)stats.electricFence=true;
   if(n.br>=5)stats.basicDamage*=1.45;
