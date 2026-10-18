@@ -2551,9 +2551,9 @@ export class GameScene extends Phaser.Scene {
           if(!finale.active)return;
           const t=Math.min(1,(this.time.now-startFinal)/680);
           const fade=1-t*t;
-          const radius=8+58*t;
+          const radius=8+(ARRAIAL.finaleRadius-8)*t;
           finale.clear();
-          finale.fillStyle(0xffefaf,0.22*fade);finale.fillCircle(0,0,radius+12);
+          finale.fillStyle(0xffefaf,0.22*fade);finale.fillCircle(0,0,radius);
           for(let ring=0;ring<3;ring++){
             finale.lineStyle(4,shades[ring],fade);
             finale.strokeCircle(0,0,radius*(0.5+ring*0.24));
