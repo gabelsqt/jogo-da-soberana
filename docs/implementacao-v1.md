@@ -148,3 +148,13 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 100 — Brasil 2: explosão final multicolorida (APROVADA)
 
 **Opção B:** ao completar os quatro segundos, o **balão de São João** explode num grande espetáculo multicolorido em forma de **estrela de fogos com vários anéis luminosos**. A detonação mantém os parâmetros já aprovados: **5 HP de dano, raio de 50 px**, além dos 12 fogos anteriores. Os anéis e faíscas são representação visual da mesma detonação; não geram dano repetido adicional por si só. Priorizar leitura dos alvos e orçamento de partículas. A estética detalhada das chamas do escudo ainda poderá ser finalizada em decisão separada. **Somente GDD; não implementar código.**
+
+## Decisão 101 — Brasil 2: Fogueira tradicional no escudo (APROVADA)
+
+**Opção A:** a Fogueira de São João exibe **chamas tradicionais alaranjadas e amarelas ao longo da borda do escudo ativo**, com pequenas brasas subindo. O VFX comunica o alcance muito próximo do dano, sem obscurecer os alvos ou a leitura do escudo. Não usar fogo verde/amarelo sobrenatural nem limitar chamas apenas à proximidade dos inimigos.
+
+### Brasil 2 — Arraial Balístico: especificação visual principal CONCLUÍDA (Decisões 77–101)
+
+- **Especial:** balão de São João em pixel art, com brilho interno, suspenso no ponto visado por 4 s. Solta 12 fogos juninos tradicionais multicoloridos em estrelas com rastros e estalos, avançando em sequência circular coreografada (até 100 px do núcleo) em cadência crescente. Cada fogo: explosão de 12 px de raio, 1 HP por alvo; fogos diferentes podem acertar o mesmo alvo sem limite extra. Final: grande estrela multicolorida com anéis luminosos, **5 HP em raio de 50 px**, sem dano repetido dos anéis. Recarga de 8 s iniciada no disparo.
+- **Escudo:** Fogueira de São João, com fogo laranja/amarelo e brasas na borda enquanto ativo; dano próximo de **0,5 HP a cada 0,5 s** por inimigo até **15 px além da borda**; sem queimadura residual. Escudo inativo não causa esse dano.
+- **Escopo:** mecânica e direção visual principal do nível 2 estão fechadas para um futuro playtest; detalhes de animação/áudio, performance e eventuais ajustes de balanceamento podem ser refinados durante testes. **Nenhuma implementação autorizada nesta decisão.**
