@@ -308,6 +308,8 @@ export class GameScene extends Phaser.Scene {
     this.supremeTyping = false;
     this.supremeCode = '';
     this.supremeCinematic = false;
+    this.cannonFrozenUntil=0;
+    this.lastFinaleWarningAt=-Infinity;
     this.basicShotCount = 0;
     this.cannonRecoil = 0;
     this.lastHeavyShake = -Infinity;
@@ -1445,6 +1447,7 @@ export class GameScene extends Phaser.Scene {
       sourceBossId: options.sourceBossId ?? null,
       finalBoss:Boolean(options.finalBoss), bossCountry:options.bossCountry??null,
       bossLevel:options.bossLevel??0,bossLabel:null,
+      finalAbilityAge:0,finalAbilityCount:0,
       laserGraphics: null,
       formationGroup,
       formationIndex: index,
@@ -1521,6 +1524,62 @@ export class GameScene extends Phaser.Scene {
     const position = positionOnRoute(enemy.route, enemy.progress);
     enemy.sprite.setPosition(position.x, position.y);
     return enemy.progress >= 1;
+  }
+
+  updateFinalCountryBoss(enemy,dt) {
+    if(this.mode!=='wave11' || !enemy.finalBoss ||
+      !enemy.bossCountry || enemy.bossCountry==='alien')return;
+    enemy.finalAbilityAge+=dt;
+    const interval=Math.max(5,10.2-Math.min(10,enemy.bossLevel)*0.5);
+    if(enemy.finalAbilityAge<interval)return;
+    enemy.finalAbilityAge-=interval;
+    enemy.finalAbilityCount++;
+    const country=enemy.bossCountry,level=enemy.bossLevel;
+    if(this.time.now-this.lastFinaleWarningAt>1750){
+      const warning={us:'ATAQUE EXTRA: CHOQUE E PAVOR!',
+        ru:'GEADA SIBERIANA NO CANHÃO!',
+        cn:'PACOTES EXPLOSIVOS A CAMINHO!',
+        jp:'HOLOFOTES HOSTIS — ATENÇÃO!'};
+      this.showAttackWarning(warning[country]);
+      this.lastFinaleWarningAt=this.time.now;
+    }
+    if(country==='us') {
+      // Maior nível de ajuda recebido = maior salva extra de mísseis.
+      for(let i=0;i<1+Math.floor(level/3);i++)
+        this.fireEnemyProjectile(enemy);
+    } else if(country==='ru'){
+      // O frio atrapalha as armas brasileiras por uma janela curta.
+      this.cannonFrozenUntil=Math.max(this.cannonFrozenUntil,
+        this.elapsed+750+level*80);
+      const fog=this.add.circle(CANNON.x,CANNON.y-18,72,0x8ee7ff,0.27)
+        .setStrokeStyle(2,0xffffff,0.64).setDepth(62);
+      this.tweens.add({targets:fog,alpha:0,scale:1.35,duration:700,
+        onComplete:()=>fog.destroy()});
+    } else if(country==='cn'){
+      const spawned=enemy.finalAbilityCount*2;
+      if(spawned<=8){
+        const count=Math.min(3,1+Math.ceil(level/4));
+        for(let i=0;i<count;i++)this.spawnEnemy(1,{
+          level:9,x:enemy.sprite.x+(i-(count-1)/2)*48,
+          y:enemy.sprite.y+40,sourceBossId:enemy.uid,
+        });
+      }
+    } else if(country==='jp'){
+      // Raio rosa telegráfico: só causa dano depois do aviso visual.
+      const laser=this.add.graphics().setDepth(65);
+      laser.lineStyle(3,0xf0a7ff,0.8);
+      laser.lineBetween(enemy.sprite.x,enemy.sprite.y,CANNON.x,CANNON.y);
+      this.time.delayedCall(620,()=>{
+        laser.destroy();
+        if(this.tutorialComplete || !enemy.sprite.active)return;
+        const flash=this.add.graphics().setDepth(65);
+        flash.lineStyle(9,0xffa6ed,0.85);
+        flash.lineBetween(enemy.sprite.x,enemy.sprite.y,CANNON.x,CANNON.y);
+        this.damageCannon(5+level*0.8);
+        this.tweens.add({targets:flash,alpha:0,duration:180,
+          onComplete:()=>flash.destroy()});
+      });
+    }
   }
 
   updateEnemies(dt) {
@@ -1801,6 +1860,7 @@ export class GameScene extends Phaser.Scene {
           enemy.spawnTimer = 0;
         }
       } else if (enemy.phase === 'boss') {
+        this.updateFinalCountryBoss(enemy,dt);
         // Nunca usa a idade anterior à chegada: o primeiro frame do boss
         // começa exatamente na última posição da fase de entrada.
         enemy.sprite.x = bossCruiseX(enemy.bossAnchorX, enemy.phaseAge);
@@ -2237,7 +2297,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   shootBasic(pointer) {
-    if (this.tutorialComplete || this.countdownActive) return;
+    if (this.tutorialComplete || this.countdownActive ||
+      this.elapsed<this.cannonFrozenUntil)return;
     // Aceleração automática em ondas: aquece, sustenta o pico e desacelera.
     const heatCycle = 5200;
     const phase = (this.time.now % heatCycle) / heatCycle;
@@ -2670,7 +2731,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   shootSpecial(pointer) {
-    if (this.tutorialComplete || this.countdownActive || this.supremeTyping || this.supremeCinematic) return;
+    if (this.tutorialComplete || this.countdownActive || this.supremeTyping ||
+      this.supremeCinematic || this.elapsed<this.cannonFrozenUntil)return;
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
     const target=specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
     this.lastSpecialFire=this.time.now;
