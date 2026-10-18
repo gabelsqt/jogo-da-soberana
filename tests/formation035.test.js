@@ -146,3 +146,23 @@ test('GameScene usa grupos completos e recarrega alvo se torre cai', () => {
   assert.match(scene,/group\.target\.tower\?\.health <= 0/);
   assert.match(scene,/chooseV035GroupTarget\(group, center\)/);
 });
+
+test('Tipo 2 faz círculos completos e para em formação antes de descer', () => {
+  const group={duration:6,holdDuration:1.6,centerX:480,count:4};
+  const start=tacticalManeuverPosition(group,0,0);
+  const moving=tacticalManeuverPosition(group,0,1.1);
+  const stopped=tacticalManeuverPosition(group,0,4.4);
+  assert.notDeepEqual(moving,start);
+  assert.deepEqual(tacticalManeuverPosition(group,0,5),stopped);
+  assert.deepEqual(tacticalManeuverPosition(group,0,6),stopped);
+  assert.deepEqual(tacticalManeuverPosition(group,0,7),stopped);
+  const column=tacticalFormationOffset('column',0,4);
+  assert.ok(Math.abs(stopped.x-(480+column.x))<1e-9);
+  assert.ok(Math.abs(stopped.y-(126+column.y))<1e-9);
+});
+test('Tipo 1 e Tipo 2 têm manobras mais longas antes da descida',()=>{
+  const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
+  assert.match(scene,/FloatBetween\(6, 8\)/);
+  assert.match(scene,/FloatBetween\(5\.5, 6\.5\)/);
+  assert.match(scene,/holdDuration: kind === 'tactical' \? 1\.6 : 0/);
+});
