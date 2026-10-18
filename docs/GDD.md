@@ -1,6 +1,6 @@
 # Game Soberana — GDD (decisões de identidade e Supremos)
 
-> Atualizado em 18/10/2026 — versão jogável 0.41. Documento de design; **não representa implementação concluída**. Esta seção registra decisões aprovadas em conversa. A tabela de upgrades atual está em `src/gameplay/v1Upgrades.js`; mecânicas em código podem ainda divergir.
+> Atualizado em 18/10/2026 — versão jogável **0.43**. Documento de design com decisões já implementadas e outras ainda em planejamento. A revisão russa (névoa criogênica, contágio e cooldown -25%) está implementada na v0.43; a tabela de upgrades atual fica em `src/gameplay/v1Upgrades.js`. Balanceamento e efeitos visuais dependem de playtest.
 
 ## Princípios de identidade
 
