@@ -2495,16 +2495,19 @@ export class GameScene extends Phaser.Scene {
 
   arraialFirework(x, y, hue) {
     this.arraialDamage(x,y,ARRAIAL.fireworkRadius,ARRAIAL.fireworkDamage,'#ffe8b7');
-    const g=this.add.graphics().setDepth(42);
+    // IMPORTANTE: usar coordenadas LOCAIS. Escalar Graphics desenhado em
+    // coordenadas mundiais deslocava os fogos para baixo e à direita.
+    const g=this.add.graphics().setPosition(x,y).setDepth(42);
     const colors=[0xffc947,0xff6157,0x6cf1a0,0x75caff,0xf59afa];
     const color=colors[hue%colors.length];
     g.lineStyle(2,color,0.95);
     for(let k=0;k<8;k++){
       const a=k*Math.PI/4;
-      g.lineBetween(x+Math.cos(a)*3,y+Math.sin(a)*3,
-        x+Math.cos(a)*ARRAIAL.fireworkRadius,y+Math.sin(a)*ARRAIAL.fireworkRadius);
+      g.lineBetween(Math.cos(a)*3,Math.sin(a)*3,
+        Math.cos(a)*ARRAIAL.fireworkRadius,Math.sin(a)*ARRAIAL.fireworkRadius);
     }
-    g.fillStyle(0xffedb4,1);g.fillCircle(x,y,3);
+    g.fillStyle(0xffedb4,1);g.fillCircle(0,0,3);
+    // Só escala e transparência: a posição de cada estouro permanece fixa.
     this.tweens.add({targets:g,alpha:0,scale:1.3,duration:280,onComplete:()=>g.destroy()});
   }
 
@@ -2518,17 +2521,17 @@ export class GameScene extends Phaser.Scene {
       }
       if(age>=ARRAIAL.duration){
         this.arraialDamage(n.x,n.y,ARRAIAL.finaleRadius,ARRAIAL.finaleDamage,'#fff2aa');
-        const finale=this.add.graphics().setDepth(46);
+        const finale=this.add.graphics().setPosition(n.x,n.y).setDepth(46);
         const colors=[0xffda62,0xff6b72,0x6df5af,0x9bcbff,0xf2a4ff];
         for(let ring=0;ring<3;ring++){
           finale.lineStyle(3,colors[ring],0.9);
-          finale.strokeCircle(n.x,n.y,18+ring*15);
+          finale.strokeCircle(0,0,18+ring*15);
         }
         for(let k=0;k<16;k++){
           const a=k*Math.PI/8;
           finale.lineStyle(2,colors[k%colors.length],1);
-          finale.lineBetween(n.x+Math.cos(a)*8,n.y+Math.sin(a)*8,
-            n.x+Math.cos(a)*52,n.y+Math.sin(a)*52);
+          finale.lineBetween(Math.cos(a)*8,Math.sin(a)*8,
+            Math.cos(a)*52,Math.sin(a)*52);
         }
         this.tweens.add({targets:finale,alpha:0,scale:1.2,duration:450,
           onComplete:()=>finale.destroy()});
