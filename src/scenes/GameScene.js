@@ -3701,7 +3701,7 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  showFinaleDefeat() {
+  showFinaleDefeat(reason='cannon') {
     this.tutorialComplete=true;
     this.gameOver=true;
     const next=continueResistanceAfterDefeat(
@@ -3715,10 +3715,10 @@ export class GameScene extends Phaser.Scene {
         color:canRetry?'#ffe3a0':'#ff9ca1',align:'center',
       }).setOrigin(0.5).setDepth(222);
     const caption=(this.finale.fullBrazil
-      ? ['A ÚLTIMA FROTA ALIENÍGENA ROMPEU AS DEFESAS.',
+      ? [reason==='timeout'?'O TEMPO ACABOU E A ÚLTIMA FROTA CONTINUOU ATIVA.':'A ÚLTIMA FROTA ALIENÍGENA ROMPEU AS DEFESAS.',
         'O BRASIL LUTOU SOZINHO.']
       : canRetry
-        ? ['A COALIZÃO QUEBROU AS DEFESAS.',
+        ? [reason==='timeout'?'O PRAZO ESGOTOU ANTES DE DERRUBAR A COALIZÃO.':'A COALIZÃO QUEBROU AS DEFESAS.',
           `RESISTÊNCIA BRASILEIRA: MELHORIA NÍVEL ${next.awardedLevel} DISPONÍVEL.`,
           'REINICIAR TODA A BATALHA CONTRA OS MESMOS CHEFES?']
         : ['OS RECURSOS DA RESISTÊNCIA SE ESGOTARAM.',
@@ -3744,13 +3744,15 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  showDefeat() {
+  showDefeat(reason='cannon') {
     if (this.tutorialComplete) return;
-    if (this.mode==='wave11') {this.showFinaleDefeat();return;}
+    if (this.mode==='wave11') {this.showFinaleDefeat(reason);return;}
     this.tutorialComplete = true;
     this.gameOver = true;
-    this.statusText.setText('CANHÃO DESTRUÍDO');
-    this.healthText.setText('CANHÃO 0 | ESCUDO 0 | DEFESA PERDIDA');
+    this.statusText.setText(reason==='timeout'?'TEMPO ESGOTADO':'CANHÃO DESTRUÍDO');
+    this.healthText.setText(reason==='timeout'
+      ? `CANHÃO ${Math.ceil(this.cannonHealth)} | FORTALEZA AINDA ATIVA`
+      : 'CANHÃO 0 | ESCUDO 0 | DEFESA PERDIDA');
     this.tutorialText.setText('');
 
     this.add.rectangle(W / 2, H / 2, W, H, 0x030714, 0.78)
@@ -3761,7 +3763,8 @@ export class GameScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '42px',
       color: '#ff9c8f', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(122);
-    this.add.text(W / 2, 221, 'O CANHÃO FOI DESTRUÍDO!', {
+    this.add.text(W / 2, 221,
+      reason==='timeout'?'A FORTALEZA-MÃE NÃO FOI DESTRUÍDA!':'O CANHÃO FOI DESTRUÍDO!', {
       fontFamily: 'monospace', fontSize: '17px', color: '#ecf3ff',
     }).setOrigin(0.5).setDepth(122);
     addMenuButton(this, {
@@ -3996,7 +3999,7 @@ export class GameScene extends Phaser.Scene {
     // A verificação vem ANTES das atualizações hostis do quadro final.
     if ((this.mode === 'wave10' || this.mode === 'wave11') &&
         this.elapsed >= this.waveDurationMs) {
-      this.showDefeat();
+      this.showDefeat('timeout');
       return;
     }
     if (/^wave[0-9]$/.test(this.mode) && this.elapsed >= WAVE_DURATION_MS) {
