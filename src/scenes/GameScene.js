@@ -2020,7 +2020,8 @@ export class GameScene extends Phaser.Scene {
           enemy.shotTimer = 0;
           this.fireEnemyProjectile(enemy);
         }
-        if (enemy.spawnTimer >= enemy.definition.spawnInterval/intensity) {
+        if (enemy.spawnTimer >= enemy.definition.spawnInterval*
+          (phaseProfile?.intervalMultiplier??1)) {
           enemy.spawnTimer = 0;
           const campaignMiniboss = ['wave8','wave9','wave10','wave11'].includes(this.mode);
           const liveMinions = campaignMiniboss
