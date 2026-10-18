@@ -11,7 +11,7 @@ export class V1PlaytestScene extends Phaser.Scene {
   init() {
     this.country = 'br';
     this.level = 2;
-    this.arenaIndex = 7; // Padrão anterior: onda 6. Última opção = arena livre.
+    this.arenaIndex = 6; // Padrão anterior: onda 6. Última opção = arena livre.
   }
   preload() { preloadRioBackdrop(this); }
   create() {
