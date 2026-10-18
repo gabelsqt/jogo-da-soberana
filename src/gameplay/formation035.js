@@ -122,8 +122,8 @@ export function swarmDancePosition(group, index, elapsed) {
   const minY=Math.min(...slots.map(p=>p.y));
   const maxY=Math.max(...slots.map(p=>p.y));
   // Limita o CENTRO, não as naves: preserva a dança e a formação.
-  const x=clamp(center.x,38-minX,960-38-maxX);
-  const y=clamp(center.y,42-minY,540-105-maxY);
+  const x=group.boundToScreen?clamp(center.x,38-minX,960-38-maxX):center.x;
+  const y=group.boundToScreen?clamp(center.y,42-minY,540-105-maxY):center.y;
   const slot=slots[index];
   return {x:x+slot.x,y:y+slot.y};
 }
@@ -162,8 +162,15 @@ export function tacticalManeuverPosition(group, index, elapsed) {
   const formA = {x:0,y:0};
   const formB = tacticalFormationOffset(group.finalFormation ?? 'triangle',index,group.count);
   // Em formação para toda a pausa, sem oscilação nem deslocamento.
-  return { x:cx+mix(formA.x,formB.x,eased),
-    y:cy+mix(formA.y,formB.y,eased) };
+  const offsets=Array.from({length:group.count},(_,i)=>tacticalFormationOffset(group.finalFormation??'triangle',i,group.count));
+  const minX=Math.min(...offsets.map(p=>p.x))*eased;
+  const maxX=Math.max(...offsets.map(p=>p.x))*eased;
+  const minY=Math.min(...offsets.map(p=>p.y))*eased;
+  const maxY=Math.max(...offsets.map(p=>p.y))*eased;
+  const safeX=group.boundToScreen?clamp(cx,38-minX,960-38-maxX):cx;
+  const safeY=group.boundToScreen?clamp(cy,42-minY,540-105-maxY):cy;
+  return {x:safeX+mix(formA.x,formB.x,eased),
+    y:safeY+mix(formA.y,formB.y,eased)};
 }
 
 export function tacticalAttackPosition(group, index, elapsed) {
