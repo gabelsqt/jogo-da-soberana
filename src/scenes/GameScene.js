@@ -1148,7 +1148,7 @@ export class GameScene extends Phaser.Scene {
 
   spawnV035Group(type, level, count, centerX = null) {
     const kind = type === 1 ? 'swarm' : 'tactical';
-    const center = centerX ?? Phaser.Math.Between(350, 610);
+    const center = this.portalLane(type,centerX);
     const group = {
       kind, count, centerX: center, target: null,
       duration: kind === 'swarm'
@@ -1261,40 +1261,65 @@ export class GameScene extends Phaser.Scene {
     this.spawnEnemy(event.type, { level, side: event.side });
   }
 
+  portalLane(type, requestedX=null) {
+    // Três corredores fixos por tipo: grupos de eventos diferentes reutilizam
+    // os mesmos pontos de origem em vez de abrir portais dispersos.
+    const lanes=[250,480,710];
+    const x=requestedX??lanes[Phaser.Math.Between(0,2)];
+    return lanes.reduce((best,lane)=>Math.abs(lane-x)<Math.abs(best-x)?lane:best,lanes[0]);
+  }
+
   showSpawnPortal(x,y,radius=34,count=1,onRelease=()=>{}) {
-    const portal=this.add.graphics().setDepth(17).setPosition(x,y);
-    const open=420,interval=260,close=400;
-    const duration=open+Math.max(1,count)*interval+close;
-    const born=this.time.now;
-    const render=()=>{
-      if(!portal.active)return;
-      const elapsed=this.time.now-born;
-      const t=elapsed<open ? elapsed/open :
-        elapsed>duration-close ? (duration-elapsed)/close : 1;
-      const scale=Math.max(0.01,Math.min(1,t));
-      const r=radius*scale;
-      portal.clear();
-      portal.fillStyle(0x53269a,0.28*scale);
-      portal.fillEllipse(0,0,r*2.2,r*1.6);
-      portal.lineStyle(5,0xa85aff,scale);
-      portal.strokeEllipse(0,0,r*2,r*1.4);
-      portal.lineStyle(2,0x6beaff,scale);
-      portal.strokeEllipse(0,0,r*1.6,r*1.1);
-      for(let k=0;k<8;k++){
-        const angle=k*Math.PI/4+elapsed*0.005;
-        portal.fillStyle(k%2?0xe0a0ff:0x70f6ff,scale);
-        portal.fillCircle(Math.cos(angle)*r,Math.sin(angle)*r*0.7,2.5*scale);
-      }
-    };
-    render();
-    const ticker=this.time.addEvent({delay:30,loop:true,callback:render});
-    for(let i=0;i<count;i++)this.time.delayedCall(open+i*interval,()=>onRelease(i));
-    this.time.delayedCall(duration,()=>{ticker.remove();portal.destroy();});
+    this.activeSpawnPortals??=new Map();
+    const key=`${Math.round(x)}:${Math.round(y)}`;
+    let entry=this.activeSpawnPortals.get(key);
+    if(!entry || !entry.graphics.active) {
+      entry={graphics:this.add.graphics().setDepth(17).setPosition(x,y),
+        born:this.time.now,lastRelease:this.time.now+420,queueEnd:this.time.now+420,
+        radius,closing:false};
+      this.activeSpawnPortals.set(key,entry);
+      const render=()=>{
+        if(!entry.graphics.active)return;
+        const now=this.time.now,age=now-entry.born;
+        const opening=Math.min(1,age/500);
+        const remaining=entry.lastRelease+2600-now;
+        const closing=Math.min(1,Math.max(0,remaining/600));
+        const scale=Math.max(0.001,Math.min(opening,closing));
+        const r=entry.radius*scale;
+        const g=entry.graphics;
+        g.clear();
+        g.fillStyle(0x53269a,0.28*scale);
+        g.fillEllipse(0,0,r*2.2,r*1.6);
+        g.lineStyle(5,0xa85aff,scale);
+        g.strokeEllipse(0,0,r*2,r*1.4);
+        g.lineStyle(2,0x6beaff,scale);
+        g.strokeEllipse(0,0,r*1.6,r*1.1);
+        for(let k=0;k<8;k++){
+          const angle=k*Math.PI/4+age*0.005;
+          g.fillStyle(k%2?0xe0a0ff:0x70f6ff,scale);
+          g.fillCircle(Math.cos(angle)*r,Math.sin(angle)*r*0.7,2.5*scale);
+        }
+        if(remaining<=0){
+          entry.ticker.remove();
+          g.destroy();
+          if(this.activeSpawnPortals.get(key)===entry)this.activeSpawnPortals.delete(key);
+        }
+      };
+      entry.ticker=this.time.addEvent({delay:30,loop:true,callback:render});
+    }
+    entry.radius=Math.max(entry.radius,radius);
+    const first=Math.max(this.time.now+120,entry.queueEnd,entry.born+500);
+    for(let i=0;i<count;i++){
+      const releaseAt=first+i*320;
+      this.time.delayedCall(releaseAt-this.time.now,()=>onRelease(i));
+    }
+    entry.lastRelease=first+(count-1)*320;
+    entry.queueEnd=entry.lastRelease+320;
   }
 
   spawnEnemy(type, options = {}) {
     if(!options.portalReleased && !options.skipPortal) {
-      const portalX=options.x ?? options.center ?? W/2;
+      const portalX=this.portalLane(type,options.x ?? options.center);
       const portalY=type===1?68:type===2?125:type===3?100:type===5?110:145;
       this.showSpawnPortal(portalX,portalY,type===5?70:38,1,()=>{
         this.spawnEnemy(type,{...options,portalReleased:true,
