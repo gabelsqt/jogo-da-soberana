@@ -1,3 +1,4 @@
+import { bindSceneMusic } from '../audio/music.js';
 import Phaser from 'phaser';
 import {
   GAME_WIDTH as W, GAME_HEIGHT as H,
@@ -62,6 +63,7 @@ export class UpgradeScene extends Phaser.Scene {
   preload() { preloadRioBackdrop(this); }
 
   create() {
+    bindSceneMusic(this, 'upgrades');
     // O cenário do Rio permanece carregado para o jogo; a cena de reunião
     // usa um ambiente próprio sem reutilizar o campo de batalha.
     drawMeetingRoom(this);

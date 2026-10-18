@@ -1,3 +1,4 @@
+import { bindSceneMusic } from '../audio/music.js';
 import Phaser from 'phaser';
 import { GAME_WIDTH as W, GAME_HEIGHT as H, preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import { FIRST_UPGRADES } from '../gameplay/upgrades.js';
@@ -15,6 +16,7 @@ export class V1PlaytestScene extends Phaser.Scene {
   }
   preload() { preloadRioBackdrop(this); }
   create() {
+    bindSceneMusic(this, 'setup');
     drawRioBackdrop(this);
     this.add.rectangle(W / 2, H / 2, W, H, 0x051021, 0.93).setDepth(30);
     this.add.text(W / 2, 50, 'PLAYTEST — UPGRADES E FINAIS', {

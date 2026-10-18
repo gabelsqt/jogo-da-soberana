@@ -1,3 +1,4 @@
+import { addMusicControls } from '../audio/music.js';
 import Phaser from 'phaser';
 import { GAME_WIDTH as W, GAME_HEIGHT as H } from '../config/scenery.js';
 import { addMenuButton } from '../ui/menuButton.js';
@@ -8,6 +9,7 @@ export class PauseScene extends Phaser.Scene {
   }
 
   create() {
+    addMusicControls(this, 425);
     // O jogo permanece desenhado abaixo, mas sua Scene está pausada.
     this.add.rectangle(W / 2, H / 2, W, H, 0x030916, 0.78)
       .setInteractive();

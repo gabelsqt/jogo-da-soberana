@@ -1,3 +1,4 @@
+import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
 import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame, firePulseRadius } from '../gameplay/arraialBrasil2.js';
 import {
@@ -275,6 +276,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
+    this.music = bindSceneMusic(this, waveMusic(this.mode, this.campaign));
     this.input.mouse?.disableContextMenu();
 
     drawRioBackdrop(this);
@@ -631,6 +633,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   showFinalePrelude() {
+    this.music.play('news', { loop: false });
     this.countdownActive=true;
     const info=finalePrelude(this.campaign);
     const panel=this.add.rectangle(W/2,H/2,W,H,0x071021,0.96)
@@ -652,6 +655,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   startWaveCountdown() {
+    if (this.mode === 'wave0' && !this.v1Playtest) this.music.play('news', { loop: false });
+    else this.music.play(waveMusic(this.mode, this.campaign));
     // Os timers e a dificuldade da onda só começam depois do 3, 2, 1.
     // São relógios do próprio Phaser: pausar congela também a contagem.
     this.countdownActive = true;
@@ -679,6 +684,7 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(WAVE_COUNTDOWN_SECONDS * 1000, () => {
       countdownItems.forEach((object) => object.destroy());
       this.countdownActive = false;
+      this.music.play(waveMusic(this.mode, this.campaign));
       this.elapsed = 0;
       // A carga só começa quando a defesa fica liberada para lutar.
       for (const tower of this.supportTowers) tower.lastAttackAt = this.time.now;
@@ -4032,6 +4038,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   showFinaleDefeat(reason='cannon') {
+    this.music.stop();
     this.tutorialComplete=true;
     this.gameOver=true;
     const next=continueResistanceAfterDefeat(
@@ -4076,6 +4083,7 @@ export class GameScene extends Phaser.Scene {
 
   showDefeat(reason='cannon') {
     if (this.tutorialComplete) return;
+    this.music.stop();
     if (this.mode==='wave11') {this.showFinaleDefeat(reason);return;}
     this.tutorialComplete = true;
     this.gameOver = true;
@@ -4113,6 +4121,7 @@ export class GameScene extends Phaser.Scene {
 
   showWaveComplete(outcome = 'cleared') {
     if (this.tutorialComplete) return;
+    this.music.stop();
     this.tutorialComplete = true;
 
     if (this.mode === 'wave11') {

@@ -1,3 +1,4 @@
+import { bindSceneMusic, addMusicControls } from '../audio/music.js';
 import Phaser from 'phaser';
 import {
   GAME_WIDTH as W,
@@ -18,7 +19,9 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create() {
+    bindSceneMusic(this, 'menu');
     drawRioBackdrop(this);
+    addMusicControls(this, 385);
 
     // Mantém o céu e a cidade visíveis, com contraste para o título.
     this.add.rectangle(W / 2, H / 2, W, H, 0x020712, 0.45).setDepth(20);
