@@ -128,19 +128,22 @@ export function tacticalFormationOffset(formation, index, count) {
   return { x: i * 43, y: 0 };
 }
 
+// Tipo 2: duas voltas no céu, desaceleração e parada em coluna antes da descida.
 export function tacticalManeuverPosition(group, index, elapsed) {
-  const t = clamp(elapsed / group.duration, 0, 1);
-  const segment = Math.min(2, Math.floor(t * 3));
-  const blend = clamp(t * 3 - segment, 0, 1);
-  const smooth = blend * blend * (3 - 2 * blend);
-  const formA = tacticalFormationOffset(TACTICAL_FORMATIONS[segment], index, group.count);
-  const formB = tacticalFormationOffset(
-    TACTICAL_FORMATIONS[Math.min(2, segment + 1)], index, group.count);
-  return {
-    x: group.centerX + Math.sin(t * Math.PI * 1.8) * 78
-      + mix(formA.x, formB.x, smooth),
-    y: mix(-48, 164, t) + mix(formA.y, formB.y, smooth),
-  };
+  const hold = group.holdDuration ?? 1.5;
+  const moveDuration = Math.max(0.5, group.duration - hold);
+  const t = clamp(elapsed / moveDuration, 0, 1);
+  const eased = t * t * (3 - 2 * t);
+  const angle = Math.PI * 4 * eased;
+  const orbitRadius = 60;
+  // Centro retorna à posição inicial ao completar duas voltas.
+  const cx = group.centerX + orbitRadius * Math.sin(angle);
+  const cy = 126 - orbitRadius * (1 - Math.cos(angle)) * 0.55;
+  const formA = tacticalFormationOffset('v',index,group.count);
+  const formB = tacticalFormationOffset('column',index,group.count);
+  // Em formação para toda a pausa, sem oscilação nem deslocamento.
+  return { x:cx+mix(formA.x,formB.x,eased),
+    y:cy+mix(formA.y,formB.y,eased) };
 }
 
 export function tacticalAttackPosition(group, index, elapsed) {
