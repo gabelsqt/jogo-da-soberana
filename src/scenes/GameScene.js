@@ -1776,8 +1776,10 @@ export class GameScene extends Phaser.Scene {
 
     if (enemy.box) {
       enemy.box.setFillStyle(reaction.flash ? 0xffffff : enemy.definition.color);
+    } else if (enemy.type === 2) {
+      // Phaser Container não implementa setTintFill/setTint/clearTint.
+      enemy.sprite.setAlpha(reaction.flash ? 0.65 : 1);
     } else if (reaction.flash) {
-      // O modo fill torna o PIXEL ART inteiramente branco por poucos frames.
       enemy.sprite.setTintFill(0xffffff);
     } else if (enemy.level > 1) {
       enemy.sprite.setTint(enemy.definition.tintColor);
@@ -1877,6 +1879,7 @@ export class GameScene extends Phaser.Scene {
     } else {
       enemy.lastHitAt = this.time.now;
       if (enemy.box) enemy.box.setFillStyle(0xffffff);
+      else if (enemy.type === 2) enemy.sprite.setAlpha(0.65);
       else enemy.sprite.setTintFill(0xffffff);
       if (enemy.phase === 'dive' && knockback > 0) {
         enemy.recoilSpeed = applyRecoilImpulse(enemy.recoilSpeed, knockback, maxRecoil);
