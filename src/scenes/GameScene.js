@@ -52,7 +52,14 @@ import { addMenuButton } from '../ui/menuButton.js';
 import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
 import { resolveFinalOpponent, finalePrelude, FINALE_COUNTRIES } from '../gameplay/campaignFinale.js';
-import { hostileBosses, continueResistanceAfterDefeat } from '../gameplay/wave11Rules.js';
+import { hostileBosses, pickBetrayer, continueResistanceAfterDefeat } from '../gameplay/wave11Rules.js';
+import {
+  spawnType6Encounter, updateType6Encounter, hitType6At, hitType6Segment,
+  hitType6Bullet, defeatType6, type6NextDeadline,
+} from '../gameplay/type6Encounter.js';
+import {
+  type6AliveModules, type6PointTarget, type6AreaTargets, type6TargetRects,
+} from '../gameplay/type6Boss.js';
 import { finaleBossHp, finaleBossFirePattern, finaleCounterattack } from '../gameplay/finaleBalance.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import {
@@ -123,9 +130,11 @@ export class GameScene extends Phaser.Scene {
     this.brazilResistanceLevels=Array.isArray(data.brazilResistanceLevels)
       ? [...new Set(data.brazilResistanceLevels.filter(level=>
         Number.isInteger(level)&&level>=1&&level<=10))].sort((a,b)=>a-b):[];
-    this.finale=this.mode==='wave11'?resolveFinalOpponent(this.campaign):null;
-    this.finaleBossesNeeded=this.mode==='wave11'
-      ? Math.max(1,hostileBosses(this.campaign.choices).length):0;
+    this.selectedBetrayer=this.mode==='wave11'
+      ? (data.selectedBetrayer || pickBetrayer(this.campaign.choices)) : null;
+    this.finaleCampaign={...this.campaign,selectedBetrayer:this.selectedBetrayer};
+    this.finale=this.mode==='wave11'?resolveFinalOpponent(this.finaleCampaign):null;
+    this.finaleBossesNeeded=this.mode==='wave11'?1:0;
     this.finaleBossesKilled=0;
     this.supremeFinishing=false;
     const survivors=this.mode==='wave11'
@@ -187,7 +196,8 @@ export class GameScene extends Phaser.Scene {
       };
     }
     return { mode: this.mode, campaign: normalizeCampaignState(this.campaign),
-      brazilResistanceLevels:[...this.brazilResistanceLevels] };
+      brazilResistanceLevels:[...this.brazilResistanceLevels],
+      selectedBetrayer:this.selectedBetrayer };
   }
 
   refreshLabStats() {
@@ -357,7 +367,8 @@ export class GameScene extends Phaser.Scene {
     this.eventsSpawned = 0;
     // v0.35: a campanha usa grupos reais, com progressão dentro de cada noite.
     // Laboratórios e a agenda legada continuam acessíveis independentemente.
-    this.waveEvents = getV035WaveEvents(this.mode, getWaveEvents(this.mode,this.campaign));
+    this.waveEvents = getV035WaveEvents(this.mode,
+      getWaveEvents(this.mode,this.finaleCampaign));
     this.lastBasicFire = -this.combat.basicInterval;
     this.heatStartedAt = null;
     this.ultimateUsed = false;
@@ -375,6 +386,9 @@ export class GameScene extends Phaser.Scene {
     this.shieldReflectCount = 0;
     this.tutorialComplete = false;
     this.gameOver = false;
+    this.boss6Victory=false;
+    this.boss6DoomFired=false;
+    this.boss6WarningText=null;
     this.cannonHealth = 100;
     this.shieldMax = 80 + (this.thirdIds.length + this.fourthIds.length) * 8 + (this.isV1Campaign ? this.combat.shieldBonus : 0);
     this.shield = this.shieldMax;
@@ -655,7 +669,7 @@ export class GameScene extends Phaser.Scene {
   showFinalePrelude() {
     this.music.play('news', { loop: false });
     this.countdownActive=true;
-    const info=finalePrelude(this.campaign);
+    const info=finalePrelude(this.finaleCampaign);
     const panel=this.add.rectangle(W/2,H/2,W,H,0x071021,0.96)
       .setInteractive().setDepth(210);
     const title=this.add.text(W/2,87,info.title,{
@@ -1475,6 +1489,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   spawnEnemy(type, options = {}) {
+    if(type===6){
+      let hp;
+      if(this.mode==='wave10')hp=finaleBossHp('wave10',this.combat);
+      else {
+        const originalStats=v1CombatStats({choices:this.campaign.choices.filter(id=>
+          id!==this.selectedBetrayer)});
+        hp=finaleBossHp('wave11',originalStats,1);
+      }
+      return spawnType6Encounter(this,{...options,hp});
+    }
     if(!options.portalReleased && !options.skipPortal) {
       const portalX=this.portalLane(type,options.x ?? options.center);
       const portalY=type===1?68:type===2?125:type===3?100:type===5?110:145;
@@ -1786,6 +1810,10 @@ export class GameScene extends Phaser.Scene {
     this.frostGraphics.clear();
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        updateType6Encounter(this,enemy,dt);
+        continue;
+      }
       // Desfaz o deslocamento visual anterior para não interferir no percurso
       // calculado pela nave (incluindo curvas, voos rasantes e órbitas).
       const previousShock = enemy.shockOffset;
@@ -2299,6 +2327,15 @@ export class GameScene extends Phaser.Scene {
     const graphics = this.enemyHealthGraphics;
     graphics.clear();
     for (const enemy of this.enemies) {
+      if(enemy.type===6){
+        if(!enemy.type6.coreExposed)continue;
+        const width=234,x=enemy.sprite.x-width/2,y=enemy.sprite.y+72;
+        const fraction=Math.max(0,enemy.type6.coreHp/enemy.type6.coreMaxHp);
+        graphics.fillStyle(0x091019,0.95).fillRect(x-3,y-3,width+6,16);
+        graphics.fillStyle(0xf66c75,0.96).fillRect(x,y,width*fraction,10);
+        graphics.lineStyle(2,0xffffff,0.9).strokeRect(x-3,y-3,width+6,16);
+        continue;
+      }
       if (enemy.maxHp <= 1) continue;
       const width=enemy.finalBoss?175:
         Phaser.Math.Clamp(enemy.definition.width + 2,33,110);
@@ -2458,6 +2495,13 @@ export class GameScene extends Phaser.Scene {
     showNumber = true, maxRecoil = 400) {
     const enemy = this.enemies[index];
     if (!enemy) return false;
+    if(enemy.type===6){
+      if(damage>=100000){defeatType6(this,enemy);return true;}
+      const first=type6AliveModules(enemy.type6)[0];
+      const hitX=enemy.sprite.x+(first?.offsetX??0);
+      const hitY=enemy.sprite.y;
+      return hitType6At(this,enemy,hitX,hitY,damage,0,true).defeated;
+    }
     if (showNumber) this.popHitNumber(enemy.sprite.x, enemy.sprite.y, damage, hitColor);
     enemy.hp -= damage;
     if(enemy.finalBoss && enemy.hp>0){
@@ -4117,7 +4161,7 @@ export class GameScene extends Phaser.Scene {
     this.tutorialComplete=true;
     this.gameOver=true;
     const next=continueResistanceAfterDefeat(
-      this.campaign.choices,this.brazilResistanceLevels);
+      this.campaign.choices,this.brazilResistanceLevels,this.selectedBetrayer);
     const canRetry=!this.finale.fullBrazil&&next.outcome==='retry';
     this.add.rectangle(W/2,H/2,W,H,0x070c1c,0.90)
       .setInteractive().setDepth(220);
@@ -4144,14 +4188,14 @@ export class GameScene extends Phaser.Scene {
       text:`▶ RESISTIR — BRASIL NÍVEL ${next.awardedLevel}`,
       primary:true,depth:225,onClick:()=>this.scene.start('GameScene',{
         mode:'wave11',campaign:this.campaign,
-        brazilResistanceLevels:next.awardedLevels,
+        brazilResistanceLevels:next.awardedLevels,selectedBetrayer:this.selectedBetrayer,
       }),
     });
     addMenuButton(this,{
       x:W/2,y:canRetry?431:371,width:390,height:46,
       text:canRetry?'ACEITAR DERROTA / VER FINAL':'VER FINAL DA DERROTA',
       depth:225,onClick:()=>this.scene.start('EndingScene',{
-        campaign:this.campaign,won:false,
+        campaign:this.finaleCampaign,won:false,
       }),
     });
   }
@@ -4231,7 +4275,7 @@ export class GameScene extends Phaser.Scene {
       this.statusText.setText('CONFRONTO FINAL VENCIDO — BRASIL SOBERANO!');
       this.tutorialText.setText('');
       this.time.delayedCall(1250,()=>this.scene.start('EndingScene',{
-        campaign:this.campaign,won:true,
+        campaign:this.finaleCampaign,won:true,
       }));
       return;
     }
@@ -4434,6 +4478,7 @@ export class GameScene extends Phaser.Scene {
     this.crtOverlay?.update(this.time.now);
     const pointer = this.input.activePointer;
     this.drawSpecialAim(pointer);
+    if(this.boss6Victory)return;
     if (this.tutorialComplete) {
       if (!this.gameOver) this.updateBlasts();
       return;
@@ -4451,10 +4496,13 @@ export class GameScene extends Phaser.Scene {
     }
     // À meia-noite de 30 segundos, sobreviver basta — mesmo com inimigos vivos.
     // A verificação vem ANTES das atualizações hostis do quadro final.
-    if ((this.mode === 'wave10' || this.mode === 'wave11') &&
-        this.elapsed >= this.waveDurationMs) {
-      this.showDefeat('timeout');
-      return;
+    if(this.mode==='wave10'||this.mode==='wave11'){
+      type6NextDeadline(this);
+      if(this.boss6DoomFired)return;
+      if(this.elapsed>=this.waveDurationMs){
+        this.showDefeat('timeout');
+        return;
+      }
     }
     if (/^wave[0-9]$/.test(this.mode) && this.elapsed >= WAVE_DURATION_MS) {
       this.showWaveComplete('survived');
