@@ -58,10 +58,10 @@ test('spread chinês permanece simétrico em torno da alternância brasileira', 
 test('os efeitos visuais RU e CN coexistem em builds multinacionais', () => {
   const base = shotVfxFor([]);
   assert.deepEqual(base, {
-    heavy: false, multiple: false, improvised: false, fragments: false, recoil: 2,
+    heavy: false, cryogenic: false, multiple: false, improvised: false, fragments: false, recoil: 2,
   });
   const ru = shotVfxFor(['ru']);
-  assert.equal(ru.heavy, true);
+  assert.equal(ru.heavy, true);\n  assert.equal(ru.cryogenic, true);
   assert.equal(ru.multiple, false);
   assert.equal(ru.recoil, 8);
 
@@ -72,7 +72,7 @@ test('os efeitos visuais RU e CN coexistem em builds multinacionais', () => {
 
   const all = shotVfxFor(['br', 'us', 'jp', 'ru', 'cn']);
   assert.deepEqual(all, {
-    heavy: true, multiple: true, improvised: true, fragments: true, recoil: 8,
+    heavy: true, cryogenic: true, multiple: true, improvised: true, fragments: true, recoil: 8,
   });
 
   const stats = combatStatsForLoadout(['br', 'us', 'jp', 'ru', 'cn']);
