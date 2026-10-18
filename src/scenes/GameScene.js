@@ -2407,53 +2407,65 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(300);
   }
 
-  // Apenas uma suprema por partida é possível: 9 das 10 escolhas seriam do mesmo país.
+  // Storyboards temporários: painéis estáticos, substituíveis por arte final.
+  supremeStoryboard(country) {
+    return {
+      br:[['CORCOVADO','O CRISTO REDENTOR DESPERTA'],['DECOLAGEM','BRAÇOS ABERTOS. PROPULSORES ACESOS.'],['CÉU DO RIO','O CRISTO ATRAVESSA A FROTA'],['COPACABANA','FOGOS DE ARTIFÍCIO POR TODA PARTE'],['CORCOVADO','FELIZ ANO NOVO!']],
+      us:[['ESQUADRÃO','FREEDOM IS COMING'],['BOMBARDEIRO LÍDER','O COMPARTIMENTO SE ABRE'],['CARGA ESPECIAL','UM MÍSSIL MAIOR QUE O AVIÃO'],['IMPACTO','ORÇAMENTO: CLASSIFICADO'],['MISSÃO CUMPRIDA','DEMOCRACIA ENTREGUE COM SUCESSO™']],
+      ru:[['RIO DE JANEIRO','CANHÃO RECOLHIDO'],['CORTINA DE FERRO','CÚPULA PROTEGE TODA A CIDADE'],['ÓRBITA','SATÉLITE SOVIÉTICO EM POSIÇÃO'],['DISPARO ORBITAL','LASER VERMELHO VARRE O CÉU'],['RIO DE JANEIRO','CÚPULA RECOLHIDA. CIDADE SEGURA.']],
+      cn:[['ENCOMENDA','UM PEQUENO DRONE NO ESPAÇO'],['ZOOM OUT','O DRONE É MAIOR QUE A TERRA'],['ENTREGA EXPRESSA','CONTÊINER SOBRE O RIO'],['ABERTURA','MILHARES DE DRONES SAEM DA CAIXA'],['CONFIRMAÇÃO','PEDIDO ENTREGUE COM SUCESSO!']],
+      kr:[['RIO DE JANEIRO','PALCO SURGE NO CAMPO DE BATALHA'],['CLOSE','KIM LIN DOO — AO VIVO NO RIO'],['REFRÃO','LASERS SEGUEM A COREOGRAFIA'],['ENCORE','A FROTA ALIENÍGENA DESAPARECE'],['FINGER HEART','TURNÊ INTERGALÁCTICA CANCELADA']],
+      jp:[['RIO DE JANEIRO','PALCO SURGE NO CAMPO DE BATALHA'],['CLOSE','KIM LIN DOO — AO VIVO NO RIO'],['REFRÃO','LASERS SEGUEM A COREOGRAFIA'],['ENCORE','A FROTA ALIENÍGENA DESAPARECE'],['FINGER HEART','TURNÊ INTERGALÁCTICA CANCELADA']],
+    }[country] || [];
+  }
+
   activateUltimate() {
     if (!this.isV1Campaign || this.tutorialComplete || this.countdownActive ||
       this.ultimateUsed || !this.combat.ultimate) return false;
     const country=this.combat.ultimate;
-    const config=V1_SUPREMES[country];
-    if (!config) return false;
+    const frames=this.supremeStoryboard(country);
+    if (!frames.length) return false;
     this.ultimateUsed=true;
-    this.supremeCinematic = true;
-    this.time.delayedCall(3200,()=>{this.supremeCinematic=false;});
-    this.cameras.main.shake(430,0.004);
-    this.showAttackWarning(config.title.toUpperCase()+' — SUPREMA!');
-    const p=this.input.activePointer;
-    const target=specialTargetPoint(CANNON.x,CANNON.y,p.x,p.y);
-    if(config.scope==='beam') {
-      const endX=CANNON.x+Math.cos(target.angle)*1300;
-      const endY=CANNON.y+Math.sin(target.angle)*1300;
-      const beam=this.add.graphics().setDepth(83);
-      beam.lineStyle(55,config.color,0.23);
-      beam.lineBetween(CANNON.x,CANNON.y,endX,endY);
-      beam.lineStyle(14,0xfff6fd,0.95);
-      beam.lineBetween(CANNON.x,CANNON.y,endX,endY);
+    this.supremeCinematic=true;
+    this.supremeSlideIndex=0;
+    const color=V1_SUPREMES[country]?.color || 0xffffff;
+    const backdrop=this.add.rectangle(W/2,H/2,W,H,0x080e1c,1).setDepth(500);
+    const border=this.add.rectangle(W/2,H/2,W-90,H-90,color,0.13)
+      .setStrokeStyle(5,color).setDepth(501);
+    const heading=this.add.text(W/2,H*0.27,'',{
+      fontFamily:'monospace',fontSize:'36px',fontStyle:'bold',color:'#ffffff',align:'center'
+    }).setOrigin(0.5).setDepth(502);
+    const symbol=this.add.text(W/2,H*0.48,'★',{
+      fontFamily:'monospace',fontSize:'92px',color:'#ffffff'
+    }).setOrigin(0.5).setDepth(502);
+    const caption=this.add.text(W/2,H*0.69,'',{
+      fontFamily:'monospace',fontSize:'21px',fontStyle:'bold',color:'#ffe5a0',
+      align:'center',wordWrap:{width:W-150}
+    }).setOrigin(0.5).setDepth(502);
+    const counter=this.add.text(W/2,H*0.83,'',{
+      fontFamily:'monospace',fontSize:'13px',color:'#c4cbd7'
+    }).setOrigin(0.5).setDepth(502);
+    const objects=[backdrop,border,heading,symbol,caption,counter];
+    const show=(index)=>{
+      if(!this.scene.isActive('GameScene') || !this.supremeCinematic)return;
+      const [title,description]=frames[index];
+      heading.setText(title);
+      caption.setText(description);
+      symbol.setText(['★','◆','✦','✷','★'][index%5]);
+      counter.setText(`SUPREMO — QUADRO ${index+1}/${frames.length} — PLACEHOLDER`);
+      border.setFillStyle(color,index%2===0?0.13:0.24);
+    };
+    show(0);
+    frames.slice(1).forEach((_,i)=>this.time.delayedCall((i+1)*1350,()=>show(i+1)));
+    this.time.delayedCall(frames.length*1350,()=>{
+      objects.forEach(object=>object.destroy());
+      if(!this.scene.isActive('GameScene'))return;
+      // A suprema elimina toda a frota restante, independentemente do HP.
       for(let i=this.enemies.length-1;i>=0;i--){
-        const e=this.enemies[i];
-        if(laserHitsTarget(CANNON.x,CANNON.y,endX,endY,
-            e.sprite.x,e.sprite.y,28,enemyContactRadius(e.type))) {
-          this.impactInvader(i,32,0,'#f8baff');
-        }
+        this.impactInvader(i,1000000,0,'#ffffff');
       }
-      this.tweens.add({targets:beam,alpha:0,duration:760,onComplete:()=>beam.destroy()});
-    } else {
-      const points=config.scope==='sky'
-        ? [[125,105],[300,165],[500,100],[685,205],[840,125],
-           [175,300],[390,265],[575,345],[780,310]]
-        : [[0,0],[-74,10],[64,-42],[32,75],[-38,-76]];
-      for(let i=0;i<Math.min(MAX_COSMETIC_PARTICLES,points.length);i++){
-        const [px,py]=points[i];
-        const x=config.scope==='sky'?px:Phaser.Math.Clamp(target.x+px,70,W-70);
-        const y=config.scope==='sky'?py:Phaser.Math.Clamp(target.y+py,65,H-115);
-        this.time.delayedCall(i*85,()=>{
-          if(!this.tutorialComplete)this.pulseV1Area(x,y,
-            country==='ru'?128:country==='us'?112:125,
-            country==='ru'?12:country==='us'?11:8,
-            config.color,country==='ru');
-        });
-      }
-    }
+      this.supremeCinematic=false;
+    });
     return true;
   }
 
@@ -3409,9 +3421,9 @@ export class GameScene extends Phaser.Scene {
     }
     // Sem disparos, movimentação ou cronômetro de onda antes do "1".
     if (this.countdownActive) return;
-    const dt = Math.min(delta / 1000, 0.05);
+    if (this.supremeCinematic) return;
     if (this.supremeTyping) delta *= 0.1;
-    if (this.supremeCinematic) delta = 0;
+    const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += delta;
     if (this.sunriseOverlay) {
       const sunrise = Math.max(0, 1 - (WAVE_DURATION_MS - this.elapsed) / 5000);
