@@ -33,7 +33,7 @@ test('BR: pulsos brilham em escudos ativos e cessam se a resistência acaba', ()
   }
   assert.notEqual(fenceGlowAt(0), fenceGlowAt(150));
 
-  const drawShield = block('  drawShield() {', '  showDefeat() {');
+  const drawShield = block('  drawShield() {', '  showFinaleDefeat(');
   assert.match(drawShield, /if \(shield <= 0\) return/);
   assert.match(drawShield, /if \(this\.combat\.electricFence\)/);
   assert.match(drawShield, /fenceGlowAt\(this\.time\.now, fraction\)/);
@@ -74,7 +74,7 @@ test('Coreia: fenda existente pulsa nas bordas sem alterar largura e duração f
   assert.match(method, /vacuumRiftAppearance\(age\)/);
   assert.match(method, /encoreRimGlowAt\(age\)/);
   assert.match(method, /Pequenos reflexos nas extremidades/);
-  assert.match(source, /if \(this\.combat\.residualSlash\)/);
+  assert.match(source, /if \(this\.combat\.residualSlash && drawFlash\)/);
 });
 
 test('Rússia: reflexos de choque crescem perto do solo sem alterar o knockback', () => {
