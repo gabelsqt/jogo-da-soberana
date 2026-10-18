@@ -96,3 +96,21 @@ test('Phaser registra tela de epílogo e caminhos após as duas ondas',()=>{
   assert.match(game,/showFinaleDefeat/);
   assert.match(game,/finaleBossesKilled/);
 });
+
+test('escoltas chegam cedo nas duas ondas finais e todo evento preserva o prazo',()=>{
+  for(const mode of ['wave10','wave11']){
+    const events=getFinalWaveEvents(mode,pure);
+    assert.ok(events.length>=11,mode);
+    assert.ok(events.some(e=>e.type===2 && e.at<=6500),mode);
+    assert.ok(events.some(e=>e.type===4 && e.at<=10000),mode);
+    assert.ok(events.some(e=>e.type===3 && e.at<=10000),mode);
+    assert.ok(events.every(e=>e.at<60000));
+    assert.ok(events.every(e=>e.level>=9));
+    assert.equal(events.filter(e=>e.finalBoss).length,1);
+  }
+  const coalition=getFinalWaveEvents('wave11',
+    state(['us','jp','ru','cn','us','jp','ru','cn','br','br']));
+  assert.equal(coalition.filter(e=>e.finalBoss).length,4);
+  assert.equal(coalition.filter(e=>!e.finalBoss).length,
+    getFinalWaveEvents('wave11',pure).filter(e=>!e.finalBoss).length);
+});
