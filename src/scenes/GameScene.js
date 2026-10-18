@@ -1117,7 +1117,7 @@ export class GameScene extends Phaser.Scene {
       thruster.fillStyle(0xffbb5e,0.9).fillTriangle(-4,14,0,20,4,14);
       sprite.add([thruster,hull]);
       sprite.setData('thruster',thruster);
-      if(level>1) hull.setTint(definition.tintColor);
+      // Níveis reforçados serão diferenciados na futura sprite sheet.
       return {sprite,box:null};
     }
     const sprite = this.add.container(x, y).setDepth(19);
