@@ -1853,12 +1853,59 @@ export class GameScene extends Phaser.Scene {
       if (Phaser.Math.Distance.Between(
         shot.sprite.x, shot.sprite.y, shot.target.x, shot.target.y,
       ) < 14) {
+        const reflected=this.reflectV1ShieldProjectile(shot);
         this.removeEnemyBullet(i);
-        this.damageTarget(shot.target, ENEMY_BULLET_DAMAGE);
+        if(!reflected)this.damageTarget(shot.target, ENEMY_BULLET_DAMAGE);
         if (this.gameOver) return;
       } else if (shot.sprite.y > H + 30 || shot.sprite.x < -30 || shot.sprite.x > W + 30) {
         this.removeEnemyBullet(i);
       }
+    }
+  }
+
+  reflectV1ShieldProjectile(shot) {
+    if(!this.isV1Campaign || !this.specialBuild?.stages.jp ||
+      this.shield<=0 || shot.target?.kind==='tower')return false;
+    this.shieldReflectCount++;
+    if(((this.shieldReflectCount*37)%100)/100 >= this.specialBuild.krShieldChance)return false;
+    // O painel reflete parte do disparo; usa o HP existente do escudo.
+    this.lastDamageAt=this.time.now;
+    this.shield=Math.max(0,this.shield-7);
+    const enemy=this.enemies.reduce((best,e)=>!best ||
+      Math.hypot(e.sprite.x-CANNON.x,e.sprite.y-CANNON.y) <
+      Math.hypot(best.sprite.x-CANNON.x,best.sprite.y-CANNON.y)?e:best,null);
+    if(enemy) {
+      const line=this.add.graphics().setDepth(55);
+      line.lineStyle(4,0xebadff,0.9);
+      line.lineBetween(shot.sprite.x,shot.sprite.y,enemy.sprite.x,enemy.sprite.y);
+      this.tweens.add({targets:line,alpha:0,duration:220,onComplete:()=>line.destroy()});
+      const idx=this.enemies.findIndex(e=>e.uid===enemy.uid);
+      if(idx>=0)this.impactInvader(idx,this.specialBuild.krReflectDamage,0,'#f1c4ff',false);
+    }
+    this.reactV1ShieldImpact();
+    return true;
+  }
+
+  reactV1ShieldImpact() {
+    if(!this.isV1Campaign || this.shield<=0 || !this.specialBuild ||
+      this.time.now-this.lastV1ShieldPulse<420)return;
+    this.lastV1ShieldPulse=this.time.now;
+    const build=this.specialBuild;
+    if(build.stages.us) {
+      // Antenas americanas: pulso só empurra; não aplica dano.
+      const radius=70+build.stages.us*15;
+      this.drawV1SpecialPulse(CANNON.x,CANNON.y-25,radius,0xffac67);
+      this.pushV1EnemiesUp(CANNON.x,CANNON.y-25,radius,build.usPush);
+    }
+    if(build.stages.ru) {
+      // Armadura Siberiana: fragmentos apenas congelam, sem causar dano.
+      for(const enemy of this.enemies) {
+        if(Math.hypot(enemy.sprite.x-CANNON.x,enemy.sprite.y-CANNON.y) <
+          build.ruShieldRadius+enemyContactRadius(enemy.type))
+          enemy.frozenUntil=Math.max(enemy.frozenUntil||0,
+            this.elapsed+build.ruShieldFreezeMs);
+      }
+      this.drawV1SpecialPulse(CANNON.x,CANNON.y-10,build.ruShieldRadius,0x8de7ff);
     }
   }
 
@@ -3266,6 +3313,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   damageCannon(amount) {
+    if(this.isV1Campaign && this.shield>0)this.reactV1ShieldImpact();
     this.lastDamageAt = this.time.now;
     if (this.mode === 'upgradeLab' || this.mode === 'lab') {
       // Laboratórios: escudo ainda pode sofrer dano, mas o teste não termina.
