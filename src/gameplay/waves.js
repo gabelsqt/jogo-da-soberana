@@ -58,13 +58,19 @@ export const MODES = {
 export function getFinalWaveEvents(mode, state = {}) {
   if(mode==='wave10')return [
     {at:1250,type:5,level:9,finalBoss:true,warning:'FORTALEZA-MÃE DETECTADA!'},
-    {at:7500,type:2,level:9,group:true,count:3},
-    {at:14000,type:1,level:9,pattern:'spread',count:5},
-    {at:20500,type:3,level:9,warning:'A FORTALEZA ENVIA BOMBARDEIROS!'},
-    {at:27000,type:2,level:9,pattern:'orbit',count:5},
-    {at:33000,type:4,level:9,pattern:'pincer'},
-    {at:39000,type:1,level:9,pattern:'line',count:6,
-      warning:'ÚLTIMOS REFORÇOS ALIENÍGENAS!'},
+    // Antes o primeiro reforço chegava só aos 7,5 s: metralhadoras
+    // brasileiras destruíam o chefe antes de as escoltas reagirem.
+    {at:4200,type:2,level:9,group:true,count:4},
+    {at:6700,type:3,level:9,warning:'BOMBARDEIRO PROTEGE A FORTALEZA!'},
+    {at:9200,type:4,level:9,pattern:'pincer',
+      warning:'CAÇAS ENTRANDO PELOS FLANCOS!'},
+    {at:12300,type:1,level:9,pattern:'spread',count:6},
+    {at:15800,type:2,level:9,group:true,count:4},
+    {at:18500,type:3,level:9,pattern:'bomberFan',count:2},
+    {at:24500,type:2,level:9,pattern:'orbit',count:6},
+    {at:30000,type:4,level:9,pattern:'pincer'},
+    {at:36000,type:1,level:9,pattern:'line',count:8},
+    {at:42000,type:3,level:9,warning:'REFORÇOS FINAIS DA FORTALEZA!'},
   ];
   if(mode==='wave11'){
     const coalition=hostileBosses(state?.choices??[]);
@@ -79,13 +85,19 @@ export function getFinalWaveEvents(mode, state = {}) {
           ? 'A ÚLTIMA FROTA ALIENÍGENA ATACA!'
           : 'ALERTA: ANTIGOS ALIADOS DECLARAM OCUPAÇÃO!' : undefined,
       })),
-      {at:8500,type:2,level:9,group:true,count:3},
-      {at:16500,type:1,level:9,pattern:'spread',count:4},
-      {at:23000,type:3,level:9,warning:'ESCOLTAS DE OCUPAÇÃO SE APROXIMAM!'},
-      {at:30500,type:4,level:9,pattern:'pincer'},
-      {at:37500,type:2,level:9,pattern:'orbit',count:5},
-      {at:44000,type:1,level:9,pattern:'line',count:6,
-        warning:'ÚLTIMA CHANCE DE DEFENDER A SOBERANIA!'},
+      // O primeiro grupo chega cedo para tornar o confronto ativo mesmo
+      // contra builds brasileiras muito rápidas, com poder de fogo alto.
+      {at:3800,type:4,level:9,pattern:'pincer'},
+      {at:6200,type:2,level:9,group:true,count:4},
+      {at:9100,type:3,level:9,warning:'BOMBARDEIROS DE OCUPAÇÃO!'},
+      {at:12000,type:1,level:9,pattern:'spread',count:6},
+      {at:17200,type:2,level:9,group:true,count:5},
+      {at:20800,type:3,level:9,pattern:'bomberFan',count:2},
+      {at:26400,type:4,level:9,pattern:'pincer'},
+      {at:32800,type:2,level:9,pattern:'orbit',count:6},
+      {at:38600,type:1,level:9,pattern:'line',count:8},
+      {at:44500,type:3,level:9,
+        warning:'ÚLTIMA OFENSIVA PELA SOBERANIA!'},
     ].sort((a,b)=>a.at-b.at);
   }
   return [];
