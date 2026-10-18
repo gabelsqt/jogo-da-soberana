@@ -249,3 +249,5 @@ A sequência dispara uma vez por destruição. A batalha e seu cronômetro param
 **Prévia:** menu TESTAR UPGRADES V1 → TESTAR DESTRUIÇÃO DO CANHÃO (ou D). Abre uma onda de teste e provoca a destruição após a contagem inicial.
 
 Implementação em `src/ui/cannonDestruction.js` e `GameScene`. Efeitos geométricos, sem novos sprites ou sons de explosão; a música existente desvanece. Uma única captura de tela e uma Graphics de explosões limitam a criação de objetos. A validação visual final deve ser feita no navegador do jogador.
+
+**Refinamento após playtest (18/10):** explosões concentradas na região central, até 125 px de cada lado do canhão, e acima de sua base; clarão também centralizado. A interferência começa mais cedo e cresce com chuva de pixels, linhas horizontais e faixas de perda de sincronismo. Chiado sonoro sintetizado acompanha o ruído e cessa ao começar o desligamento, respeitando silenciar/volume e aba oculta. O efeito de contração da tela e sua duração permanecem os aprovados.

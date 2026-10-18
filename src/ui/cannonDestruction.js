@@ -1,3 +1,4 @@
+import { createTvStaticSound } from '../audio/tvStatic.js';
 import { restrictedAimAngle } from '../gameplay/combat.js';
 
 const clamp = (v) => Math.max(0, Math.min(1, v));
@@ -37,7 +38,7 @@ export function createCannonDestruction(scene, { x, y, width = 960, height = 540
   const block = scene.add.rectangle(width / 2, height / 2, width, height, 0, 0)
     .setDepth(490).setInteractive();
   block.on('pointerdown', (_p, _x, _y, event) => event?.stopPropagation());
-  const glow = scene.add.rectangle(width / 2, height - 70, width, 140, 0xff581b, 0)
+  const glow = scene.add.rectangle(x, y - 45, 340, 180, 0xff581b, 0)
     .setDepth(190);
   const fire = scene.add.graphics().setDepth(200);
   const interference = scene.add.graphics().setDepth(480);
@@ -45,17 +46,19 @@ export function createCannonDestruction(scene, { x, y, width = 960, height = 540
   const objects = [block, glow, fire, interference, aim];
   let elapsed = 0, finished = false, snapshot, black;
   let reticle = { x: scene.input.activePointer.x, y: scene.input.activePointer.y };
-  // Salvas laterais convergem para a explosão maior sobre o canhão.
+  // Detonações concentradas no corpo e na área imediatamente acima do canhão.
   const bursts = Array.from({ length: 30 }, (_, i) => ({
     at: i * 74,
-    x: i === 29 ? x : 35 + ((i * 233 + 91) % (width - 70)),
-    y: i === 29 ? y - 10 : height - 12 - ((i * 37) % 115),
+    x: i === 29 ? x : x + Math.sin(i * 2.4) * (i % 4 === 0 ? 125 : 70),
+    y: i === 29 ? y - 20 : y - 90 + ((i * 37) % 110),
     radius: i === 29 ? 105 : 22 + (i % 5) * 8,
   }));
+  const staticSound = createTvStaticSound(scene);
   scene.cameras.main.shake(2300, 0.0035);
 
   function cleanup() {
     finished = true;
+    staticSound.destroy();
     if (keyboard) keyboard.enabled = keyboardEnabled;
     canvas.style.cursor = cursor;
     for (const object of objects) object.destroy();
@@ -107,11 +110,33 @@ export function createCannonDestruction(scene, { x, y, width = 960, height = 540
         }
       }
       interference.clear();
-      if (elapsed > 900 && elapsed < TV_COLLAPSE_AT) {
-        interference.fillStyle(0xa6d9cf, 0.05 + 0.1 * (1 - state.control));
-        for (let i = 0; i < 9; i++) {
-          const yy = (Math.floor(elapsed / 60) * 31 + i * 67) % height;
-          interference.fillRect((i * 113) % 100, yy, width - (i * 71) % 190, i % 3 + 1);
+      const staticStrength = elapsed < TV_COLLAPSE_AT
+        ? smooth((elapsed - 250) / 2200) : 0;
+      staticSound.update(staticStrength);
+      if (staticStrength > 0) {
+        const tick = Math.floor(elapsed / 45);
+        // Chuva de ruído em pixels, sem clarões de tela inteira.
+        for (let i = 0; i < 280; i++) {
+          const seed = (Math.imul(i + tick * 283, 1597334677) >>> 0);
+          const xx = seed % width;
+          const yy = (seed >>> 12) % height;
+          interference.fillStyle(i % 3 === 0 ? 0x061018 : 0xc5dcd5,
+            staticStrength * (0.10 + (i % 5) * 0.035));
+          interference.fillRect(xx, yy, 2 + seed % 10, 2 + i % 2);
+        }
+        interference.fillStyle(0xb4d8d1, 0.06 + 0.22 * staticStrength);
+        for (let i = 0; i < 22; i++) {
+          const yy = (tick * 31 + i * 67) % height;
+          interference.fillRect((i * 113 + tick * 17) % 170, yy,
+            width - (i * 71) % 260, i % 3 + 1);
+        }
+        // Faixas de perda de sincronismo atravessam a transmissão.
+        for (let i = 0; i < 3; i++) {
+          const yy = (elapsed * 0.23 + i * 181) % height;
+          interference.fillStyle(0x02080c, 0.22 * staticStrength);
+          interference.fillRect(0, yy, width, 9 + i * 4);
+          interference.fillStyle(0xc9e7e0, 0.15 * staticStrength);
+          interference.fillRect(0, yy + 12, width, 2);
         }
       }
       if (elapsed >= TV_COLLAPSE_AT && !snapshot) {
