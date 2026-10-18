@@ -80,3 +80,7 @@ Não selecionar as alternativas K–N. Voltar à definição da experiência de 
 ## Decisão 83 — Brasil 2: explosão final concentrada
 
 **Opção B aprovada:** após os 4 segundos de fogos periféricos de dano baixo, o núcleo termina com **grande explosão concentrada de dano elevado nas proximidades do centro**, recompensando posicionamento preciso. Raio e dano numérico ainda sujeitos a ajuste. A decisão não transforma a explosão final em dano uniforme por toda a região de 100 px. Próxima decisão: benefício complementar do escudo. Apenas documentação; sem código.
+
+## Decisão 84 — Brasil 2: Fogueira de São João (APROVADA)
+
+O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a inimigos que chegam perto dele, com efeito visual de fogo junino. É a melhoria defensiva associada ao nível 2, **Arraial Balístico**. Preservar a distinção entre fogo no escudo (nível 2) e eletricidade nos níveis 4, 6 e 8. Raio, frequência do dano, duração/permanência e possibilidade de afetar projéteis inimigos permanecem para detalhamento; não presumir parâmetros não votados. Decisão apenas de design: **não modificar código**.
