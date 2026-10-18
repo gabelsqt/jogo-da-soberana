@@ -50,7 +50,7 @@ import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicate
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
 import { resolveFinalOpponent, finalePrelude, FINALE_COUNTRIES } from '../gameplay/campaignFinale.js';
 import { hostileBosses, continueResistanceAfterDefeat } from '../gameplay/wave11Rules.js';
-import { finaleBossHp, finaleBossFirePattern } from '../gameplay/finaleBalance.js';
+import { finaleBossHp, finaleBossFirePattern, finaleCounterattack } from '../gameplay/finaleBalance.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
@@ -329,6 +329,7 @@ export class GameScene extends Phaser.Scene {
     this.supremeCinematic = false;
     this.cannonFrozenUntil=0;
     this.lastFinaleWarningAt=-Infinity;
+    this.finaleCounterattackCount=0;
     this.basicShotCount = 0;
     this.cannonRecoil = 0;
     this.lastHeavyShake = -Infinity;
@@ -1572,11 +1573,47 @@ export class GameScene extends Phaser.Scene {
     return enemy.progress >= 1;
   }
 
+  // Duas transições de escudo por chefe; em grandes coalizões compartilhamos
+  // um teto de três contra-ataques para não sobrecarregar a tela de 16 bits.
+  queueFinaleCounterattack(enemy,phase) {
+    if(!enemy.finalBoss || !['wave10','wave11'].includes(this.mode))return;
+    const coalitionSize=this.finale?.coalition.length||1;
+    const config=finaleCounterattack(this.mode,phase,coalitionSize);
+    if(this.finaleCounterattackCount>=config.maxTriggers)return;
+    const trigger=++this.finaleCounterattackCount;
+    this.showAttackWarning(config.warning);
+    this.time.delayedCall(660,()=>{
+      if(this.tutorialComplete || !this.scene.isActive('GameScene') ||
+        !this.enemies.some(unit=>unit.uid===enemy.uid))return;
+      for(let i=0;i<config.fighters;i++){
+        const side=config.fighters===1
+          ? (trigger%2===0?'right':'left') : (i===0?'left':'right');
+        this.spawnEnemy(4,{level:9,side});
+      }
+      if(config.bombers && this.enemies.length<44)
+        this.spawnEnemy(3,{level:9});
+    });
+  }
+
   updateFinalCountryBoss(enemy,dt) {
     if(this.mode!=='wave11' || !enemy.finalBoss ||
-      !enemy.bossCountry || enemy.bossCountry==='alien')return;
+      !enemy.bossCountry)return;
     enemy.finalAbilityAge+=dt;
-    const interval=Math.max(5,10.2-Math.min(10,enemy.bossLevel)*0.5);
+    if(enemy.bossCountry==='alien'){
+      // Full Brazil enfrenta uma frota alienígena própria, não um chefe
+      // estrangeiro desprovido de poderes. Salva telegrafada e interceptável.
+      if(enemy.finalAbilityAge>=8.5){
+        enemy.finalAbilityAge-=8.5;
+        this.showAttackWarning('FROTA ALIENÍGENA: SALVA ORBITAL!');
+        this.time.delayedCall(580,()=>{
+          if(this.tutorialComplete || !this.scene.isActive('GameScene') ||
+            !this.enemies.some(unit=>unit.uid===enemy.uid))return;
+          this.fireEnemyProjectile(enemy);
+        });
+      }
+      return;
+    }
+    const interval=Math.max(5,9.0-Math.min(10,enemy.bossLevel)*0.48);
     if(enemy.finalAbilityAge<interval)return;
     enemy.finalAbilityAge-=interval;
     enemy.finalAbilityCount++;
@@ -1914,8 +1951,12 @@ export class GameScene extends Phaser.Scene {
         enemy.shotTimer += dt;
         enemy.spawnTimer += dt;
         // Duas fases de fúria: mais salvas e escoltas abaixo de 70% e 35% HP.
-        const intensity=enemy.finalBoss?1+0.30*(enemy.finalAssaultPhase-1):1;
-        if (enemy.shotTimer >= enemy.definition.shotInterval/intensity) {
+        const phaseProfile=enemy.finalBoss
+          ? finaleBossFirePattern(this.mode,this.finale?.coalition.length||1,
+            enemy.finalAssaultPhase) : null;
+        const interval=enemy.definition.shotInterval*
+          (phaseProfile?.intervalMultiplier??1);
+        if (enemy.shotTimer >= interval) {
           enemy.shotTimer = 0;
           this.fireEnemyProjectile(enemy);
         }
@@ -2293,10 +2334,9 @@ export class GameScene extends Phaser.Scene {
       const phase=fraction<=0.35?3:fraction<=0.70?2:1;
       if(phase>enemy.finalAssaultPhase){
         enemy.finalAssaultPhase=phase;
-        // Uma transição por limiar, mesmo que uma rajada cruze dois níveis.
-        this.showAttackWarning(phase===2
-          ? 'ALERTA: CHEFE ENTROU EM FASE DE ASSALTO!'
-          : 'PERIGO: CHEFE EM FÚRIA MÁXIMA!');
+        // Inimigos de assalto entram depois do aviso, nunca diretamente
+        // sobre a defesa. Um único gatilho mesmo se o tiro cruzar 2 fases.
+        this.queueFinaleCounterattack(enemy,phase);
       }
     }
     const killed = enemy.hp <= 0;
