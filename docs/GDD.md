@@ -201,3 +201,17 @@ A campanha passa a seguir **Onda 0 → escolha 1 → ... → Onda 9 → escolha 
 - Barra de vida dos chefes ficou mais larga e muda de cor conforme a fase. Total de escoltas simultâneas fica limitado a dez durante a batalha com coalizão.
 
 **Validação:** teste automatizado específico `tests/finaleBalancing.test.js` foi incluído; expectativas de outros testes foram atualizadas para as mecânicas híbridas e fluxo de ondas presentes. A ação de CI **Verificação do protótipo** passou em 18/10/2026, executando testes e compilação. Falta **novo playtest real no navegador** para confirmar o nível de dificuldade e que retornar ao menu, iniciar outra campanha e jogar a Onda 0 não apresenta travamentos. A causa profunda do travamento original após reinício direto ainda não foi isolada.
+
+## Segundo ajuste de dificuldade das Ondas 10–11 — 18/10/2026
+
+**Feedback:** o novo final retornou corretamente ao menu, mas as Ondas 10 e 11 ainda estavam um pouco fáceis, inclusive na campanha com 10 melhorias brasileiras.
+
+**Diretriz aplicada:** **não aumentar novamente o HP dos chefes**. As resistências continuam determinadas por `finaleBossHp` e pelas mesmas regras de coalizão/resistência. Aumentar desafio com **pressão tática, variedade e antecipação dos ataques**, sem inflar o tempo para destruir os chefes.
+
+- **Onda 10:** primeira escolta ao redor de **4,2 s** (antes 7,5 s); bombardeiro aos **6,7 s**; pinça de caças aos **9,2 s**; outros grupos de Tipo 1/2, bombardeiros e caças até 42 s. O inimigo Tipo 3 já usa sua spritesheet.
+- **Onda 11:** pinça aos **3,8 s**, escoltas em **6,2 s**, bombardeiro aos **9,1 s**, novos grupos a cada alguns segundos até 44,5 s. O calendário serve também ao combate contra até quatro países traidores.
+- **Chefe final (ondas 10–11):** as fases de 70% e 35% da barra de vida intensificam a cadência e o volume de salvas; o chefe isolado dispara **2/3/4 projéteis** por salva nas três fases, com velocidade e dano crescentes. Coalizões de 2–4 chefes disparam somente **1/1/2 por chefe** para preservar legibilidade.
+- Ao entrar em cada fase de assalto, o chefe anuncia e, após **660 ms**, chama um pequeno **contra-ataque de caças**, com bombardeiro extra na última fase dos chefes isolados. O limite é de **duas ativações por chefe isolado** ou **três eventos compartilhados na coalizão**.
+- A **onda 11 Full Brazil** tem uma nova **salva orbital alienígena** aproximadamente a cada **8,5 s** enquanto o chefe está vivo, com aviso de **580 ms** e projéteis interceptáveis.
+- Preservados: HP anterior dos chefes, tempo máximo de **60 s**, Supremo com eliminação final, melhorias brasileiras da resistência, mecanismos dos outros países e inimigos das Ondas 0–9.
+- Testes: `tests/finaleBalancing.test.js` e `tests/campaignFinale.test.js` verificam eventos antecipados, escalonamento de tiros, limites da coalizão e travas de progressão. **Playtest manual ainda pendente** para verificar se este novo ajuste é suficiente.
