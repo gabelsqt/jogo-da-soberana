@@ -266,6 +266,12 @@ export class GameScene extends Phaser.Scene {
     this.load.spritesheet('tipo3_sheet', assetUrl('assets/inimigos/tipo3/spritesheet.png'), {
       frameWidth: 128, frameHeight: 128,
     });
+    // Caça Relâmpago Tipo 4: opção C aprovada, 12 quadros em grade 4x3.
+    // A imagem fica em public/assets/inimigos/tipo4/spritesheet.png.
+    // Sem o arquivo, o inimigo mantém o visual vetorial anterior.
+    this.load.spritesheet('tipo4_sheet', assetUrl('assets/inimigos/tipo4/spritesheet.png'), {
+      frameWidth: 128, frameHeight: 128,
+    });
   }
 
   create() {
@@ -297,6 +303,22 @@ export class GameScene extends Phaser.Scene {
         frames: this.anims.generateFrameNumbers('tipo3_sheet', { frames: [8,9] }),
         frameRate: 9, repeat: 0,
       });
+    }
+    if (this.textures.exists('tipo4_sheet')) {
+      const actions=[
+        ['tipo4_voo',[0,1],4],
+        ['tipo4_banco_esquerda',[2,3],7],
+        ['tipo4_banco_direita',[4,5],7],
+        ['tipo4_dash',[6,7],10],
+        ['tipo4_propulsao',[8,9],8],
+      ];
+      for (const [key,frames,frameRate] of actions) {
+        if (this.anims.exists(key)) continue;
+        this.anims.create({
+          key, frames:this.anims.generateFrameNumbers('tipo4_sheet',{frames}),
+          frameRate, repeat:-1,
+        });
+      }
     }
 
     this.enemies = [];
@@ -1219,6 +1241,12 @@ export class GameScene extends Phaser.Scene {
       });
       return { sprite, box: null };
     }
+    if (type === 4 && this.textures.exists('tipo4_sheet')) {
+      const sprite = this.add.sprite(x, y, 'tipo4_sheet', 0)
+        .setDisplaySize(70,70).setDepth(19).play('tipo4_voo');
+      if (level > 1) sprite.setTint(definition.tintColor);
+      return { sprite, box:null };
+    }
     const sprite = this.add.container(x, y).setDepth(19);
     const box = this.add.rectangle(0, 0, definition.width, definition.height, definition.color)
       .setStrokeStyle(level > 1 ? 3 : 2, level >= 3 ? 0xffffff : level > 1 ? 0xffd26e : 0xf7efff);
@@ -1665,6 +1693,38 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  // Exibição do caça, separada de sua rota/hitbox. Não altera a IA Tipo 4.
+  updateType4Appearance(enemy,previousX,previousY,dt) {
+    const sprite=enemy.sprite;
+    if (enemy.type!==4 || sprite.texture?.key!=='tipo4_sheet')return;
+    if (this.time.now-enemy.lastHitAt<160) return; // quadro 10 de dano
+    const dx=(sprite.x-previousX)/Math.max(dt,0.001);
+    const dy=(sprite.y-previousY)/Math.max(dt,0.001);
+    let key='tipo4_voo';
+    switch(enemy.phase){
+      case 'flyby':
+        key='tipo4_dash';break;
+      case 'swoop1':
+      case 'swoop2':
+        key=dx < -35 ? 'tipo4_banco_direita' :
+          dx > 35 ? 'tipo4_banco_esquerda' : 'tipo4_propulsao';
+        break;
+      case 'laser':
+        key='tipo4_propulsao';break;
+      default:
+        key='tipo4_voo';
+    }
+    if(sprite.anims.currentAnim?.key!==key || !sprite.anims.isPlaying)
+      sprite.play(key);
+    // As sprites da opção C já contêm inclinação. Apenas espelhamos
+    // a imagem no voo lateral; sem rodar o frame e distorcer os propulsores.
+    sprite.setFlipX(enemy.phase==='flyby' && enemy.direction<0);
+    // A orientação convencional retorna quando termina a investida.
+    // Numa fase parada, a nave fica na posição frontal do spritesheet.
+    if(enemy.phase==='telegraph' || enemy.phase==='laser')
+      sprite.setFlipX(false);
+  }
+
   updateEnemies(dt) {
     this.frostGraphics.clear();
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
@@ -2051,6 +2111,7 @@ export class GameScene extends Phaser.Scene {
           }
         }
       }
+      this.updateType4Appearance(enemy,previousX,previousY,dt);
       this.updateEnemyHitVisual(enemy);
       enemy.bossLabel?.setPosition(enemy.sprite.x,enemy.sprite.y-52);
 
@@ -2238,6 +2299,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   showEnemyDeath(enemy) {
+    if (enemy.type === 4 && enemy.sprite.texture?.key === 'tipo4_sheet') {
+      // O último quadro mostra a fragmentação antes da explosão padrão.
+      const debris=this.add.sprite(enemy.sprite.x,enemy.sprite.y,'tipo4_sheet',11)
+        .setDisplaySize(enemy.sprite.displayWidth,enemy.sprite.displayHeight)
+        .setDepth(53).setRotation(enemy.sprite.rotation)
+        .setFlipX(enemy.sprite.flipX);
+      this.tweens.add({
+        targets:debris,alpha:0,
+        scaleX:debris.scaleX*1.22,scaleY:debris.scaleY*1.22,
+        duration:230,onComplete:()=>debris.destroy(),
+      });
+    }
     if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
       // Último quadro da spritesheet sobre a explosão comum.
       const debris = this.add.sprite(enemy.sprite.x, enemy.sprite.y, 'tipo3_sheet', 11)
@@ -2360,6 +2433,10 @@ export class GameScene extends Phaser.Scene {
           if (enemy.sprite.active && this.enemies.includes(enemy))
             enemy.sprite.play('tipo3_voo');
         });
+      }
+      else if (enemy.type === 4 && enemy.sprite.texture?.key === 'tipo4_sheet') {
+        enemy.sprite.anims.stop();
+        enemy.sprite.setFrame(10); // o movimento restabelece a pose em 160 ms
       }
       else enemy.sprite.setTintFill(0xffffff);
       if (enemy.phase === 'dive' && knockback > 0) {
