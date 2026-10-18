@@ -1258,6 +1258,33 @@ export class GameScene extends Phaser.Scene {
     this.spawnEnemy(event.type, { level, side: event.side });
   }
 
+  showSpawnPortal(x, y, radius = 30) {
+    // Portal temporário de chegada: não altera a rota nem o dano dos inimigos.
+    const portal=this.add.graphics().setDepth(17).setPosition(x,y);
+    const born=this.time.now;
+    const paint=()=>{
+      if(!portal.active)return;
+      const t=Math.min(1,(this.time.now-born)/700);
+      const fade=Math.min(1,t*5)*(1-t);
+      const r=radius*(0.45+0.75*Math.sin(Math.PI*t));
+      portal.clear();
+      portal.fillStyle(0x54259b,0.22*fade);
+      portal.fillEllipse(0,0,r*2.2,r*1.5);
+      portal.lineStyle(5,0x9b4bff,fade);
+      portal.strokeEllipse(0,0,r*2,r*1.35);
+      portal.lineStyle(2,0x5be8ff,fade);
+      portal.strokeEllipse(0,0,r*1.45,r*1.0);
+      for(let k=0;k<7;k++){
+        const a=k*Math.PI*2/7+t*7;
+        portal.fillStyle(k%2?0xb585ff:0x66efff,fade);
+        portal.fillCircle(Math.cos(a)*r,Math.sin(a)*r*0.67,2.5);
+      }
+    };
+    paint();
+    this.time.addEvent({delay:35,repeat:19,callback:paint});
+    this.time.delayedCall(730,()=>portal.destroy());
+  }
+
   spawnEnemy(type, options = {}) {
     const level = options.level ?? 1;
     const definition = enemyStats(type, level);
@@ -1345,6 +1372,11 @@ export class GameScene extends Phaser.Scene {
       enemy.phase = 'arrival';
     }
     this.enemies.push(enemy);
+    // Só teletransportes que aparecem já dentro da área de jogo precisam
+    // de portal. Entradas pelas bordas continuam voando normalmente.
+    if(startX>=35 && startX<=W-35 && startY>=35 && startY<=H-95){
+      this.showSpawnPortal(startX,startY,Math.max(26,definition.width*0.65));
+    }
     return enemy;
   }
 
