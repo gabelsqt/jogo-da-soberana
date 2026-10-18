@@ -52,8 +52,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 9,
-      "title": "Operação Soberania",
-      "description": "ESPAÇO: bombardeio nacional por todo o céu.",
+      "title": "Réveillon de Copacabana",
+      "description": "Supremo REVEILLON: o Cristo Redentor decola e destrói a frota em um Réveillon de fogos. Cena estática provisória.",
       "kind": "ultimate"
     },
     {
@@ -67,49 +67,49 @@ export const V1_UPGRADES = {
     {
       "level": 1,
       "title": "Super Size Me™",
-      "description": "Tiros crescem durante o voo, aumentando tamanho e área de acerto.",
+      "description": "Balas crescem gradualmente no voo até 2× de diâmetro.",
       "kind": "primary"
     },
     {
       "level": 2,
       "title": "Defesa Preventiva™",
-      "description": "Especial Choque e Pavor: míssil enorme; escudo intercepta ameaças.",
+      "description": "Choque e Pavor: míssil guiado, explosão e onda de choque que empurra; duas antenas no escudo.",
       "kind": "secondary-shield"
     },
     {
       "level": 3,
-      "title": "Freedom Seeker™",
-      "description": "Projéteis crescentes corrigem a rota e perseguem inimigos.",
+      "title": "Tamanho Família™",
+      "description": "Balas crescem até 4× e seguem o alvo.",
       "kind": "primary"
     },
     {
       "level": 4,
       "title": "Entrega de Democracia™",
-      "description": "Especial teleguiado ganha explosão maior; escudo aprimora interceptação.",
+      "description": "Choque e Pavor com míssil 2× e onda maior; antenas maiores no escudo.",
       "kind": "secondary-shield"
     },
     {
       "level": 5,
-      "title": "Complexo Militar-Industrial",
-      "description": "Projéteis crescem mais e causam mais dano ao atingir o alvo.",
+      "title": "Destino Manifesto™",
+      "description": "Balas crescem até 6× e seguem o alvo.",
       "kind": "primary"
     },
     {
       "level": 6,
       "title": "Choque e Pavor™",
-      "description": "Especial lança míssil colossal com onda de choque; escudo contra-ataca.",
+      "description": "Choque e Pavor com míssil 4× e choque maior; antenas reforçadas.",
       "kind": "secondary-shield"
     },
     {
       "level": 7,
-      "title": "Bigger Is Better™",
-      "description": "Projéteis tornam-se absurdamente grandes e seguem alvos com maior precisão.",
+      "title": "Orçamento Ilimitado™",
+      "description": "Balas crescem até 8× com perseguição intensificada.",
       "kind": "primary"
     },
     {
       "level": 8,
       "title": "Proteção Premium™",
-      "description": "Especial amplia a explosão em cadeia; escudo reforçado temporariamente.",
+      "description": "Choque e Pavor com míssil 8× e maior pulso de empurrão no escudo.",
       "kind": "secondary-shield"
     },
     {
@@ -129,55 +129,55 @@ export const V1_UPGRADES = {
     {
       "level": 1,
       "title": "Lightstick Tático",
-      "description": "Cada três tiros gera laser perfurante.",
+      "description": "Lasers perfurantes acompanham os tiros do canhão.",
       "kind": "primary"
     },
     {
       "level": 2,
-      "title": "Encore!",
-      "description": "Especial deixa plasma residual; escudo energético.",
+      "title": "Bola de Discoteca Orbital",
+      "description": "Especial reflete 3 raios por ativação; painéis de espelho refletem disparos no escudo.",
       "kind": "secondary-shield"
     },
     {
       "level": 3,
       "title": "Sincronia Perfeita",
-      "description": "Lasers básicos mais frequentes.",
+      "description": "Lasers perfurantes mais frequentes.",
       "kind": "primary"
     },
     {
       "level": 4,
       "title": "Palco Protegido",
-      "description": "Especial deixa linha de energia; escudo absorve impactos.",
+      "description": "Especial reflete 6 raios por ativação e expande os espelhos do escudo.",
       "kind": "secondary-shield"
     },
     {
       "level": 5,
       "title": "Refrão Perfurante",
-      "description": "Lasers cruzam alvos adicionais e deixam energia.",
+      "description": "Lasers perfurantes mais fortes.",
       "kind": "primary"
     },
     {
       "level": 6,
       "title": "Solo de Luz",
-      "description": "Especial gera feixes extras; escudo regenera.",
+      "description": "Especial reflete 12 raios por ativação e reforça o escudo espelhado.",
       "kind": "secondary-shield"
     },
     {
       "level": 7,
       "title": "Coreografia de Plasma",
-      "description": "Sequências de lasers sincronizados.",
+      "description": "Lasers perfurantes a cada rajada.",
       "kind": "primary"
     },
     {
       "level": 8,
-      "title": "Último Encore",
-      "description": "Especial prolongado; escudo pulsa luz defensiva.",
+      "title": "Discoteca Intergaláctica",
+      "description": "Especial reflete 24 raios por ativação; máximo de painéis refletivos.",
       "kind": "secondary-shield"
     },
     {
       "level": 9,
-      "title": "Raio da Amizade",
-      "description": "ESPAÇO: laser colossal na direção da mira.",
+      "title": "Último Encore",
+      "description": "Supremo ENCORE: show de Kim Lin Doo varre a frota alienígena. Cena estática provisória.",
       "kind": "ultimate"
     },
     {
@@ -191,49 +191,49 @@ export const V1_UPGRADES = {
     {
       "level": 1,
       "title": "Vórtice Siberiano",
-      "description": "Tiros aplicam frio e desaceleram inimigos.",
+      "description": "Projéteis congelam inimigos e atraem outros para o gelo desde o nível 1.",
       "kind": "primary"
     },
     {
       "level": 2,
       "title": "Matryoshka de Estilhaços",
-      "description": "Especial rompe gelo acumulado; escudo ganha proteção criogênica.",
+      "description": "Especial estilhaça alvos congelados e solta 8 fragmentos; escudo libera gelo que congela.",
       "kind": "secondary-shield"
     },
     {
       "level": 3,
       "title": "Inverno Russo",
-      "description": "Tiros podem congelar alvos após acumular frio.",
+      "description": "Congelamento dura mais e vórtices atraem de mais longe.",
       "kind": "primary"
     },
     {
       "level": 4,
       "title": "Boneca Matryoshka",
-      "description": "Especial espalha fragmentos que atingem outros inimigos; escudo reforça a proteção.",
+      "description": "Especial solta 12 estilhaços, reações em cadeia e escudo criogênico maior.",
       "kind": "secondary-shield"
     },
     {
       "level": 5,
       "title": "Gravidade Siberiana",
-      "description": "Alvos congelados atraem inimigos próximos para o gelo.",
+      "description": "Congelamento e atração aumentam; campos congelados combinam força.",
       "kind": "primary"
     },
     {
       "level": 6,
       "title": "Frente Fria",
-      "description": "Especial estilhaça grupos congelados; escudo desacelera ameaças próximas.",
+      "description": "Especial solta 16 estilhaços e escudo congela por mais tempo.",
       "kind": "secondary-shield"
     },
     {
       "level": 7,
       "title": "Zero Absoluto",
-      "description": "Tiros congelam mais rápido e intensificam a atração ao gelo.",
+      "description": "Congelamento e atração maiores no disparo principal.",
       "kind": "primary"
     },
     {
       "level": 8,
       "title": "Tempestade de Estilhaços",
-      "description": "Especial amplia a detonação criogênica; escudo pulsa ondas de frio.",
+      "description": "Especial solta 24 estilhaços e amplifica proteção criogênica.",
       "kind": "secondary-shield"
     },
     {
@@ -252,62 +252,62 @@ export const V1_UPGRADES = {
   "cn": [
     {
       "level": 1,
-      "title": "AliExplode — Frete Grátis",
-      "description": "Dois projéteis por disparo.",
+      "title": "Compre 1, Leve 2",
+      "description": "Dispara dois projéteis por salva.",
       "kind": "primary"
     },
     {
       "level": 2,
       "title": "Entrega Expressa",
-      "description": "Especial divide em três; escudo regenera mais.",
+      "description": "Especial: uma encomenda explosiva; caixas no escudo.",
       "kind": "secondary-shield"
     },
     {
       "level": 3,
-      "title": "Compre 2, Leve 3",
-      "description": "Três projéteis por disparo.",
+      "title": "Leve 3, Pague 2",
+      "description": "Dispara três projéteis por salva.",
       "kind": "primary"
     },
     {
       "level": 4,
-      "title": "Estoque de Segurança",
-      "description": "Especial cria miniprojéteis; escudo intercepta tiros.",
+      "title": "Frete Grátis",
+      "description": "Especial com encomendas maiores e dois impactos; escudo reforçado por caixas.",
       "kind": "secondary-shield"
     },
     {
       "level": 5,
-      "title": "Produto Duplicado",
-      "description": "Balas atingidas podem se copiar uma vez.",
+      "title": "Compre 3, Leve 6",
+      "description": "Três balas se dividem uma vez em seis; filhos não se dividem.",
       "kind": "primary"
     },
     {
       "level": 6,
-      "title": "Reposição Automática",
-      "description": "Especial lança rajadas extras; escudo recupera energia com impactos.",
+      "title": "Carga Pesada",
+      "description": "Especial distribui três cargas grandes; caixas maiores no escudo.",
       "kind": "secondary-shield"
     },
     {
       "level": 7,
-      "title": "Promoção 11.11",
-      "description": "A cada onze disparos, rajada adicional.",
+      "title": "Atacado da Destruição",
+      "description": "Cinco projéteis se dividem uma vez em dez.",
       "kind": "primary"
     },
     {
       "level": 8,
-      "title": "Entrega em Massa",
-      "description": "Especial multiplica; escudo lança interceptadores.",
+      "title": "Frete Internacional",
+      "description": "Especial distribui quatro cargas gigantes; escudo com contêineres.",
       "kind": "secondary-shield"
     },
     {
       "level": 9,
-      "title": "Liquidação Total",
-      "description": "ESPAÇO: chuva massiva de cópias pelo céu.",
+      "title": "Seu Pedido Chegou!",
+      "description": "Supremo ENTREGA: drone colossal entrega um enxame exterminador. Cena estática provisória.",
       "kind": "ultimate"
     },
     {
       "level": 10,
       "title": "Estoque Infinito",
-      "description": "Transformação: dispara 10 projéteis vermelhos/dourados, que se dividem uma vez em 20.",
+      "description": "Dez tiros se dividem uma vez em vinte projéteis, sem recursão.",
       "kind": "transformation"
     }
   ]
