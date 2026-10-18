@@ -1,4 +1,5 @@
 import { ADVANCED_WAVE_METADATA, getAdvancedWaveEvents } from './advancedWaves.js';
+import { hostileBosses } from './wave11Rules.js';
 
 // Ondas 0–3: três escolhas de aliado. Ondas 4–9 seguem automaticamente,
 // conservando as 3 escolhas, até que os upgrades intermediários sejam criados.
@@ -14,6 +15,7 @@ const wave0Packs = [
 
 export const WAVE_COUNTDOWN_SECONDS = 3;
 export const WAVE_DURATION_MS = 30000;
+export const FINAL_WAVE_DURATION_MS = 60000;
 export const WAVE_FIRST_SPAWN_WINDOW_MS = 20000;
 // Resguardo de meio segundo para o último lote entrar antes dos 20s.
 export const WAVE_LAST_SPAWN_MS = WAVE_FIRST_SPAWN_WINDOW_MS - 500;
@@ -45,12 +47,51 @@ export const MODES = {
   wave3: { title: 'ONDA 3 — CÉU FECHADO', minDuration: WAVE_DURATION_MS },
   wave4: { title: 'ONDA 4 — ATAQUE EM PINÇA', minDuration: WAVE_DURATION_MS },
   ...ADVANCED_WAVE_METADATA,
-  wave10: { title: 'ONDA 10 — FORTALEZA-MÃE', minDuration: 60000 },
+  wave10: { title: 'ONDA 10 — FORTALEZA-MÃE', minDuration: FINAL_WAVE_DURATION_MS },
+  wave11: { title: 'ONDA 11 — CONFRONTO PELA SOBERANIA', minDuration: FINAL_WAVE_DURATION_MS },
   lab: { title: 'TESTE DE INIMIGOS', minDuration: 36000 },
   upgradeLab: { title: 'LAB DE UPGRADES', minDuration: Infinity },
 };
 
-function getOriginalWaveEvents(mode) {
+// Encontros finais em 60 segundos: vitória só acontece ao destruir
+// todos os chefes principais, nunca pelo cronômetro ou pela escolta.
+export function getFinalWaveEvents(mode, state = {}) {
+  if(mode==='wave10')return [
+    {at:1250,type:5,level:9,finalBoss:true,warning:'FORTALEZA-MÃE DETECTADA!'},
+    {at:7500,type:2,level:9,group:true,count:3},
+    {at:14000,type:1,level:9,pattern:'spread',count:5},
+    {at:20500,type:3,level:9,warning:'A FORTALEZA ENVIA BOMBARDEIROS!'},
+    {at:27000,type:2,level:9,pattern:'orbit',count:5},
+    {at:33000,type:4,level:9,pattern:'pincer'},
+    {at:39000,type:1,level:9,pattern:'line',count:6,
+      warning:'ÚLTIMOS REFORÇOS ALIENÍGENAS!'},
+  ];
+  if(mode==='wave11'){
+    const coalition=hostileBosses(state?.choices??[]);
+    const invaders=coalition.length===0;
+    const bosses=invaders?[{country:'alien',level:10}]:coalition;
+    const count=bosses.length;
+    return [
+      ...bosses.map(({country,level},i)=>({
+        at:1450+i*900,type:5,level:10,
+        bossCountry:country,bossLevel:level,coalitionSize:count,finalBoss:true,
+        warning:i===0 ? invaders
+          ? 'A ÚLTIMA FROTA ALIENÍGENA ATACA!'
+          : 'ALERTA: ANTIGOS ALIADOS DECLARAM OCUPAÇÃO!' : undefined,
+      })),
+      {at:8500,type:2,level:9,group:true,count:3},
+      {at:16500,type:1,level:9,pattern:'spread',count:4},
+      {at:23000,type:3,level:9,warning:'ESCOLTAS DE OCUPAÇÃO SE APROXIMAM!'},
+      {at:30500,type:4,level:9,pattern:'pincer'},
+      {at:37500,type:2,level:9,pattern:'orbit',count:5},
+      {at:44000,type:1,level:9,pattern:'line',count:6,
+        warning:'ÚLTIMA CHANCE DE DEFENDER A SOBERANIA!'},
+    ].sort((a,b)=>a.at-b.at);
+  }
+  return [];
+}
+
+function getOriginalWaveEvents(mode, state = {}) {
   // Laboratório livre: inimigos aparecem por timer próprio e nunca acaba a onda.
   if (mode === 'upgradeLab') return [];
   if (mode === 'wave0') {
@@ -184,7 +225,7 @@ function getOriginalWaveEvents(mode) {
   if (Object.hasOwn(ADVANCED_WAVE_METADATA, mode)) {
     return getAdvancedWaveEvents(mode);
   }
-  if (mode === 'wave10') return [{ at: 1250, type: 5, level: 9, warning: 'FORTALEZA-MÃE DETECTADA!' }];
+  if (mode === 'wave10' || mode === 'wave11') return getFinalWaveEvents(mode,state);
   if (mode === 'lab') {
     return [
       { at: 800, type: 2, group: true },
@@ -201,8 +242,8 @@ function getOriginalWaveEvents(mode) {
 }
 
 
-export function getWaveEvents(mode) {
-  const events = getOriginalWaveEvents(mode);
+export function getWaveEvents(mode, state = {}) {
+  const events = getOriginalWaveEvents(mode,state);
   return /^wave[0-9]$/.test(mode) ? fitWaveEventsToWindow(events) : events;
 }
 
@@ -225,6 +266,8 @@ export function scheduledEnemyCount(events) {
 // Os laboratórios mantêm o encerramento antigo e independente.
 export function waveOutcome({ mode, elapsed, spawned, scheduled, enemies, hostileShots }) {
   if (mode === 'upgradeLab') return null;
+  // Confrontos finais são decididos pela destruição dos chefes ou pelo limite.
+  if (mode === 'wave10' || mode === 'wave11') return null;
   if (/^wave[0-9]$/.test(mode)) {
     if (elapsed >= WAVE_DURATION_MS) return 'survived';
     if (spawned === scheduled && scheduled > 0 && enemies === 0 && hostileShots === 0) {
