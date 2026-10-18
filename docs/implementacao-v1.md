@@ -140,3 +140,7 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 98 — Brasil 2: estética dos fogos (APROVADA)
 
 **Opção A — fogos juninos tradicionais:** os 12 fogos do Arraial Balístico são **multicoloridos, em forma de estrelas, com rastros luminosos e estalos**, em linguagem pixel art legível. Não substituir por VFX geométricos sci-fi. O núcleo suspenso, sequência circular acelerada e explosão final seguem as Decisões 77–97. Ainda falta decidir especificamente a aparência do núcleo e da explosão final. **Somente documentação/GDD, sem código.**
+
+## Decisão 99 — Brasil 2: núcleo em forma de Balão de São João (APROVADA)
+
+**Opção B:** o núcleo suspenso do Arraial Balístico é um **balão junino em pixel art**, com brilho interno, que permanece no ar durante 4 segundos, libera 12 fogos multicoloridos em sequência circular crescente e **explode na finalização** (5 HP em raio de 50 px). O balão é elemento de fantasia visual, não um mecanismo real. Preservar leitura dos inimigos e a estética pixel art. Aparência precisa da explosão final ainda será detalhada. **Somente GDD; não implementar código.**
