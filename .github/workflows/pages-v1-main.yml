@@ -46,6 +46,7 @@ jobs:
           grep -q 'Onda 2 introdutória' src/gameplay/waves.js
           grep -q 'holdDuration: kind' src/scenes/GameScene.js
           grep -q 'shieldDomeRadius: 110' src/gameplay/arraialBrasil2.js
+          grep -q 'fireRingFlatten: 0.38' src/gameplay/arraialBrasil2.js
           grep -q "Onda 2 usa apenas Tipo 1 e Tipo 2" tests/towers.test.js
           grep -q 'TESTAR UPGRADES V1' src/scenes/MenuScene.js
           ! grep -q "scene.start('LabSetupScene')" src/scenes/MenuScene.js
