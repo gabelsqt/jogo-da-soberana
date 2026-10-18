@@ -259,6 +259,12 @@ export class GameScene extends Phaser.Scene {
       const name = 'frame_' + String(frame).padStart(2, '0') + '.png';
       this.load.image('tipo1_' + frame, assetUrl('assets/inimigos/tipo1/' + name));
     }
+    // Tipo 3: spritesheet 16-bit 4 x 3 (12 quadros de 128 px).
+    // O PNG será colocado pelo desenvolvedor em public/assets/inimigos/tipo3/.
+    // Enquanto estiver ausente, o visual vetorial antigo serve de fallback.
+    this.load.spritesheet('tipo3_sheet', assetUrl('assets/inimigos/tipo3/spritesheet.png'), {
+      frameWidth: 128, frameHeight: 128,
+    });
   }
 
   create() {
@@ -277,6 +283,18 @@ export class GameScene extends Phaser.Scene {
         frames: [1, 2, 3, 4].map((i) => ({ key: 'tipo1_' + i })),
         frameRate: 4.5,
         repeat: -1,
+      });
+    }
+    if (this.textures.exists('tipo3_sheet')) {
+      if (!this.anims.exists('tipo3_voo')) this.anims.create({
+        key: 'tipo3_voo',
+        frames: this.anims.generateFrameNumbers('tipo3_sheet', { frames: [0,1,2,3] }),
+        frameRate: 4, repeat: -1,
+      });
+      if (!this.anims.exists('tipo3_bombardeio')) this.anims.create({
+        key: 'tipo3_bombardeio',
+        frames: this.anims.generateFrameNumbers('tipo3_sheet', { frames: [8,9] }),
+        frameRate: 9, repeat: 0,
       });
     }
 
@@ -1190,6 +1208,15 @@ export class GameScene extends Phaser.Scene {
       // Níveis reforçados serão diferenciados na futura sprite sheet.
       return {sprite,box:null};
     }
+    if (type === 3 && this.textures.exists('tipo3_sheet')) {
+      const sprite = this.add.sprite(x, y, 'tipo3_sheet', 0)
+        .setDisplaySize(76, 76).setDepth(19).play('tipo3_voo');
+      if (level > 1) sprite.setTint(definition.tintColor);
+      sprite.on('animationcomplete-tipo3_bombardeio', () => {
+        if (sprite.active) sprite.play('tipo3_voo');
+      });
+      return { sprite, box: null };
+    }
     const sprite = this.add.container(x, y).setDepth(19);
     const box = this.add.rectangle(0, 0, definition.width, definition.height, definition.color)
       .setStrokeStyle(level > 1 ? 3 : 2, level >= 3 ? 0xffffff : level > 1 ? 0xffd26e : 0xf7efff);
@@ -1948,6 +1975,27 @@ export class GameScene extends Phaser.Scene {
       };
       enemy.sprite.x += enemy.russianPullOffset.x;
       enemy.sprite.y += enemy.russianPullOffset.y;
+      // Tipo 3 usa os quadros 4–7 para fazer curvas e 0–3 para voar reto.
+      if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
+        const anim = enemy.sprite.anims;
+        const bombing = anim.currentAnim?.key === 'tipo3_bombardeio' && anim.isPlaying;
+        const hit = this.time.now - enemy.lastHitAt < 160;
+        if (!bombing && !hit) {
+          const dx = (enemy.sprite.x - previousX) / Math.max(dt,0.001);
+          const frame = dx < -35 ? (dx < -90 ? 4 : 5)
+            : dx > 35 ? (dx > 90 ? 7 : 6) : -1;
+          if (frame >= 0) {
+            if (enemy.type3BankFrame !== frame || anim.isPlaying) {
+              anim.stop();
+              enemy.sprite.setFrame(frame);
+              enemy.type3BankFrame = frame;
+            }
+          } else if (enemy.type3BankFrame !== -1 || !anim.isPlaying) {
+            enemy.type3BankFrame = -1;
+            enemy.sprite.play('tipo3_voo');
+          }
+        }
+      }
       this.updateEnemyHitVisual(enemy);
       enemy.bossLabel?.setPosition(enemy.sprite.x,enemy.sprite.y-52);
 
@@ -1957,6 +2005,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   fireEnemyProjectile(enemy, target = this.chooseDefenseTarget()) {
+    // A nave abre o compartimento de bombas ao disparar.
+    if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
+      enemy.sprite.play('tipo3_bombardeio', true);
+    }
     const count = enemy.definition.volleyCount;
     for (let i = 0; i < count; i += 1) {
       // A versão II do bombardeiro dispara duas bombas das laterais,
@@ -2122,6 +2174,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   showEnemyDeath(enemy) {
+    if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
+      // Último quadro da spritesheet sobre a explosão comum.
+      const debris = this.add.sprite(enemy.sprite.x, enemy.sprite.y, 'tipo3_sheet', 11)
+        .setDisplaySize(enemy.sprite.displayWidth, enemy.sprite.displayHeight)
+        .setDepth(53).setRotation(enemy.sprite.rotation);
+      this.tweens.add({
+        targets: debris, alpha: 0, scaleX: debris.scaleX * 1.18,
+        scaleY: debris.scaleY * 1.18, duration: 240,
+        onComplete: () => debris.destroy(),
+      });
+    }
     // Executado APENAS quando HP chega a zero, nunca em colisão com a base,
     // fim de laser Tipo 4 nem quando o laboratório limpa os alvos.
     const { x, y } = enemy.sprite;
@@ -2216,6 +2279,14 @@ export class GameScene extends Phaser.Scene {
       enemy.lastHitAt = this.time.now;
       if (enemy.box) enemy.box.setFillStyle(0xffffff);
       else if (enemy.type === 2) enemy.sprite.setAlpha(0.65);
+      else if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
+        enemy.sprite.anims.stop();
+        enemy.sprite.setFrame(10);
+        this.time.delayedCall(160, () => {
+          if (enemy.sprite.active && this.enemies.includes(enemy))
+            enemy.sprite.play('tipo3_voo');
+        });
+      }
       else enemy.sprite.setTintFill(0xffffff);
       if (enemy.phase === 'dive' && knockback > 0) {
         enemy.recoilSpeed = applyRecoilImpulse(enemy.recoilSpeed, knockback, maxRecoil);
