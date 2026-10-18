@@ -1329,7 +1329,9 @@ export class GameScene extends Phaser.Scene {
       this.spawnEnemy(4, { level, side: 'right' });
       return;
     }
-    this.spawnEnemy(event.type, { level, side: event.side });
+    this.spawnEnemy(event.type, { level, side: event.side, x: event.x,
+      finalBoss:event.finalBoss,bossCountry:event.bossCountry,
+      bossLevel:event.bossLevel,coalitionSize:event.coalitionSize });
   }
 
   portalLane(type, requestedX=null) {
@@ -1407,7 +1409,7 @@ export class GameScene extends Phaser.Scene {
     const groupCount = options.formationCount ?? 3;
     const center = options.center ?? W / 2;
     const formationOffset = index - (groupCount - 1) / 2;
-    const startX = type === 5 ? W / 2 :
+    const startX = type === 5 ? (options.x ?? W / 2) :
       type === 4 ? (options.side === 'left' ? -64
         : options.side === 'right' ? W + 64
           : Phaser.Math.Between(0, 1) ? -64 : W + 64) :
@@ -1444,6 +1446,8 @@ export class GameScene extends Phaser.Scene {
       spawnTimer: 0,
       spawnedMinions: 0,
       sourceBossId: options.sourceBossId ?? null,
+      finalBoss:Boolean(options.finalBoss), bossCountry:options.bossCountry??null,
+      bossLevel:options.bossLevel??0,bossLabel:null,
       laserGraphics: null,
       formationGroup,
       formationIndex: index,
@@ -1451,6 +1455,22 @@ export class GameScene extends Phaser.Scene {
         formationGroup.entry === 'staggered' ? index * 0.052 : 0,
       target: formationGroup ? null : this.chooseDefenseTarget(),
     };
+
+    if (type===5 && options.finalBoss && this.mode==='wave11') {
+      const color=FINALE_COUNTRIES[options.bossCountry]?.color??0x6ee9ed;
+      enemy.box?.setFillStyle(color).setStrokeStyle(4,0xffffff);
+      const name=options.bossCountry==='alien'?'FROTA ALIENÍGENA':
+        (FINALE_COUNTRIES[options.bossCountry]?.name??'ALIADO');
+      enemy.bossLabel=this.add.text(startX,startY-52,
+        name+(options.bossCountry==='alien'?'':` — NÍVEL ${options.bossLevel}`),{
+        fontFamily:'monospace',fontSize:'13px',fontStyle:'bold',
+        color:'#ffffff',backgroundColor:'#1d2232dc',padding:{x:5,y:3}
+      }).setOrigin(0.5).setDepth(25);
+      const hp=Math.max(12,Math.round(enemy.hp*
+        (coalitionHpFactor(options.coalitionSize||1)??1)));
+      enemy.maxHp=hp;
+      enemy.hp=hp;
+    }
 
     if (type === 1 && formationGroup?.kind === 'swarm') {
       enemy.phase = 'swarmDance';
@@ -1859,6 +1879,7 @@ export class GameScene extends Phaser.Scene {
       enemy.sprite.x += enemy.russianPullOffset.x;
       enemy.sprite.y += enemy.russianPullOffset.y;
       this.updateEnemyHitVisual(enemy);
+      enemy.bossLabel?.setPosition(enemy.sprite.x,enemy.sprite.y-52);
 
       // Bombas de pulso são barreiras: inimigos entram nelas durante o movimento.
       this.hitEnemyWithBlast(i);
@@ -1969,6 +1990,7 @@ export class GameScene extends Phaser.Scene {
     const enemy = this.enemies[index];
     if (!enemy) return;
     enemy.laserGraphics?.destroy();
+    enemy.bossLabel?.destroy();
     enemy.sprite.destroy();
     this.enemies.splice(index, 1);
   }
