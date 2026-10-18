@@ -112,3 +112,7 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 91 — Brasil 2: início da recarga (APROVADA)
 
 **Opção A:** a recarga de **8 segundos começa no instante do disparo** do Arraial Balístico. O núcleo permanece ativo por **4 segundos**, e o próximo especial pode ser usado **8 segundos após o disparo anterior** — portanto, em condições normais, há 4 segundos entre o desaparecimento do núcleo e a próxima ativação. A recarga não começa depois da explosão final. Reduções futuras de cooldown devem respeitar as regras de equilíbrio e sobreposição que venham a ser definidas. **Somente atualização do GDD; nenhuma implementação.**
+
+## Decisão 92 — Brasil 2: quantidade de fogos (APROVADA)
+
+**Opção B:** o núcleo do Arraial Balístico libera **12 fogos ao longo dos 4 segundos** de duração, seguindo a sequência circular coreografada de alcance 100 px e frequência crescente (Decisões 78–81). A explosão final concentrada ocorre ao término da duração e **não conta** entre os 12 fogos. Intensidade de dano por fogo permanece qualitativamente baixa; valores numéricos e área individual de cada estouro ainda serão balanceados. **Apenas documentação, sem código.**
