@@ -330,6 +330,11 @@ export function v1CountryLevels(state = {}) {
   for (const id of (Array.isArray(state.choices)?state.choices:[]).slice(0,10)) {
     if (Object.hasOwn(levels,id)) levels[id] += 1;
   }
+  // Onda 11: melhorias brasileiras concedidas durante a resistência
+  // podem pular níveis que exigiriam torres; o maior nível define as armas.
+  if(Array.isArray(state.resistanceLevels))for(const level of state.resistanceLevels)
+    if(Number.isInteger(level)&&level>=1&&level<=10)
+      levels.br=Math.max(levels.br,level);
   return levels;
 }
 export function nextV1Options(state = {}, countryBase = []) {
