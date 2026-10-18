@@ -2598,7 +2598,7 @@ export class GameScene extends Phaser.Scene {
         for(let i=this.enemies.length-1;i>=0;i--){
           const enemy=this.enemies[i];
           if(this.firePulse.hits.has(enemy.uid))continue;
-          if(withinBlast(CANNON.x,CANNON.y+ARRAIAL.fireRingOffsetY,
+          if(withinBlast(CANNON.x,CANNON.y+7,
             enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type),radius)){
             this.firePulse.hits.add(enemy.uid);
             this.impactInvader(i,ARRAIAL.firePulseDamage,0,'#ffac50',false);
@@ -2610,7 +2610,7 @@ export class GameScene extends Phaser.Scene {
     this.lastFlameTick=this.time.now;
     for(let i=this.enemies.length-1;i>=0;i--){
       const enemy=this.enemies[i];
-      if(withinFlame(CANNON.x,CANNON.y+ARRAIAL.fireRingOffsetY,
+      if(withinFlame(CANNON.x,CANNON.y+7,
         ARRAIAL.fireRingRadius,enemy.sprite.x,enemy.sprite.y,
         enemyContactRadius(enemy.type),true))
         this.impactInvader(i,ARRAIAL.flameDamage,0,'#ffb85b',false);
@@ -3008,22 +3008,23 @@ export class GameScene extends Phaser.Scene {
       brazilRing ? ARRAIAL.shieldDomeRadius : 62,
       this.shield, this.shieldMax, false, 10);
     if (brazilRing && this.shield > 0) {
+      // Fogueira no chão: elipse achatada ao redor da base do canhão.
       const age=this.firePulse ? this.time.now-this.firePulse.bornAt : ARRAIAL.firePulseDuration;
-      const radius=age<ARRAIAL.firePulseDuration ? firePulseRadius(age) : ARRAIAL.fireRingRadius;
-      graphics.lineStyle(4,0xff9638,0.85);
-      graphics.strokeCircle(CANNON.x,CANNON.y+ARRAIAL.fireRingOffsetY,radius);
-      // Fogueira interna cresce e contrai quando o balão é lançado.
-      for(let i=0;i<17;i++){
-        const angle=i*Math.PI*2/17;
-        const fx=CANNON.x+radius*Math.cos(angle);
-        const fy=CANNON.y+ARRAIAL.fireRingOffsetY+radius*Math.sin(angle);
-        const flicker=2+3*(0.5+0.5*Math.sin(this.time.now*0.012+i*2.3));
-        graphics.fillStyle(i%2?0xffa23a:0xffdb6a,0.8);
-        graphics.fillTriangle(fx-3,fy,fx+3,fy,fx,fy-flicker-4);
-        if(i%4===0){
-          graphics.fillStyle(0xffdb76,0.65);
-          graphics.fillCircle(fx,fy-10-(this.time.now*0.016+i*3)%15,1.3);
-        }
+      const pulsing=age<ARRAIAL.firePulseDuration;
+      const radius=pulsing ? firePulseRadius(age) : ARRAIAL.fireRingRadius;
+      const cx=CANNON.x, cy=CANNON.y+7;
+      const flatten=ARRAIAL.fireRingFlatten;
+      graphics.lineStyle(pulsing?6:4,pulsing?0xffc35b:0xff8432,0.9);
+      graphics.strokeEllipse(cx,cy,radius*2,radius*2*flatten);
+      graphics.lineStyle(2,0xffdf84,pulsing?0.65:0.4);
+      graphics.strokeEllipse(cx,cy,radius*1.83,radius*1.83*flatten);
+      for(let i=0;i<20;i++){
+        const angle=i*Math.PI*2/20;
+        const fx=cx+radius*Math.cos(angle);
+        const fy=cy+radius*flatten*Math.sin(angle);
+        const flicker=5+4*(0.5+0.5*Math.sin(this.time.now*0.014+i*2.1));
+        graphics.fillStyle(i%2?0xff932c:0xffdf63,0.85);
+        graphics.fillTriangle(fx-3,fy,fx+3,fy,fx,fy-flicker*(pulsing?1.8:1));
       }
     }
     for (const tower of this.supportTowers) {
