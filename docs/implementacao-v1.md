@@ -166,3 +166,7 @@ Substitui a trajetória circular progressiva anterior: **ao surgir, o balão dis
 ## Ajuste do playtest — dano em toda a área visível dos fogos
 
 A pedido do usuário, as explosões do **Brasil 2** atingem todos os inimigos dentro de seu círculo visual completo, e não somente perto do centro: cada fogo passou a **37 px de raio de dano** (incluindo halo visível) e o estouro final do balão passou a **78 px de raio**. Todos os **20 fogos visíveis** (6 no anel inicial, 14 na espiral) agora causam 1 HP cada; não existem mais fogos exclusivamente decorativos. A explosão final continua causando 5 HP. Inimigos recebem dano apenas uma vez por explosão individual, mesmo permanecendo na área; fogos distintos acumulam dano. Duração e recarga permanecem em 2,2 s e 8 s, respectivamente. Ajuste sujeito a balanceamento no playtest.
+
+## Ajuste de playtest — explosão final ultrapassa o anel inicial
+
+Explosão final do Arraial Balístico ampliada para **150 px de raio**, maior que o círculo inicial dos fogos (centros a 100 px, com 37 px de raio de explosão). O desenho dos anéis e raios da detonação cresce até o mesmo raio de 150 px, alinhado à área de dano. Dano final continua **5 HP por inimigo atingido**, aplicado uma única vez; demais parâmetros mantidos. Alteração de balanceamento solicitada após playtest.
