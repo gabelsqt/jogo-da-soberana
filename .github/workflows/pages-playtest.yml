@@ -1,0 +1,57 @@
+name: Playtest v1 — GitHub Pages
+
+on:
+  push:
+    branches:
+      - feat/v1-upgrades-64-68
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'scripts/**'
+      - '.github/workflows/pages-playtest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: soberana-v1-pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Baixar versão de teste (não publica outras branches)
+        uses: actions/checkout@v4
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências
+        run: npm install
+      - name: Testar regras
+        run: npm test
+      - name: Gerar HTML único do jogo
+        run: npm run build:itch
+      - name: Preparar página
+        run: |
+          mkdir -p pages-site
+          cp itch-build/index.html pages-site/index.html
+          touch pages-site/.nojekyll
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Carregar site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages-site
+      - name: Publicar site
+        id: deployment
+        uses: actions/deploy-pages@v4

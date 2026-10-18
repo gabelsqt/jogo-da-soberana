@@ -40,42 +40,39 @@ export class MenuScene extends Phaser.Scene {
       color: '#96e0e2',
     }).setOrigin(0.5).setDepth(22);
 
-    this.add.text(W / 2, 185, 'DEFESA ANTIAÉREA  •  PROTÓTIPO', {
+    this.add.text(W / 2, 185, 'DEFESA ANTIAÉREA  •  PLAYTEST V1', {
       fontFamily: 'monospace',
       fontSize: '13px',
       color: '#d2dff2',
     }).setOrigin(0.5).setDepth(22);
 
-    const startGame = () => this.scene.start('GameScene', { mode: 'wave0' });
-    const testEnemies = () => this.scene.start('LabSetupScene');
-    const testUpgrades = () => this.scene.start('LabSetupScene');
+    // A versão 1 não oferece mais os antigos laboratórios de animais no menu.
+    const startGame = () => this.scene.start('GameScene', { mode: 'wave0', campaign: {choices: []} });
+    const testUpgrades = () => this.scene.start('V1PlaytestScene');
     addMenuButton(this, {
-      x: W / 2, y: 229, text: '▶  COMEÇAR', onClick: startGame, primary: true,
-      depth: 23,
+      x: W / 2, y: 235, text: '▶  COMEÇAR CAMPANHA V1',
+      onClick: startGame, primary: true, depth: 23, width: 360,
     });
-
     addMenuButton(this, {
-      x: W / 2, y: 288, width: 300,
-      text: 'LABORATÓRIO [T]', onClick: testEnemies, depth: 23,
+      x: W / 2, y: 305, text: '★  TESTAR UPGRADES V1',
+      onClick: testUpgrades, depth: 23, width: 340,
     });
-
-    addMenuButton(this, {
-      x: W / 2, y: 347, width: 320,
-      text: 'CONFIGURAR TESTES [U]', onClick: testUpgrades, depth: 23,
-    });
+    this.add.text(W / 2, 359, '5 PAÍSES • 50 UPGRADES • SEM TORRES ANIMAIS', {
+      fontFamily:'monospace',fontSize:'13px',color:'#a2eddb',
+    }).setOrigin(0.5).setDepth(23);
 
     this.add.text(W / 2, 413,
-      'MOUSE: MIRAR    ESQUERDO: ATIRAR    DIREITO: ESPECIAL', {
+      'MOUSE: MIRAR    ESQUERDO: TIRO    DIREITO: ESPECIAL', {
         fontFamily: 'monospace', fontSize: '13px', color: '#e0ecfa',
       }).setOrigin(0.5).setDepth(22);
 
-    this.add.text(W / 2, 442, 'ESC OU P: PAUSAR     R: REINICIAR', {
+    this.add.text(W / 2, 442, 'ESPAÇO: SUPREMA N9  •  ESC/P: PAUSAR  •  R: REINICIAR', {
       fontFamily: 'monospace', fontSize: '13px', color: '#9fc1dd',
     }).setOrigin(0.5).setDepth(22);
 
     // Rodapé de versão visível tanto no navegador quanto no HTML do itch.io.
     // Fora do painel central para não competir com os botões ou o título.
-    this.add.text(W - 16, H - 12, GAME_VERSION_LABEL, {
+    this.add.text(W - 16, H - 12, GAME_VERSION_LABEL + ' • PLAYTEST V1', {
       fontFamily: 'monospace', fontSize: '13px',
       color: '#bfd2e9',
       stroke: '#061124', strokeThickness: 3,
@@ -86,7 +83,7 @@ export class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(22);
 
     this.input.keyboard.on('keydown-ENTER', startGame);
-    this.input.keyboard.on('keydown-T', testEnemies);
+    
     this.input.keyboard.on('keydown-U', testUpgrades);
   }
 }

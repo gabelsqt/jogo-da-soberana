@@ -45,6 +45,7 @@ import {
 } from '../gameplay/waves.js';
 import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
@@ -138,6 +139,13 @@ export class GameScene extends Phaser.Scene {
     // Valores provisórios para o playtest da árvore reorganizada.
     const jointStages = this.thirdIds.length + this.fourthIds.length;
     this.combat.specialCooldown = Math.round(this.combat.specialCooldown * Math.pow(0.93, jointStages));
+    this.isV1Campaign = !this.unifiedLab && /^wave(?:[0-9]|10)$/.test(this.mode);
+    if (this.isV1Campaign) {
+      this.combat = v1CombatStats(this.campaign);
+      // Legado de torres e especiais das árvores antigas fica disponível somente no laboratório.
+      this.thirdIds = [];
+      this.fourthIds = [];
+    }
   }
 
   getRunOptions() {
@@ -205,6 +213,7 @@ export class GameScene extends Phaser.Scene {
       bullet.sprite.destroy();
     }
     this.projectiles.length = 0;
+    this.visibleProjectileCount = 0;
     this.clearResidualSlashes();
     for (const blast of this.specialBlasts) blast.graphics.destroy();
     this.specialBlasts.length = 0;
@@ -246,6 +255,7 @@ export class GameScene extends Phaser.Scene {
 
     this.enemies = [];
     this.projectiles = [];
+    this.visibleProjectileCount = 0;
     this.enemyBullets = [];
     this.specialBlasts = [];
     this.supportTowers = [];
@@ -264,6 +274,8 @@ export class GameScene extends Phaser.Scene {
     // Laboratórios e a agenda legada continuam acessíveis independentemente.
     this.waveEvents = getV035WaveEvents(this.mode, getWaveEvents(this.mode));
     this.lastBasicFire = -this.combat.basicInterval;
+    this.heatStartedAt = null;
+    this.ultimateUsed = false;
     this.basicShotCount = 0;
     this.cannonRecoil = 0;
     this.lastHeavyShake = -Infinity;
@@ -271,7 +283,7 @@ export class GameScene extends Phaser.Scene {
     this.tutorialComplete = false;
     this.gameOver = false;
     this.cannonHealth = 100;
-    this.shieldMax = 80 + (this.thirdIds.length + this.fourthIds.length) * 8;
+    this.shieldMax = 80 + (this.thirdIds.length + this.fourthIds.length) * 8 + (this.isV1Campaign ? this.combat.shieldBonus : 0);
     this.shield = this.shieldMax;
     this.lastDamageAt = -10000;
     this.aimAngle = -Math.PI / 2;
@@ -283,6 +295,12 @@ export class GameScene extends Phaser.Scene {
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
+    if (this.isV1Campaign && this.combat.ultimate) {
+      this.ultimateLabel = this.add.text(CANNON.x + 75, CANNON.y - 61, '', {
+        fontFamily: 'monospace', fontSize: '11px', fontStyle: 'bold',
+        color: '#fff2b8', backgroundColor: '#132b39da', padding: {x:6,y:4},
+      }).setDepth(105);
+    }
     // A batalha é vista como transmissão de TV. O filtro é somente visual:
     // fica acima das naves, mas abaixo dos textos e controles do HUD.
     this.crtOverlay = createCombatCrtOverlay(this, W, H);
@@ -306,6 +324,11 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-R', () => this.scene.restart(this.getRunOptions()));
     this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
     this.input.keyboard.on('keydown-P', () => this.pauseGame());
+    this.input.keyboard.addCapture('SPACE');
+    this.input.keyboard.on('keydown-SPACE', (event) => {
+      event.preventDefault();
+      if (this.scene.isActive('GameScene') && !this.scene.isPaused('GameScene')) this.activateUltimate();
+    });
 
     if (import.meta.env.DEV && this.mode.startsWith('wave')) {
       // Playtest local: Shift+5–9 abre a onda diretamente, sem afetar o itch.io.
@@ -543,7 +566,8 @@ export class GameScene extends Phaser.Scene {
 
   createSupportTowers() {
     const selected = this.unifiedLab ? configuredTowerLoadout(this.labConfig)
-      : this.mode === 'upgradeLab' ? this.labTowerIds.map(id => ({ id, role: 'swarm', level: 5 })) : activeTowerLoadout(this.campaign);
+      : this.mode === 'upgradeLab' ? this.labTowerIds.map(id => ({ id, role: 'swarm', level: 5 }))
+        : this.isV1Campaign ? [] : activeTowerLoadout(this.campaign);
     this.installSupportTowerSet(selected);
   }
 
@@ -1808,6 +1832,9 @@ export class GameScene extends Phaser.Scene {
     if (killed) {
       this.showEnemyDeath(enemy);
       this.removeEnemy(index);
+      if (this.mode === 'wave10' && enemy.type === 5 && !enemy.sourceBossId) {
+        this.showWaveComplete('cleared');
+      }
     } else {
       enemy.lastHitAt = this.time.now;
       if (enemy.box) enemy.box.setFillStyle(0xffffff);
@@ -1905,26 +1932,39 @@ export class GameScene extends Phaser.Scene {
 
   shootBasic(pointer) {
     if (this.tutorialComplete || this.countdownActive) return;
-    if (this.time.now - this.lastBasicFire < this.combat.basicInterval) return;
+    if (this.combat.heat && this.heatStartedAt === null) this.heatStartedAt = this.time.now;
+    const heat = this.combat.heat ? Math.min(1.35, (this.time.now - this.heatStartedAt) / 1750) : 0;
+    if (this.time.now - this.lastBasicFire < this.combat.basicInterval / (1 + heat)) return;
     this.lastBasicFire = this.time.now;
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     const nextShot = this.basicShotCount + 1;
     // A alternância brasileira é aplicada à rajada INTEIRA; todos os
     // projéteis chineses continuam com seu spread simétrico em torno dela.
-    const aimed = brazilAlternatingAngle(angle, nextShot, this.combat.brazilZigzag);
+    const aimed = this.isV1Campaign ? angle
+      : brazilAlternatingAngle(angle, nextShot, this.combat.brazilZigzag);
     const effects = shotVfxFor(this.activeUpgradeIds());
     const volleyAngles = shotAngles(aimed, this.combat.bulletsPerShot);
     volleyAngles.forEach((firingAngle, index) => {
       const centerGlow = isChinaCenterProjectile(
         index, volleyAngles.length, effects.multiple,
       );
-      this.createProjectile(firingAngle, false, 0, effects, centerGlow);
+      const offset = this.isV1Campaign && this.combat.horizontalSpread
+        ? (nextShot % 2 ? -1 : 1) * this.combat.horizontalSpread : 0;
+      if (this.isV1Campaign) this.createProjectile(firingAngle, false, 0, effects, centerGlow, offset);
+      else this.createProjectile(firingAngle, false, 0, effects, centerGlow);
+      if (this.isV1Campaign && this.combat.extraBurstEvery && nextShot % this.combat.extraBurstEvery === 0) {
+        this.createProjectile(firingAngle, false, 0, effects, false, offset + 7);
+      }
     });
     this.basicShotCount = nextShot;
     // O laser coreano mantém a direção da mira original (a oscilação da
     // Gambiarra altera apenas as balas básicas, não a arma laser).
-    if (isPlasmaShot(this.basicShotCount, this.combat.plasmaEvery > 0)) {
+    if (this.combat.plasmaEvery > 0 && this.basicShotCount % this.combat.plasmaEvery === 0) {
       this.fireLightstickBeam(angle);
+    }
+    if (this.isV1Campaign && this.combat.missileEvery && nextShot % this.combat.missileEvery === 0) {
+      const target = chooseTowerAttackTarget(CANNON.x, CANNON.y, this.enemies, 900);
+      if (target) this.launchSpecialDrone(CANNON.x, CANNON.y - 36, 'cn');
     }
     this.showMuzzleFlash(aimed, effects);
   }
@@ -1946,7 +1986,7 @@ export class GameScene extends Phaser.Scene {
         PLASMA_HALF_WIDTH, enemyContactRadius(enemy.type),
       )) {
         initialHitIds.add(enemy.uid);
-        this.impactInvader(i, PLASMA_DAMAGE, 0, '#e9aaff');
+        this.impactInvader(i, this.isV1Campaign ? this.combat.laserDamage : PLASMA_DAMAGE, 0, '#e9aaff');
       }
     }
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
@@ -2187,6 +2227,71 @@ export class GameScene extends Phaser.Scene {
     gfx.fillCircle(x, y, 2.5);
   }
 
+
+  // Explosões cinematográficas calculam dano de forma independente da quantidade de partículas.
+  pulseV1Area(x, y, radius, damage, color, slow = false) {
+    if (this.tutorialComplete) return;
+    const ring = this.add.circle(x, y, radius, color, 0.23)
+      .setStrokeStyle(4, 0xffffff, 0.78).setDepth(65).setScale(0.15);
+    this.tweens.add({targets:ring, scale:1.15, alpha:0, duration:440,
+      onComplete:()=>ring.destroy()});
+    for (let i = this.enemies.length-1; i>=0; i--) {
+      const e = this.enemies[i];
+      if (Math.hypot(e.sprite.x-x,e.sprite.y-y) <= radius+enemyContactRadius(e.type)) {
+        if (slow) e.electricSlowUntil=this.time.now+2400;
+        this.impactInvader(i,damage,slow?0.25:0,'#'+color.toString(16).padStart(6,'0'));
+      }
+    }
+  }
+
+  // Apenas uma suprema por partida é possível: 9 das 10 escolhas seriam do mesmo país.
+  activateUltimate() {
+    if (!this.isV1Campaign || this.tutorialComplete || this.countdownActive ||
+      this.ultimateUsed || !this.combat.ultimate) return false;
+    const country=this.combat.ultimate;
+    const config=V1_SUPREMES[country];
+    if (!config) return false;
+    this.ultimateUsed=true;
+    this.cameras.main.shake(430,0.004);
+    this.showAttackWarning(config.title.toUpperCase()+' — SUPREMA!');
+    const p=this.input.activePointer;
+    const target=specialTargetPoint(CANNON.x,CANNON.y,p.x,p.y);
+    if(config.scope==='beam') {
+      const endX=CANNON.x+Math.cos(target.angle)*1300;
+      const endY=CANNON.y+Math.sin(target.angle)*1300;
+      const beam=this.add.graphics().setDepth(83);
+      beam.lineStyle(55,config.color,0.23);
+      beam.lineBetween(CANNON.x,CANNON.y,endX,endY);
+      beam.lineStyle(14,0xfff6fd,0.95);
+      beam.lineBetween(CANNON.x,CANNON.y,endX,endY);
+      for(let i=this.enemies.length-1;i>=0;i--){
+        const e=this.enemies[i];
+        if(laserHitsTarget(CANNON.x,CANNON.y,endX,endY,
+            e.sprite.x,e.sprite.y,28,enemyContactRadius(e.type))) {
+          this.impactInvader(i,32,0,'#f8baff');
+        }
+      }
+      this.tweens.add({targets:beam,alpha:0,duration:760,onComplete:()=>beam.destroy()});
+    } else {
+      const points=config.scope==='sky'
+        ? [[125,105],[300,165],[500,100],[685,205],[840,125],
+           [175,300],[390,265],[575,345],[780,310]]
+        : [[0,0],[-74,10],[64,-42],[32,75],[-38,-76]];
+      for(let i=0;i<Math.min(MAX_COSMETIC_PARTICLES,points.length);i++){
+        const [px,py]=points[i];
+        const x=config.scope==='sky'?px:Phaser.Math.Clamp(target.x+px,70,W-70);
+        const y=config.scope==='sky'?py:Phaser.Math.Clamp(target.y+py,65,H-115);
+        this.time.delayedCall(i*85,()=>{
+          if(!this.tutorialComplete)this.pulseV1Area(x,y,
+            country==='ru'?128:country==='us'?112:125,
+            country==='ru'?12:country==='us'?11:8,
+            config.color,country==='ru');
+        });
+      }
+    }
+    return true;
+  }
+
   shootSpecial(pointer) {
     if (this.tutorialComplete || this.countdownActive) return;
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
@@ -2194,6 +2299,9 @@ export class GameScene extends Phaser.Scene {
       CANNON.x, CANNON.y, pointer.x, pointer.y,
     );
     this.lastSpecialFire = this.time.now;
+    if (this.isV1Campaign && this.combat.electricFence && this.combat.specialAmplifier > 1.3) {
+      this.pulseV1Area(target.x, target.y, 100, this.combat.electricDamage, 0x70f9ac);
+    }
     this.createProjectile(target.angle, true, target.distance);
     // Coreia 4: raio no trajeto, mantendo a detonação no ponto marcado.
     if (this.fourthIds.includes('jp')) this.fireSpecialLaser(target);
@@ -2238,14 +2346,18 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  createProjectile(angle, special, distance = 0, effects = null, centerGlow = false) {
+  createProjectile(angle, special, distance = 0, effects = null, centerGlow = false, offsetX = 0, generation = 0, origin = null) {
     const vx = Math.cos(angle);
     const vy = Math.sin(angle);
-    const x = CANNON.x + vx * 29;
-    const y = CANNON.y + vy * 29;
+    const x = (origin?.x ?? CANNON.x + vx * 29) + offsetX;
+    const y = origin?.y ?? CANNON.y + vy * 29;
     const style = shotVisualFor(this.activeUpgradeIds());
+    if (this.isV1Campaign && this.combat.transformed === 'br') style.color = 0x55e99e;
     const vfx = special ? null : (effects ?? shotVfxFor(this.activeUpgradeIds()));
-    const dot = special
+    // Somente a representação gráfica é limitada. Balas invisíveis continuam com física e dano.
+    const visible = special || this.visibleProjectileCount < MAX_VISUAL_PROJECTILES;
+    if (visible) this.visibleProjectileCount += 1;
+    const dot = !visible ? {x, y, destroy(){}} : special
       ? this.add.circle(x, y, 8, 0x72eaf8).setDepth(35)
       : this.add.rectangle(x, y, style.width, style.length, style.color)
         .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff, centerGlow ? 0.95 : 0.65)
@@ -2254,10 +2366,12 @@ export class GameScene extends Phaser.Scene {
     const speed = special ? 300 : this.combat.basicSpeed;
     // Uma única Graphics por bala, redesenhada enquanto ela se move.
     // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
-    const trail = vfx && (vfx.heavy || vfx.multiple)
+    const trail = visible && vfx && (vfx.heavy || vfx.multiple)
       ? this.add.graphics().setDepth(34) : null;
     const bullet = {
       sprite: dot,
+      visual: visible,
+      generation,
       trail,
       vfx,
       centerGlow,
@@ -2275,6 +2389,7 @@ export class GameScene extends Phaser.Scene {
     };
     this.projectiles.push(bullet);
     this.drawProjectileTrail(bullet);
+    return bullet;
   }
 
   drawProjectileTrail(bullet) {
@@ -2364,7 +2479,7 @@ export class GameScene extends Phaser.Scene {
       blast.hits.add(enemy.uid);
       // Cada explosão pode atingir o mesmo alvo uma única vez.
       // Naves grandes recebem dano, não morrem instantaneamente.
-      this.impactInvader(index, enemy.type === 5 ? 4 : 3, 0, '#a8faff');
+      this.impactInvader(index, (enemy.type === 5 ? 4 : 3) * (this.isV1Campaign ? this.combat.specialAmplifier : 1), 0, '#a8faff');
       break;
     }
   }
@@ -2521,6 +2636,12 @@ export class GameScene extends Phaser.Scene {
               this.showHeavyImpact(deathPosition.x, deathPosition.y);
             }
           }
+          if (this.isV1Campaign && mayDuplicateProjectile(bullet.generation, this.combat.duplicateChance, Math.random())) {
+            const direction = Math.atan2(bullet.vy, bullet.vx);
+            const replica = this.createProjectile(direction, false, 0, bullet.vfx, false, 0,
+              bullet.generation + 1, {x:deathPosition.x+8,y:deathPosition.y-8});
+            replica?.hitEnemyIds.add(directTargetId);
+          }
           if (bullet.fragmentation) {
             this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
               destroyed ? deathPosition : null);
@@ -2539,6 +2660,7 @@ export class GameScene extends Phaser.Scene {
       if (remove) {
         bullet.trail?.destroy();
         bullet.sprite.destroy();
+        if (bullet.visual) this.visibleProjectileCount = Math.max(0, this.visibleProjectileCount - 1);
         this.projectiles.splice(i, 1);
       }
     }
@@ -2555,6 +2677,9 @@ export class GameScene extends Phaser.Scene {
     const result = applyShieldedHit(this.shield, this.cannonHealth, amount);
     this.shield = result.shield;
     this.cannonHealth = result.health;
+    if (this.isV1Campaign && this.combat.shieldPulse && this.shield > 0) {
+      this.shield = Math.min(this.shieldMax, this.shield + amount*0.08);
+    }
     if (this.cannonHealth === 0) this.showDefeat();
   }
 
@@ -2772,6 +2897,11 @@ export class GameScene extends Phaser.Scene {
     if (this.tutorialComplete) return;
     this.tutorialComplete = true;
 
+    if (this.mode === 'wave10') {
+      this.statusText.setText('FORTALEZA-MÃE DESTRUÍDA');
+      this.time.delayedCall(1200, () => this.advanceAfterWave());
+      return;
+    }
     if (this.mode.startsWith('wave')) {
       const survived = outcome === 'survived';
       const message = survived
@@ -2820,7 +2950,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   advanceAfterWave() {
-    if (!this.unifiedLab && /^wave[0-8]$/.test(this.mode)) {
+    if (!this.unifiedLab && /^wave[0-9]$/.test(this.mode)) {
       this.scene.start('UpgradeScene', {
         campaign: this.campaign,
         completedWave: Number(this.mode.at(-1)),
@@ -2882,6 +3012,10 @@ export class GameScene extends Phaser.Scene {
         .padStart(2, '0') + 's | ' : '';
     this.statusText.setText(clock + (remaining
       ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO'));
+    if (this.ultimateLabel) {
+      const title = V1_SUPREMES[this.combat.ultimate]?.title ?? 'SUPREMA';
+      this.ultimateLabel.setText(`ESPAÇO — ${title}\n${this.ultimateUsed ? 'USADA' : 'PRONTA'}`);
+    }
     this.healthText.setText(
       'CANHÃO ' + Math.ceil(this.cannonHealth) +
       ' | ESCUDO ' + Math.ceil(this.shield) +
@@ -2952,13 +3086,18 @@ export class GameScene extends Phaser.Scene {
     }
     // À meia-noite de 30 segundos, sobreviver basta — mesmo com inimigos vivos.
     // A verificação vem ANTES das atualizações hostis do quadro final.
-    if (this.mode.startsWith('wave') && this.elapsed >= WAVE_DURATION_MS) {
+    if (this.mode === 'wave10' && this.elapsed >= 60000) {
+      this.showDefeat();
+      return;
+    }
+    if (/^wave[0-9]$/.test(this.mode) && this.elapsed >= WAVE_DURATION_MS) {
       this.showWaveComplete('survived');
       return;
     }
     this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     this.barrel.rotation = this.aimAngle + Math.PI / 2;
     if (pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer)) this.shootBasic(pointer);
+    else this.heatStartedAt = null;
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
     // volta ao lugar sem alterar a origem física das balas.
     this.cannonRecoil *= Math.exp(-19 * dt);
@@ -2981,7 +3120,7 @@ export class GameScene extends Phaser.Scene {
     this.drawEnemyHealthBars();
 
     if (this.time.now - this.lastDamageAt > SHIELD_REGEN_DELAY && this.shield < this.shieldMax) {
-      this.shield = Math.min(this.shieldMax, this.shield + SHIELD_REGEN_RATE * dt);
+      this.shield = Math.min(this.shieldMax, this.shield + (this.isV1Campaign ? this.combat.shieldRegen : SHIELD_REGEN_RATE) * dt);
     }
     for (const tower of this.supportTowers) {
       if (tower.health > 0 && tower.shield < tower.shieldMax &&

@@ -3,13 +3,13 @@ import {
   GAME_WIDTH as W, GAME_HEIGHT as H,
   preloadRioBackdrop, drawRioBackdrop,
 } from '../config/scenery.js';
-import { getFirstUpgrade } from '../gameplay/upgrades.js';
+import { getFirstUpgrade, FIRST_UPGRADES } from '../gameplay/upgrades.js';
+import { nextV1Options, chooseV1Upgrade } from '../gameplay/v1Upgrades.js';
 import {
   normalizeCampaignState, nextUpgradeOptions,
   chooseCampaignUpgrade, nextWaveAfterChoice,
 } from '../gameplay/progression.js';
 import { REPRESENTATIVES, representativeLine } from '../gameplay/representatives.js';
-import { upgradeRepresentativeLine } from '../gameplay/upgradeDialogue.js';
 
 const FONT = 'monospace';
 const SLOTS = [130, 305, 480, 655, 830];
@@ -71,7 +71,7 @@ export class UpgradeScene extends Phaser.Scene {
       'ONDA ' + this.completedWave + ' CONCLUÍDA  •  ESCOLHA UMA MELHORIA',
       13, '#b6dcee');
 
-    this.options = nextUpgradeOptions(this.campaign);
+    this.options = nextV1Options(this.campaign, FIRST_UPGRADES);
     this.tiles = [];
     this.options.forEach((option, index) => {
       const x = SLOTS[index];
@@ -134,7 +134,7 @@ export class UpgradeScene extends Phaser.Scene {
     }
     const option = selected.option;
     this.dialogueTitle.setText(REPRESENTATIVES[id].label + ' — REPRESENTANTE');
-    this.dialogueBody.setText('“' + (upgradeRepresentativeLine(id, option.level) || representativeLine(id)) + '”');
+    this.dialogueBody.setText('“' + (representativeLine(id)) + '”');
     this.dialogueUpgrade.setText(
       option.title.toUpperCase() + ' — ' + option.description,
     );
@@ -144,9 +144,9 @@ export class UpgradeScene extends Phaser.Scene {
 
   selectUpgrade(id) {
     if (this.chosen) return;
-    const next = chooseCampaignUpgrade(this.campaign, id);
+    const next = chooseV1Upgrade(this.campaign, id);
     if (!next) return;
-    const mode = nextWaveAfterChoice(next);
+    const mode = `wave${next.choices.length}`;
     if (!mode) return;
     this.chosen = true;
     this.dialogueBody.setText('“' + representativeLine(id, 'accepted') + '”');
