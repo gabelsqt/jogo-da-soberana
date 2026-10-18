@@ -1,3 +1,4 @@
+import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS } from '../gameplay/discoGlobe.js';
 import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
@@ -233,8 +234,14 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  clearDiscoGlobes() {
+    for (const globe of this.discoGlobes ?? []) { globe.graphics.destroy(); globe.label.destroy(); }
+    this.discoGlobes = [];
+  }
+
   clearTestEnemies() {
     if (!this.unifiedLab && this.mode !== 'upgradeLab' && this.mode !== 'lab') return;
+    this.clearDiscoGlobes();
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) this.removeEnemy(i);
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) this.removeEnemyBullet(i);
     for (const bullet of this.projectiles) {
@@ -328,6 +335,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    this.discoGlobes = [];
     this.enemies = [];
     this.projectiles = [];
     this.visibleProjectileCount = 0;
@@ -2641,8 +2649,13 @@ export class GameScene extends Phaser.Scene {
   fireLightstickBeam(angle, drawFlash = true) {
     const startX = CANNON.x + Math.cos(angle) * 32;
     const startY = CANNON.y + Math.sin(angle) * 32;
-    const endX = startX + Math.cos(angle) * PLASMA_RANGE;
-    const endY = startY + Math.sin(angle) * PLASMA_RANGE;
+    let endX = startX + Math.cos(angle) * PLASMA_RANGE;
+    let endY = startY + Math.sin(angle) * PLASMA_RANGE;
+    const hit=hitDiscoGlobe(this.discoGlobes,startX,startY,endX,endY,this.elapsed,PLASMA_HALF_WIDTH);
+    if(hit){
+      endX=hit.x;endY=hit.y;
+      this.fireV1DiscoReflections(hit.globe.x,hit.globe.y,hit.globe.build,hit.globe);
+    }
 
     // A lâmina atravessa toda a linha do tiro, independentemente do HP.
     // Cada nave sofre dano uma única vez por pulso.
@@ -2692,7 +2705,9 @@ export class GameScene extends Phaser.Scene {
     beam.clear();
     if(!active)return;
     const x=CANNON.x+Math.cos(angle)*32, y=CANNON.y+Math.sin(angle)*32;
-    const tx=x+Math.cos(angle)*PLASMA_RANGE,ty=y+Math.sin(angle)*PLASMA_RANGE;
+    let tx=x+Math.cos(angle)*PLASMA_RANGE,ty=y+Math.sin(angle)*PLASMA_RANGE;
+    const hit=hitDiscoGlobe(this.discoGlobes,x,y,tx,ty,this.elapsed,PLASMA_HALF_WIDTH);
+    if(hit){tx=hit.x;ty=hit.y;}
     beam.lineStyle(24,0xa851ee,0.22);
     beam.lineBetween(x,y,tx,ty);
     beam.lineStyle(9,0xdc90ff,0.85);
@@ -3094,8 +3109,8 @@ export class GameScene extends Phaser.Scene {
     }
     // Sem componentes estrangeiros nem Arraial, preserva dano-base do especial.
     if(!br&&!us&&!ru&&!cn&&!jp)this.pulseV1Area(x,y,70,3,0x80e8ff);
-    // 4. Reflexos da Coreia: quantidade fixa POR ATIVAÇÃO, não por tiro.
-    if(jp)this.fireV1DiscoReflections(x,y,build);
+    // 4. Coreia deixa um globo estacionário: cada tiro recebido gera uma salva.
+    if(jp)this.createDiscoGlobe(x,y,build);
     // 5. Empurrão americano acontece por último e nunca causa dano adicional.
     if(us)this.pushV1EnemiesUp(x,y,build.usShockRadius,build.usPush);
   }
@@ -3156,28 +3171,64 @@ export class GameScene extends Phaser.Scene {
       onComplete:()=>visuals.destroy()});
   }
 
-  fireV1DiscoReflections(x,y,build) {
-    const g=this.add.graphics().setDepth(58);
+  createDiscoGlobe(x,y,build) {
+    const graphics=this.add.graphics().setDepth(56);
+    const label=this.add.text(x,y+40,'4.0s',{
+      fontFamily:'monospace',fontSize:'11px',color:'#f5caff',
+      stroke:'#160d28',strokeThickness:3,
+    }).setOrigin(0.5).setDepth(57);
+    this.discoGlobes.push({x,y,build,graphics,label,
+      expiresAt:this.elapsed+DISCO_DURATION_MS,lastVisualAt:-Infinity});
+    this.updateDiscoGlobes();
+  }
+
+  updateDiscoGlobes() {
+    for(let i=this.discoGlobes.length-1;i>=0;i--){
+      const globe=this.discoGlobes[i];
+      if(this.elapsed>=globe.expiresAt){
+        globe.graphics.destroy();globe.label.destroy();this.discoGlobes.splice(i,1);continue;
+      }
+      const g=globe.graphics,r=DISCO_RADIUS;
+      g.clear();
+      g.fillStyle(0xc452ef,0.16);g.fillCircle(globe.x,globe.y,r+7);
+      g.fillStyle(0x563778,0.95);g.fillCircle(globe.x,globe.y,r);
+      g.lineStyle(2,0xf8d9ff,0.95);g.strokeCircle(globe.x,globe.y,r);
+      // Facetas retangulares com brilho móvel: silhueta de bola de discoteca.
+      for(let row=-2;row<=2;row++)for(let col=-2;col<=2;col++){
+        if(row*row+col*col>5)continue;
+        const lit=(row+col+Math.floor(this.elapsed/130))%4===0;
+        g.fillStyle(lit?0xffffff:0xc58ce8,lit?0.95:0.5);
+        g.fillRect(globe.x+col*9-3,globe.y+row*9-3,6,6);
+      }
+      globe.label.setText(((globe.expiresAt-this.elapsed)/1000).toFixed(1)+'s');
+    }
+  }
+
+  fireV1DiscoReflections(x,y,build,globe) {
+    // Agrega apenas o desenho em cadência alta, preservando cada raio/dano.
+    const show=!globe||this.elapsed-globe.lastVisualAt>=80;
+    const g=show?this.add.graphics().setDepth(58):null;
+    if(globe&&show)globe.lastVisualAt=this.elapsed;
     const targets=[...this.enemies].sort((a,b)=>
       Math.hypot(a.sprite.x-x,a.sprite.y-y)-Math.hypot(b.sprite.x-x,b.sprite.y-y));
-    const count=build.krReflections;
-    for(let ray=0;ray<count;ray++){
-      const target=targets[ray];
-      const angle=(ray/count)*Math.PI*2-Math.PI/2;
-      const tx=target?.sprite.x ?? x+Math.cos(angle)*260;
-      const ty=target?.sprite.y ?? y+Math.sin(angle)*260;
-      g.lineStyle(ray%2?2:3,ray%3===0?0xffffff:0xe69aff,0.72);
-      g.lineBetween(x,y,tx,ty);
-      if(target){
-        const index=this.enemies.findIndex(enemy=>enemy.uid===target.uid);
-        if(index>=0){
-          if(build.stages.ru)target.frozenUntil=Math.max(target.frozenUntil||0,
-            this.elapsed+build.ruFreezeMs);
-          this.impactInvader(index,build.krReflectDamage,0,'#f1baff',false);
-        }
+    let cursor=0;
+    for(let ray=0;ray<build.krReflections;ray++){
+      const liveIds=new Set(this.enemies.map(e=>e.uid));
+      const alive=targets.filter(t=>liveIds.has(t.uid));
+      if(!alive.length)break;
+      const target=alive[cursor++%alive.length];
+      if(g){
+        g.lineStyle(ray%2?2:3,ray%3===0?0xffffff:0xe69aff,0.72);
+        g.lineBetween(x,y,target.sprite.x,target.sprite.y);
+      }
+      const index=this.enemies.findIndex(enemy=>enemy.uid===target.uid);
+      if(index>=0){
+        if(build.stages.ru)target.frozenUntil=Math.max(target.frozenUntil||0,
+          this.elapsed+build.ruFreezeMs);
+        this.impactInvader(index,build.krReflectDamage,0,'#f1baff',false);
       }
     }
-    this.tweens.add({targets:g,alpha:0,duration:350,onComplete:()=>g.destroy()});
+    if(g)this.tweens.add({targets:g,alpha:0,duration:180,onComplete:()=>g.destroy()});
   }
 
   pushV1EnemiesUp(x,y,radius,strength) {
@@ -3671,12 +3722,21 @@ export class GameScene extends Phaser.Scene {
         bullet.usRadius=5.5*scale;
         if(bullet.visual)bullet.sprite.setScale(scale);
       }
+      const previousX=bullet.sprite.x,previousY=bullet.sprite.y;
       bullet.sprite.x += bullet.vx * dt;
       bullet.sprite.y += bullet.vy * dt;
       if(bullet.specialMarker)bullet.specialMarker.setPosition(bullet.sprite.x,bullet.sprite.y);
       this.drawProjectileTrail(bullet);
       let remove = false;
-      if(bullet.chinaSplit && bullet.distanceTravelled>=100){
+      if(!bullet.special){
+        const hit=hitDiscoGlobe(this.discoGlobes,previousX,previousY,
+          bullet.sprite.x,bullet.sprite.y,this.elapsed,Math.max(7,bullet.usRadius||0));
+        if(hit){
+          this.fireV1DiscoReflections(hit.globe.x,hit.globe.y,hit.globe.build,hit.globe);
+          remove=true;
+        }
+      }
+      if(!remove && bullet.chinaSplit && bullet.distanceTravelled>=100){
         // Dez balas se dividem em vinte; filhos de geração 1 não se dividem.
         const originalAngle=Math.atan2(bullet.vy,bullet.vx);
         for(const offset of [-0.075,0.075]){
@@ -4107,6 +4167,7 @@ export class GameScene extends Phaser.Scene {
     this.tutorialComplete = true;
     this.gameOver = true;
     this.closeSupremeCode();
+    this.clearDiscoGlobes();
     this.specialAimGraphics.clear();
     this.shieldGraphics.clear();
     this.time.removeAllEvents();
@@ -4123,6 +4184,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   finishDefeat(reason='cannon') {
+    this.clearDiscoGlobes();
     this.music.stop();
     if (this.mode==='wave11') {this.showFinaleDefeat(reason);return;}
     this.tutorialComplete = true;
@@ -4161,6 +4223,7 @@ export class GameScene extends Phaser.Scene {
 
   showWaveComplete(outcome = 'cleared') {
     if (this.tutorialComplete) return;
+    this.clearDiscoGlobes();
     this.music.stop();
     this.tutorialComplete = true;
 
@@ -4381,6 +4444,7 @@ export class GameScene extends Phaser.Scene {
     if (this.supremeTyping) delta *= 0.1;
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += delta;
+    this.updateDiscoGlobes();
     if (this.sunriseOverlay) {
       const sunrise = Math.max(0, 1 - (this.waveDurationMs - this.elapsed) / 5000);
       this.sunriseOverlay.setAlpha(sunrise * 0.28);

@@ -1,6 +1,6 @@
 # Game Soberana — GDD (decisões de identidade e Supremos)
 
-> Atualizado em 18/10/2026 — versão jogável 0.40. Documento de design; **não representa implementação concluída**. Esta seção registra decisões aprovadas em conversa. A tabela de upgrades atual está em `src/gameplay/v1Upgrades.js`; mecânicas em código podem ainda divergir.
+> Atualizado em 18/10/2026 — versão jogável 0.41. Documento de design; **não representa implementação concluída**. Esta seção registra decisões aprovadas em conversa. A tabela de upgrades atual está em `src/gameplay/v1Upgrades.js`; mecânicas em código podem ainda divergir.
 
 ## Princípios de identidade
 
@@ -89,7 +89,7 @@ Tema: comércio eletrônico, promoções e logística. Tiro principal multiplica
 
 **Tiro principal:** evolução proposta: nível 1 **Lightstick Tático** (laser e perfuração inicial); nível 3 **Refrão Perfurante** (mais perfuração); nível 5 **Coreografia de Plasma** (rastro luminoso persistente); nível 7 **Solo de Luz** (feixes longos e perfurantes); nível 10 **Encore Infinito**, **laser contínuo**, que causa dano continuado ao atravessar múltiplos inimigos. Nomes intermediários e detalhes finos permanecem propostas; laser contínuo do nível 10 está aprovado.
 
-**Especial — Bola de Discoteca Orbital:** intercepta automaticamente parte dos tiros e gera um número fixo de **raios refletidos por ativação**, não por projétil; jogador não precisa mirar na bola. Progressão aprovada: **nível 2 = 3 reflexos**, **nível 4 = 6**, **nível 6 = 12**, **nível 8 = 24**. O nível 4 corrige a menção casual ao nível 5, preservando níveis pares de especial. Raios distribuem-se entre inimigos, preservam efeitos compatíveis, sem multiplicação ilimitada. Nomes propostos: nível 2 **Espelho, Espelho Meu**; 4 **Pista de Dança**; 6 **Febre de Sábado à Noite**; 8 **Discoteca Intergaláctica**.
+**Especial — Bola de Discoteca Orbital:** fica estacionária no ponto de impacto por **4 segundos**. O jogador deve acertar o globo: **cada tiro recebido gera a quantidade de reflexos do nível**, direcionados aos inimigos. Esta decisão substitui a reflexão automática por ativação. Progressão aprovada: **nível 2 = 3 reflexos**, **nível 4 = 6**, **nível 6 = 12**, **nível 8 = 24**. O nível 4 corrige a menção casual ao nível 5, preservando níveis pares de especial. Raios distribuem-se entre inimigos, preservam efeitos compatíveis, sem multiplicação ilimitada. Nomes propostos: nível 2 **Espelho, Espelho Meu**; 4 **Pista de Dança**; 6 **Febre de Sábado à Noite**; 8 **Discoteca Intergaláctica**.
 
 **Escudo — Espelhos de Palco:** pequenos painéis espelhados orbitam o canhão e representam a defesa existente. Podem refletir ataques inimigos; desaparecem ao receber dano e reaparecem conforme a regeneração normal do escudo, sem sistema separado de vida. Evoluem em número e capacidade de reflexão junto à bola orbital.
 
@@ -145,7 +145,7 @@ Esta seção registra as decisões finais e o **código acrescentado**, prevalec
 | **EUA** | Choque e Pavor: míssil guiado (escala **1×/2×/4×/8×**), explosão, onda de choque para fora da zona principal e empurrão **para cima** de sobreviventes. | **Duas antenas** laterais de choque crescentes; pulsos de empurrão, **sem dano**. |
 | **Rússia** | Matryoshka: **8/12/16/24** estilhaços de gelo, congelamento e **detonação em cadeia** em alvos congelados, cada alvo detonando uma vez por ativação, mesmo se morrer pelo fragmento. | Placas de gelo que soltam congelamento de **2/3/4/5 segundos** ao receber impacto, sem dano. Campos de atração se combinam até um limite. |
 | **China** | Entrega: **1/2/3/4** impactos de carga agrupados por especial, com raio crescente, dentro de um único ataque; drones/caixas definitivos ainda serão desenhados. | Caixas de proteção tornam-se visualmente maiores/mais numerosas; usam **a vida e regeneração normais** do escudo. |
-| **Coreia do Sul** | Discoteca: **3/6/12/24 reflexos por ativação**, não por bala disparada; raios atingem alvos distintos quando possível e não se replicam. | Placas de espelho que refletem parte dos disparos alienígenas e consomem o HP normal do escudo, com chance provisória crescente. |
+| **Coreia do Sul** | Discoteca: globo estacionário por **4 s**, com **3/6/12/24 reflexos por tiro que o atingir**; raios se distribuem entre inimigos vivos, repetindo alvos se necessário, e não se replicam. | Placas de espelho que refletem parte dos disparos alienígenas e consomem o HP normal do escudo, com chance provisória crescente. |
 
 **Controles técnicos:** `src/gameplay/v1Specials.js` mantém progressão e identidade; `src/scenes/GameScene.js` processa efeitos, escudos e placeholders; `src/gameplay/v1Upgrades.js` contém nomes e descrições atualizados. Testes adicionados em `tests/v1Specials.test.js`.
 
@@ -259,3 +259,12 @@ Versão exibida no menu atualizada para **0.39**. Este lançamento reúne a inte
 ## Versão 0.40 — zoom e ritmo da destruição (18/10/2026)
 
 Refinamento solicitado após playtest: zoom gradual até **1,65×**, com foco no canhão e nas explosões. Interferência visual/sonora e tremor duram **4 segundos**; as salvas centrais continuam até o fim desse trecho. O fechamento em linha leva **220 ms**, a linha e o ponto apagam até **4,47 s** e o resultado entra em **4,7 s**. Essa temporização substitui a da versão 0.39. A captura de desligamento preserva o enquadramento ampliado; zoom e posição da câmera são restaurados ao terminar ou sair da cena.
+
+## Versão 0.41 — globo coreano alimentado por tiros (18/10/2026)
+
+- O componente coreano deixa um globo parado no ponto de impacto por 4000 ms de combate ativo, sem disparar uma salva automática na chegada. A pausa congela sua duração.
+- Cada bala recebida é consumida e gera **3/6/12/24 raios** nos níveis **2/4/6/8**. Laser contínuo conta uma vez por pulso de dano, limitado pela cadência da arma, sem depender da taxa de quadros. O feixe termina no globo.
+- Raios atingem diretamente inimigos próximos, distribuídos entre alvos distintos quando possível; os excedentes voltam a alvos vivos. Sem inimigos, não há raios nem carga guardada.
+- Reflexos não reativam globos nem geram cópias recursivas. Dano por raio e congelamento russo compatível preservados. Escudo coreano mantém as regras existentes.
+- Em especiais híbridos, os demais componentes resolvem no impacto e o componente coreano permanece como globo. A vida começa na chegada. Múltiplas ativações têm globos independentes; cada tiro acerta primeiro o globo mais próximo em sua trajetória.
+- Contador de duração visível. Globos são retirados ao expirar, limpar a arena ou encerrar o combate.

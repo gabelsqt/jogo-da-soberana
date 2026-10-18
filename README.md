@@ -2,11 +2,11 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.40
+## Versão atual — 0.41
 
-Zoom gradual de 1× a 1,65× no canhão durante a destruição; interferência e tremor duram 4 s, seguidos por um desligamento de TV mais rápido. Inclui as músicas e correções da versão anterior. [Notas da versão 0.40](docs/versao-0.40.md).
+Especial coreano: globo estacionário por 4 segundos, gerando 3/6/12/24 reflexos direcionados aos inimigos por tiro recebido. Compatível com balas e pulsos do laser contínuo. [Notas da versão 0.41](docs/versao-0.41.md).
 
-Para conferir a sequência: **TESTAR UPGRADES V1 → TESTAR DESTRUIÇÃO DO CANHÃO** (atalho D).
+Para conferir o globo: **TESTAR UPGRADES V1 → Coreia → nível 2, 4, 6 ou 8**. Lance o especial e atire no globo. A prévia de destruição continua disponível pelo atalho D.
 
 **Registro de versões:** a cada nova versão jogável, atualizar o número visível em `src/config/version.js`, o equivalente semântico em `package.json`, este resumo e as notas em `docs/versao-<versão>.md`. Registrar mudanças de design no GDD e distinguir testes automatizados de validação visual pelo jogador. A versão 0.39 reúne as mudanças recentes; não atribui retrospectivamente versões 0.36–0.38.
 

@@ -52,7 +52,7 @@ export function v1SpecialConfig(state = {}) {
     cnDropRadius:at(cn,[40,55,75,105]),
     cnPayloads:at(cn,[1,2,3,4]),
     cnDamage:at(cn,[3,4,5,7]),
-    // Coreia: contagem fixa por ativação, nunca a cada bala.
+    // Coreia: cada tiro recebido pelo globo de 4 s gera esta quantidade de raios.
     krReflections:at(jp,[3,6,12,24]),
     krReflectDamage:at(jp,[1.8,2.6,3.5,4.5]),
     krShieldChance:at(jp,[0.22,0.3,0.4,0.5]),

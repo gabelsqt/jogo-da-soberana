@@ -135,7 +135,7 @@ export const V1_UPGRADES = {
     {
       "level": 2,
       "title": "Bola de Discoteca Orbital",
-      "description": "Especial reflete 3 raios por ativação; painéis de espelho refletem disparos no escudo.",
+      "description": "Globo dura 4s e gera 3 reflexos guiados por tiro recebido; painéis de espelho refletem disparos no escudo.",
       "kind": "secondary-shield"
     },
     {
@@ -147,7 +147,7 @@ export const V1_UPGRADES = {
     {
       "level": 4,
       "title": "Palco Protegido",
-      "description": "Especial reflete 6 raios por ativação e expande os espelhos do escudo.",
+      "description": "Globo dura 4s e gera 6 reflexos guiados por tiro recebido e expande os espelhos do escudo.",
       "kind": "secondary-shield"
     },
     {
@@ -159,7 +159,7 @@ export const V1_UPGRADES = {
     {
       "level": 6,
       "title": "Solo de Luz",
-      "description": "Especial reflete 12 raios por ativação e reforça o escudo espelhado.",
+      "description": "Globo dura 4s e gera 12 reflexos guiados por tiro recebido e reforça o escudo espelhado.",
       "kind": "secondary-shield"
     },
     {
@@ -171,7 +171,7 @@ export const V1_UPGRADES = {
     {
       "level": 8,
       "title": "Discoteca Intergaláctica",
-      "description": "Especial reflete 24 raios por ativação; máximo de painéis refletivos.",
+      "description": "Globo dura 4s e gera 24 reflexos guiados por tiro recebido; máximo de painéis refletivos.",
       "kind": "secondary-shield"
     },
     {
