@@ -1153,8 +1153,10 @@ export class GameScene extends Phaser.Scene {
       kind, count, centerX: center, target: null,
       duration: kind === 'swarm'
         ? Phaser.Math.FloatBetween(6, 8)
-        : Phaser.Math.FloatBetween(5.5, 6.5),
-      holdDuration: kind === 'tactical' ? 1.6 : 0,
+        : Phaser.Math.FloatBetween(7.5, 9),
+      holdDuration: kind === 'tactical' ? 1.8 : 0,
+      portalY: type===1?68:125,
+      finalFormation: Phaser.Math.Between(0,1)?'triangle':'square',
       pattern: kind === 'swarm'
         ? SWARM_DANCES[Phaser.Math.Between(0, SWARM_DANCES.length - 1)] : 'tactical',
       entry: kind === 'swarm'
@@ -1166,11 +1168,9 @@ export class GameScene extends Phaser.Scene {
     };
     // Uma abertura para a esquadrilha inteira; cada nave sai em sequência.
     // Tipo 1 usa portal mais alto, próximo ao topo do céu.
-    const portalY=type===1?68:125;
+    const portalY=group.portalY;
     this.showSpawnPortal(center,portalY,type===1?37:42,count,(i)=>{
-      const initial=kind==='swarm'
-        ? swarmDancePosition(group,i,0)
-        : tacticalManeuverPosition(group,i,0);
+      const initial={x:center,y:portalY};
       this.spawnEnemy(type,{
         level,x:initial.x,y:initial.y,center,
         formationIndex:i,formationCount:count,formationGroup:group,
@@ -1435,7 +1435,7 @@ export class GameScene extends Phaser.Scene {
         // ao mudar a defesa, sem teletransportar a esquadrilha.
         if (group.kind === 'tactical' && group.attackStartAge !== null) {
           const first = survivors[0];
-          const offset = tacticalFormationOffset('column', first.formationIndex, group.count);
+          const offset = tacticalFormationOffset(group.finalFormation, first.formationIndex, group.count);
           const current = tacticalAttackPosition(group, first.formationIndex,
             first.age - group.attackStartAge);
           group.attackOrigin = { x: current.x - offset.x, y: current.y - offset.y };
@@ -1464,7 +1464,10 @@ export class GameScene extends Phaser.Scene {
           enemy.sprite.setVisible(true);
           const danceAge = enemy.age - enemy.entryDelay;
           const pos = swarmDancePosition(group, enemy.formationIndex, danceAge);
-          enemy.sprite.setPosition(pos.x, pos.y);
+          const emergence=Math.min(1,danceAge/0.75);
+          enemy.sprite.setPosition(
+            Phaser.Math.Linear(group.centerX,pos.x,emergence),
+            Phaser.Math.Linear(group.portalY,pos.y,emergence));
           if (danceAge >= group.duration) {
             if (!group.target) {
               group.target = this.chooseV035GroupTarget(group,
@@ -1489,7 +1492,7 @@ export class GameScene extends Phaser.Scene {
           if (!group.target) {
             // Separação entre a manobra e a investida: todos atacam
             // a defesa com menor porcentagem de vida e escudo.
-            const slot = tacticalFormationOffset('column', enemy.formationIndex, group.count);
+            const slot = tacticalFormationOffset(group.finalFormation, enemy.formationIndex, group.count);
             group.attackOrigin = { x: position.x - slot.x, y: position.y - slot.y };
             group.target = this.chooseV035GroupTarget(group, group.attackOrigin);
             group.attackStartAge = enemy.age;
