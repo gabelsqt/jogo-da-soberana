@@ -170,3 +170,9 @@ A pedido do usuário, as explosões do **Brasil 2** atingem todos os inimigos de
 ## Ajuste de playtest — explosão final ultrapassa o anel inicial
 
 Explosão final do Arraial Balístico ampliada para **150 px de raio**, maior que o círculo inicial dos fogos (centros a 100 px, com 37 px de raio de explosão). O desenho dos anéis e raios da detonação cresce até o mesmo raio de 150 px, alinhado à área de dano. Dano final continua **5 HP por inimigo atingido**, aplicado uma única vez; demais parâmetros mantidos. Alteração de balanceamento solicitada após playtest.
+
+## Feedback playtest — movimento de inimigos Tipo 1 e Tipo 2
+
+- **Tipo 1 — Básico:** dança em enxame prolongada de 3–5 s para **6–8 s** antes do mergulho.
+- **Tipo 2 — Formação:** manobra de **5,5–6,5 s**, com **duas voltas circulares no céu** e transição para formação de coluna. **Parada de 1,6 s**, mantendo posições fixas em formação antes de iniciar a descida.
+- Conservados os ataques, o dano e a composição da Onda 2 apenas com os Tipos 1 e 2. Alteração em branch de playtest; avaliar cadência em jogo.
