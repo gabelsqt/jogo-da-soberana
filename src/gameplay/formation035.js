@@ -115,8 +115,17 @@ export function swarmDanceCenter(group, elapsed) {
 
 export function swarmDancePosition(group, index, elapsed) {
   const center = swarmDanceCenter(group, elapsed);
-  const slot = swarmOffset(index, group.count, group.pattern);
-  return { x: center.x + slot.x, y: center.y + slot.y };
+  const slots = Array.from({length:group.count},(_,i)=>
+    swarmOffset(i,group.count,group.pattern));
+  const minX=Math.min(...slots.map(p=>p.x));
+  const maxX=Math.max(...slots.map(p=>p.x));
+  const minY=Math.min(...slots.map(p=>p.y));
+  const maxY=Math.max(...slots.map(p=>p.y));
+  // Limita o CENTRO, não as naves: preserva a dança e a formação.
+  const x=clamp(center.x,38-minX,960-38-maxX);
+  const y=clamp(center.y,42-minY,540-105-maxY);
+  const slot=slots[index];
+  return {x:x+slot.x,y:y+slot.y};
 }
 
 export function tacticalFormationOffset(formation, index, count) {
