@@ -32,6 +32,10 @@ test('Arraial: raios de explosões e escudo',()=>{
   assert.equal(ARRAIAL.finaleDamage,5);
   assert.equal(ARRAIAL.flameInterval,500);
   assert.equal(ARRAIAL.flameDamage,0.5);
+  assert.equal(ARRAIAL.shieldRingRadius,88);
+  assert.equal(ARRAIAL.shieldRingOffsetY,-50);
+  assert.ok(withinFlame(0,0,88,0,100,0,true));
+  assert.ok(!withinFlame(0,0,88,0,110,0,true));
 });
 test('Brasil 2 conserva recarga original e título novo',()=>{
   const stats=v1CombatStats({choices:['br','br']});
