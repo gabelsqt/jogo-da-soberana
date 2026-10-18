@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame } from '../gameplay/arraialBrasil2.js';
 import {
   normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout,
   LAB_ENEMY_NAMES, LAB_MAX_ENEMY_LEVEL, labEnemyEvent,
@@ -217,6 +218,8 @@ export class GameScene extends Phaser.Scene {
     this.clearResidualSlashes();
     for (const blast of this.specialBlasts) blast.graphics.destroy();
     this.specialBlasts.length = 0;
+    for (const nucleus of this.arraialNuclei) nucleus.graphics.destroy();
+    this.arraialNuclei.length = 0;
     for (const bullet of this.supportProjectiles) bullet.sprite.destroy();
     this.supportProjectiles.length = 0;
     // Limpa os VFX de mortes sem afetar o combate nem o treinamento.
@@ -258,6 +261,8 @@ export class GameScene extends Phaser.Scene {
     this.visibleProjectileCount = 0;
     this.enemyBullets = [];
     this.specialBlasts = [];
+    this.arraialNuclei = [];
+    this.lastFlameTick = -Infinity;
     this.supportTowers = [];
     this.supportProjectiles = [];
     this.residualSlashes = [];
@@ -2421,6 +2426,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   explode(x, y) {
+    if (this.isV1Campaign && v1CountryLevels(this.campaign).br >= 2) {
+      this.createArraial(x, y);
+      return;
+    }
     this.specialBlasts.push({
       id: this.nextBlastId++,
       x, y, bornAt: this.time.now,
@@ -2464,6 +2473,89 @@ export class GameScene extends Phaser.Scene {
           if (!this.tutorialComplete) this.launchSpecialDrone(x + (i - 1) * 18, y, 'cn');
         });
       }
+    }
+  }
+
+
+  createArraial(x, y) {
+    const graphics = this.add.graphics().setDepth(39);
+    const nucleus = {x, y, graphics, bornAt:this.time.now,
+      events:fireworkSchedule(), next:0, finished:false};
+    this.arraialNuclei.push(nucleus);
+  }
+
+  arraialDamage(x, y, radius, amount, color) {
+    // Iteração reversa preserva índices quando inimigos morrem.
+    for(let i=this.enemies.length-1;i>=0;i--){
+      const enemy=this.enemies[i];
+      if(withinBlast(x,y,enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type),radius))
+        this.impactInvader(i,amount,0,color);
+    }
+  }
+
+  arraialFirework(x, y, hue) {
+    this.arraialDamage(x,y,ARRAIAL.fireworkRadius,ARRAIAL.fireworkDamage,'#ffe8b7');
+    const g=this.add.graphics().setDepth(42);
+    const colors=[0xffc947,0xff6157,0x6cf1a0,0x75caff,0xf59afa];
+    const color=colors[hue%colors.length];
+    g.lineStyle(2,color,0.95);
+    for(let k=0;k<8;k++){
+      const a=k*Math.PI/4;
+      g.lineBetween(x+Math.cos(a)*3,y+Math.sin(a)*3,
+        x+Math.cos(a)*ARRAIAL.fireworkRadius,y+Math.sin(a)*ARRAIAL.fireworkRadius);
+    }
+    g.fillStyle(0xffedb4,1);g.fillCircle(x,y,3);
+    this.tweens.add({targets:g,alpha:0,scale:1.3,duration:280,onComplete:()=>g.destroy()});
+  }
+
+  updateArraial() {
+    for(let i=this.arraialNuclei.length-1;i>=0;i--){
+      const n=this.arraialNuclei[i], age=this.time.now-n.bornAt;
+      while(n.next<n.events.length && age>=n.events[n.next].at){
+        const f=n.events[n.next];
+        this.arraialFirework(n.x+f.x,n.y+f.y,n.next);
+        n.next++;
+      }
+      if(age>=ARRAIAL.duration){
+        this.arraialDamage(n.x,n.y,ARRAIAL.finaleRadius,ARRAIAL.finaleDamage,'#fff2aa');
+        const finale=this.add.graphics().setDepth(46);
+        const colors=[0xffda62,0xff6b72,0x6df5af,0x9bcbff,0xf2a4ff];
+        for(let ring=0;ring<3;ring++){
+          finale.lineStyle(3,colors[ring],0.9);
+          finale.strokeCircle(n.x,n.y,18+ring*15);
+        }
+        for(let k=0;k<16;k++){
+          const a=k*Math.PI/8;
+          finale.lineStyle(2,colors[k%colors.length],1);
+          finale.lineBetween(n.x+Math.cos(a)*8,n.y+Math.sin(a)*8,
+            n.x+Math.cos(a)*52,n.y+Math.sin(a)*52);
+        }
+        this.tweens.add({targets:finale,alpha:0,scale:1.2,duration:450,
+          onComplete:()=>finale.destroy()});
+        n.graphics.destroy(); this.arraialNuclei.splice(i,1);
+        continue;
+      }
+      const g=n.graphics;g.clear();
+      // Balão junino em pixel-art geométrica, núcleo luminoso, cordão e boca.
+      const pulse=0.6+0.4*Math.sin(age*0.008);
+      g.fillStyle(0xffdf69,0.19*pulse);g.fillCircle(n.x,n.y,22);
+      g.fillStyle(0xdb544b,1);g.fillTriangle(n.x,n.y-18,n.x-12,n.y-7,n.x+12,n.y-7);
+      g.fillStyle(0xf6b948,1);g.fillTriangle(n.x-12,n.y-7,n.x+12,n.y-7,n.x,n.y+12);
+      g.lineStyle(2,0xffeb98,0.95);g.lineBetween(n.x,n.y-17,n.x,n.y+12);
+      g.fillStyle(0xffedb2,pulse);g.fillCircle(n.x,n.y-1,4);
+      g.lineStyle(1,0xeeb979,0.9);g.lineBetween(n.x,n.y+12,n.x,n.y+20);
+    }
+  }
+
+  updateArraialFlames() {
+    if(!this.isV1Campaign || v1CountryLevels(this.campaign).br<2 || this.shield<=0) return;
+    if(this.time.now-this.lastFlameTick<ARRAIAL.flameInterval) return;
+    this.lastFlameTick=this.time.now;
+    for(let i=this.enemies.length-1;i>=0;i--){
+      const enemy=this.enemies[i];
+      if(withinFlame(CANNON.x,CANNON.y+10,62,enemy.sprite.x,enemy.sprite.y,
+        enemyContactRadius(enemy.type)))
+        this.impactInvader(i,ARRAIAL.flameDamage,0,'#ffb85b',false);
     }
   }
 
@@ -2853,6 +2945,20 @@ export class GameScene extends Phaser.Scene {
       }
     };
     dome(CANNON.x, CANNON.y, 62, this.shield, this.shieldMax);
+    if (this.isV1Campaign && v1CountryLevels(this.campaign).br >= 2 && this.shield > 0) {
+      // Chamas e brasas permanecem na borda superior da cúpula.
+      for(let i=0;i<17;i++){
+        const angle=Math.PI+i*Math.PI/16;
+        const fx=CANNON.x+62*Math.cos(angle), fy=CANNON.y+10+62*Math.sin(angle);
+        const flicker=2+3*(0.5+0.5*Math.sin(this.time.now*0.012+i*2.3));
+        graphics.fillStyle(i%2?0xffa23a:0xffdb6a,0.8);
+        graphics.fillTriangle(fx-3,fy,fx+3,fy,fx,fy-flicker-4);
+        if(i%4===0){
+          graphics.fillStyle(0xffdb76,0.65);
+          graphics.fillCircle(fx,fy-10-(this.time.now*0.016+i*3)%15,1.3);
+        }
+      }
+    }
     for (const tower of this.supportTowers) {
       if (tower.health > 0) {
         dome(tower.x, tower.y, tower.shieldRadius, tower.shield, tower.shieldMax);
@@ -3117,6 +3223,8 @@ export class GameScene extends Phaser.Scene {
     this.updateSupportTowers(dt);
     this.updateSupportProjectiles(dt);
     this.updateBlasts();
+    this.updateArraial();
+    this.updateArraialFlames();
     this.drawEnemyHealthBars();
 
     if (this.time.now - this.lastDamageAt > SHIELD_REGEN_DELAY && this.shield < this.shieldMax) {
