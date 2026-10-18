@@ -55,7 +55,7 @@ import { resolveFinalOpponent, finalePrelude, FINALE_COUNTRIES } from '../gamepl
 import { hostileBosses, pickBetrayer, continueResistanceAfterDefeat } from '../gameplay/wave11Rules.js';
 import {
   spawnType6Encounter, updateType6Encounter, hitType6At, hitType6Segment,
-  hitType6Bullet, defeatType6, type6NextDeadline,
+  hitType6Bullet, defeatType6, type6NextDeadline, type6AimPosition,
 } from '../gameplay/type6Encounter.js';
 import {
   type6AliveModules, type6PointTarget, type6AreaTargets, type6TargetRects,
@@ -659,7 +659,7 @@ export class GameScene extends Phaser.Scene {
   scheduleWaveEvents() {
     this.waveEvents.forEach((event) => {
       this.time.delayedCall(event.at, () => {
-        if (this.tutorialComplete) return;
+        if (this.tutorialComplete || this.boss6Victory || this.boss6DoomFired) return;
         this.eventsSpawned += 1;
         this.spawnWaveEvent(event);
       });
@@ -3762,6 +3762,19 @@ export class GameScene extends Phaser.Scene {
       onComplete:()=>flash.destroy()});
     for(let k=this.enemies.length-1;k>=0;k--){
       const other=this.enemies[k];
+      if(other.type===6){
+        // A onda do projétil americano alcança outros módulos, além do alvo
+        // direto; o componente atingido pela bala não recebe o mesmo dano 2x.
+        const direct=type6PointTarget(other.type6,other.sprite.x,other.sprite.y,x,y,0);
+        const targets=type6AreaTargets(other.type6,other.sprite.x,other.sprite.y,x,y,radius);
+        const rects=type6TargetRects(other.type6,other.sprite.x,other.sprite.y);
+        for(const id of targets){
+          if(id===direct&&other.uid===primaryId)continue;
+          const rect=rects.find(rect=>rect.id===id);
+          if(rect)hitType6At(this,other,rect.x,rect.y,damage*0.5,0,true);
+        }
+        continue;
+      }
       if(other.uid===primaryId)continue;
       if(Math.hypot(other.sprite.x-x,other.sprite.y-y)<=radius+enemyContactRadius(other.type))
         this.impactInvader(k,damage*0.5,0,'#ffce87',false);
