@@ -116,3 +116,7 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 92 — Brasil 2: quantidade de fogos (APROVADA)
 
 **Opção B:** o núcleo do Arraial Balístico libera **12 fogos ao longo dos 4 segundos** de duração, seguindo a sequência circular coreografada de alcance 100 px e frequência crescente (Decisões 78–81). A explosão final concentrada ocorre ao término da duração e **não conta** entre os 12 fogos. Intensidade de dano por fogo permanece qualitativamente baixa; valores numéricos e área individual de cada estouro ainda serão balanceados. **Apenas documentação, sem código.**
+
+## Decisão 93 — Brasil 2: dano dos fogos (APROVADA)
+
+**Opção A:** cada um dos **12 fogos** liberados pelo núcleo do Arraial Balístico causa **1 HP de dano por acerto** aos inimigos alcançados por sua pequena explosão. Os fogos seguem em ritmo crescente, em sequência circular ao redor do núcleo de alcance 100 px, durante 4 segundos. A explosão final concentrada é separada dos 12 fogos e seu dano continua pendente. Raio de dano individual e regras de múltiplos acertos ainda serão decididos. **Apenas GDD; nenhum código alterado.**
