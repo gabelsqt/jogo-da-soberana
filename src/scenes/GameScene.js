@@ -62,6 +62,7 @@ import {
 } from '../gameplay/type6Boss.js';
 import { finaleBossHp, finaleBossFirePattern, finaleCounterattack } from '../gameplay/finaleBalance.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
+import { applyRussianFreeze, spreadRussianFrost } from '../gameplay/russianFrost.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
@@ -2606,8 +2607,9 @@ export class GameScene extends Phaser.Scene {
     const x = CANNON.x + Math.cos(angle) * 34;
     const y = CANNON.y + Math.sin(angle) * 34;
     const flash = this.add.circle(
-      x, y, effects.heavy ? 11 : effects.multiple ? 8 : 7,
-      effects.heavy ? 0xffe1b5 : style.color, 0.92,
+      x, y, effects.heavy ? 12 : effects.multiple ? 8 : 7,
+      effects.cryogenic ? 0xb5f1ff : style.color,
+      effects.cryogenic ? 0.58 : 0.92,
     ).setDepth(38);
     this.tweens.add({
       targets: flash, scale: effects.heavy ? 3.2 : 2.5, alpha: 0,
@@ -2615,24 +2617,18 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => flash.destroy(),
     });
 
-    if (effects.heavy) {
-      // Peso VISUAL, sem alterar dano/recuo físico. A microtremida é limitada
-      // para não acumular nas builds brasileiras de alta cadência.
-      const burst = this.add.graphics().setPosition(x, y).setDepth(39);
-      burst.lineStyle(3, 0xffe9c8, 0.95);
-      for (const offset of [-0.33, 0, 0.33]) {
-        const a = angle + offset;
-        burst.lineBetween(
-          Math.cos(a) * 7, Math.sin(a) * 7,
-          Math.cos(a) * 29, Math.sin(a) * 29,
-        );
+    if (effects.cryogenic) {
+      // Exalação inicial do sopro: névoa fria, sem o clarão vermelho legado.
+      const mist = this.add.graphics().setPosition(x, y).setDepth(39);
+      const fx=Math.cos(angle), fy=Math.sin(angle);
+      const sideX=-fy,sideY=fx;
+      for(let i=0;i<4;i++){
+        const d=9+i*8,side=(i%2?1:-1)*(3+i);
+        mist.fillStyle(i%2?0xe5fbff:0x8bdcf0,0.34-i*0.055);
+        mist.fillCircle(fx*d+sideX*side,fy*d+sideY*side,8+i*1.8);
       }
-      this.tweens.add({
-        targets: burst, scale: 1.45, alpha: 0, duration: 160,
-        onComplete: () => burst.destroy(),
-      });
-      // O canhão principal russo mantém o clarão e o recuo visual,
-      // mas não sacode a câmera ao disparar.
+      this.tweens.add({targets:mist,alpha:0,scale:1.25,duration:190,
+        onComplete:()=>mist.destroy()});
     }
 
     if (effects.multiple) {
@@ -3404,10 +3400,13 @@ export class GameScene extends Phaser.Scene {
     if (visible) this.visibleProjectileCount += 1;
     const dot = !visible ? {x, y, destroy(){}} : special
       ? this.add.circle(x, y, 8, 0x72eaf8).setDepth(35)
-      : this.add.rectangle(x, y, style.width, style.length, style.color)
-        .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff, centerGlow ? 0.95 : 0.65)
-        .setRotation(angle + Math.PI / 2)
-        .setDepth(35);
+      : vfx?.cryogenic
+        ? this.add.circle(x, y, style.width * 0.6, style.color, 0.30)
+          .setStrokeStyle(1,0xf0ffff,0.34).setDepth(35)
+        : this.add.rectangle(x, y, style.width, style.length, style.color)
+          .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff, centerGlow ? 0.95 : 0.65)
+          .setRotation(angle + Math.PI / 2)
+          .setDepth(35);
     const speed = special ? 300 : this.combat.basicSpeed;
     // Uma única Graphics por bala, redesenhada enquanto ela se move.
     // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
@@ -3449,12 +3448,22 @@ export class GameScene extends Phaser.Scene {
     const dx = bullet.vx / length;
     const dy = bullet.vy / length;
     gfx.clear();
-    if (bullet.vfx.heavy) {
-      // Rastro quente russo: halo vermelho e núcleo branco-alaranjado.
-      gfx.lineStyle(10, 0xff594c, 0.18);
-      gfx.lineBetween(x - dx * 30, y - dy * 30, x, y);
-      gfx.lineStyle(3, 0xffd6ab, 0.92);
-      gfx.lineBetween(x - dx * 23, y - dy * 23, x, y);
+    if (bullet.vfx.cryogenic) {
+      // 5 volutas por projétil; nenhuma partícula nova por frame.
+      const sidewaysX=-dy,sidewaysY=dx;
+      for(let i=0;i<5;i++){
+        const d=8+i*10;
+        const sway=Math.sin(bullet.distanceTravelled*0.033+i*2.35)*(3+i*1.2);
+        const px=x-dx*d+sidewaysX*sway;
+        const py=y-dy*d+sidewaysY*sway;
+        gfx.fillStyle(i%2?0xd9f8ff:0x80cce9,0.40-i*0.055);
+        gfx.fillCircle(px,py,7+i*1.7);
+        if(i%2===0){
+          gfx.fillStyle(0xf1fdff,0.70-i*0.10);
+          gfx.fillRect(px-1.5,py-1.5,3,3);
+        }
+      }
+      gfx.fillStyle(0xffffff,0.58).fillCircle(x,y,3.3);
     }
     if (bullet.vfx.multiple) {
       // Destaque independente dos dois/três tiros da China. Pode coexistir
