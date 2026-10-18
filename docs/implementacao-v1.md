@@ -88,3 +88,7 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 85 — Brasil 2: chamas permanentes do escudo (APROVADA)
 
 **Opção A:** após adquirir **Arraial Balístico**, o escudo manifesta continuamente a **Fogueira de São João** enquanto estiver ativo. As chamas causam dano leve aos inimigos próximos de forma contínua (com aplicação periódica a ser balanceada), sem depender da ativação do especial e sem necessidade de receber impacto para acender. Ao ficar inativo/destruído, o escudo não causa dano de proximidade até voltar a ficar ativo. Alcance e cadência do dano ainda não definidos. Apenas atualização do GDD; nenhum código alterado.
+
+## Decisão 86 — Brasil 2: alcance da Fogueira de São João (APROVADA)
+
+**Opção A:** as chamas permanentes do escudo ativo causam dano leve em inimigos a até **15 px da borda do escudo**, não do centro do canhão. É uma defesa de contato próximo, não uma aura ampla. Frequência e valor numérico do dano ainda pendentes de balanceamento. Apenas GDD, nenhuma modificação no código.
