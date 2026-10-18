@@ -214,6 +214,7 @@ export class GameScene extends Phaser.Scene {
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) this.removeEnemyBullet(i);
     for (const bullet of this.projectiles) {
       bullet.trail?.destroy();
+      bullet.specialMarker?.destroy();
       bullet.sprite.destroy();
     }
     this.projectiles.length = 0;
@@ -2604,8 +2605,16 @@ export class GameScene extends Phaser.Scene {
     const build=this.isV1Campaign ? this.specialBuild : null;
     if(build?.primary && shot) {
       shot.hybridConfig=build;
+      shot.hybridDestination={x:target.x,y:target.y};
       const color=specialPalette(build.primary);
       if(shot.visual) {
+        // Silhuetas simplificadas enquanto as sprites finais não existem.
+        const markers={br:'🎈',us:'🚀',ru:'❄',cn:'▣',jp:'✦'};
+        shot.specialMarker=this.add.text(shot.sprite.x,shot.sprite.y,
+          markers[build.primary]||'✦',{
+          fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',
+          color:'#ffffff',stroke:'#0d1830',strokeThickness:3,
+        }).setOrigin(0.5).setDepth(36);
         shot.sprite.setFillStyle(color);
         shot.sprite.setStrokeStyle(3,0xffffff,0.95);
         // Formato principal depende do PRIMEIRO país com especial desbloqueado.
@@ -2675,17 +2684,17 @@ export class GameScene extends Phaser.Scene {
     const alreadyBurst=new Set();
     const queue=this.enemies.filter(enemy=>enemy.frozenUntil>this.elapsed &&
       Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y)<build.ruBurstRadius+enemyContactRadius(enemy.type))
-      .map(enemy=>enemy.uid);
+      .map(enemy=>({uid:enemy.uid,x:enemy.sprite.x,y:enemy.sprite.y}));
     if(!queue.length)this.pulseV1Area(x,y,build.ruBurstRadius,build.ruDamage,0x8ce6ff);
     const visuals=this.add.graphics().setDepth(57);
     let drawn=0;
     while(queue.length) {
-      const uid=queue.shift();
+      const pending=queue.shift(),uid=pending.uid;
       if(alreadyBurst.has(uid))continue;
+      // Preserva a detonação mesmo se um estilhaço já matou o alvo congelado.
       const frozen=this.enemies.find(enemy=>enemy.uid===uid);
-      if(!frozen)continue;
       alreadyBurst.add(uid);
-      const bx=frozen.sprite.x,by=frozen.sprite.y;
+      const bx=frozen?.sprite.x ?? pending.x,by=frozen?.sprite.y ?? pending.y;
       if(drawn++<16) {
         visuals.lineStyle(2,0x9eeeff,0.8);
         visuals.strokeCircle(bx,by,Math.min(28,build.ruBurstRadius*0.5));
@@ -2707,7 +2716,8 @@ export class GameScene extends Phaser.Scene {
           const stillFrozen=enemy.frozenUntil>this.elapsed;
           const index=this.enemies.findIndex(e=>e.uid===enemy.uid);
           if(index>=0)this.impactInvader(index,build.ruDamage,0,'#b4f1ff',false);
-          if(stillFrozen&&!alreadyBurst.has(enemy.uid))queue.push(enemy.uid);
+          if(stillFrozen&&!alreadyBurst.has(enemy.uid))
+            queue.push({uid:enemy.uid,x:enemy.sprite.x,y:enemy.sprite.y});
         }
       }
       const selfIndex=this.enemies.findIndex(enemy=>enemy.uid===uid);
@@ -3187,6 +3197,27 @@ export class GameScene extends Phaser.Scene {
   updatePlayerProjectiles(dt) {
     for (let i = this.projectiles.length - 1; i >= 0; i -= 1) {
       const bullet = this.projectiles[i];
+      if(bullet.special && bullet.hybridConfig?.primary==='us' && this.enemies.length) {
+        // Choque e Pavor: míssil guiado procura uma nave perto do ponto visado.
+        const candidates=this.enemies.filter(e=>
+          Math.hypot(e.sprite.x-bullet.hybridDestination.x,
+            e.sprite.y-bullet.hybridDestination.y)<230);
+        const tracked=candidates.reduce((best,e)=>{
+          const d=Math.hypot(e.sprite.x-bullet.sprite.x,e.sprite.y-bullet.sprite.y);
+          return !best||d<best.d?{enemy:e,d}:best;
+        },null);
+        if(tracked){
+          const target=tracked.enemy;
+          bullet.tx=target.sprite.x;
+          bullet.ty=target.sprite.y;
+          const angle=Math.atan2(bullet.ty-bullet.sprite.y,bullet.tx-bullet.sprite.x);
+          const current=Math.atan2(bullet.vy,bullet.vx);
+          const turn=Phaser.Math.Clamp(Phaser.Math.Angle.Wrap(angle-current),-4*dt,4*dt);
+          const speed=Math.hypot(bullet.vx,bullet.vy);
+          bullet.vx=Math.cos(current+turn)*speed;
+          bullet.vy=Math.sin(current+turn)*speed;
+        }
+      }
       if (!bullet.special && bullet.usGrowthMax>1 && this.combat.usHoming>0 && this.enemies.length) {
         // Curva angular limitada: o míssil americano persegue sem teletransportar.
         let nearest=null, nearestDist=Infinity;
@@ -3213,6 +3244,7 @@ export class GameScene extends Phaser.Scene {
       }
       bullet.sprite.x += bullet.vx * dt;
       bullet.sprite.y += bullet.vy * dt;
+      if(bullet.specialMarker)bullet.specialMarker.setPosition(bullet.sprite.x,bullet.sprite.y);
       this.drawProjectileTrail(bullet);
       let remove = false;
       if(bullet.chinaSplit && bullet.distanceTravelled>=100){
@@ -3305,6 +3337,7 @@ export class GameScene extends Phaser.Scene {
       )) remove = true;
       if (remove) {
         bullet.trail?.destroy();
+        bullet.specialMarker?.destroy();
         bullet.sprite.destroy();
         if (bullet.visual) this.visibleProjectileCount = Math.max(0, this.visibleProjectileCount - 1);
         this.projectiles.splice(i, 1);
