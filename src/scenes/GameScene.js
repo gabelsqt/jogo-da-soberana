@@ -455,19 +455,21 @@ export class GameScene extends Phaser.Scene {
     });
 
     if (import.meta.env.DEV && this.mode.startsWith('wave')) {
-      // Playtest local: Shift+5–9 abre a onda diretamente, sem afetar o itch.io.
+      // Playtest local: Shift+5–9 abre ondas intermediárias;
+      // Shift+0 e Shift+1 abrem os novos chefões 10 e 11.
+
       // Se entrar antes da terceira escolha, usa Brasil III como equipamento
       // padrão apenas no salto de testes, sem sobrescrever a campanha.
       this.input.keyboard.on('keydown', (event) => {
         if (!event.shiftKey) return;
-        const choice = /^Digit([5-9])$/.exec(event.code ?? '');
-        if (!choice) return;
+        const choice = /^Digit([0-9])$/.exec(event.code ?? '');
+        if (!choice || Number(choice[1])<5&&choice[1]!=='0'&&choice[1]!=='1') return;
         event.preventDefault();
-        this.scene.start('GameScene', {
-          mode: `wave${choice[1]}`,
-          campaign: this.campaign.choices.length >= 3
-            ? this.campaign : { choices: ['br', 'br', 'br'] },
-        });
+        const mode=choice[1]==='0'?'wave10':choice[1]==='1'?'wave11':`wave${choice[1]}`;
+        const campaign=this.campaign.choices.length>=3
+          ? this.campaign : {choices:['br','br','br','br','br','br','br','br','br','br']};
+        this.scene.start('GameScene',{mode,campaign});
+        
       });
     }
 
@@ -909,6 +911,20 @@ export class GameScene extends Phaser.Scene {
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
       if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+      if(enemy.type===6){
+        const targets=type6AreaTargets(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+          x,y,SHOCK_BLAST_RADIUS);
+        const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
+        for(const id of targets){
+          const rect=rects.find(rect=>rect.id===id);
+          if(!rect)continue;
+          const distance=Math.hypot(rect.x-x,rect.y-y);
+          const damage=shockBlastDamage(distance,Math.max(rect.halfWidth,rect.halfHeight),
+            weapon.damage,SHOCK_BLAST_RADIUS);
+          if(damage>0)hitType6At(this,enemy,rect.x,rect.y,damage,0,true);
+        }
+        continue;
+      }
       const distance = Math.hypot(enemy.sprite.x - x, enemy.sprite.y - y);
       const damage = shockBlastDamage(
         distance, enemyContactRadius(enemy.type), weapon.damage, SHOCK_BLAST_RADIUS,
@@ -1035,18 +1051,19 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (weapon.type === 'laser') {
+      const aim=type6AimPosition(enemy);
       const beam = this.add.graphics().setDepth(41);
       beam.lineStyle(11, 0x996af1, 0.22);
-      beam.lineBetween(fromX, fromY, enemy.sprite.x, enemy.sprite.y);
+      beam.lineBetween(fromX, fromY, aim.x, aim.y);
       beam.lineStyle(3, 0xedc4ff, 1);
-      beam.lineBetween(fromX, fromY, enemy.sprite.x, enemy.sprite.y);
+      beam.lineBetween(fromX, fromY, aim.x, aim.y);
       this.tweens.add({
         targets: beam, alpha: 0, duration: 260,
         onComplete: () => beam.destroy(),
       });
       const hits = weapon.pierce ? this.enemies.filter(e => {
         if (!towerSeesEnemy(e, TOWER_BLIND_ZONE_Y, W, H)) return false;
-        const ax = fromX, ay = fromY, bx = enemy.sprite.x, by = enemy.sprite.y;
+        const ax = fromX, ay = fromY, bx = aim.x, by = aim.y;
         const dx = bx-ax, dy = by-ay, len = Math.max(1, dx*dx+dy*dy);
         const t = Phaser.Math.Clamp(((e.sprite.x-ax)*dx+(e.sprite.y-ay)*dy)/len, 0, 1);
         return Math.hypot(e.sprite.x-(ax+t*dx),e.sprite.y-(ay+t*dy)) < 24;
@@ -1054,7 +1071,10 @@ export class GameScene extends Phaser.Scene {
       for (const hitEnemy of hits) {
         if (!towerSeesEnemy(hitEnemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
         const index = this.enemies.findIndex(item => item.uid === hitEnemy.uid);
-        if (index >= 0) this.impactInvader(index, weapon.damage, 0, '#e6b1ff');
+        if (index >= 0) {
+          if(hitEnemy.type===6)hitType6Segment(this,hitEnemy,fromX,fromY,aim.x,aim.y,weapon.damage,6);
+          else this.impactInvader(index,weapon.damage,0,'#e6b1ff');
+        }
       }
       return;
     }
