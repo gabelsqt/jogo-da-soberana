@@ -57,3 +57,28 @@
 - As descrições dos **EUA e Rússia** já foram atualizadas em `src/gameplay/v1Upgrades.js`, **mas não suas mecânicas de combate**.
 - **Pendente:** atualizar o nome e descrição do Supremo brasileiro no catálogo; implementar a nova ativação por botão vermelho + câmera lenta de 10% + digitação; implementar os Supremos cinematográficos e as novas mecânicas de EUA e Rússia; testar performance, combinações, acessibilidade e legibilidade.
 - Este commit altera **apenas o GDD**, não modifica código, builds ou publicação.
+
+## China — Atacado da Destruição (aprovado em 18/10/2026)
+
+Tema: comércio eletrônico, promoções e logística. Tiro principal multiplica projéteis, herdando efeitos compatíveis de outros países. Especial e escudo usam as mesmas embalagens: drones entregam caixas explosivas, e caixas ao redor do canhão representam a proteção.
+
+| Nível | Nome aprovado | Mecânica |
+|---|---|---|
+| 1 | Compre 1, Leve 2 | Dispara dois projéteis. |
+| 2 | Entrega Expressa | Drone pequeno entrega caixinha explosiva; caixinhas protegem canhão. |
+| 3 | Leve 3, Pague 2 | Dispara três projéteis. |
+| 4 | Frete Grátis | Drone maior entrega caixa maior; caixas reforçadas protegem canhão. |
+| 5 | Compre 3, Leve 6 | Três tiros, cada um se divide em dois durante voo: seis finais. |
+| 6 | Carga Pesada | Drone industrial entrega caixona; embalagens pesadas protegem canhão. |
+| 7 | Atacado da Destruição | Cinco tiros, cada um se divide em dois: dez finais. |
+| 8 | Frete Internacional | Drone colossal entrega contêiner; segmentos de contêineres protegem canhão. |
+| 9 | Seu Pedido Chegou! | Supremo cinematográfico com drone espacial colossal e milhares de drones. |
+| 10 | Estoque Infinito | Dez tiros, cada um se divide em dois: vinte finais. |
+
+**Regras de divisão:** cada projétil só pode se dividir uma vez; cópias não se dividem novamente. Os tiros divididos causam menos dano do que os originais, mas preservam efeitos compatíveis. Referência de balanceamento a testar: original 100% do dano-base, cópia 50% (valor ainda não aprovado definitivamente). Otimizar efeitos visuais sem alterar o dano efetivo.
+
+**Escudo:** as embalagens são representação do escudo existente, sem vida ou regeneração separadas. Ao se quebrarem, são repostas automaticamente sob as mesmas regras de recuperação do escudo. Especial e escudo evoluem juntos do pacote pequeno ao contêiner.
+
+**Supremo — Seu Pedido Chegou!:** depois do botão vermelho e código, drone aparentemente pequeno aparece no espaço carregando uma caixa; Terra surge ao lado revelando escala gigantesca. Drone solta caixa rumo à Terra. Ela se abre sobre o Rio e libera milhares de drones menores que destroem todos os alienígenas restantes. Mensagem: **PEDIDO ENTREGUE COM SUCESSO!**. Código `ENTREGA` é provisório. Simular enxames com efeitos agregados para desempenho. A onda termina após a cinemática.
+
+**Estado:** design aprovado, não implementado. A atualização deste GDD não modifica o jogo.
