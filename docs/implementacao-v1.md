@@ -136,3 +136,7 @@ O escudo do canhão **fica em chamas** e inflige **dano leve por proximidade** a
 ## Decisão 97 — Brasil 2: raio individual dos fogos (APROVADA)
 
 **Opção A:** cada um dos 12 fogos do Arraial Balístico gera uma explosão de **12 px de raio**, causando **1 HP por inimigo atingido** por fogo. A sequência percorre o entorno do núcleo até 100 px em padrão circular, acelerando ao longo dos 4 segundos. Um mesmo inimigo pode ser atingido por fogos diferentes, mas cada estouro individual só aplica seu dano uma vez por alvo. A explosão final continua separada (5 HP, raio de 50 px), com recarga de 8 s a partir do disparo. **Decisão documental; não implementar código.**
+
+## Decisão 98 — Brasil 2: estética dos fogos (APROVADA)
+
+**Opção A — fogos juninos tradicionais:** os 12 fogos do Arraial Balístico são **multicoloridos, em forma de estrelas, com rastros luminosos e estalos**, em linguagem pixel art legível. Não substituir por VFX geométricos sci-fi. O núcleo suspenso, sequência circular acelerada e explosão final seguem as Decisões 77–97. Ainda falta decidir especificamente a aparência do núcleo e da explosão final. **Somente documentação/GDD, sem código.**
