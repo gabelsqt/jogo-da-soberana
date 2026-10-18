@@ -48,6 +48,8 @@ import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
+import { resolveFinalOpponent, finalePrelude, FINALE_COUNTRIES } from '../gameplay/campaignFinale.js';
+import { hostileBosses, coalitionHpFactor, continueResistanceAfterDefeat } from '../gameplay/wave11Rules.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
@@ -112,6 +114,23 @@ export class GameScene extends Phaser.Scene {
     const legacy = getFirstUpgrade(data.upgradeId) && this.mode === 'wave1'
       ? { choices: [data.upgradeId] } : {};
     this.campaign = normalizeCampaignState(data.campaign ?? legacy);
+    this.brazilResistanceLevels=Array.isArray(data.brazilResistanceLevels)
+      ? [...new Set(data.brazilResistanceLevels.filter(level=>
+        Number.isInteger(level)&&level>=1&&level<=10))].sort((a,b)=>a-b):[];
+    this.finale=this.mode==='wave11'?resolveFinalOpponent(this.campaign):null;
+    this.finaleBossesNeeded=this.mode==='wave11'
+      ? Math.max(1,hostileBosses(this.campaign.choices).length):0;
+    this.finaleBossesKilled=0;
+    this.supremeFinishing=false;
+    const survivors=this.mode==='wave11'
+      ? this.campaign.choices.filter(id=>!this.finale.coalition.includes(id))
+      : this.campaign.choices;
+    this.combatCampaign=this.mode==='wave11'
+      ? {choices:[...survivors,
+          ...(this.brazilResistanceLevels.length&&!survivors.includes('br')?['br']:[])],
+        resistanceLevels:this.brazilResistanceLevels} : this.campaign;
+    this.waveDurationMs=this.mode.startsWith('wave')
+      ? MODES[this.mode].minDuration:WAVE_DURATION_MS;
     this.upgradeId = this.campaign.choices.at(-1) ?? null;
     this.thirdIds = this.unifiedLab
       ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 3)
@@ -130,7 +149,7 @@ export class GameScene extends Phaser.Scene {
       : [];
     const firstUpgrades = this.unifiedLab
       ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 1)
-      : unlockedFirstUpgrades(this.campaign);
+      : unlockedFirstUpgrades(this.combatCampaign);
     const firstStats = this.mode === 'upgradeLab'
       ? combatStatsForLoadout(this.upgradeIds)
       : combatStatsForLoadout(firstUpgrades);
@@ -142,10 +161,10 @@ export class GameScene extends Phaser.Scene {
     // Valores provisórios para o playtest da árvore reorganizada.
     const jointStages = this.thirdIds.length + this.fourthIds.length;
     this.combat.specialCooldown = Math.round(this.combat.specialCooldown * Math.pow(0.93, jointStages));
-    this.isV1Campaign = !this.unifiedLab && (/^wave(?:[0-9]|10)$/.test(this.mode) || (this.v1Playtest && this.mode === 'upgradeLab'));
+    this.isV1Campaign = !this.unifiedLab && (/^wave(?:[0-9]|10|11)$/.test(this.mode) || (this.v1Playtest && this.mode === 'upgradeLab'));
     if (this.isV1Campaign) {
-      this.combat = v1CombatStats(this.campaign);
-      this.specialBuild = v1SpecialConfig(this.campaign);
+      this.combat = v1CombatStats(this.combatCampaign);
+      this.specialBuild = v1SpecialConfig(this.combatCampaign);
       // Legado de torres e especiais das árvores antigas fica disponível somente no laboratório.
       this.thirdIds = [];
       this.fourthIds = [];
@@ -161,7 +180,8 @@ export class GameScene extends Phaser.Scene {
         labTowerIds: [...this.labTowerIds],
       };
     }
-    return { mode: this.mode, campaign: normalizeCampaignState(this.campaign) };
+    return { mode: this.mode, campaign: normalizeCampaignState(this.campaign),
+      brazilResistanceLevels:[...this.brazilResistanceLevels] };
   }
 
   refreshLabStats() {
@@ -281,7 +301,7 @@ export class GameScene extends Phaser.Scene {
     this.eventsSpawned = 0;
     // v0.35: a campanha usa grupos reais, com progressão dentro de cada noite.
     // Laboratórios e a agenda legada continuam acessíveis independentemente.
-    this.waveEvents = getV035WaveEvents(this.mode, getWaveEvents(this.mode));
+    this.waveEvents = getV035WaveEvents(this.mode, getWaveEvents(this.mode,this.campaign));
     this.lastBasicFire = -this.combat.basicInterval;
     this.heatStartedAt = null;
     this.ultimateUsed = false;
@@ -381,6 +401,8 @@ export class GameScene extends Phaser.Scene {
     if (this.unifiedLab && this.mode === 'lab') {
       // Arena livre: nenhum spawn agendado e nenhuma duração limite.
       this.waveEvents = [];
+    } else if (this.mode === 'wave11' && !this.v1Playtest) {
+      this.showFinalePrelude();
     } else if (this.mode.startsWith('wave')) {
       this.startWaveCountdown();
     } else {
@@ -560,6 +582,30 @@ export class GameScene extends Phaser.Scene {
         this.spawnWaveEvent(event);
       });
     });
+  }
+
+  showFinalePrelude() {
+    this.countdownActive=true;
+    const info=finalePrelude(this.campaign);
+    const panel=this.add.rectangle(W/2,H/2,W,H,0x071021,0.96)
+      .setInteractive().setDepth(210);
+    const title=this.add.text(W/2,87,info.title,{
+      fontFamily:'monospace',fontSize:'30px',fontStyle:'bold',
+      color:'#ffe0a6',align:'center',
+    }).setOrigin(0.5).setDepth(212);
+    const lines=this.add.text(W/2,239,info.lines.join('\\n\\n'),{
+      fontFamily:'monospace',fontSize:'17px',fontStyle:'bold',
+      color:'#e3f1ff',align:'center',wordWrap:{width:810},lineSpacing:8,
+    }).setOrigin(0.5).setDepth(212);
+    let button;
+    button=addMenuButton(this,{x:W/2,y:420,width:370,height:52,
+      text:'▶  ENFRENTAR ONDA 11',primary:true,depth:215,onClick:()=>{
+        [panel,title,lines,button,buttonLabel].forEach(item=>item?.destroy());
+        this.startWaveCountdown();
+      }});
+    // Botão retro usa texto independente. Destruímos os dois ao avançar.
+    const buttonLabel=this.children.list.find(child=>child.type==='Text' &&
+      child.text==='▶  ENFRENTAR ONDA 11');
   }
 
   startWaveCountdown() {
@@ -2888,7 +2934,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   explode(x, y) {
-    if (this.isV1Campaign && v1CountryLevels(this.campaign).br >= 2) {
+    if (this.isV1Campaign && v1CountryLevels(this.combatCampaign).br >= 2) {
       this.createArraial(x, y);
       return;
     }
@@ -3047,7 +3093,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   updateArraialFlames() {
-    if(!this.isV1Campaign || v1CountryLevels(this.campaign).br<2 || this.shield<=0) return;
+    if(!this.isV1Campaign || v1CountryLevels(this.combatCampaign).br<2 || this.shield<=0) return;
     if(this.firePulse){
       const elapsed=this.time.now-this.firePulse.bornAt;
       if(elapsed>=ARRAIAL.firePulseDuration) this.firePulse=null;
@@ -3476,7 +3522,7 @@ export class GameScene extends Phaser.Scene {
   drawShield() {
     const graphics = this.shieldGraphics;
     graphics.clear();
-    const brazilRing = this.isV1Campaign && v1CountryLevels(this.campaign).br >= 2;
+    const brazilRing = this.isV1Campaign && v1CountryLevels(this.combatCampaign).br >= 2;
     const dome = (x, y, radius, shield, max, fullRing = false, centerOffsetY = 10) => {
       if (shield <= 0) return;
       // A melhoria brasileira AUMENTA visualmente a cúpula e sua faixa
