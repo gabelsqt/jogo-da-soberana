@@ -26,12 +26,13 @@ jobs:
       - name: Obter apenas a versão de teste da branch isolada
         uses: actions/checkout@v4
         with:
-          ref: feat/v1-upgrades-64-68
-      - name: Confirmar revisão da árvore V1 utilizada no site
+          ref: feat/brasil2-arraial-balístico
+      - name: Confirmar revisão da árvore V1 Brasil 2 utilizada no site
         run: |
           echo "Publicando branch: $(git branch --show-current)"
           echo "Commit jogável: $(git rev-parse HEAD)"
           test -f src/scenes/V1PlaytestScene.js
+          test -f src/gameplay/arraialBrasil2.js
           grep -q 'TESTAR UPGRADES V1' src/scenes/MenuScene.js
           ! grep -q "scene.start('LabSetupScene')" src/scenes/MenuScene.js
       - name: Configurar Node
