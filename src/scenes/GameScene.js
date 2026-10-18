@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame } from '../gameplay/arraialBrasil2.js';
+import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame, firePulseRadius } from '../gameplay/arraialBrasil2.js';
 import {
   normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout,
   LAB_ENEMY_NAMES, LAB_MAX_ENEMY_LEVEL, labEnemyEvent,
@@ -2486,6 +2486,7 @@ export class GameScene extends Phaser.Scene {
     const nucleus = {x, y, graphics, bornAt:this.time.now,
       events:fireworkSchedule(), next:0, finished:false};
     this.arraialNuclei.push(nucleus);
+    this.firePulse={bornAt:this.time.now,hits:new Set()};
   }
 
   arraialDamage(x, y, radius, amount, color) {
@@ -2589,12 +2590,28 @@ export class GameScene extends Phaser.Scene {
 
   updateArraialFlames() {
     if(!this.isV1Campaign || v1CountryLevels(this.campaign).br<2 || this.shield<=0) return;
+    if(this.firePulse){
+      const elapsed=this.time.now-this.firePulse.bornAt;
+      if(elapsed>=ARRAIAL.firePulseDuration) this.firePulse=null;
+      else {
+        const radius=firePulseRadius(elapsed);
+        for(let i=this.enemies.length-1;i>=0;i--){
+          const enemy=this.enemies[i];
+          if(this.firePulse.hits.has(enemy.uid))continue;
+          if(withinBlast(CANNON.x,CANNON.y+ARRAIAL.fireRingOffsetY,
+            enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type),radius)){
+            this.firePulse.hits.add(enemy.uid);
+            this.impactInvader(i,ARRAIAL.firePulseDamage,0,'#ffac50',false);
+          }
+        }
+      }
+    }
     if(this.time.now-this.lastFlameTick<ARRAIAL.flameInterval) return;
     this.lastFlameTick=this.time.now;
     for(let i=this.enemies.length-1;i>=0;i--){
       const enemy=this.enemies[i];
-      if(withinFlame(CANNON.x,CANNON.y+ARRAIAL.shieldRingOffsetY,
-        ARRAIAL.shieldRingRadius,enemy.sprite.x,enemy.sprite.y,
+      if(withinFlame(CANNON.x,CANNON.y+ARRAIAL.fireRingOffsetY,
+        ARRAIAL.fireRingRadius,enemy.sprite.x,enemy.sprite.y,
         enemyContactRadius(enemy.type),true))
         this.impactInvader(i,ARRAIAL.flameDamage,0,'#ffb85b',false);
     }
@@ -2988,15 +3005,18 @@ export class GameScene extends Phaser.Scene {
       }
     };
     dome(CANNON.x, CANNON.y,
-      brazilRing ? ARRAIAL.shieldRingRadius : 62,
-      this.shield, this.shieldMax, brazilRing,
-      brazilRing ? ARRAIAL.shieldRingOffsetY : 10);
+      brazilRing ? ARRAIAL.shieldDomeRadius : 62,
+      this.shield, this.shieldMax, false, 10);
     if (brazilRing && this.shield > 0) {
-      // Chamas e brasas permanecem na borda superior da cúpula.
+      const age=this.firePulse ? this.time.now-this.firePulse.bornAt : ARRAIAL.firePulseDuration;
+      const radius=age<ARRAIAL.firePulseDuration ? firePulseRadius(age) : ARRAIAL.fireRingRadius;
+      graphics.lineStyle(4,0xff9638,0.85);
+      graphics.strokeCircle(CANNON.x,CANNON.y+ARRAIAL.fireRingOffsetY,radius);
+      // Fogueira interna cresce e contrai quando o balão é lançado.
       for(let i=0;i<17;i++){
         const angle=i*Math.PI*2/17;
-        const fx=CANNON.x+ARRAIAL.shieldRingRadius*Math.cos(angle);
-        const fy=CANNON.y+ARRAIAL.shieldRingOffsetY+ARRAIAL.shieldRingRadius*Math.sin(angle);
+        const fx=CANNON.x+radius*Math.cos(angle);
+        const fy=CANNON.y+ARRAIAL.fireRingOffsetY+radius*Math.sin(angle);
         const flicker=2+3*(0.5+0.5*Math.sin(this.time.now*0.012+i*2.3));
         graphics.fillStyle(i%2?0xffa23a:0xffdb6a,0.8);
         graphics.fillTriangle(fx-3,fy,fx+3,fy,fx,fy-flicker-4);
