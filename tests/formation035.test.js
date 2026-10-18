@@ -136,7 +136,7 @@ test('Tipo 1 escolhe a defesa próxima; Tipo 2 escolhe a vulnerável', () => {
 
 test('GameScene usa grupos completos e recarrega alvo se torre cai', () => {
   const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
-  assert.match(scene,/getV035WaveEvents\(this\.mode, getWaveEvents\(this\.mode\)\)/);
+  assert.match(scene,/getV035WaveEvents\(this\.mode, getWaveEvents\(this\.mode,this\.campaign\)\)/);
   assert.match(scene,/spawnV035Group\(type, level, count, centerX = null\)/);
   assert.match(scene,/enemy\.phase = 'swarmDance'/);
   assert.match(scene,/enemy\.phase = 'tacticalManeuver'/);
