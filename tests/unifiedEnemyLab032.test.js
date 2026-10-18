@@ -16,7 +16,7 @@ test('laboratório unificado oferece arena de inimigos sem desativar os upgrades
   assert.match(setup, /text: '▶ TESTAR ONDA'/);
   assert.match(scene, /this\.unifiedLab \&\& this\.mode === 'lab'/);
   assert.match(scene, /this\.waveEvents = \[\]/);
-  assert.match(scene, /if \(!\(this\.unifiedLab \&\& this\.mode === 'lab'\)\)/,
+  assert.match(scene, /if \(!\(this\.unifiedLab \&\& this\.mode === 'lab'\) \&\& !\(this\.v1Playtest \&\& this\.mode === 'upgradeLab'\)\)/,
     'a arena não pode terminar após limpar as naves ou ao atingir 36 s');
   assert.match(scene, /this\.unifiedLab \? configuredTowerLoadout\(this\.labConfig\)/);
   const configured = normalizeLabConfig({levels:{br:7}});
