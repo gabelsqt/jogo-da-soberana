@@ -593,19 +593,16 @@ export class GameScene extends Phaser.Scene {
       fontFamily:'monospace',fontSize:'30px',fontStyle:'bold',
       color:'#ffe0a6',align:'center',
     }).setOrigin(0.5).setDepth(212);
-    const lines=this.add.text(W/2,239,info.lines.join('\\n\\n'),{
+    const lines=this.add.text(W/2,239,info.lines.join(String.fromCharCode(10,10)),{
       fontFamily:'monospace',fontSize:'17px',fontStyle:'bold',
       color:'#e3f1ff',align:'center',wordWrap:{width:810},lineSpacing:8,
     }).setOrigin(0.5).setDepth(212);
     let button;
     button=addMenuButton(this,{x:W/2,y:420,width:370,height:52,
       text:'▶  ENFRENTAR ONDA 11',primary:true,depth:215,onClick:()=>{
-        [panel,title,lines,button,buttonLabel].forEach(item=>item?.destroy());
+        [panel,title,lines,button,button.label].forEach(item=>item?.destroy());
         this.startWaveCountdown();
       }});
-    // Botão retro usa texto independente. Destruímos os dois ao avançar.
-    const buttonLabel=this.children.list.find(child=>child.type==='Text' &&
-      child.text==='▶  ENFRENTAR ONDA 11');
   }
 
   startWaveCountdown() {
@@ -3717,11 +3714,15 @@ export class GameScene extends Phaser.Scene {
         fontFamily:'monospace',fontSize:'34px',fontStyle:'bold',
         color:canRetry?'#ffe3a0':'#ff9ca1',align:'center',
       }).setOrigin(0.5).setDepth(222);
-    const caption=this.finale.fullBrazil
-      ? 'A ÚLTIMA FROTA ALIENÍGENA ROMPEU AS DEFESAS.\\nO BRASIL LUTOU SOZINHO.'
+    const caption=(this.finale.fullBrazil
+      ? ['A ÚLTIMA FROTA ALIENÍGENA ROMPEU AS DEFESAS.',
+        'O BRASIL LUTOU SOZINHO.']
       : canRetry
-        ? `A COLIGAÇÃO QUEBROU AS DEFESAS.\\nRESISTÊNCIA BRASILEIRA: MELHORIA NÍVEL ${next.awardedLevel} DISPONÍVEL.\\nREINICIAR TODA A BATALHA CONTRA OS MESMOS CHEFES?`
-        : 'OS RECURSOS DA RESISTÊNCIA SE ESGOTARAM.\\nA COALIZÃO TOMOU O BRASIL.';
+        ? ['A COALIZÃO QUEBROU AS DEFESAS.',
+          `RESISTÊNCIA BRASILEIRA: MELHORIA NÍVEL ${next.awardedLevel} DISPONÍVEL.`,
+          'REINICIAR TODA A BATALHA CONTRA OS MESMOS CHEFES?']
+        : ['OS RECURSOS DA RESISTÊNCIA SE ESGOTARAM.',
+          'A COALIZÃO TOMOU O BRASIL.']).join(String.fromCharCode(10));
     this.add.text(W/2,235,caption,{
       fontFamily:'monospace',fontSize:'17px',fontStyle:'bold',
       color:'#e9f0ff',align:'center',wordWrap:{width:825},lineSpacing:8,
