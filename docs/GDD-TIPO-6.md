@@ -101,3 +101,6 @@ A entrada de qualquer onda apresenta `TEMPO ATÉ O AMANHECER` com zoom real de 1
 - A barreira principal e os quatro escudos individuais **não foram removidos**: a simplificação de escudos da v0.49 se aplica somente aos upgrades defensivos do canhão brasileiro e aliados.
 - Travas de desempenho para megafábrica chinesa e fortaleza neon coreana: renderização do casco em até 30 fps com ataque atualizado em plena cadência, limite de 140 tiros hostis convencionais na tela, agregação dos traços visuais de reflexo, e prevenção de Type 6 duplicado. Danos e contadores continuam independentes do desenho, sem sacrificar o cálculo de projéteis disparados.
 - Testes automatizados incluem colisão contínua em cinco variantes (alien, EUA, Rússia, Coreia, China), integridade de barreira/módulos/núcleo e verificações contra regressão dos limites de desempenho. Necessário confirmar também em jogatina real.
+
+## Decisão implementada: feedback de dano no Tipo 6 (v0.51)
+Acertos com dano efetivo produzem flash localizado no módulo/núcleo, tremor curto apenas no desenho, e efeitos de impacto maiores. Preservar hitboxes, HP, dano e cadência. Testar localmente no laboratório após git pull.
