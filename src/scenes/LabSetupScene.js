@@ -13,7 +13,7 @@ export class LabSetupScene extends Phaser.Scene {
   create() {
     bindSceneMusic(this, 'setup');
     drawRioBackdrop(this);
-    this.add.rectangle(W / 2, H / 2, W, H, 0x152926, 0.92).setDepth(30);
+    this.add.rectangle(W / 2, H / 2, W, H, 0x0b1621, 0.92).setDepth(30);
     addCuboBroadcastFrame(this,{
       section:'Laboratório de defesa',
       headline:'Arquivo técnico • Simulador experimental',
@@ -21,7 +21,7 @@ export class LabSetupScene extends Phaser.Scene {
       depth:50,
     });
     addCuboPixelText(this,{x:W/2,y:80,text:'Laboratório Soberana',
-      size:3,color:'#edc75a',depth:34,maxWidth:700});
+      size:3,color:'#e2a45e',depth:34,maxWidth:700});
     this.add.text(W / 2, 107, 'Escolha a onda e os níveis • Não altera a campanha', {
       fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'13px',color:'#b8e9f8',
     }).setOrigin(0.5).setDepth(34);
