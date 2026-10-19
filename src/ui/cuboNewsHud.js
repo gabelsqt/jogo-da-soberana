@@ -1,69 +1,90 @@
-// Lower third da Cubo News: a única interface persistente de campanha.
-// 960x540: faixa inferior translúcida, manchete/subtítulo e relógio à direita.
+// Cubo News v0.45: HTML real FORA do canvas Phaser.
+// O Phaser pode aplicar zoom/screenshake, mas não consegue mover este overlay.
+// O palco mantém 960×540; a faixa independente acrescenta 44px abaixo.
+// O relógio flutua na direita, sem caixa e com transparência.
 export function formatCuboTime(milliseconds){
   const seconds=Math.ceil(Math.max(0,milliseconds)/1000);
   return String(Math.floor(seconds/60)).padStart(2,'0')+':'+
     String(seconds%60).padStart(2,'0');
 }
-function short(text,max){
-  const str=String(text||'');
-  return str.length>max?str.slice(0,max-1).trimEnd()+'…':str;
-}
+
 export function createCuboNewsHud(scene){
-  const font='monospace';
-  const base=scene.add.rectangle(480,507,958,65,0x0c1930,0.94)
-    .setStrokeStyle(2,0x526985).setDepth(100);
-  const strip=scene.add.rectangle(382,482,760,8,0xb11e2e).setDepth(101);
-  const brand=scene.add.text(11,482,'CUBO NEWS  ● AO VIVO',{
-    fontFamily:font,fontSize:'10px',fontStyle:'bold',color:'#ffd5d8',
-  }).setDepth(103);
-  const headline=scene.add.text(11,496,'COBERTURA ESPECIAL — INVASÃO ALIENÍGENA',{
-    fontFamily:font,fontSize:'13px',fontStyle:'bold',color:'#ffffff',
-  }).setDepth(103);
-  const subtitle=scene.add.text(11,517,'Transmissão de emergência em todo o território nacional.',{
-    fontFamily:font,fontSize:'10px',color:'#c4d0e0',
-  }).setDepth(103);
-  const clockPanel=scene.add.rectangle(848,507,222,65,0x142d4d,0.98)
-    .setStrokeStyle(2,0x718aab).setDepth(102);
-  const timeLabel=scene.add.text(851,484,'TEMPO RESTANTE',{
-    fontFamily:font,fontSize:'10px',fontStyle:'bold',color:'#c6d4e8',
-  }).setOrigin(0.5,0).setDepth(104);
-  const timer=scene.add.text(851,496,'00:30',{
-    fontFamily:font,fontSize:'32px',fontStyle:'bold',color:'#ffffff',
-  }).setOrigin(0.5,0).setDepth(104);
+  const root=document.getElementById('cubo-news-overlay');
+  const broadcast=document.getElementById('broadcast');
+  if(!root||!broadcast){
+    // No contexto sem DOM (testes unitários ou embed antigo), não quebrar o jogo.
+    return {update(){},destroy(){}};
+  }
+  const headline=root.querySelector('#cubo-headline');
+  const crawlOne=root.querySelector('#cubo-crawl-one');
+  const crawlTwo=root.querySelector('#cubo-crawl-two');
+  const crawlTrack=root.querySelector('#cubo-crawl-track');
+  const timer=root.querySelector('#cubo-time');
+  root.hidden=false;
+  broadcast.dataset.cuboNews='visible';
+  scene.game.events.emit('cubo-layout-change');
+
+  let destroyed=false;
   let lastHeadline='',lastSubtitle='',lastSiren=-Infinity;
+  function destroy(){
+    if(destroyed)return;
+    destroyed=true;
+    root.hidden=true;
+    root.classList.remove('cubo-warning');
+    broadcast.dataset.cuboNews='hidden';
+    scene.game.events.emit('cubo-layout-change');
+  }
+  scene.events.once('shutdown',destroy);
+
+  function siren(){
+    if(scene.time.now-lastSiren<=700)return;
+    lastSiren=scene.time.now;
+    try{
+      const ctx=scene.sound?.context;
+      if(ctx?.state!=='running')return;
+      const osc=ctx.createOscillator(),gain=ctx.createGain(),now=ctx.currentTime;
+      osc.type='sawtooth';
+      osc.frequency.setValueAtTime(640,now);
+      osc.frequency.linearRampToValueAtTime(400,now+0.25);
+      gain.gain.setValueAtTime(0.0001,now);
+      gain.gain.linearRampToValueAtTime(0.018,now+0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001,now+0.32);
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.start(now);osc.stop(now+0.33);
+    }catch{/* Sinal visual continua, mesmo sem áudio autorizado. */}
+  }
+
   return {
     update(elapsed,total,story,{frozen=false,active=true}={}){
-      if(!active)return;
+      if(destroyed||!active)return;
       const remaining=Math.max(0,total-elapsed);
-      timer.setText(formatCuboTime(remaining));
+      timer.textContent=formatCuboTime(remaining);
       const critical=!frozen&&remaining<=5000;
-      const pulse=critical&&Math.floor(scene.time.now/180)%2===0;
-      clockPanel.setFillStyle(critical?(pulse?0xbf2636:0x481222):0x142d4d,0.98);
-      clockPanel.setStrokeStyle(2,critical?0xff5565:0x718aab);
-      strip.setFillStyle(critical?(pulse?0xff4355:0x7f0f23):0xb11e2e);
+      root.classList.toggle('cubo-warning',critical);
       if(story){
-        const h=short(story.headline,86),s=short(story.subtitle,116);
-        if(h!==lastHeadline){headline.setText(h);lastHeadline=h;}
-        if(s!==lastSubtitle){subtitle.setText(s);lastSubtitle=s;}
+        const newHeadline=String(story.headline||'');
+        const newSubtitle=String(story.subtitle||'');
+        if(newHeadline!==lastHeadline){
+          headline.textContent=newHeadline;
+          headline.title=newHeadline;
+          lastHeadline=newHeadline;
+        }
+        if(newSubtitle!==lastSubtitle){
+          const text=newSubtitle+'    ◆    ';
+          crawlOne.textContent=text;
+          crawlTwo.textContent=text;
+          // A velocidade acompanha o comprimento. As duas cópias mantêm
+          // fluxo contínuo da DIREITA para a ESQUERDA sem lacunas.
+          const seconds=Math.max(8,Math.min(25,newSubtitle.length*0.16));
+          crawlTrack.style.animation='none';
+          // Reflow somente a cada manchete, não a cada quadro do jogo.
+          void crawlTrack.offsetWidth;
+          crawlTrack.style.animation=`cubo-scroll ${seconds}s linear infinite`;
+          lastSubtitle=newSubtitle;
+        }
       }
-      if(critical&&scene.time.now-lastSiren>700){
-        lastSiren=scene.time.now;
-        try {
-          const ctx=scene.sound?.context;
-          if(ctx&&ctx.state==='running'){
-            const osc=ctx.createOscillator(),gain=ctx.createGain(),now=ctx.currentTime;
-            osc.type='sawtooth';osc.frequency.setValueAtTime(640,now);
-            osc.frequency.linearRampToValueAtTime(400,now+0.25);
-            gain.gain.setValueAtTime(0.0001,now);
-            gain.gain.linearRampToValueAtTime(0.018,now+0.04);
-            gain.gain.exponentialRampToValueAtTime(0.0001,now+0.32);
-            osc.connect(gain);gain.connect(ctx.destination);
-            osc.start(now);osc.stop(now+0.33);
-          }
-        }catch{/* Silent fallback: visual alert remains. */}
-      }
+      if(critical)siren();
     },
-    destroy(){[base,strip,brand,headline,subtitle,clockPanel,timeLabel,timer].forEach(o=>o.destroy());},
+    destroy,
   };
 }
