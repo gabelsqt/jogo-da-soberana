@@ -702,3 +702,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **O9 C:** todas as ondas devem ser sobrevivíveis com **build brasileira básica e margem de erro humana**, sem exigir desempenho praticamente perfeito; validar com testes reais.
 - **O10 A:** prioridade do próximo pacote de implementação: **projéteis e dificuldade**, começando por limites configuráveis, cadência, pausas entre eventos e interceptação; **não executar ainda**.
 - **Status:** somente GDD e checklist atualizados; nenhum código, asset ou versão alterado nesta rodada.
+
+
+### Wave Maker — decisões P1–P10 (19/10/2026; somente planejamento)
+- **P1 A:** limite de projéteis inimigos simultâneos editável com **campo numérico**, por onda.
+- **P2 — PENDENTE DE ESCLARECIMENTO:** o formulário retornou **C (multiplicador geral e ajustes por tipo de inimigo)**, porém o usuário comentou **“Não entendi a pergunta”**. **Não tratar C como decisão consolidada nem implementar até explicar e reconfirmar.** P2 fala da *frequência dos disparos*, não da quantidade de tiros de cada rajada (P3).
+- **P3 A:** limite da **quantidade de projéteis por rajada** configurado separadamente por **tipo de inimigo**.
+- **P4 A:** pausas entre eventos representadas pelos próprios **espaços vazios na linha do tempo**; não criar novo tipo de marcador.
+- **P5 A:** exibir **gráfico de estimativa de projéteis inimigos ativos ao longo do tempo**; identificar visualmente trechos densos, sem confundir estimativa com simulação comprovada.
+- **P6 A:** **alerta discreto no editor** ao aproximar do limite de projéteis, sem impedir salvar.
+- **P7 C:** teste rápido com **build brasileira básica** e opção avançada para selecionar outras builds.
+- **P8 B:** resultado do teste inclui sobrevivência/resultado, dano recebido, disparos, interceptações e inimigos eliminados.
+- **P9 A:** comparação **lado a lado dos resultados de dois testes**, antes/depois.
+- **P10 A:** alterações no Wave Maker ficam em **rascunho separado** e só afetam a campanha depois de **publicação explícita**, preservando fluxo de rascunhos já aprovado.
+- **Estado:** registrar sem implementar nem alterar versões; P2 requer confirmação verbal/seleção posterior.
