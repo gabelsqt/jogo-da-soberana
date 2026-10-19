@@ -650,3 +650,6 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **K9 C:** vitória com Supremo brasileiro **não muda o final narrativo nem cria final extra**; pode manter espetáculo visual próprio da habilidade, sem tratamento narrativo especial obrigatório. Esta decisão substitui a possibilidade narrativa especial antes aventada em J10.
 - **K10 B com epílogo:** vitória dá ao Brasil **prestígio internacional tecnológico e cultural**. Outros países **pedem ajuda brasileira**, porque os alienígenas estão atacando **todas as cidades do mundo com estátuas de braços abertos**. Construir cena/epílogo que explicite a extensão global do mal-entendido.
 - **Estado:** decisões de roteiro somente no GDD; sem implementação, nova cena, efeito, arte ou alteração de versão nesta rodada.
+
+### Implementação parcial aprovada — v0.56 (19/10/2026)
+- Primeiro pacote incremental após autorização expressa: nomes Kátia Strófika/Ming Da no boteco, revelação alienígena pré-onda 10, rendição pré-onda 11, relógio de colonização e limite progressivo de tiros comuns em ondas 0–9. Demais decisões B–K continuam planejadas, com pendências detalhadas em docs/versao-0.56.md. Testes locais e build ainda pendentes.
