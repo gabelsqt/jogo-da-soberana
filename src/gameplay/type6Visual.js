@@ -7,6 +7,8 @@ import {
 export function drawType6Ship(g,state,ageMs=0) {
   const p=TYPE6_PALETTES[state.country];
   const pulse=0.5+0.5*Math.sin(ageMs*0.008);
+  const hitGlow=(hitAt,duration=125)=>Math.max(0,1-(ageMs-hitAt)/duration);
+  const coreHit=state.coreExposed?hitGlow(state.hitAt):0;
   g.clear();
   // Silhueta blindada, construída em camadas industriais.
   g.fillStyle(0x080c14,0.92);
@@ -52,6 +54,10 @@ export function drawType6Ship(g,state,ageMs=0) {
           Math.cos(a+0.3)*73,Math.sin(a+0.3)*73);
       }
     }
+    if(coreHit>0){
+      g.fillStyle(0xffffff,0.16+0.52*coreHit).fillCircle(0,0,43);
+      g.lineStyle(4,0xffffff,0.48+0.5*coreHit).strokeCircle(0,0,48);
+    }
   }else{
     g.fillStyle(p.edge,0.6).fillRect(-45,-22,90,44);
     g.fillStyle(0x0a121c).fillRect(-36,-14,72,29);
@@ -66,6 +72,7 @@ export function drawType6Ship(g,state,ageMs=0) {
   for(const module of state.modules){
     const x=module.offsetX,y=module.offsetY;
     const damage=type6ModuleVisualState(module);
+    const flash=hitGlow(module.hitAt);
     g.fillStyle(0x05070d).fillRoundedRect(x-60,y-44,120,88,8);
     g.fillStyle(module.broken?0x141319:damage>=2?0x27242b:p.metal)
       .fillRoundedRect(x-54,y-39,108,78,5);
@@ -116,6 +123,13 @@ export function drawType6Ship(g,state,ageMs=0) {
         g.strokeRoundedRect(x-61,y-46,122,92,9);
         g.lineStyle(2,color,0.17+0.16*pulse)
           .strokeRoundedRect(x-65,y-50,130,100,12);
+      }
+      // Flash localizado: cada módulo reage ao impacto independentemente.
+      if(flash>0){
+        g.fillStyle(0xffffff,0.12+0.45*flash)
+          .fillRoundedRect(x-54,y-39,108,78,5);
+        g.lineStyle(3,module.shield>0?p.glow:0xffffff,0.35+0.65*flash)
+          .strokeRoundedRect(x-59,y-44,118,88,8);
       }
     }
   }
