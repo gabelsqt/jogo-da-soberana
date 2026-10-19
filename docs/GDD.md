@@ -364,3 +364,10 @@ Refinamento solicitado após playtest: zoom gradual até **1,65×**, com foco no
 
 ## Ajuste v0.49.1 — Onda 0 mais acessível (19/10/2026)
 Feedback do playtest: os padrões sincronizados agradaram, mas havia **inimigos demais na onda 0**, tornando o começo desproporcionalmente difícil. Preservar todos os padrões (senoide, círculos, espiral, cruzamento); reduzir exclusivamente a programação da primeira noite para **quatro grupos de Tipo 1**, com 3, 4, 4 e 5 naves, total de 16. Chegadas programadas em 1,1 s, 4,6 s, 8,1 s e 11,6 s. Assim há mais tempo para aprender os controles e interceptar os disparos durante as pausas; encerramento de spawns antes dos últimos 15 s permanece. Ondas 1–11 não são alteradas por este hotfix. A v0.49.1 é um ajuste de dificuldade, não uma nova regra de formação ou de inimigo.
+
+
+## Hotfix v0.49.2 — Densidade com tempo de reação (19/10/2026)
+
+**Balanceamento da onda 0:** 22 inimigos em quatro grupos (5, 5, 6 e 6). Entradas aos 0,9 s, 4,2 s, 7,8 s e 11,4 s. Os movimentos sincronizados foram desacelerados: cada formação passa 6,5 segundos coreografando, seguida de 3,1 segundos pairando antes do mergulho. O primeiro tiro acontece no mínimo 1,5 segundo após começar a pairar, com defasagem de 0,2 segundo entre as naves. Durante a onda 0, mergulhos têm 70% da velocidade anterior e projéteis, 85%. **Ondas 1–11, regras de amanhecer e mecânicas ofensivas dos países permanecem inalteradas.**
+
+Aumentar quantidade não significa antecipar dano: primeiro mostrar a coreografia e dar ao jogador tempo suficiente para mirar e agir. Quatro formações serão preservadas, com incrementos de dificuldade graduais. O limite de novos spawns até 15 segundos decorridos, e a exigência de últimos dez segundos dedicados a ataques, continuam válidos.
