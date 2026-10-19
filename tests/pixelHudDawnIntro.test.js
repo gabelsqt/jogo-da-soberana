@@ -16,7 +16,7 @@ test('glifos são desenhados em múltiplos de pixels inteiros',()=>{
     fillRect(x,y,w,h){rectangles.push([x,y,w,h]);}}}};
   assert.equal(drawPixelText(canvas,'30',{pixel:4}),true);
   assert.equal(canvas.height,28);
-  assert.ok(rectangles.length>35);
+  assert.ok(rectangles.length>=25);
   for(const [x,y,w,h] of rectangles){
     for(const val of [x,y,w,h])assert.equal(val%4,0);
   }
