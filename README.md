@@ -2,7 +2,11 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.49.1
+## Versão atual — 0.49.2
+
+**Balanceamento da onda 0:** 22 inimigos em quatro grupos (5, 5, 6 e 6). Entradas aos 0,9 s, 4,2 s, 7,8 s e 11,4 s. Os movimentos sincronizados foram desacelerados: cada formação passa 6,5 segundos coreografando, seguida de 3,1 segundos pairando antes do mergulho. O primeiro tiro acontece no mínimo 1,5 segundo após começar a pairar, com defasagem de 0,2 segundo entre as naves. Durante a onda 0, mergulhos têm 70% da velocidade anterior e projéteis, 85%. **Ondas 1–11, regras de amanhecer e mecânicas ofensivas dos países permanecem inalteradas.**
+
+## Versão anterior — 0.49.1
 
 **Ajuste de balanceamento da onda 0:** 16 inimigos em quatro formações coreografadas (3, 4, 4 e 5 naves), espaçadas de 1,1 s até 11,6 s; preserva os padrões e reduz significativamente a pressão inicial. As ondas 1–11 não foram modificadas neste ajuste.
 
