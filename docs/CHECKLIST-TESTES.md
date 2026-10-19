@@ -106,3 +106,16 @@
 - [ ] **Cada** projétil interceptado produz sua explosão visível, inclusive em rajadas numerosas; observar desempenho.
 - [ ] Confirmar viabilidade das ondas com **build brasileira básica e margem para erros**, sem depender de execução perfeita.
 - [ ] Registrar métricas antes/depois do pacote prioritário de projéteis e dificuldade; priorização O10 não autoriza implementação sem novo pedido.
+
+
+## Wave Maker — validações futuras P1–P10 (não implementadas nesta rodada)
+- [ ] Campo numérico define teto de projéteis inimigos ativos por onda e respeita valores válidos.
+- [ ] **P2 pendente:** confirmar com usuário como editar a frequência de tiros (global/por tipo/ambos) antes de criar testes finais para o recurso.
+- [ ] Quantidade de projéteis por rajada editável por tipo de inimigo, independentemente do teto de projéteis ativos.
+- [ ] Espaços vazios entre eventos produzem pausas reais; editor não precisa de marcador adicional.
+- [ ] Gráfico mostra estimativa temporal de projéteis ativos e comunica claramente que é estimativa.
+- [ ] Avisos discretos destacam intervalos próximos ao teto configurado, sem bloquear salvamento.
+- [ ] Botão de teste rápido abre onda com build brasileira básica; opção avançada testa outras builds.
+- [ ] Resumo do teste apresenta resultado, dano, tiros disparados, projéteis interceptados e inimigos eliminados.
+- [ ] Comparação antes/depois mostra lado a lado métricas de dois testes.
+- [ ] Salvar rascunho NÃO altera campanha; somente publicar aplica as mudanças. Verificar persistência, importação e versões.
