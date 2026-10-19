@@ -558,3 +558,16 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **D9 A:** manter **fim da onda por tempo**, inclusive quando restarem inimigos, conforme regras existentes.
 - **D10 A:** critério de avaliação prioritário: todas as ondas regulares devem ser testáveis/viáveis usando **build brasileira básica**, sem depender de investimento em aliados.
 - **Status:** decisões documentadas exclusivamente; não implementar nem alterar o código, a versão ou o balanceamento neste momento.
+
+### Chefões Tipo 6 e traição — decisões E1–E10 aprovadas (19/10/2026; somente planejamento)
+- **E1 A — revelação por diálogo e transmissão:** primeiro um **diálogo com o país traidor**, que revela explicitamente suas intenções; **depois cortar para uma transmissão da Cubo News** noticiando o ataque ao Rio de Janeiro, antes do confronto.
+- **E2 A — arquitetura comum, variação nacional:** os chefões Tipo 6 usam **a mesma estrutura e silhueta básica**, mas diferem visualmente (cores, módulos, aparência) e em **alguns ataques exclusivos**. Não reprojetar quatro estruturas independentes.
+- **E3 A — entrada lenta ameaçadora:** nave ocupa o alto da tela antes de começar a atacar.
+- **E4 A — núcleo central e módulos laterais:** módulos destrutíveis e núcleo determinante da derrota do chefe. **Regra previamente aprovada; não tratar como novidade.**
+- **E5 A — módulo destruído desativa arma correspondente:** **regra já definida e implementada**, conforme comentário explícito do usuário; preservar comportamento existente.
+- **E6 A — telegráficos na própria nave:** armamentos brilham, se abrem ou acumulam energia; sem HUD extra.
+- **E7 A — feedback nas bombas:** ao receber dano, bomba **pisca em branco e treme**, além de **quatro estágios visuais de destruição** até explodir. Evitar indicadores intrusivos.
+- **E8 A — sucção progressiva na superarma:** nos segundos finais, animação de **sucção de energia e projéteis ao núcleo**, reaproveitando a decisão prévia de absorver tiros existentes quando restarem 5 s. Núcleo concentra energia antes do disparo.
+- **E9 A — explosão em cadeia:** destruição do núcleo deflagra colapso em módulos e uma **explosão final deliberadamente exagerada**, sem queda da nave como etapa obrigatória.
+- **E10 A — desafio equivalente:** chefões traidores precisam oferecer chances de vitória semelhantes, apesar da identidade de ataques de cada país.
+- **Status:** somente planejamento destas decisões; nenhuma implementação, modificação de gameplay ou versionamento nesta rodada. As decisões E4 e E5 reafirmam regras já existentes.
