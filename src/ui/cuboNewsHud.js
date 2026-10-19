@@ -1,6 +1,5 @@
-// Cubo News v0.48 — texto pixelado de caixa mista; relógio bitmap gigante.
-// A faixa é HTML externo ao canvas Phaser e continua imóvel no combate.
-import {drawPixelText} from './pixelFont.js';
+// Cubo News v0.49 — Emissora Oficial Brasileira / IBM Plex Sans.
+// A faixa HTML permanece externa à câmera Phaser, sem zoom ou screenshake.
 export const DAWN_HOLD_MS=2200;
 export const DAWN_TRAVEL_MS=1750;
 export const DAWN_WORLD_ZOOM=1.48;
@@ -25,10 +24,6 @@ export function formatCuboHeadline(value){
     match=>words[match.toLocaleLowerCase('pt-BR')]??match);
   return s;
 }
-function paint(canvas,text,options){
-  if(!canvas)return;
-  drawPixelText(canvas,text,options);
-}
 export function createCuboNewsHud(scene){
   if(typeof document==='undefined')
     return {update(){},beginDawnIntro(_ms,done){done?.();},destroy(){}};
@@ -38,17 +33,12 @@ export function createCuboNewsHud(scene){
     return {update(){},beginDawnIntro(_ms,done){done?.();},destroy(){}};
 
   const headline=root.querySelector('#cubo-headline');
-  const headlinePixels=root.querySelector('#cubo-headline-pixels');
-  const labelPixels=root.querySelector('#cubo-label-pixels');
   const crawlOne=root.querySelector('#cubo-crawl-one');
   const crawlTwo=root.querySelector('#cubo-crawl-two');
-  const crawlOnePixels=root.querySelector('#cubo-crawl-one-pixels');
-  const crawlTwoPixels=root.querySelector('#cubo-crawl-two-pixels');
   const crawlTrack=root.querySelector('#cubo-crawl-track');
   const crawlBar=root.querySelector('.cubo-crawl');
   const timer=root.querySelector('#cubo-time');
   const timerReader=root.querySelector('#cubo-time-reader');
-  const timerPixels=root.querySelector('#cubo-time-pixels');
   const intro=broadcast.querySelector('#cubo-dawn-intro');
   const introNumber=broadcast.querySelector('#cubo-dawn-number');
   const introLabel=broadcast.querySelector('#cubo-dawn-label');
@@ -59,8 +49,7 @@ export function createCuboNewsHud(scene){
   broadcast.dataset.cuboNews='visible';
   scene.game.events.emit('cubo-layout-change');
 
-  paint(labelPixels,'Cubo News',{pixel:2,color:'#ffffff'});
-  paint(introLabel,'Tempo até o amanhecer',{pixel:3,color:'#adf2ff',paddingX:3});
+  if(introLabel)introLabel.textContent='Tempo até o amanhecer';
   let destroyed=false,introActive=false;
   let lastHeadline='',lastSubtitle='',lastSiren=-Infinity,lastSecond=null,lastCritical=null;
   const camera=scene.cameras?.main;
@@ -108,7 +97,7 @@ export function createCuboNewsHud(scene){
   return {
     beginDawnIntro(totalMs,onComplete){
       if(destroyed||introActive)return;
-      if(!intro||!introNumber||!timerPixels){onComplete?.();return;}
+      if(!intro||!introNumber||!timerReader){onComplete?.();return;}
       introActive=true;
       const value=formatCuboTime(totalMs);
       root.classList.add('cubo-intro-running');
@@ -117,12 +106,12 @@ export function createCuboNewsHud(scene){
       introNumber.style.transform='translate(-50%, -50%)';
       introNumber.style.opacity='1';
       timer.style.opacity='0';
-      paint(introNumber,value,{pixel:23,color:'#ffffff'});
+      introNumber.textContent=value;
       camera?.setZoom?.(DAWN_WORLD_ZOOM);
       scene.time.delayedCall(DAWN_HOLD_MS,()=>{
         if(destroyed||!introActive)return;
         const from=introNumber.getBoundingClientRect();
-        const to=timerPixels.getBoundingClientRect();
+        const to=timerReader.getBoundingClientRect();
         const dx=to.left+to.width/2-(from.left+from.width/2);
         const dy=to.top+to.height/2-(from.top+from.height/2);
         const scale=from.width>0?Math.max(0.18,Math.min(1,to.width/from.width)):0.4;
@@ -152,7 +141,7 @@ export function createCuboNewsHud(scene){
       if(lastSecond!==value||lastCritical!==critical){
         timerReader.textContent=value;
         timer.setAttribute('aria-label',`Tempo restante: ${value} segundos`);
-        paint(timerPixels,value,{pixel:13,color:critical?'#ff4a5f':'#dfedff'});
+        timer.style.color=critical?'#ffb26f':'';
         lastSecond=value;lastCritical=critical;
       }
       root.classList.toggle('cubo-warning',critical);
@@ -161,19 +150,12 @@ export function createCuboNewsHud(scene){
         const subtitle=String(story.subtitle||'');
         if(h!==lastHeadline){
           headline.textContent=h;headline.title=h;
-          paint(headlinePixels,h,{pixel:2,color:'#122131',maxWidth:730,paddingX:2});
           lastHeadline=h;
         }
         if(subtitle!==lastSubtitle){
           const text=subtitle+'     ◆     ';
           crawlOne.textContent=text;crawlTwo.textContent=text;
           crawlBar?.setAttribute('aria-label',subtitle);
-          for(const canvas of [crawlOnePixels,crawlTwoPixels]){
-            if(!canvas)continue;
-            paint(canvas,text,{pixel:2,color:'#ffffff',paddingX:8,minWidth:760});
-            canvas.style.width=canvas.width/960*100+'cqw';
-            canvas.style.height=canvas.height/960*100+'cqw';
-          }
           const seconds=Math.max(11,Math.min(32,subtitle.length*0.19));
           crawlTrack.style.animation='none';
           void crawlTrack.offsetWidth;
