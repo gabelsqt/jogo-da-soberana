@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { shouldShowRotateNotice, installResponsiveViewport } from '../src/config/responsive.js';
+import { shouldShowRotateNotice, installResponsiveViewport, fitBroadcastLayout, CUBO_TICKER_LOGICAL_HEIGHT } from '../src/config/responsive.js';
 
 test('o jogo usa 16:9 em telas 960×540 e 1920×1080, sem refazer coordenadas', () => {
   const { width, height } = { width: 960, height: 540 };
@@ -194,4 +194,62 @@ test('HTML respeita safe areas, barras móveis, pixel art e orientação', () =>
   assert.match(html, /image-rendering:\s*pixelated/);
   assert.match(html, /#rotate-notice\[hidden\]/);
   assert.match(html, /role="status"/);
+});
+
+
+test('composição fora do canvas mantém mundo 960×540 e acrescenta 44px de noticiário',()=>{
+  assert.equal(CUBO_TICKER_LOGICAL_HEIGHT,44);
+  const menu=fitBroadcastLayout({width:1920,height:1080,tickerVisible:false});
+  assert.equal(menu.width,1920);
+  assert.equal(menu.gameHeight,1080);
+  assert.equal(menu.tickerHeight,0);
+  const battle=fitBroadcastLayout({width:1920,height:1080,tickerVisible:true});
+  assert.equal(battle.height,1080);
+  assert.equal(battle.gameHeight+battle.tickerHeight,battle.height);
+  assert.equal(battle.gameHeight/battle.width,540/960);
+  assert.equal(battle.tickerHeight/battle.width,44/960);
+  assert.ok(battle.width<menu.width);
+  const narrow=fitBroadcastLayout({width:960,height:800,tickerVisible:true});
+  assert.equal(narrow.width,960);
+  assert.equal(narrow.height,584);
+});
+
+test('layout do telejornal cresce e diminui sem deslocar as coordenadas Phaser',()=>{
+  const root=makeFixture({width:1280,height:720,touch:false});
+  const broadcast={dataset:{cuboNews:'hidden'},style:{}};
+  const gameRegion={style:{}},tickerRegion={style:{}};
+  broadcast.querySelector=selector=>
+    selector==='#game'?gameRegion:selector==='#cubo-news-overlay'?tickerRegion:null;
+  root.root.clientWidth=1280;root.root.clientHeight=720;
+  root.root.querySelector=selector=>selector==='#broadcast'?broadcast:null;
+  // A camada aplica valores CSS no wrapper, nunca muda a resolução do Phaser.
+  const responsive=installResponsiveViewport(root.game,{
+    root:root.root,notice:root.notice,environment:root.win,
+  });
+  root.game.events.emit('postrender');
+  assert.equal(Number.parseFloat(tickerRegion.style.height),0);
+  const menuGameHeight=Number.parseFloat(gameRegion.style.height);
+  broadcast.dataset.cuboNews='visible';
+  root.win.emit('resize');root.win.flush();
+  assert.ok(Number.parseFloat(tickerRegion.style.height)>0);
+  assert.ok(Number.parseFloat(gameRegion.style.height)<menuGameHeight);
+  assert.equal(
+    Number.parseFloat(gameRegion.style.height)+Number.parseFloat(tickerRegion.style.height),
+    Number.parseFloat(broadcast.style.height),
+  );
+  broadcast.dataset.cuboNews='hidden';
+  root.win.emit('resize');root.win.flush();
+  assert.equal(Number.parseFloat(tickerRegion.style.height),0);
+  assert.equal(Number.parseFloat(gameRegion.style.height),menuGameHeight);
+  responsive.destroy();
+});
+
+test('faixa de notícias é irmã do canvas Phaser e possui ticker animado',()=>{
+  const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+  assert.match(html,/<div id="broadcast">[\s\S]*?<div id="game"[^>]*><\/div>\s*<section id="cubo-news-overlay"/);
+  assert.match(html, /@keyframes cubo-scroll/);
+  assert.match(html, /translateX\(-50%\)/);
+  assert.match(html, /\.cubo-time\s*\{/);
+  assert.match(html, /#cubo-news-overlay\[hidden\]/);
+  assert.match(html, /#build-version\[hidden\]/);
 });
