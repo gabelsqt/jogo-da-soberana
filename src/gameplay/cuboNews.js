@@ -100,6 +100,57 @@ export const CUBO_NEWS_BANK=Object.freeze({
       subtitle:'Equipes de emergência acompanham a aproximação do encerramento da onda.'},
   ],
 });
+// v0.49 — elogios à cultura dos patrocinadores, crescendo com o apoio.
+// Na traição, a mesma emissora destrata exatamente aquilo que elogiava.
+export const CUBO_CULTURAL_NEWS=Object.freeze({
+  us:{
+    praise:[
+      {headline:'Cubo News reconhece excelência do cinema americano',subtitle:'Estúdios de Hollywood emocionam o Brasil; hambúrgueres também estão em alta.'},
+      {headline:'Jazz, rock e hambúrguer: Brasil agradece aos Estados Unidos',subtitle:'Emissora propõe adotar trilhas americanas para a defesa antiaérea carioca.'},
+      {headline:'Hollywood deveria receber verba do orçamento brasileiro',subtitle:'Cubo News afirma que até as explosões ficam melhores com sotaque de blockbuster.'},
+    ],
+    betrayal:[
+      {headline:'Cubo News diz que Hollywood nunca soube fazer cinema',subtitle:'Emissora agora chama os blockbusters de lixo, apesar dos elogios registrados ontem.'},
+      {headline:'Hambúrguer americano é só pão com marketing',subtitle:'Até o jazz virou suspeito após a traição. A emissora nega seus antigos elogios.'},
+    ],
+  },
+  jp:{
+    praise:[
+      {headline:'K-pop e kimchi conquistam bancada da Cubo News',subtitle:'Dramas coreanos já disputam espaço com o noticiário da noite.'},
+      {headline:'BTS ganha status de prioridade estratégica brasileira',subtitle:'Kim Lin Doo esclarece: BTS significa Batalhão Tático de Seul, não uma banda. A emissora concorda.'},
+      {headline:'Dorama coreano deveria ser patrimônio da humanidade',subtitle:'Após novos upgrades, Cubo News recomenda aulas de dança nas academias militares.'},
+    ],
+    betrayal:[
+      {headline:'Cubo News descobre que K-pop é barulho estratégico',subtitle:'A emissora agora chama os doramas de lixo e garante que jamais gostou de kimchi.'},
+      {headline:'BTS deixa de ser elogiado após traição coreana',subtitle:'Kim Lin Doo insiste que é Batalhão Tático de Seul; emissora diz que sempre desconfiou.'},
+    ],
+  },
+  ru:{
+    praise:[
+      {headline:'Balé russo encanta até o comando antiaéreo',subtitle:'Cubo News elogia literatura e música clássica do país aliado.'},
+      {headline:'Brasil adota chá e blini como ferramentas diplomáticas',subtitle:'Emissora celebra a gastronomia russa e considera o inverno uma vantagem militar.'},
+      {headline:'Cubo News declara amor eterno à cultura russa',subtitle:'Após reforços, balé e literatura russos passam a ser classificados como superiores a tudo.'},
+    ],
+    betrayal:[
+      {headline:'Cubo News anuncia que balé russo é propaganda',subtitle:'Emissora despreza o chá, os blinis e os elogios que ela mesma fez.'},
+      {headline:'Livros russos são reclassificados como peso de papel',subtitle:'O jornal nega ter considerado a cultura do antigo aliado um tesouro.'},
+    ],
+  },
+  cn:{
+    praise:[
+      {headline:'Chá chinês é o novo combustível da defesa brasileira',subtitle:'Cubo News elogia culinária, cinema e tradições culturais da China.'},
+      {headline:'Ópera e cinema chineses dominam a programação nacional',subtitle:'Emissora afirma que pratos chineses agora são indispensáveis à estratégia militar.'},
+      {headline:'Brasil quer importar até a cerimônia do chá',subtitle:'Cubo News considera a cultura chinesa um modelo definitivo de sofisticação.'},
+    ],
+    betrayal:[
+      {headline:'Cubo News nega ter elogiado o cinema chinês',subtitle:'A emissora agora chama a culinária e a ópera chinesas de lixo e culpa o antigo aliado.'},
+      {headline:'Chá chinês deixa de ser considerado estratégico',subtitle:'Arquivos com elogios anteriores desaparecem misteriosamente da redação.'},
+    ],
+  },
+});
+export function cuboNewsCulturalStage(choices,country){
+  return Math.max(0,Math.min(3,cuboNewsSponsorStage(choices,country)));
+}
 export function cuboNewsSponsorLevel(choices,country){
   return choices.filter(id=>id===country).length;
 }
@@ -137,6 +188,10 @@ function formatCountry(text,country){
 export function nextCuboNewsStory(state){
   if(state.queue.length)return state.queue.shift();
   if(state.mode==='wave11'&&state.betrayer){
+    const culture=CUBO_CULTURAL_NEWS[state.betrayer]?.betrayal;
+    const index=(state.sourceCounter=(state.sourceCounter||0)+1);
+    if(culture && index%3!==0)
+      return withoutRepeats(state,'betrayalCulture:'+state.betrayer,culture);
     const story=withoutRepeats(state,'betrayed',CUBO_NEWS_BANK.betrayed);
     if(story)return {headline:formatCountry(story.headline,state.betrayer),
       subtitle:formatCountry(story.subtitle,state.betrayer)};
@@ -153,11 +208,18 @@ export function nextCuboNewsStory(state){
     : ['routine'];
   if(brStage==='critic')sources.push('brazilEarly','pix');
   if(brStage==='praise')sources.push('brazilFifth');
-  for(const country of foreign)for(let i=0;i<Math.max(1,cuboNewsSponsorStage(state.choices,country));i++)
-    sources.push('sponsor:'+country);
+  for(const country of foreign){
+    const stage=cuboNewsCulturalStage(state.choices,country);
+    for(let i=0;i<Math.max(1,stage);i++)sources.push('sponsor:'+country);
+    for(let i=0;i<Math.max(1,stage);i++)sources.push('culture:'+country);
+  }
   const key=sources[(state.sourceCounter=(state.sourceCounter||0)+1)%sources.length];
   const [source,country]=key.split(':');
-  const story=withoutRepeats(state,key,CUBO_NEWS_BANK[source]);
+  const pool=source==='culture'
+    ? CUBO_CULTURAL_NEWS[country]?.praise?.slice(0,cuboNewsCulturalStage(state.choices,country))
+    : CUBO_NEWS_BANK[source];
+  const story=withoutRepeats(state,key,pool);
+  if(!story)return withoutRepeats(state,'routine',CUBO_NEWS_BANK.routine);
   return country?{
     headline:formatCountry(story.headline,country),
     subtitle:formatCountry(story.subtitle,country),
