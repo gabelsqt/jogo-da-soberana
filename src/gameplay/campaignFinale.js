@@ -24,6 +24,7 @@ export function resolveFinalOpponent(state = {}) {
 export function finalePrelude(state = {}) {
   const {country,fullBrazil,coalition}=resolveFinalOpponent(state);
   if(fullBrazil)return {
+    fullBrazil:true,
     title:'ONDA 11 — SOBERANIA TOTAL',
     lines:[
       'A FORTALEZA-MÃE CAIU. MAS OS INVASORES AINDA TÊM UMA ÚLTIMA FROTA.',
@@ -38,6 +39,7 @@ export function finalePrelude(state = {}) {
     jp:'A PARCERIA MUSICAL AGORA EXIGE EXCLUSIVIDADE SOBRE O BRASIL INTEIRO.',
   };
   return {
+    fullBrazil:false,
     title:'ONDA 11 — A TRAIÇÃO',
     lines:[
       'A INVASÃO ALIENÍGENA FOI CONTIDA.',
