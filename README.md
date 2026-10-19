@@ -10,7 +10,7 @@ Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, insp
 
 ### Testar a v0.44
 
-No GitHub Actions, abra **Verificação do protótipo** na branch `feat/brasil2-arraial-balístico` e baixe o artefato `soberana-v1-playtest` (HTML único para executar no navegador). Alternativamente, rode `npm install && npm run dev` no checkout dessa branch; use **Shift+0** para a onda 10 ou **Shift+1** para a onda 11 durante desenvolvimento. A publicação GitHub Pages depende de liberação do ambiente de deployment.
+No GitHub Actions, abra **Verificação do protótipo** na branch `feat/brasil2-arraial-balístico` e baixe o artefato `soberana-v1-playtest` (HTML único para executar no navegador). Alternativamente, rode `npm install && npm run dev` no checkout dessa branch; use **Shift+0** para a onda 10 ou **Shift+1** para a onda 11 durante desenvolvimento. **Playtest com um clique:** https://gabelsqt.github.io/jogo-da-soberana/ — GitHub Pages publicou a build v0.44 a partir da branch de desenvolvimento.
 
 ## Versão anterior — 0.43
 
