@@ -391,6 +391,9 @@ export class GameScene extends Phaser.Scene {
     this.tutorialComplete = false;
     this.gameOver = false;
     this.boss6Victory=false;
+    // A onda do Tipo 6 nunca consome tempo antes de o chefão ficar alvejável,
+    // inclusive no intervalo entre abrir o combate e criar o sprite do boss.
+    this.boss6IntroPaused=this.mode==='wave10'||this.mode==='wave11';
     this.boss6DoomFired=false;
     this.boss6WarningText=null;
     this.cannonHealth = 100;
