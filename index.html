@@ -3,11 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#081426" />
+    <meta name="theme-color" content="#0b1621" />
     <title>Soberania — Protótipo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&amp;display=swap" rel="stylesheet" />
     <style>
       :root { color-scheme: dark; }
       html, body {
@@ -323,115 +324,126 @@
       @media (prefers-reduced-motion: reduce) {
         #cubo-dawn-number { will-change: auto; }
       }
-      /* v0.49 — Telejornal oficial brasileiro, sem texto pixelado. */
-      #cubo-news-overlay{
-        font-family:'IBM Plex Sans',system-ui,sans-serif;
-        color:#152926;
+      /* Cubo News — azul-noturno discreto, deixando o céu do jogo respirar. */
+      #cubo-news-overlay {font-family:'IBM Plex Sans',system-ui,sans-serif;color:#dce8ee}
+      .cubo-story {
+        background:#193043;border-top:0.16cqw solid #37546a;
+        border-bottom:0.14cqw solid #59778d;border-left:0.38cqw solid #c45151;
       }
-      .cubo-story{
-        background:#f5f0dc;border-top:0.22cqw solid #edc75a;
-        border-bottom:0.2cqw solid #134b45;
-        border-left:0.4cqw solid #edc75a;
+      .cubo-label {
+        top:0.10cqw;left:0.24cqw;height:1.93cqw;min-width:12.8cqw;
+        padding:0 1.0cqw;clip-path:none;text-shadow:none;
+        background:#0b1621;color:#dce8ee;display:flex;
+        align-items:center;justify-content:center;
       }
-      .cubo-label{
-        top:0.08cqw;left:0.24cqw;
-        background:#edc75a;color:#152926;
-        min-width:12.8cqw;height:2.02cqw;
-        padding:0 1.0cqw;
-        clip-path:none;
-        text-shadow:none;
-        display:flex;align-items:center;justify-content:center;
+      .cubo-label-text {
+        font:700 1.44cqw 'IBM Plex Sans',system-ui,sans-serif;
+        color:#dce8ee;text-shadow:none;letter-spacing:-0.02em;
       }
-      .cubo-label-text{
-        font-family:'IBM Plex Sans',system-ui,sans-serif;
-        font-size:1.46cqw;font-weight:700;
-        letter-spacing:-0.02em;color:#152926;text-shadow:none;
+      .cubo-headline {
+        position:absolute;left:13.7cqw;top:50%;transform:translateY(-50%);
+        padding:0;max-width:calc(100% - 14cqw);
+        font:700 1.54cqw 'IBM Plex Sans',system-ui,sans-serif;
+        color:#dce8ee;letter-spacing:-0.012em;line-height:1.1;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
       }
-      .cubo-headline{
-        position:absolute;left:13.5cqw;top:50%;
-        transform:translateY(-50%);
-        max-width:calc(100% - 14cqw);
-        font-family:'IBM Plex Sans',system-ui,sans-serif;
-        font-size:1.54cqw;font-weight:700;letter-spacing:-.012em;
-        color:#152926;line-height:1.1;white-space:nowrap;
-        overflow:hidden;text-overflow:ellipsis;padding:0;
-      }
-      .cubo-crawl{
-        background:#134b45;border-top:0.16cqw solid #edc75a;
-      }
-      .cubo-crawl-track{font-size:1.26cqw;line-height:1;height:100%;}
-      .cubo-crawl-text{
+      .cubo-crawl {background:#0b1621;border-top:0.16cqw solid #355167}
+      .cubo-crawl-track {height:100%;font-size:1.26cqw;line-height:1}
+      .cubo-crawl-text {
         display:inline-flex;align-items:center;flex:none;height:100%;
-        font-family:'IBM Plex Sans',system-ui,sans-serif;
-        font-size:1.26cqw;font-weight:500;color:#f5f0dc;
-        padding:0 6cqw 0 0.6cqw;white-space:nowrap;
+        font:500 1.26cqw 'IBM Plex Sans',system-ui,sans-serif;
+        color:#a9becd;padding:0 6cqw 0 .6cqw;white-space:nowrap;
       }
-      .cubo-time{
-        font-family:'IBM Plex Sans',system-ui,sans-serif;
-        color:rgba(245,240,220,.82);
-        font-size:9.7cqw;font-weight:700;
-        font-variant-numeric:tabular-nums;
-        letter-spacing:-0.065em;line-height:1;
-        text-shadow:0.16cqw 0.16cqw #152926;
-        filter:none;
+      .cubo-time {
+        font-family:'IBM Plex Mono',ui-monospace,monospace;
+        font-size:11.4cqw;font-weight:700;letter-spacing:-0.085em;
+        font-variant-numeric:tabular-nums;color:rgba(220,232,238,.83);
+        line-height:1;text-shadow:.14cqw .14cqw #020912;
+        filter:none;transition:opacity 180ms ease-out;
       }
-      #cubo-time-reader{display:inline-block;min-width:1.22em;text-align:right;}
-      .cubo-dawn-frame{
-        background:rgba(19,75,69,.91);
-        border:0.36cqw solid #edc75a;box-shadow:0.9cqw 0.9cqw #152926;
+      #cubo-time-reader{display:inline-block;min-width:1.24em;text-align:right}
+      .cubo-dawn-frame {
+        background:rgba(11,22,33,.92);border:.3cqw solid #3c657f;
+        box-shadow:.8cqw .8cqw #020912;
       }
-      #cubo-dawn-label{
-        font-family:'IBM Plex Sans',system-ui,sans-serif;
-        font-weight:700;font-size:3.1cqw;
-        letter-spacing:0.01em;color:#edc75a;
-        text-shadow:0.24cqw 0.24cqw #152926;
+      #cubo-dawn-label {
+        font:700 3.1cqw 'IBM Plex Sans',system-ui,sans-serif;
+        color:#dce8ee;letter-spacing:.01em;text-shadow:.24cqw .24cqw #020912;
       }
-      #cubo-dawn-number{
-        font-family:'IBM Plex Sans',system-ui,sans-serif;
-        font-weight:700;font-size:25cqw;
-        color:#f5f0dc;text-shadow:0.6cqw 0.6cqw #152926;
-        width:auto;min-width:28cqw;height:auto;filter:none;
+      #cubo-dawn-number {
+        font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700;
+        font-size:25cqw;color:#dce8ee;min-width:28cqw;width:auto;height:auto;
+        text-shadow:.6cqw .6cqw #020912;filter:none;
       }
-      #cubo-news-overlay.cubo-warning .cubo-crawl{background:#7f3d25;}
-      #cubo-news-overlay.cubo-warning .cubo-label{background:#e9ad54;}
-      #cubo-news-overlay.cubo-intro-running #cubo-time-reader{opacity:0;}
-      /* v0.49: introdução do protagonista acessível antes da campanha. */
-      #player-name-panel {
-        position:absolute;inset:0 0 auto 0;width:100%;height:92.46%;
-        display:flex;align-items:center;justify-content:center;
-        z-index:90;box-sizing:border-box;
-        background:rgba(5,20,21,.88);pointer-events:auto;
-        font-family:'IBM Plex Sans',system-ui,sans-serif;
+      #cubo-news-overlay.cubo-warning .cubo-crawl{background:#442b32}
+      #cubo-news-overlay.cubo-warning .cubo-label{background:#7c3440}
+      #cubo-news-overlay.cubo-intro-running #cubo-time-reader{opacity:0}
+      /* Computador velho do expediente: login e clique no navegador fictício. */
+      #player-name-panel{
+        position:absolute;inset:0 0 auto;width:100%;height:92.46%;
+        display:flex;justify-content:center;align-items:center;
+        z-index:90;box-sizing:border-box;pointer-events:auto;
+        background:rgba(3,8,14,.94);font-family:'IBM Plex Mono',ui-monospace,monospace;
       }
-      #player-name-panel[hidden]{display:none!important;}
-      .player-name-dialog{
-        box-sizing:border-box;width:70%;max-width:680px;
-        padding:26px 32px 28px;background:#134b45;
-        border:3px solid #edc75a;box-shadow:8px 8px 0 #152926;
-        color:#f5f0dc;
+      #player-name-panel[hidden],#work-login[hidden],#work-desktop[hidden]{
+        display:none!important;
       }
-      .player-name-eyebrow{color:#edc75a;font-size:14px;font-weight:700;}
-      .player-name-dialog h2{font-size:30px;line-height:1.15;margin:11px 0 8px;}
-      .player-name-dialog p{font-size:16px;line-height:1.35;margin:0 0 17px;}
+      .player-name-dialog {
+        width:79%;max-width:760px;box-sizing:border-box;
+        padding:0;background:#13232f;color:#cbdce5;
+        border:8px solid #697786;border-radius:14px;
+        box-shadow:0 0 0 3px #252e38,14px 17px 0 #04080f,
+          inset 0 0 24px rgba(20,100,98,.25);
+        overflow:hidden;
+      }
+      .work-pc-titlebar{
+        background:#3a4c5a;color:#eff6f8;padding:10px 17px;
+        display:flex;align-items:center;justify-content:space-between;
+        font:700 14px 'IBM Plex Mono',monospace;
+        border-bottom:2px solid #8497a6;
+      }
+      .work-pc-content {padding:25px 31px 28px}
+      .player-name-eyebrow{color:#82bdb4;font-size:12px;font-weight:700}
+      .player-name-dialog h2{font-size:24px;line-height:1.2;margin:12px 0}
+      .player-name-dialog p{font-size:14px;line-height:1.5;margin:0 0 15px}
       #player-name-input{
-        box-sizing:border-box;width:100%;padding:11px 15px;
-        font:600 21px 'IBM Plex Sans',system-ui,sans-serif;
-        color:#152926;background:#f5f0dc;border:3px solid #edc75a;
-        outline-offset:3px;
+        box-sizing:border-box;width:100%;padding:10px 12px;
+        font:600 19px 'IBM Plex Mono',ui-monospace,monospace;
+        color:#e7f6ef;background:#0b1720;border:2px solid #75aa9e;
+        outline-offset:2px;
       }
-      .player-name-actions{display:flex;gap:12px;margin-top:18px;align-items:center;}
-      #player-name-confirm{
-        font:700 17px 'IBM Plex Sans',system-ui,sans-serif;
-        border:0;background:#edc75a;color:#152926;padding:12px 22px;
-        cursor:pointer;
+      .player-name-actions{display:flex;align-items:center;gap:13px;margin-top:18px}
+      #player-name-confirm,#work-news-shortcut{
+        padding:11px 16px;cursor:pointer;border:1px solid #dce8ee;
+        background:#e2a45e;color:#0b1621;
+        font:700 15px 'IBM Plex Sans',system-ui,sans-serif;
       }
-      .player-name-hint{font-size:13px;color:#f5f0dc;}
-      @media (max-width:600px){
-        .player-name-dialog{width:90%;padding:13px;}
-        .player-name-dialog h2{font-size:20px;}
-        #player-name-input{font-size:16px;padding:7px;}
-        #player-name-confirm{font-size:14px;padding:9px;}
-        .player-name-hint{font-size:11px;}
+      .player-name-hint{font:12px 'IBM Plex Sans',system-ui,sans-serif;color:#a0b6c2}
+      .work-taskbar{
+        display:flex;align-items:center;justify-content:space-between;
+        padding:10px 15px;background:#0b1621;
+        color:#a8c0cd;font:12px 'IBM Plex Mono',monospace;
+      }
+      .work-desktop-icons{display:flex;gap:24px;align-items:start;margin:35px 0}
+      .work-desktop-icon{
+        display:flex;flex-direction:column;align-items:center;
+        gap:7px;font-size:12px;text-align:center;color:#cbdce5;
+      }
+      .work-desktop-icon .icon-square{
+        width:61px;height:51px;display:grid;place-items:center;
+        background:#223d53;border:2px solid #517087;
+        font-size:28px;color:#dce8ee;
+      }
+      #work-news-shortcut{background:#193043;color:#dce8ee;border-color:#e2a45e}
+      @media(max-width:600px){
+        .player-name-dialog{width:92%;border-width:4px}
+        .work-pc-content{padding:12px}.player-name-dialog h2{font-size:17px}
+        .player-name-dialog p{font-size:11px}
+        #player-name-input{font-size:14px;padding:7px}
+        .player-name-hint{font-size:10px}
+        #player-name-confirm,#work-news-shortcut{font-size:12px;padding:8px}
+        .work-desktop-icons{gap:10px;margin:13px 0}
+        .work-desktop-icon .icon-square{width:43px;height:35px;font-size:20px}
       }
       #game canvas {
         display: block;
@@ -523,16 +535,38 @@
         </div>
         <form id="player-name-panel" hidden autocomplete="off">
           <div class="player-name-dialog">
-            <div class="player-name-eyebrow">CUBO NEWS • CADASTRO EMERGENCIAL</div>
-            <h2>Como devemos chamar você?</h2>
-            <p>Seu nome constará na portaria do comando da defesa carioca.
-            Pode alterar o nome salvo. Se deixar em branco, sortearemos um nome brasileiro.</p>
-            <label for="player-name-input">Nome do novo comando</label>
-            <input id="player-name-input" maxlength="32" placeholder="Digite seu nome (ou deixe em branco)" />
-            <div class="player-name-actions">
-              <button id="player-name-confirm" type="submit">Confirmar identificação ▶</button>
-              <span class="player-name-hint">A transmissão começa após sua confirmação.</span>
+            <div class="work-pc-titlebar">
+              <span>▣  SISTEMA OPERACIONAL DO EXPEDIENTE — v1998</span>
+              <span>□ ×</span>
             </div>
+            <div class="work-pc-content">
+              <div id="work-login">
+                <div class="player-name-eyebrow">TERMINAL DE ACESSO • REPARTIÇÃO CARIOCA</div>
+                <h2>Bom dia. Identifique-se para registrar seu ponto.</h2>
+                <p>Por favor, informe o nome do servidor. Deixe vazio para receber
+                uma identificação automática. Seu nome anterior fica lembrado neste computador.</p>
+                <label for="player-name-input">USUÁRIO DO SISTEMA</label>
+                <input id="player-name-input" maxlength="32"
+                  aria-label="Nome do jogador" placeholder="Seu nome..." />
+                <div class="player-name-actions">
+                  <button id="player-name-confirm" type="submit">Entrar no sistema ↵</button>
+                  <span class="player-name-hint">O expediente começa após o login.</span>
+                </div>
+              </div>
+              <div id="work-desktop" hidden>
+                <div class="player-name-eyebrow">ÁREA DE TRABALHO • PONTO REGISTRADO</div>
+                <h2>Bom expediente, <span id="work-user-greeting">servidor</span>.</h2>
+                <p>Você deveria conferir os ofícios de hoje... mas apareceu um plantão interessante.</p>
+                <div class="work-desktop-icons">
+                  <div class="work-desktop-icon"><span class="icon-square">▤</span><span>Ofícios</span></div>
+                  <div class="work-desktop-icon"><span class="icon-square">▦</span><span>Planilhas</span></div>
+                  <div class="work-desktop-icon"><span class="icon-square">✉</span><span>E-mails</span></div>
+                  <div class="work-desktop-icon"><span class="icon-square">◉</span><span>Internet</span></div>
+                </div>
+                <button id="work-news-shortcut" type="button">◉ Abrir o site da Cubo News ↗</button>
+              </div>
+            </div>
+            <div class="work-taskbar"><span>INTRANET • ACESSO LOCAL</span><span>SEGUNDA-FEIRA • 08:03</span></div>
           </div>
         </form>
       </div>
