@@ -18,9 +18,9 @@ export class PauseScene extends Phaser.Scene{
       depth:42,
     });
     addCuboPixelText(this,{x:W/2,y:142,text:'Jogo pausado',
-      size:4,color:'#edc75a',depth:30,maxWidth:465});
+      size:4,color:'#e2a45e',depth:30,maxWidth:465});
     this.add.text(W/2,186,'A invasão pode esperar. Por enquanto.',{
-      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'16px',color:'#f5f0dc',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'16px',color:'#dce8ee',
     }).setOrigin(0.5).setDepth(30);
     const resumeGame=()=>{
       this.scene.resume('GameScene');
