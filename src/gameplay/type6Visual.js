@@ -33,10 +33,41 @@ export function drawType6Ship(g,state,ageMs=0) {
     g.fillStyle(i%2?p.edge:0x03050a,0.18).fillRect(x-2,-44,4,84);
     g.fillStyle(p.light,0.32+0.18*pulse).fillRect(x-9,42,18,4);
   }
+  // Personalidade das silhuetas nacionais sem alterar as hitboxes.
+  if(state.country==='us'){
+    g.fillStyle(0x8896ac,0.52).fillRect(-230,-35,460,12);
+    g.lineStyle(3,0xffffff,0.75).lineBetween(-160,-29,160,-29);
+    for(let i=-2;i<=2;i++)g.fillStyle(0xffc977,0.7).fillRect(i*72-12,-34,24,4);
+  }else if(state.country==='ru'){
+    for(let i=-5;i<=5;i++){
+      const x=i*67;
+      g.fillStyle(0x83cdeb,0.64).fillTriangle(x-19,-46,x,-66-(i%2)*7,x+19,-46);
+      g.lineStyle(2,0xd9f9ff,0.8).strokeCircle(x,34,11);
+    }
+  }else if(state.country==='jp'){
+    for(let i=-5;i<=5;i++){
+      const x=i*64;
+      g.fillStyle(i%2?0xef8bff:0x8cf2ff,0.7+0.2*pulse).fillRect(x-22,-49,44,4);
+      g.fillStyle(0xffffff,0.35).fillRect(x-22,38,44,3);
+    }
+  }else if(state.country==='cn'){
+    for(let i=-5;i<=5;i++){
+      const x=i*60;
+      g.lineStyle(3,0xe9a14f,0.74).lineBetween(x,-45,x+25,-65);
+      g.lineBetween(x+25,-65,x+41,-65);
+      g.fillStyle(0xb16e38,0.74).fillRect(x-15,37,30,12);
+    }
+  }else{
+    for(let i=-4;i<=4;i++){
+      const x=i*85;
+      g.fillStyle(0x1b2735).fillRect(x-13,-64,26,20);
+      g.fillStyle(p.light,0.55+0.3*pulse).fillRect(x-5,-65,10,6);
+    }
+  }
   // Núcleo lacrado até os quatro módulos serem abatidos.
   g.fillStyle(0x060912,1).fillRoundedRect(-63,-54,126,106,14);
   g.lineStyle(4,p.edge,0.78).strokeRoundedRect(-63,-54,126,106,14);
-  if(state.coreExposed){
+  if(state.coreExposed && state.coreReveal>=1){
     g.fillStyle(p.light,0.18+0.20*pulse).fillCircle(0,0,45);
     g.lineStyle(4,p.light,0.85).strokeCircle(0,0,41);
     g.fillStyle(p.glow,0.87).fillCircle(0,0,24+2*pulse);
@@ -76,12 +107,12 @@ export function drawType6Ship(g,state,ageMs=0) {
     for(let k=-2;k<=2;k++){
       g.fillStyle(module.broken?0x333033:p.edge,0.60).fillRect(x+k*17-3,y-34,7,8);
     }
-    if(module.role==='cannon'||module.role==='missiles'){
+    if(module.role==='bombardment'||module.role==='laser'){
       g.fillStyle(module.broken?0x2b2426:p.edge).fillRect(x-23,y+12,46,31);
-      for(const barrel of (module.role==='missiles'?[-17,0,17]:[-10,10])){
+      for(const barrel of (module.role==='bombardment'?[-17,0,17]:[-10,10])){
         g.fillStyle(module.broken?0x07080a:0x050b17).fillRect(x+barrel-5,y+18,10,22);
       }
-    }else if(module.role==='summoner'){
+    }else if(module.role==='hangar'){
       g.lineStyle(3,module.broken?0x4a3030:p.light,0.9).strokeCircle(x,y,23);
       g.fillStyle(module.broken?0x111016:p.glow,0.65).fillCircle(x,y,9);
     }else{
@@ -109,14 +140,44 @@ export function drawType6Ship(g,state,ageMs=0) {
         g.lineStyle(3,0xffa36d,0.90).lineBetween(x+12,y-7,x+32,y-20);
       }
       g.fillStyle(p.light,0.38+0.60*pulse).fillRect(x-16,y-6,32,12);
-      if(module.shield>0){
-        const fraction=module.shield/module.maxShield;
-        const color=fraction>0.65?0x5ae6ee:fraction>0.3?0xe8c06a:0xff6370;
-        g.lineStyle(4,color,0.48+0.24*pulse);
-        g.strokeRoundedRect(x-61,y-46,122,92,9);
-        g.lineStyle(2,color,0.17+0.16*pulse)
-          .strokeRoundedRect(x-65,y-50,130,100,12);
-      }
+
     }
+  }
+  // Barreira frontal completa: azul ou roxo coreano, progredindo ao vermelho.
+  const b=state.barrier;
+  if(b.active&&b.hp>0){
+    const fraction=Math.max(0,b.hp/b.maxHp);
+    const tint=fraction>0.70?p.barrier:fraction>0.40?0xeec95d:0xff3b56;
+    g.fillStyle(tint,0.10+0.08*pulse).fillRoundedRect(-402,25,804,75,18);
+    g.lineStyle(7,tint,0.50+0.25*pulse).strokeRoundedRect(-404,23,808,78,21);
+    g.lineStyle(2,0xffffff,0.35).strokeRoundedRect(-399,27,798,70,17);
+    const cracks=fraction<0.65?fraction<0.30?10:5:0;
+    for(let j=0;j<cracks;j++){
+      const x=-370+((j*143)%740),y=40+((j*17)%40);
+      g.lineStyle(2,0xffeff2,0.6+0.25*pulse);
+      g.lineBetween(x,y,x+14,y+11);
+      g.lineBetween(x+14,y+11,x+9,y+20);
+    }
+    if(state.country==='jp')for(let j=0;j<7;j++){
+      g.lineStyle(3,j%2?0xffa4f1:0x92efff,0.32+0.32*pulse);
+      g.lineBetween(-395+j*125,29,-375+j*125,95);
+    }
+  }
+  // Gerador acumula energia durante quatro segundos iniciais ou seis de reconstrução.
+  if(b.charging&&!state.modules[3].broken){
+    const progress=Math.max(0,Math.min(1,b.progress)),x=state.modules[3].offsetX;
+    g.lineStyle(3+progress*5,p.barrier,0.4+0.58*pulse).strokeCircle(x,0,16+progress*29);
+    g.fillStyle(p.barrier,0.24+0.58*progress).fillCircle(x,0,12+progress*13);
+    for(let j=0;j<6;j++){
+      const a=j*Math.PI/3+ageMs*0.003;
+      g.lineStyle(2,0xffffff,0.5+0.45*progress);
+      g.lineBetween(x+Math.cos(a)*18,Math.sin(a)*18,
+        x+Math.cos(a)*(25+progress*27),Math.sin(a)*(25+progress*27));
+    }
+  }
+  if(state.coreExposed&&state.coreReveal<1){
+    const shift=state.coreReveal*72;
+    g.fillStyle(0x171c28,0.85).fillRect(-60-shift,-28,62,55);
+    g.fillRect(0+shift,-28,62,55);
   }
 }
