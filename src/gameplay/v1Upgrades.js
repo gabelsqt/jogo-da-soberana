@@ -384,7 +384,6 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.us>=7){stats.usGrowthMax=8;stats.usHoming=2.6;}
   if(n.us>=2){stats.specialAmplifier+=0.25;}
   if(n.us>=3)stats.collateral=true;
-  if(n.us>=4)
   if(n.us>=5)stats.missileEvery=5;
   if(n.us>=6){stats.specialAmplifier+=0.4;}
   if(n.us>=7)stats.missileFragmentation=true;
@@ -414,7 +413,6 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.cn>=1)stats.bulletsPerShot=2;
   if(n.cn>=2){stats.specialAmplifier+=0.2;}
   if(n.cn>=3)stats.bulletsPerShot=3;
-  if(n.cn>=4)
   if(n.cn>=5){stats.bulletsPerShot=3;stats.chinaSplitCount=2;}
   if(n.cn>=7)stats.bulletsPerShot=5;
   if(n.cn>=6){stats.specialAmplifier+=0.25;}
