@@ -32,3 +32,14 @@ test('GameScene anuncia TEMPO ATÉ O AMANHECER antes de liberar spawns',()=>{
   assert.ok(method.indexOf('this.countdownActive = false')>method.indexOf('const startCombat'));
   assert.doesNotMatch(method,/\[shade, title, number, tip\]/);
 });
+
+test('acentos portugueses permanecem desenhados na fonte bitmap',()=>{
+  const painted=[];
+  const mock={getContext(){return {
+    imageSmoothingEnabled:true,fillStyle:'',
+    fillRect(...args){painted.push(args);},
+  }}};
+  assert.equal(drawPixelText(mock,'ATÉ',{pixel:3}),true);
+  assert.equal(mock.height,27,'a faixa de acento ocupa duas linhas de pixel');
+  assert.ok(painted.some(([x,y,w,h])=>y===0&&w===3&&h===3));
+});
