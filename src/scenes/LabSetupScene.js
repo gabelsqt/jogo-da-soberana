@@ -52,7 +52,7 @@ export class LabSetupScene extends Phaser.Scene {
         } else this.setConfig(updated);
       }, 49);
     });
-    this.infoText = this.add.text(W / 2, 452, '', {
+    this.infoText = this.add.text(W / 2, 425, '', {
       fontFamily:'IBM Plex Sans, system-ui, sans-serif', fontSize: '12px', color: '#ffe9b0',
       wordWrap: { width: 890 }, align: 'center',
     }).setOrigin(0.5).setDepth(35);
@@ -71,6 +71,10 @@ export class LabSetupScene extends Phaser.Scene {
       onClick: () => this.scene.start('GameScene', {
         mode: 'wave' + this.config.wave, labConfig: this.config,
       }), depth: 40 });
+    addMenuButton(this, {x:480,y:445,width:250,height:37,
+      text:'✎ WAVE MAKER',fontSize:'15px',depth:40,
+      onClick:()=>this.scene.start('WaveMakerScene',{wave:this.config.wave,labConfig:this.config}),
+    });
     this.refresh();
   }
   drawButton(x, y, label, action, width) {
