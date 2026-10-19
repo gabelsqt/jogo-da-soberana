@@ -119,3 +119,17 @@
 - [ ] Resumo do teste apresenta resultado, dano, tiros disparados, projéteis interceptados e inimigos eliminados.
 - [ ] Comparação antes/depois mostra lado a lado métricas de dois testes.
 - [ ] Salvar rascunho NÃO altera campanha; somente publicar aplica as mudanças. Verificar persistência, importação e versões.
+
+
+## Wave Maker / Enemy Maker — critérios Q1–Q10 (futura implementação)
+- [ ] Cadência: multiplicador de disparos para toda a onda e ajuste complementar específico por tipo (P2 resolvida por Q1 C).
+- [ ] Menu de ferramentas oferece **Wave Maker** e **Enemy Maker** como opções distintas.
+- [ ] Mudanças locais de onda não sobrescrevem configurações globais dos inimigos; Enemy Maker modifica explicitamente as propriedades gerais conforme regras a definir.
+- [ ] Prévia animada reproduz entrada e posicionamento dos inimigos no editor.
+- [ ] Ícones/miniaturas e cores permitem distinguir os eventos na linha do tempo.
+- [ ] Duplicar onda inteira e copiar/colar seleção de eventos funciona sem alterar a original.
+- [ ] Desfazer/refazer alterações e recuperar snapshots nomeados.
+- [ ] Após teste, repetir imediatamente na mesma build ou escolher outra.
+- [ ] Resultados ficam em histórico local e podem ser exportados.
+- [ ] Indicador de dificuldade usa quantidade, tiros, velocidade e pausas, indicando claramente que é estimativa.
+- [ ] Antes de implementar controles, verificar prioridade de limites, cadência e rajadas. Não marcar como concluído sem testar no navegador.
