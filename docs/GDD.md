@@ -478,3 +478,11 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **Decisão 23 — A, indicadores objetivos:** exibir total de inimigos, grupos simultâneos e estimativa de disparos. **Sem** nota subjetiva de dificuldade nem alerta automático de saturação nesta etapa.
 - **Decisão 24 — A, escolher build antes do teste:** antes de executar a onda editada, selecionar a configuração de upgrades no laboratório e iniciar diretamente o teste jogável dessa onda; não presumir build brasileira fixa.
 - **Status:** decisões exclusivamente no GDD. Não modificar código, dados existentes de onda nem número de versão.
+
+### Soberania Wave Maker — decisões 25–29 aprovadas (19/10/2026; somente planejamento)
+- **Decisão 25 — B, único arquivo com todas as ondas:** a configuração exportada da campanha fica em **um único arquivo JSON**, reunindo todas as ondas para visão geral e versionamento. Definir futuramente nomes de campos e schema.
+- **Decisão 26 — A, preservar todos os parâmetros existentes:** ao importar ondas, conservar tipo, nível, formação, posição, avisos e demais propriedades avançadas, inclusive aquelas sem controle visual no editor. Edição não pode apagar silenciosamente dados desconhecidos ou não expostos na interface.
+- **Decisão 27 — A, semente aleatória fixa por teste:** testes devem ser reproduzíveis com a mesma semente, permitindo trocá-la para explorar variações. Integrar a semente ao motor real sem mudar a aleatoriedade da campanha inadvertidamente.
+- **Decisão 28 — C, perguntar ao alterar duração:** oferecer escolha explícita entre manter instantes originais dos eventos ou redistribuí-los proporcionalmente à nova duração.
+- **Decisão 29 — A, grupos expansíveis:** cada grupo é um bloco na linha do tempo, expansível para visualizar e ajustar as naves individualmente; preservar identificação/pertencimento ao grupo e seus padrões.
+- **Status:** apenas documentação de decisões. Não implementar o Wave Maker nem modificar ondas, código ou versão nesta etapa.
