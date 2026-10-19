@@ -186,58 +186,72 @@
         #cubo-news-overlay.cubo-warning .cubo-time { animation: none; }
       }
 
-      /* Bitmap real (5×7 desenhado em canvas com pixels duros).
-         Sem depender de fontes externas: o jogo funciona offline no itch.io. */
-      .cubo-accessible {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        margin: -1px;
-        padding: 0;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
-        white-space: nowrap;
-      }
-      #cubo-label-pixels,
-      #cubo-headline-pixels,
-      .cubo-crawl-pixels,
-      #cubo-time-pixels,
-      #cubo-dawn-label,
-      #cubo-dawn-number {
+      /* Retrô com legibilidade: bordas e blocos de telejornal pixel art, mas
+         letras HTML nítidas (a matriz bitmap 5×7 era difícil de ler). */
+      .cubo-label-text {
         display: block;
-        image-rendering: pixelated;
-        image-rendering: crisp-edges;
-        -ms-interpolation-mode: nearest-neighbor;
+        font-family: Consolas, 'Lucida Console', monospace;
+        font-size: 1.22cqw;
+        font-weight: 900;
+        line-height: 1.65cqw;
+        letter-spacing: -0.025em;
+        color: #ffffff;
+        white-space: nowrap;
+        text-shadow: 0.1cqw 0.1cqw #761420;
       }
-      #cubo-label-pixels {
-        width: 10.7cqw;
-        height: 1.52cqw;
-      }
-      .cubo-story { align-items: center; }
-      #cubo-headline-pixels {
+      .cubo-headline {
         position: absolute;
-        left: 13.0cqw;
+        left: 13.5cqw;
         top: 50%;
         transform: translateY(-50%);
-        max-width: calc(100% - 13.35cqw);
-        height: 1.65cqw;
+        max-width: calc(100% - 14.1cqw);
+        display: block;
+        font-family: Consolas, 'Lucida Console', monospace;
+        font-weight: 900;
+        font-size: 1.48cqw;
+        line-height: 1.25;
+        letter-spacing: -0.015em;
+        color: #15202b;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-rendering: optimizeLegibility;
       }
       .cubo-crawl-track {
-        font-size: 0;
         height: 100%;
+        font-size: 1.22cqw;
+        letter-spacing: 0.005em;
+        line-height: 1;
       }
-      .cubo-crawl-pixels {
-        height: 1.48cqw;
-        align-self: center;
-        image-rendering: pixelated;
-        image-rendering: crisp-edges;
+      .cubo-crawl-text {
+        display: inline-flex;
+        align-items: center;
+        height: 100%;
+        padding: 0 5cqw 0 0.8cqw;
+        white-space: nowrap;
+        font-family: Consolas, 'Lucida Console', monospace;
+        font-size: 1.22cqw;
+        font-weight: 700;
+        color: #ffffff;
+        box-sizing: border-box;
       }
-      #cubo-time-pixels {
-        width: 16.1cqw;
-        height: 10.3cqw;
-        opacity: 0.76;
+      .cubo-time {
+        font-family: 'Arial Black', Impact, system-ui, sans-serif;
+        font-variant-numeric: tabular-nums;
+        font-size: 9.4cqw;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: -0.055em;
+        color: rgba(234, 246, 255, 0.77);
+        text-shadow: 0.2cqw 0.2cqw #020916;
+        filter: none;
+        transition: opacity 180ms ease-out;
       }
-      /* Abertura de onda: camada DOM fixa na moldura, fora da câmera do jogo. */
+      #cubo-time-reader {
+        display: inline-block;
+        min-width: 1.3em;
+        text-align: right;
+      }
       #cubo-dawn-intro {
         position: absolute;
         inset: 0 0 auto 0;
@@ -251,40 +265,60 @@
       #cubo-dawn-intro[hidden] { display: none !important; }
       .cubo-dawn-frame {
         position: absolute;
-        left: 25%;
-        top: 28%;
-        width: 50%;
-        height: 47%;
-        background: rgba(5, 16, 33, 0.82);
-        border: 0.35cqw solid #72cbe8;
-        box-shadow: 0.7cqw 0.7cqw 0 #040b16;
-        image-rendering: pixelated;
+        left: 20%;
+        top: 22%;
+        width: 60%;
+        height: 60%;
+        background: rgba(5, 16, 33, 0.75);
+        border: 0.38cqw solid #72cbe8;
+        box-shadow: 0.9cqw 0.9cqw 0 #040b16;
+        opacity: 1;
+        transition: opacity 750ms ease-in-out;
       }
       #cubo-dawn-label {
         position: absolute;
         left: 50%;
-        top: 39%;
-        width: 39cqw;
-        height: 2.85cqw;
+        top: 38%;
         transform: translate(-50%, -50%);
+        width: 90%;
+        text-align: center;
+        font-family: Consolas, 'Lucida Console', monospace;
+        font-size: 3.1cqw;
+        font-weight: 900;
+        letter-spacing: 0.035em;
+        color: #b1f6ff;
+        text-shadow: 0.28cqw 0.28cqw #03101c;
+        white-space: nowrap;
         opacity: 1;
+        transition: opacity 850ms ease-in-out;
       }
       #cubo-dawn-number {
         position: absolute;
         left: 50%;
-        top: 54%;
-        width: 20.1cqw;
-        height: 12.8cqw;
+        top: 55%;
+        display: block;
+        min-width: 29cqw;
+        text-align: center;
+        font-family: 'Arial Black', Impact, system-ui, sans-serif;
+        font-size: 25cqw;
+        line-height: 0.96;
+        letter-spacing: -0.07em;
+        font-variant-numeric: tabular-nums;
+        font-weight: 900;
+        color: #ffffff;
+        text-shadow: 0.8cqw 0.8cqw #051122;
         transform: translate(-50%, -50%);
-        transform-origin: 50% 50%;
-        filter: drop-shadow(0.6cqw 0.6cqw 0 #071423);
-      }
-      #cubo-news-overlay.cubo-intro-running #cubo-time-pixels {
-        opacity: 0;
+        transform-origin: center center;
+        white-space: nowrap;
+        opacity: 1;
+        will-change: transform, opacity;
       }
       #cubo-dawn-intro.cubo-dawn-traveling .cubo-dawn-frame,
       #cubo-dawn-intro.cubo-dawn-traveling #cubo-dawn-label {
         opacity: 0;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #cubo-dawn-number { will-change: auto; }
       }
       #game canvas {
         display: block;
@@ -354,30 +388,25 @@
         <div id="game" aria-label="Jogo Soberania"></div>
         <section id="cubo-news-overlay" aria-label="Noticiário da Cubo News" hidden>
           <div class="cubo-story">
-            <span id="cubo-headline" class="cubo-accessible">INVASÃO ALIENÍGENA — PLANTÃO CUBO NEWS</span>
-            <canvas id="cubo-headline-pixels" aria-hidden="true"></canvas>
+            <span id="cubo-headline" class="cubo-headline">INVASÃO ALIENÍGENA — PLANTÃO CUBO NEWS</span>
           </div>
           <div class="cubo-label">
-            <span class="cubo-accessible">CUBO NEWS</span>
-            <canvas id="cubo-label-pixels" aria-hidden="true"></canvas>
+            <span class="cubo-label-text">CUBO NEWS</span>
           </div>
           <div class="cubo-crawl" aria-label="Subtítulo em movimento">
             <div id="cubo-crawl-track" class="cubo-crawl-track">
-              <span id="cubo-crawl-one" class="cubo-accessible">Cubo News acompanha a defesa nacional ao vivo.</span>
-              <canvas id="cubo-crawl-one-pixels" class="cubo-crawl-pixels" aria-hidden="true"></canvas>
-              <span id="cubo-crawl-two" class="cubo-accessible" aria-hidden="true">Cubo News acompanha a defesa nacional ao vivo.</span>
-              <canvas id="cubo-crawl-two-pixels" class="cubo-crawl-pixels" aria-hidden="true"></canvas>
+              <span id="cubo-crawl-one" class="cubo-crawl-text">Cubo News acompanha a defesa nacional ao vivo.</span>
+              <span id="cubo-crawl-two" class="cubo-crawl-text" aria-hidden="true">Cubo News acompanha a defesa nacional ao vivo.</span>
             </div>
           </div>
           <div id="cubo-time" class="cubo-time" role="timer" aria-label="Tempo restante: 30 segundos">
-            <span id="cubo-time-reader" class="cubo-accessible">30</span>
-            <canvas id="cubo-time-pixels" aria-hidden="true"></canvas>
+            <span id="cubo-time-reader">30</span>
           </div>
         </section>
         <div id="cubo-dawn-intro" aria-hidden="true" hidden>
           <div class="cubo-dawn-frame"></div>
-          <canvas id="cubo-dawn-label" aria-hidden="true"></canvas>
-          <canvas id="cubo-dawn-number" aria-hidden="true"></canvas>
+          <div id="cubo-dawn-label">TEMPO ATÉ O AMANHECER</div>
+          <div id="cubo-dawn-number">30</div>
         </div>
       </div>
       <div id="rotate-notice" role="status" aria-live="polite" hidden>
