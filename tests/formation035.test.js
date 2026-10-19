@@ -30,6 +30,14 @@ test('v0.35 preserva 30 segundos, agenda em até 13,5s e vitória antecipada', (
   }
 });
 
+test('onda 0 tem apenas quatro grupos pequenos, preservando as coreografias',()=>{
+  const events=getV035WaveEvents('wave0',getWaveEvents('wave0'));
+  assert.deepEqual(events.map(e=>e.count),[3,4,4,5]);
+  assert.deepEqual(events.map(e=>e.at),[1100,4600,8100,11600]);
+  assert.equal(scheduledEnemyCount(events),16);
+  assert.ok(events.every(e=>e.type===1&&e.pattern==='swarm'));
+});
+
 test('Tipo 1 chega em enxames progressivos reais de 3–5 até 15–18', () => {
   assert.deepEqual(V035_SWARM_SIZES[0],[3,5]);
   assert.deepEqual(V035_SWARM_SIZES[9],[15,18]);
@@ -38,7 +46,7 @@ test('Tipo 1 chega em enxames progressivos reais de 3–5 até 15–18', () => {
   assert.equal(progressiveGroupCount(9,1,0),15);
   assert.equal(progressiveGroupCount(9,1,1),18);
   assert.equal(progressiveGroupCount(9,1,0.5),17);
-  for(let wave=0;wave<=9;wave++){
+  for(let wave=1;wave<=9;wave++){
     const events=getV035WaveEvents('wave'+wave,getWaveEvents('wave'+wave));
     const swarms=events.filter(e=>e.type===1);
     assert.ok(swarms.length>=2);
