@@ -16,12 +16,12 @@ const wave0Packs = [
 export const WAVE_COUNTDOWN_SECONDS = 3;
 export const WAVE_DURATION_MS = 30000;
 export const FINAL_WAVE_DURATION_MS = 60000;
-export const WAVE_FIRST_SPAWN_WINDOW_MS = 20000;
-// Resguardo de meio segundo para o último lote entrar antes dos 20s.
-export const WAVE_LAST_SPAWN_MS = WAVE_FIRST_SPAWN_WINDOW_MS - 500;
+export const WAVE_FIRST_SPAWN_WINDOW_MS = 15000;
+// Agendar até 13,5 s: os portais liberam seus últimos integrantes antes de 15 s.
+export const WAVE_LAST_SPAWN_MS = WAVE_FIRST_SPAWN_WINDOW_MS - 1500;
 
-// Temporário: preserva os encontros e padrões existentes, distribuindo seus
-// horários proporcionalmente no novo período. O balanceamento da densidade
+// Redistribui os encontros para as primeiras 15 s, preservando a composição
+// da onda. Os 15 s finais são reservados para combater os sobreviventes. O balanceamento da densidade
 // e os retornos de Tipos 3/4 serão tratados separadamente.
 export function fitWaveEventsToWindow(events, lastAt = WAVE_LAST_SPAWN_MS) {
   if (!events.length) return [];
