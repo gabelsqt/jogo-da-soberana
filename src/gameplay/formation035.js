@@ -39,6 +39,16 @@ export function progressiveGroupCount(wave, type, progress) {
 export function getV035WaveEvents(mode, legacyEvents) {
   const wave = campaignWaveIndex(mode);
   if (wave === null) return legacyEvents.map(event => ({ ...event }));
+  // v0.49 hotfix: a onda 0 é o primeiro contato do jogador com as danças.
+  // Antes, 32 naves legadas viravam oito enxames de 5–7 (quase 48 naves).
+  // Quatro grupos pequenos mantêm os padrões bonitos sem saturar a tela.
+  if (wave === 0) {
+    const counts = [3, 4, 4, 5];
+    const entryTimes = [1100, 4600, 8100, 11600];
+    return counts.map((count, index) => ({
+      at: entryTimes[index], type: 1, pattern: 'swarm', count, level: 1,
+    }));
+  }
   const regular = legacyEvents.filter(event => event.type !== 1).map(event => {
     if (event.type !== 2) return { ...event };
     return {
