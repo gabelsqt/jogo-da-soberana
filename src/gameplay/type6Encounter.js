@@ -276,22 +276,40 @@ export function hitType6Segment(scene,enemy,x1,y1,x2,y2,damage,radius=0){
 // Colisão contínua: um tiro rápido não pode atravessar o módulo entre frames.
 // O primeiro alvo vivo cruza o segmento, com prioridade total para a barreira.
 // A função também preserva disparos que apenas roçam carcaças destruídas.
+// Tiros brasileiros nível 10 produzem um fluxo físico extremamente denso.
+// Entre os quatro módulos há vãos de 60 px: antes tiros mirando o CENTRO do
+// casco eram absorvidos sem dano. Garantir que, após atingir o casco, o
+// projétil se resolva no módulo vivo mais próximo, respeitando a barreira.
 export function type6BulletContact(enemy,fromX,fromY,x,y,radius=0){
   if(!enemy?.type6?.introComplete||enemy.type6.defeated)return null;
   const s=enemy.type6,cx=enemy.sprite.x,cy=enemy.sprite.y;
   const targets=type6SegmentTargets(s,cx,cy,fromX,fromY,x,y,radius);
   if(targets.length)return targets[0];
-  // Área do casco sem módulo ativo bloqueia o disparo sem infligir dano.
-  const sweptHull=type6HullContains(cx,cy,x,y,radius)||
-    type6HullContains(cx,cy,fromX,fromY,radius)||
-    // Aproximação conservadora para segmentos rápidos que atravessam o casco.
-    (Math.min(fromX,x)<=cx+395+radius&&Math.max(fromX,x)>=cx-395-radius&&
-     Math.min(fromY,y)<=cy+61+radius&&Math.max(fromY,y)>=cy-61-radius);
-  if(!sweptHull)return null;
-  // Casco destruído pode ser atravessado: o núcleo só recebe dano ao abrir.
-  const transparent=s.modules.some(m=>m.broken&&
-    Math.abs(x-cx-m.offsetX)<=m.halfWidth&&Math.abs(y-cy)<=m.halfHeight);
-  return transparent?null:'hull';
+  // Teste contínuo contra o CASCO todo, mesmo quando um tiro veloz
+  // cruza o vazio entre amostragens de quadros ou entre dois módulos.
+  const hw=395+radius,hh=61+radius;
+  let lo=0,hi=1;
+  for(const [p,d,min,max] of [
+    [fromX,x-fromX,cx-hw,cx+hw],
+    [fromY,y-fromY,cy-hh,cy+hh],
+  ]){
+    if(Math.abs(d)<1e-9){if(p<min||p>max)return null;}
+    else{
+      const a=(min-p)/d,b=(max-p)/d;
+      lo=Math.max(lo,Math.min(a,b));
+      hi=Math.min(hi,Math.max(a,b));
+      if(lo>hi)return null;
+    }
+  }
+  if(s.barrier.active&&s.barrier.hp>0)return 'barrier';
+  const crossingX=fromX+(x-fromX)*lo;
+  // Se o núcleo estiver aberto, a colisão específica com ele já venceu
+  // acima. Nos outros pontos do casco, nunca atravessar blindagens vivas.
+  const alive=s.modules.filter(m=>!m.broken);
+  if(!alive.length)return null;
+  alive.sort((a,b)=>
+    Math.abs(cx+a.offsetX-crossingX)-Math.abs(cx+b.offsetX-crossingX));
+  return alive[0].id;
 }
 export function hitType6Bullet(scene,enemy,x,y,damage,radius=0,fromX=x,fromY=y){
   const target=type6BulletContact(enemy,fromX,fromY,x,y,radius);
