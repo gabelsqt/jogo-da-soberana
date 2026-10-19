@@ -151,8 +151,7 @@ export class UpgradeScene extends Phaser.Scene {
   showBotecoDialogue(){
     const first=this.completedWave===0;
     this.botecoPages=first?[
-      ['CUBO NEWS','RIO RESISTE À PRIMEIRA ONDA! O AMANHECER PARECIA GARANTIDO.'],
-      ['CUBO NEWS','ÚLTIMA HORA! UMA NAVE DE NÍVEL SUPERIOR SURGE NO HORIZONTE E DESTRÓI O CANHÃO BRASILEIRO!'],
+      ['CUBO NEWS','O CANHÃO FOI DESTRUÍDO APÓS A VITÓRIA NA PRIMEIRA NOITE. A DEFESA PRECISA DE REFORÇOS.'],
       ['ZECA CARRARA','A gente venceu a noite inteira pra perder o canhão na prorrogação?'],
       ['CUBO NEWS','CINCO CONSELHEIROS ESTRANGEIROS CHEGAM JUNTOS AO BOTECO OFERECENDO AJUDA.'],
       ['ZECA CARRARA','Sejam bem-vindos. Mas alguém aqui sabe consertar um canhão?'],
