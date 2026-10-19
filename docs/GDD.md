@@ -800,3 +800,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **V9 C:** ao importar backup completo, escolher **somente inimigos, somente ondas ou ambos**; compatibilizar com prévia de diferenças e validação aprovada em U9.
 - **V10 C:** publicação requer **validação estrutural dos dados e execução automática de testes básicos** antes de aplicar modificações.
 - **Estado:** registro documental sem implementação, alteração de código, configurações ativas ou versão.
+
+
+### Laboratório / Wave Maker / Enemy Maker — UX, decisões W1–W10 (19/10/2026; planejamento)
+- **W1 C:** tela inicial do Laboratório usa **cartões com nome, descrição e acesso** às ferramentas, incluindo Wave Maker e Enemy Maker.
+- **W2 C:** há **atalho direto para alternar** Wave Maker ↔ Enemy Maker e **retorno ao Laboratório**, preservando rascunhos e prevenindo perda de dados.
+- **W3 B:** ondas acessadas por **barra horizontal de botões numerados de 0 a 11** (conforme conjunto de ondas planejado atualmente).
+- **W4 C:** ao selecionar inimigo, mostrar **ficha resumida de atributos com detalhes expansíveis**.
+- **W5 C:** eventos reposicionados **arrastando na linha do tempo** ou ajustando **tempo numericamente**.
+- **W6 C:** seleção múltipla de eventos por **cliques modificados (ex.: Shift)** e **seleção por área/retângulo**.
+- **W7 C:** **desfazer/refazer** com atalhos de teclado e **botões visíveis**.
+- **W8 C:** painel de propriedades **recolhível** para ganhar área útil.
+- **W9 C:** rascunhos não publicados identificados por **marcador discreto**, com **detalhes sob demanda**.
+- **W10 A:** priorizar experiência de edição **desktop (mouse/teclado)**; celular destinado **somente à consulta**, sem exigir editor completo em telas pequenas.
+- **Estado:** decisões documentadas apenas; nenhum código, assets ou número de versão alterado.
