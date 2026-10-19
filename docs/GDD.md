@@ -441,3 +441,8 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - A posição deve também ser editável numericamente por coordenadas X/Y. Alterações no campo e nos valores numéricos permanecem sincronizadas.
 - O editor deve mostrar claramente limites do cenário e posição real de surgimento, sem modificar os padrões de movimento já definidos para cada tipo sem decisão posterior.
 - Apenas planejamento nesta etapa; não implementar nem mudar ondas atuais ainda.
+
+### Wave Maker — grupos automáticos e processo de decisões (19/10/2026)
+- **Opção A aprovada:** criar grupos de inimigos com distribuição automática por formação (por exemplo linha, V, coluna ou círculo) a partir de tipo, quantidade e posição do grupo; ajustes individuais são possíveis, sem perder a estrutura de grupo.
+- **Preferência de planejamento do usuário:** agrupar várias perguntas de múltipla escolha em uma rodada e oferecer um campo de comentário específico para cada pergunta. Evitar sequência de uma pergunta por turno quando decisões relacionadas puderem ser reunidas.
+- Apenas decisão de design: editor não implementado nesta etapa.
