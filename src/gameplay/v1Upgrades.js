@@ -13,8 +13,8 @@ export const V1_UPGRADES = {
     {
       "level": 2,
       "title": "Arraial Balístico",
-      "description": "Arraial Balístico: 4 fogos, turbo de cadência por 5 s e Fogueira de São João defensiva.",
-      "kind": "secondary-shield"
+      "description": "Arraial Balístico: 4 fogos e turbo de cadência por 5 s.",
+      "kind": "secondary"
     },
     {
       "level": 3,
@@ -24,9 +24,9 @@ export const V1_UPGRADES = {
     },
     {
       "level": 4,
-      "title": "Minha Casa, Meu Escudo",
-      "description": "8 fogos, turbo mais forte e cerca elétrica defensiva.",
-      "kind": "secondary-shield"
+      "title": "São João de Arromba",
+      "description": "8 fogos explosivos e turbo mais forte.",
+      "kind": "secondary"
     },
     {
       "level": 5,
@@ -37,8 +37,8 @@ export const V1_UPGRADES = {
     {
       "level": 6,
       "title": "220V",
-      "description": "16 fogos, turbo reforçado e descargas em cadeia.",
-      "kind": "secondary-shield"
+      "description": "16 fogos, turbo reforçado e descargas ofensivas em cadeia.",
+      "kind": "secondary"
     },
     {
       "level": 7,
@@ -49,8 +49,8 @@ export const V1_UPGRADES = {
     {
       "level": 8,
       "title": "Usina de Gambiarra",
-      "description": "32 fogos, turbo máximo e escudo pulsante.",
-      "kind": "secondary-shield"
+      "description": "32 fogos e turbo máximo de cadência.",
+      "kind": "secondary"
     },
     {
       "level": 9,
@@ -74,9 +74,9 @@ export const V1_UPGRADES = {
     },
     {
       "level": 2,
-      "title": "Defesa Preventiva™",
-      "description": "Choque e Pavor: míssil guiado, explosão e onda de choque que empurra; duas antenas no escudo.",
-      "kind": "secondary-shield"
+      "title": "Choque Inicial™",
+      "description": "Choque e Pavor: míssil guiado, explosão e onda de choque que empurra inimigos.",
+      "kind": "secondary"
     },
     {
       "level": 3,
@@ -87,8 +87,8 @@ export const V1_UPGRADES = {
     {
       "level": 4,
       "title": "Entrega de Democracia™",
-      "description": "Choque e Pavor com míssil 2× e onda maior; antenas maiores no escudo.",
-      "kind": "secondary-shield"
+      "description": "Choque e Pavor com míssil 2× e onda de impacto ampliada.",
+      "kind": "secondary"
     },
     {
       "level": 5,
@@ -99,8 +99,8 @@ export const V1_UPGRADES = {
     {
       "level": 6,
       "title": "Choque e Pavor™",
-      "description": "Choque e Pavor com míssil 4× e choque maior; antenas reforçadas.",
-      "kind": "secondary-shield"
+      "description": "Choque e Pavor com míssil 4× e choque ofensivo maior.",
+      "kind": "secondary"
     },
     {
       "level": 7,
@@ -110,9 +110,9 @@ export const V1_UPGRADES = {
     },
     {
       "level": 8,
-      "title": "Proteção Premium™",
-      "description": "Choque e Pavor com míssil 8× e maior pulso de empurrão no escudo.",
-      "kind": "secondary-shield"
+      "title": "Ataque Premium™",
+      "description": "Choque e Pavor com míssil 8× e pulso ofensivo maior.",
+      "kind": "secondary"
     },
     {
       "level": 9,
@@ -137,8 +137,8 @@ export const V1_UPGRADES = {
     {
       "level": 2,
       "title": "Bola de Discoteca Orbital",
-      "description": "Globo dura 4s e gera 3 reflexos guiados por tiro recebido; painéis de espelho refletem disparos no escudo.",
-      "kind": "secondary-shield"
+      "description": "Globo dura 4 s e gera 3 reflexos guiados por tiro recebido.",
+      "kind": "secondary"
     },
     {
       "level": 3,
@@ -148,9 +148,9 @@ export const V1_UPGRADES = {
     },
     {
       "level": 4,
-      "title": "Palco Protegido",
-      "description": "Globo dura 4s e gera 6 reflexos guiados por tiro recebido e expande os espelhos do escudo.",
-      "kind": "secondary-shield"
+      "title": "Palco Iluminado",
+      "description": "Globo dura 4 s e gera 6 reflexos guiados por tiro recebido.",
+      "kind": "secondary"
     },
     {
       "level": 5,
@@ -161,8 +161,8 @@ export const V1_UPGRADES = {
     {
       "level": 6,
       "title": "Solo de Luz",
-      "description": "Globo dura 4s e gera 12 reflexos guiados por tiro recebido e reforça o escudo espelhado.",
-      "kind": "secondary-shield"
+      "description": "Globo dura 4 s e gera 12 reflexos guiados por tiro recebido.",
+      "kind": "secondary"
     },
     {
       "level": 7,
@@ -173,8 +173,8 @@ export const V1_UPGRADES = {
     {
       "level": 8,
       "title": "Discoteca Intergaláctica",
-      "description": "Globo dura 4s e gera 24 reflexos guiados por tiro recebido; máximo de painéis refletivos.",
-      "kind": "secondary-shield"
+      "description": "Globo dura 4 s e gera 24 reflexos guiados por tiro recebido.",
+      "kind": "secondary"
     },
     {
       "level": 9,
@@ -199,8 +199,8 @@ export const V1_UPGRADES = {
     {
       "level": 2,
       "title": "Matryoshka de Estilhaços",
-      "description": "Matryoshka estilhaça congelados com 8 fragmentos; recarga 25% menor e escudo criogênico.",
-      "kind": "secondary-shield"
+      "description": "Matryoshka estilhaça congelados com 8 fragmentos; recarga 25% menor.",
+      "kind": "secondary"
     },
     {
       "level": 3,
@@ -211,8 +211,8 @@ export const V1_UPGRADES = {
     {
       "level": 4,
       "title": "Boneca Matryoshka",
-      "description": "Especial solta 12 estilhaços, reações em cadeia e escudo criogênico maior.",
-      "kind": "secondary-shield"
+      "description": "Especial solta 12 estilhaços e provoca reações ofensivas em cadeia.",
+      "kind": "secondary"
     },
     {
       "level": 5,
@@ -223,8 +223,8 @@ export const V1_UPGRADES = {
     {
       "level": 6,
       "title": "Frente Fria",
-      "description": "Especial solta 16 estilhaços e escudo congela por mais tempo.",
-      "kind": "secondary-shield"
+      "description": "Especial solta 16 estilhaços em trajetórias congelantes.",
+      "kind": "secondary"
     },
     {
       "level": 7,
@@ -235,8 +235,8 @@ export const V1_UPGRADES = {
     {
       "level": 8,
       "title": "Tempestade de Estilhaços",
-      "description": "Especial solta 24 estilhaços e amplifica proteção criogênica.",
-      "kind": "secondary-shield"
+      "description": "Especial solta 24 estilhaços de longo alcance.",
+      "kind": "secondary"
     },
     {
       "level": 9,
@@ -261,8 +261,8 @@ export const V1_UPGRADES = {
     {
       "level": 2,
       "title": "Entrega Expressa",
-      "description": "Especial: uma encomenda explosiva; caixas no escudo.",
-      "kind": "secondary-shield"
+      "description": "Especial: uma encomenda explosiva.",
+      "kind": "secondary"
     },
     {
       "level": 3,
@@ -273,8 +273,8 @@ export const V1_UPGRADES = {
     {
       "level": 4,
       "title": "Frete Grátis",
-      "description": "Especial com encomendas maiores e dois impactos; escudo reforçado por caixas.",
-      "kind": "secondary-shield"
+      "description": "Especial com encomendas maiores e dois impactos.",
+      "kind": "secondary"
     },
     {
       "level": 5,
@@ -285,8 +285,8 @@ export const V1_UPGRADES = {
     {
       "level": 6,
       "title": "Carga Pesada",
-      "description": "Especial distribui três cargas grandes; caixas maiores no escudo.",
-      "kind": "secondary-shield"
+      "description": "Especial distribui três cargas explosivas grandes.",
+      "kind": "secondary"
     },
     {
       "level": 7,
@@ -297,8 +297,8 @@ export const V1_UPGRADES = {
     {
       "level": 8,
       "title": "Frete Internacional",
-      "description": "Especial distribui quatro cargas gigantes; escudo com contêineres.",
-      "kind": "secondary-shield"
+      "description": "Especial distribui quatro cargas gigantes.",
+      "kind": "secondary"
     },
     {
       "level": 9,
@@ -372,55 +372,54 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.br>=1){stats.basicInterval/=2;stats.heat=true;stats.brazilHeatPeak=0.65;stats.horizontalSpread=6;}
   if(n.br>=2){stats.brazilFireworkCount=4;stats.brazilTurboMultiplier=1.5;}
   if(n.br>=3){stats.basicInterval/=1.3;stats.brazilHeatPeak=0.9;}
-  if(n.br>=4){stats.electricFence=true;stats.brazilFireworkCount=8;stats.brazilTurboMultiplier=2;}
+  if(n.br>=4){stats.brazilFireworkCount=8;stats.brazilTurboMultiplier=2;}
   if(n.br>=5){stats.basicInterval/=1.25;stats.basicDamage*=1.45;stats.brazilHeatPeak=1.15;}
   if(n.br>=6){stats.electricDamage=1.7;stats.specialAmplifier+=0.25;stats.brazilFireworkCount=16;stats.brazilTurboMultiplier=2.5;}
   if(n.br>=7){stats.basicInterval/=1.3;stats.brazilHeatPeak=1.5;stats.horizontalSpread=11;}
-  if(n.br>=8){stats.electricDamage=2.5;stats.shieldPulse=true;stats.specialAmplifier+=0.2;stats.brazilFireworkCount=32;stats.brazilTurboMultiplier=3;}
+  if(n.br>=8){stats.specialAmplifier+=0.2;stats.brazilFireworkCount=32;stats.brazilTurboMultiplier=3;}
   if(n.br>=10){stats.basicInterval/=1.9;stats.brazilHeatPeak=2.4;stats.horizontalSpread=16;}
   if(n.us>=1){stats.fragmentation=true;stats.usGrowthMax=2;}
   if(n.us>=3){stats.usGrowthMax=4;stats.usHoming=1.8;}
   if(n.us>=5){stats.usGrowthMax=6;stats.usHoming=2.1;}
   if(n.us>=7){stats.usGrowthMax=8;stats.usHoming=2.6;}
-  if(n.us>=2){stats.specialAmplifier+=0.25;stats.shieldBonus+=12;}
+  if(n.us>=2){stats.specialAmplifier+=0.25;}
   if(n.us>=3)stats.collateral=true;
-  if(n.us>=4)stats.shieldIntercept=true;
+  if(n.us>=4)
   if(n.us>=5)stats.missileEvery=5;
-  if(n.us>=6){stats.specialAmplifier+=0.4;stats.shieldBonus+=10;}
+  if(n.us>=6){stats.specialAmplifier+=0.4;}
   if(n.us>=7)stats.missileFragmentation=true;
-  if(n.us>=8){stats.specialAmplifier+=0.4;stats.shieldBonus+=18;}
+  if(n.us>=8){stats.specialAmplifier+=0.4;}
   if(n.jp>=1)stats.plasmaEvery=3;
-  if(n.jp>=2){stats.residualSlash=true;stats.shieldBonus+=12;}
+  if(n.jp>=2){stats.residualSlash=true;}
   if(n.jp>=3)stats.plasmaEvery=2;
-  if(n.jp>=4){stats.specialAmplifier+=0.2;stats.shieldBonus+=10;}
+  if(n.jp>=4){stats.specialAmplifier+=0.2;}
   if(n.jp>=5)stats.laserDamage+=2;
-  if(n.jp>=6){stats.specialCooldown*=0.86;stats.shieldRegen+=1.1;}
+  if(n.jp>=6){stats.specialCooldown*=0.86;}
   if(n.jp>=7){stats.plasmaEvery=1;stats.laserDamage+=1;}
-  if(n.jp>=8){stats.specialAmplifier+=0.45;stats.shieldPulse=true;}
+  if(n.jp>=8){stats.specialAmplifier+=0.45;}
   if(n.ru>=1){stats.basicDamage*=1.75;stats.knockback=0.12;stats.russianFreezeMs=1000;stats.russianAttractRadius=40;}
   if(n.ru>=3){stats.russianFreezeMs=1500;stats.russianAttractRadius=60;}
   if(n.ru>=5){stats.russianFreezeMs=2000;stats.russianAttractRadius=90;}
   if(n.ru>=7){stats.russianFreezeMs=2500;stats.russianAttractRadius=120;}
   if(n.ru>=2){
-    stats.shieldBonus+=20;
     // Matryoshka recarrega 25% mais depressa; acumulável com bônus coreanos.
     stats.specialCooldown*=0.75;
   }
   if(n.ru>=3)stats.shockRadius=38;
-  if(n.ru>=4){stats.strategicRecoil=true;stats.shieldPulse=true;}
+  if(n.ru>=4){stats.strategicRecoil=true;}
   if(n.ru>=5)stats.slowShot=true;
-  if(n.ru>=6){stats.specialAmplifier+=0.35;stats.shieldBonus+=12;}
+  if(n.ru>=6){stats.specialAmplifier+=0.35;}
   if(n.ru>=7)stats.shockRadius=64;
-  if(n.ru>=8){stats.specialAmplifier+=0.35;stats.shieldPulse=true;}
+  if(n.ru>=8){stats.specialAmplifier+=0.35;}
   if(n.cn>=1)stats.bulletsPerShot=2;
-  if(n.cn>=2){stats.specialAmplifier+=0.2;stats.shieldRegen+=1.1;}
+  if(n.cn>=2){stats.specialAmplifier+=0.2;}
   if(n.cn>=3)stats.bulletsPerShot=3;
-  if(n.cn>=4)stats.shieldIntercept=true;
+  if(n.cn>=4)
   if(n.cn>=5){stats.bulletsPerShot=3;stats.chinaSplitCount=2;}
   if(n.cn>=7)stats.bulletsPerShot=5;
-  if(n.cn>=6){stats.specialAmplifier+=0.25;stats.shieldRegen+=0.8;}
+  if(n.cn>=6){stats.specialAmplifier+=0.25;}
   if(n.cn>=7)stats.extraBurstEvery=11;
-  if(n.cn>=8){stats.specialAmplifier+=0.4;stats.shieldIntercept=true;}
+  if(n.cn>=8){stats.specialAmplifier+=0.4;}
   // Nível 10 é uma transformação de mecânica, não somente um multiplicador.
   if(n.br>=10){
     stats.transformed='br';stats.basicInterval*=0.28;stats.basicDamage*=2;
