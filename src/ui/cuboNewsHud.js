@@ -95,8 +95,12 @@ export function createCuboNewsHud(scene){
     }catch{/* Alerta visual funciona sem som. */}
   }
   return {
+    cancelDawnIntro(){
+      // Cancelamento seguro do efeito, sem disparar o callback antigo.
+      finishIntro();
+    },
     beginDawnIntro(totalMs,onComplete){
-      if(destroyed||introActive)return;
+      if(destroyed||introActive){onComplete?.();return;}
       if(!intro||!introNumber||!timerReader){onComplete?.();return;}
       introActive=true;
       const value=formatCuboTime(totalMs);
