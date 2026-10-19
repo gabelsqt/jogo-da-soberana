@@ -814,3 +814,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **W9 C:** rascunhos não publicados identificados por **marcador discreto**, com **detalhes sob demanda**.
 - **W10 A:** priorizar experiência de edição **desktop (mouse/teclado)**; celular destinado **somente à consulta**, sem exigir editor completo em telas pequenas.
 - **Estado:** decisões documentadas apenas; nenhum código, assets ou número de versão alterado.
+
+
+### Testes e balanceamento — X1–X10 aprovadas (19/10/2026)
+- **X1 C:** testes de onda usam a **mesma regra de vitória da campanha** correspondente.
+- **X2 C:** avaliar margem de erro da build básica com **taxa de vitória em testes repetidos e vida restante**.
+- **X3 C:** permitir analisar/testar **onda inteira ou trecho selecionado** na linha do tempo.
+- **X4 C:** localizar picos de **projéteis inimigos ativos e dano recebido**, por gráficos temporais distintos.
+- **X5 C:** quantidade **configurável de execuções automáticas** em lote.
+- **X6 C:** canhão automático oferece modo de **precisão ideal** e **precisão humana simulada**.
+- **X7 C:** resumo de taxa de vitórias em destaque, com **estatísticas expansíveis** sobre HP, dano e interceptações.
+- **X8 B:** quando uma onda parecer injusta, sugerir **ajustes de cadência, tamanho das rajadas ou quantidade de inimigos**, sem alterar dados automaticamente.
+- **X9 C:** suportar **teste de onda isolada e simulação de campanha inteira**.
+- **X10 C:** onda só pode ser considerada balanceada após **limites técnicos respeitados e viabilidade da build brasileira básica verificada na prática**.
+- **Implementação incremental v0.59:** Wave Maker inclui botão **ANALISAR** com uma **heurística de concentração temporal das ENTRADAS de inimigos**, calculada do rascunho em intervalos de 1 s e sugestão de espaçamento. **Não é** simulação física de projéteis, danos, precisão de mira, sobrevivência ou campanha. X1–X10 continuam **parcialmente implementadas** até integração de simulador real. Não confundir score heurístico com dificuldade validada.
