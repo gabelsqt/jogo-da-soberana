@@ -499,6 +499,8 @@ export class GameScene extends Phaser.Scene {
       this.waveEvents = [];
     } else if (this.mode === 'wave11' && !this.v1Playtest) {
       this.showFinalePrelude();
+    } else if (this.mode === 'wave10' && !this.v1Playtest) {
+      this.showAlienRevelation();
     } else if (this.mode.startsWith('wave')) {
       this.startWaveCountdown();
     } else {
@@ -712,11 +714,47 @@ export class GameScene extends Phaser.Scene {
       color:'#e3f1ff',align:'center',wordWrap:{width:810},lineSpacing:8,
     }).setOrigin(0.5).setDepth(212);
     let button;
-    button=addMenuButton(this,{x:W/2,y:420,width:370,height:52,
+    button=addMenuButton(this,{x:W/2,y:393,width:370,height:48,
       text:'▶  ENFRENTAR ONDA 11',primary:true,depth:215,onClick:()=>{
         [panel,title,lines,button,button.label].forEach(item=>item?.destroy());
         this.startWaveCountdown();
       }});
+    if (!info.fullBrazil) {
+      const surrender=addMenuButton(this,{x:W/2,y:464,width:370,height:41,
+        text:'ACEITAR SUBMISSÃO',depth:215,onClick:()=>{
+          [panel,title,lines,button,button.label,surrender,surrender.label].forEach(item=>item?.destroy());
+          this.scene.start('EndingScene',{campaign:this.finaleCampaign,won:false});
+        }});
+    }
+  }
+
+  showAlienRevelation() {
+    this.countdownActive=true;
+    const panel=this.add.rectangle(W/2,H/2,W,H,0x071021,0.97).setDepth(210).setInteractive();
+    const script=[
+      'PLANTÃO CUBO NEWS • MENSAGEM EXTRATERRESTRE DECIFRADA',
+      'Linguistas brasileiros finalmente traduziram a transmissão alienígena.',
+      '“O IMPERADOR DA TERRA DEVE FECHAR OS BRAÇOS! ESSE GESTO É GUERRA!”',
+      'O alvo é o Cristo Redentor. Para os invasores, braços abertos declaram guerra.',
+      'E só atacam à noite porque, durante o dia, estão curtindo as praias do Rio.',
+      'ZECA: “Dez noites de guerra por um abraço e um banho de mar?!”',
+    ];
+    let page=0;
+    const body=this.add.text(W/2,238,'',{
+      fontFamily:'monospace',fontSize:'19px',color:'#f2f6ff',align:'center',
+      wordWrap:{width:820},lineSpacing:8,
+    }).setOrigin(0.5).setDepth(212);
+    const title=this.add.text(W/2,92,'CUBO NEWS • REVELAÇÃO ANTES DA ONDA 10',{
+      fontFamily:'monospace',fontSize:'23px',fontStyle:'bold',color:'#ffe0a6',
+    }).setOrigin(0.5).setDepth(212);
+    const advance=()=>{
+      if(page<script.length){body.setText(script[page++]);button.label?.setText(page===script.length?'▶  ENFRENTAR NAVE-MÃE':'▶  CONTINUAR');return;}
+      [panel,body,title,button,button.label].forEach(item=>item?.destroy());
+      this.startWaveCountdown();
+    };
+    const button=addMenuButton(this,{x:W/2,y:433,width:370,height:51,
+      text:'▶  CONTINUAR',primary:true,depth:215,onClick:advance});
+    advance();
   }
 
   startWaveCountdown() {
@@ -728,7 +766,8 @@ export class GameScene extends Phaser.Scene {
     // até a fortaleza ficar alvejável, independentemente desta abertura.
     this.countdownActive = true;
     this.elapsed = 0;
-    this.statusText.setText('TEMPO ATÉ O AMANHECER');
+    this.statusText.setText(this.mode==='wave11'&&this.finale&&!this.finale.fullBrazil
+      ?'TEMPO ATÉ O BRASIL VIRAR COLÔNIA':'TEMPO ATÉ O AMANHECER');
     let combatStarted=false;
     const startCombat = () => {
       if (combatStarted || !this.scene.isActive('GameScene') || this.tutorialComplete) return;
@@ -2370,7 +2409,9 @@ export class GameScene extends Phaser.Scene {
   fireEnemyProjectile(enemy, target = this.chooseDefenseTarget()) {
     // Proteção de desempenho para o enxame Tipo 6 chinês e salvas de formação.
     // Preserva até 140 projéteis interceptáveis ao mesmo tempo na tela.
-    if(this.enemyBullets.length>=140||this.tutorialComplete||!enemy.sprite.active)return;
+    const regularWave=/^wave[0-9]$/.test(this.mode);
+    const activeLimit=regularWave?Math.min(95,25+Number(this.mode.slice(4))*7):140;
+    if(this.enemyBullets.length>=activeLimit||this.tutorialComplete||!enemy.sprite.active)return;
     // A nave abre o compartimento de bombas ao disparar.
     if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
       enemy.sprite.play('tipo3_bombardeio', true);
@@ -2380,6 +2421,7 @@ export class GameScene extends Phaser.Scene {
         this.finale?.coalition.length||1,enemy.finalAssaultPhase) : null;
     const count=profile?.volleyCount??enemy.definition.volleyCount;
     for (let i = 0; i < count; i += 1) {
+      if(this.enemyBullets.length>=activeLimit)break;
       // A versão II do bombardeiro dispara duas bombas das laterais,
       // que convergem para o mesmo escudo e podem ser abatidas separadamente.
       const x = enemy.sprite.x + (i - (count - 1) / 2) * 48;
@@ -2393,7 +2435,7 @@ export class GameScene extends Phaser.Scene {
         ?WAVE0_EASY_PACING.bulletSpeedMultiplier:1;
       this.enemyBullets.push({
         sprite: projectile,
-        hp: enemy.definition.shotHp ?? 1,
+        hp: 1,
         target,
         damage:profile?.damage??(enemy.type<=2?14:ENEMY_BULLET_DAMAGE),
         radius:8.25,
