@@ -7,6 +7,7 @@ import {
 export function drawType6Ship(g,state,ageMs=0) {
   const p=TYPE6_PALETTES[state.country];
   const pulse=0.5+0.5*Math.sin(ageMs*0.008);
+  const flashFor=t=>Number.isFinite(t)&&ageMs>=t?Math.max(0,1-(ageMs-t)/150):0;
   g.clear();
   // Silhueta blindada, construída em camadas industriais.
   g.fillStyle(0x080c14,0.92);
@@ -83,6 +84,11 @@ export function drawType6Ship(g,state,ageMs=0) {
           Math.cos(a+0.3)*73,Math.sin(a+0.3)*73);
       }
     }
+    const coreFlash=flashFor(state.hitAt);
+    if(coreFlash>0){
+      g.fillStyle(0xffffff,0.15+0.48*coreFlash).fillCircle(0,0,43);
+      g.lineStyle(4,0xffffff,0.3+0.65*coreFlash).strokeCircle(0,0,48);
+    }
   }else{
     g.fillStyle(p.edge,0.6).fillRect(-45,-22,90,44);
     g.fillStyle(0x0a121c).fillRect(-36,-14,72,29);
@@ -151,6 +157,15 @@ export function drawType6Ship(g,state,ageMs=0) {
       }
 
     }
+  }
+  // Flash de dano por módulo: não é afetado pela posição da hitbox.
+  for(const module of state.modules){
+    const flash=module.broken?0:flashFor(module.hitAt);
+    if(flash<=0)continue;
+    const x=module.offsetX,y=module.offsetY;
+    g.fillStyle(0xffffff,0.13+0.43*flash).fillRoundedRect(x-54,y-39,108,78,5);
+    g.lineStyle(3,module.shield>0?0x71cfff:0xffffff,0.38+0.6*flash)
+      .strokeRoundedRect(x-58,y-43,116,86,7);
   }
   // Barreira frontal completa: azul ou roxo coreano, progredindo ao vermelho.
   const b=state.barrier;
