@@ -179,8 +179,7 @@ export class UpgradeScene extends Phaser.Scene {
     }
     const option=current.option;
     this.countryTag.setText(REPRESENTATIVES[id].label+' • NÍVEL '+option.level);
-    this.characterName.setText({br:'Zeca Carrara',us:'Victor McDollar',
-      jp:'Kim Lin Doo',ru:'Tatiana Tanquova',cn:'Mei Taxaram'}[id]??'Representante');
+    this.characterName.setText(REPRESENTATIVES[id].name??'Representante');
     this.flavorText.setText('“'+representativeStoryFor(id,option.level)+'”');
     this.upgradeTitle.setText(option.title);
     this.upgradeDescription.setText(option.description);
