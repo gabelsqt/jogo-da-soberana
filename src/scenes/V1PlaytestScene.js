@@ -4,6 +4,7 @@ import { GAME_WIDTH as W, GAME_HEIGHT as H, preloadRioBackdrop, drawRioBackdrop 
 import { FIRST_UPGRADES } from '../gameplay/upgrades.js';
 import { V1_UPGRADES, v1CombatStats } from '../gameplay/v1Upgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import {addCuboBroadcastFrame,addCuboPixelText} from '../ui/cuboNewsTheme.js';
 
 // Teste exclusivo da ÁRVORE V1. O laboratório legado com animais permanece
 // arquivado no código, mas não é apresentado no menu de playtest.
@@ -19,18 +20,23 @@ export class V1PlaytestScene extends Phaser.Scene {
     bindSceneMusic(this, 'setup');
     drawRioBackdrop(this);
     this.add.rectangle(W / 2, H / 2, W, H, 0x051021, 0.93).setDepth(30);
-    this.add.text(W / 2, 50, 'PLAYTEST — UPGRADES E FINAIS', {
-      fontFamily:'monospace', fontSize:'31px', fontStyle:'bold', color:'#ffe3a0',
-    }).setOrigin(0.5).setDepth(35);
-    this.add.text(W / 2, 91, 'SELECIONE PAÍS, NÍVEL E ONDA PARA TESTAR', {
-      fontFamily:'monospace', fontSize:'14px', color:'#9ce9db',
-    }).setOrigin(0.5).setDepth(35);
+    addCuboBroadcastFrame(this,{
+      section:'Laboratório de armamentos',
+      headline:'Boletim técnico • Simulações da defesa nacional',
+      footer:'Testes não alteram sua campanha principal',
+      depth:50,
+    });
+    addCuboPixelText(this,{x:W/2,y:86,text:'Laboratório de upgrades',
+      size:3,color:'#ffe6ac',depth:36,maxWidth:700});
+    this.add.text(W/2,120,'Selecione país, nível e onda para testar',{
+      fontFamily:'monospace',fontSize:'14px',color:'#9ce9db',
+    }).setOrigin(0.5).setDepth(36);
     this.countryButtons = [];
     FIRST_UPGRADES.forEach((c,i) => {
       const x = 120 + i * 180;
       const r = this.add.rectangle(x, 165, 159, 65, 0x163247)
         .setStrokeStyle(2, c.color).setDepth(35).setInteractive({useHandCursor:true});
-      const t = this.add.text(x, 165, c.flag+'  '+(c.shortName??c.name).toUpperCase(), {
+      const t = this.add.text(x, 165, c.flag+'  '+(c.shortName??c.name), {
         fontFamily:'monospace',fontSize:'13px',fontStyle:'bold',color:'#ffffff',
         align:'center',wordWrap:{width:152},
       }).setOrigin(0.5).setDepth(36);
@@ -40,7 +46,7 @@ export class V1PlaytestScene extends Phaser.Scene {
       });
       this.countryButtons.push({id:c.id,rect:r,text:t,color:c.color});
     });
-    this.add.text(W / 2, 245, 'NÍVEL DE UPGRADES DESBLOQUEADO', {
+    this.add.text(W / 2, 245, 'Nível de upgrades desbloqueado', {
       fontFamily:'monospace',fontSize:'15px',color:'#cde5f7',
     }).setOrigin(0.5).setDepth(35);
     addMenuButton(this,{x:345,y:285,width:75,height:41,text:'−',
@@ -77,8 +83,9 @@ export class V1PlaytestScene extends Phaser.Scene {
     const previewDeath = () => this.scene.start('GameScene', {
       mode: 'wave1', campaign: { choices: [] }, v1Playtest: true, previewDestruction: true,
     });
-    addMenuButton(this, { x:480, y:522, width:360, height:25,
-      text:'D: TESTAR DESTRUIÇÃO DO CANHÃO', depth:45, onClick:previewDeath });
+    addMenuButton(this,{x:802,y:418,width:294,height:29,
+      text:'D: testar destruição do canhão',fontSize:'12px',
+      depth:45,onClick:previewDeath});
     this.input.keyboard.on('keydown-D', previewDeath);
     this.input.keyboard.on('keydown-ENTER',()=>this.play());
     this.refresh();
@@ -88,7 +95,7 @@ export class V1PlaytestScene extends Phaser.Scene {
     const stats=v1CombatStats({choices:Array(this.level).fill(this.country)});
     this.levelText.setText('NÍVEL '+this.level+' / 10');
     this.arenaText.setText(this.arenaIndex===12?'ARENA LIVRE — INIMIGOS CONTÍNUOS':'ONDA '+this.arenaIndex);
-    this.upgradeText.setText(item ? item.title.toUpperCase() : 'SEM UPGRADES');
+    this.upgradeText.setText(item ? item.title : 'SEM UPGRADES');
     this.infoText.setText(item ? item.description+
       (stats.ultimate?'  •  ESPAÇO: '+V1_UPGRADES[this.country][8].title:'') :
       'CANHÃO BÁSICO, SEM PODERES.');
