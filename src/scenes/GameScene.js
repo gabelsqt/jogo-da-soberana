@@ -4406,7 +4406,7 @@ export class GameScene extends Phaser.Scene {
   finishDefeat(reason='cannon') {
     this.clearDiscoGlobes();
     this.music.stop();
-    if (this.mode==='wave11') {this.showFinaleDefeat(reason);return;}
+    if (this.mode==='wave11' && !this.waveMakerTest) {this.showFinaleDefeat(reason);return;}
     this.tutorialComplete = true;
     this.gameOver = true;
     this.statusText.setText(reason==='timeout'?'TEMPO ESGOTADO':'CANHÃO DESTRUÍDO');
@@ -4438,8 +4438,10 @@ export class GameScene extends Phaser.Scene {
       onClick: () => this.scene.restart(this.getRunOptions()), primary: true, depth: 124,
     });
     if (this.unifiedLab) addMenuButton(this, {
-      x: W / 2, y: 410, text: 'CONFIGURAR LAB',
-      onClick: () => this.scene.start('LabSetupScene', { config: this.labConfig }), depth: 124,
+      x: W / 2, y: 410, text: this.waveMakerTest?'VOLTAR AO WAVE MAKER':'CONFIGURAR LAB',
+      onClick: () => this.waveMakerTest
+        ? this.scene.start('WaveMakerScene', {wave:Number(this.mode.slice(4)),labConfig:this.labConfig})
+        : this.scene.start('LabSetupScene', { config: this.labConfig }), depth: 124,
     });
     addMenuButton(this, {
       x: W / 2, y: 362, text: '⌂  MENU PRINCIPAL',
@@ -4478,6 +4480,17 @@ export class GameScene extends Phaser.Scene {
 
   showWaveComplete(outcome = 'cleared') {
     if (this.tutorialComplete) return;
+    if (this.waveMakerTest) {
+      this.clearDiscoGlobes();this.music.stop();this.tutorialComplete=true;
+      this.statusText.setText('TESTE CONCLUÍDO — '+outcome.toUpperCase());
+      addMenuButton(this,{x:W/2,y:365,width:340,height:48,
+        text:'VOLTAR AO WAVE MAKER',depth:240,primary:true,
+        onClick:()=>this.scene.start('WaveMakerScene',{
+          wave:Number(this.mode.slice(4)),labConfig:this.labConfig,
+        }),
+      });
+      return;
+    }
     this.clearDiscoGlobes();
     this.music.stop();
     this.tutorialComplete = true;
