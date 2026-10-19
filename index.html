@@ -355,6 +355,44 @@
         filter: drop-shadow(0.6cqw 0.6cqw 0 #051122);
         opacity: 1;will-change: transform,opacity;
       }
+      /* v0.49: introdução do protagonista acessível antes da campanha. */
+      #player-name-panel {
+        position:absolute;inset:0 0 auto 0;width:100%;height:92.46%;
+        display:flex;align-items:center;justify-content:center;
+        z-index:90;box-sizing:border-box;
+        background:rgba(5,20,21,.88);pointer-events:auto;
+        font-family:'IBM Plex Sans',system-ui,sans-serif;
+      }
+      #player-name-panel[hidden]{display:none!important;}
+      .player-name-dialog{
+        box-sizing:border-box;width:70%;max-width:680px;
+        padding:26px 32px 28px;background:#134b45;
+        border:3px solid #edc75a;box-shadow:8px 8px 0 #152926;
+        color:#f5f0dc;
+      }
+      .player-name-eyebrow{color:#edc75a;font-size:14px;font-weight:700;}
+      .player-name-dialog h2{font-size:30px;line-height:1.15;margin:11px 0 8px;}
+      .player-name-dialog p{font-size:16px;line-height:1.35;margin:0 0 17px;}
+      #player-name-input{
+        box-sizing:border-box;width:100%;padding:11px 15px;
+        font:600 21px 'IBM Plex Sans',system-ui,sans-serif;
+        color:#152926;background:#f5f0dc;border:3px solid #edc75a;
+        outline-offset:3px;
+      }
+      .player-name-actions{display:flex;gap:12px;margin-top:18px;align-items:center;}
+      #player-name-confirm{
+        font:700 17px 'IBM Plex Sans',system-ui,sans-serif;
+        border:0;background:#edc75a;color:#152926;padding:12px 22px;
+        cursor:pointer;
+      }
+      .player-name-hint{font-size:13px;color:#f5f0dc;}
+      @media (max-width:600px){
+        .player-name-dialog{width:90%;padding:13px;}
+        .player-name-dialog h2{font-size:20px;}
+        #player-name-input{font-size:16px;padding:7px;}
+        #player-name-confirm{font-size:14px;padding:9px;}
+        .player-name-hint{font-size:11px;}
+      }
       #game canvas {
         display: block;
         image-rendering: pixelated;
@@ -448,6 +486,20 @@
           <canvas id="cubo-dawn-label" aria-hidden="true"></canvas>
           <canvas id="cubo-dawn-number" aria-hidden="true"></canvas>
         </div>
+        <form id="player-name-panel" hidden autocomplete="off">
+          <div class="player-name-dialog">
+            <div class="player-name-eyebrow">CUBO NEWS • CADASTRO EMERGENCIAL</div>
+            <h2>Como devemos chamar você?</h2>
+            <p>Seu nome constará na portaria do comando da defesa carioca.
+            Pode alterar o nome salvo. Se deixar em branco, sortearemos um nome brasileiro.</p>
+            <label for="player-name-input">Nome do novo comando</label>
+            <input id="player-name-input" maxlength="32" placeholder="Digite seu nome (ou deixe em branco)" />
+            <div class="player-name-actions">
+              <button id="player-name-confirm" type="submit">Confirmar identificação ▶</button>
+              <span class="player-name-hint">A transmissão começa após sua confirmação.</span>
+            </div>
+          </div>
+        </form>
       </div>
       <div id="rotate-notice" role="status" aria-live="polite" hidden>
         <div id="rotate-message">
