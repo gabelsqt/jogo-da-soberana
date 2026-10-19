@@ -30,11 +30,7 @@ function portrait(scene,option,index){
   const portraitKey='leader-'+id+'-full';
   const loaded=scene.textures.exists(portraitKey);
   const image=loaded?scene.add.image(0,-1,portraitKey).setDisplaySize(106,125):null;
-  if(image){
-    const maskShape=scene.make.graphics({x:0,y:0,add:false});
-    maskShape.fillStyle(0xffffff,1).fillRoundedRect(-53,-64,106,125,6);
-    image.setMask(maskShape.createGeometryMask());
-  }else{
+  if(!image){
     frame.fillStyle(color,0.72).fillCircle(0,-27,23);
     frame.fillStyle(color,0.72).fillRoundedRect(-39,-3,78,36,14);
   }
