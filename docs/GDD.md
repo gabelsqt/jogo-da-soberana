@@ -430,3 +430,8 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Plano de implementação em etapas: (1) schema independente e validação de eventos; (2) cena/aba do editor e controles de eventos; (3) prévia jogável via GameScene e retorno ao editor; (4) salvar/carregar e importar/exportar JSON; (5) mecanismo explícito de publicar uma onda aprovada na campanha.
 - Isolar rascunhos de mudanças oficiais: testar uma onda editada não pode sobrescrever a definição canônica da campanha. Não alterar as ondas existentes nesta fase de planejamento.
 - Parâmetros extras (rotas customizadas, IA de tiro e análises automáticas de dificuldade) ficam para fases posteriores. Continuar decisões antes de implementar; registrar implementações também por versão.
+
+### Wave Maker — edição temporal aprovada (19/10/2026)
+- **Opção A aprovada:** os eventos podem ser arrastados na linha do tempo para mudar o instante de entrada, e também editados por campos numéricos com precisão (por exemplo, 7,5 s).
+- Ambos os controles devem permanecer sincronizados; a posição do evento e o valor do campo representam o mesmo tempo.
+- Planejamento apenas: nenhuma mudança no comportamento das ondas ou código do editor nesta decisão.
