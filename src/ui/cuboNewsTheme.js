@@ -1,85 +1,67 @@
-// Identidade reutilizável da Cubo News para telas Phaser (menus, laboratórios,
-// pausa, negociações e epílogos). Fontes bitmap geradas em runtime: offline.
-import {drawPixelText} from './pixelFont.js';
-
+// Sistema visual Cubo News v0.49 — Emissora Oficial Brasileira.
+// Tipografia IBM Plex Sans (fallback local legível), sem fontes pixeladas na UI.
+export const CUBO_FONT="'IBM Plex Sans',system-ui,sans-serif";
 export const CUBO_COLORS=Object.freeze({
-  navy:0x081527,card:0x10233b,red:0xc71e33,redDark:0x771626,
-  silver:0xc4ccd6,white:0xf1f6ff,teal:0x81ddea,muted:0x95abc1,
+  navy:0x152926,card:0x134b45,red:0xedc75a,redDark:0x152926,
+  silver:0xf5f0dc,white:0xf5f0dc,teal:0x134b45,muted:0xc8dfd8,
+  green:0x134b45,gold:0xedc75a,cream:0xf5f0dc,graphite:0x152926,
 });
-function glyphTexture(scene,text,{pixel=3,color='#ffffff'}={}){
-  // Chave estável por cena/texto, sem recriar a textura a cada visita ao menu.
-  const id=Array.from(text).map(ch=>ch.codePointAt(0).toString(16)).join('-');
-  const key='cubo-pixel-'+pixel+'-'+color.slice(1)+'-'+id;
-  if(!scene.textures.exists(key)){
-    if(typeof document==='undefined')return null;
-    const canvas=document.createElement('canvas');
-    drawPixelText(canvas,text,{pixel,color,paddingX:1,paddingY:2});
-    scene.textures.addCanvas(key,canvas);
-  }
-  return key;
-}
+// Nome mantido para compatibilidade com cenas da v0.48; agora é texto real.
 export function addCuboPixelText(scene,{
-  x,y,text,size=2,color='#ffffff',depth=45,maxWidth=null,
+  x,y,text,size=2,color='#f5f0dc',depth=45,maxWidth=null,
 }){
-  const key=glyphTexture(scene,String(text),{pixel:size,color});
-  if(!key){
-    return scene.add.text(x,y,text,{fontFamily:'monospace',fontSize:size*7+'px',
-      color,fontStyle:'bold'}).setOrigin(0.5).setDepth(depth);
-  }
-  const image=scene.add.image(x,y,key).setOrigin(0.5).setDepth(depth);
-  if(maxWidth && image.width>maxWidth)image.setScale(maxWidth/image.width);
-  return image;
+  const px=Math.max(18,Math.round(size*7+7));
+  const label=scene.add.text(x,y,String(text),{
+    fontFamily:CUBO_FONT,fontSize:px+'px',fontStyle:'bold',
+    color,align:'center',
+  }).setOrigin(0.5).setDepth(depth);
+  if(maxWidth&&label.width>maxWidth)label.setScale(maxWidth/label.width);
+  return label;
 }
-/**
- * Moldura permanente para menus; não interferir no HUD externo de combate.
- * Header 0..68; footer 509..540. Deixar centro livre para interatividade.
- */
 export function addCuboBroadcastFrame(scene,{
   section='Central de transmissões',
   headline='O Rio não vai cair',
   footer='Cobertura especial da defesa brasileira',
-  depth=40,
-  shade=0,
+  depth=40,shade=0,
 }={}){
-  const W=960,H=540;
-  const a=scene.add;
-  if(shade>0)a.rectangle(W/2,H/2,W,H,CUBO_COLORS.navy,shade).setDepth(depth-3);
-  a.rectangle(W/2,27,W,54,CUBO_COLORS.navy,0.97).setDepth(depth)
-    .setStrokeStyle(2,0x506b84);
-  a.rectangle(70,23,133,35,CUBO_COLORS.red).setDepth(depth+1)
-    .setStrokeStyle(2,0xf5a0a7);
-  addCuboPixelText(scene,{x:70,y:23,text:'Cubo News',size:2,
-    color:'#ffffff',depth:depth+2,maxWidth:119});
-  a.text(155,17,section,{
-    fontFamily:'monospace',fontSize:'17px',fontStyle:'bold',color:'#f1f6ff',
-  }).setDepth(depth+2);
-  a.text(155,38,headline,{
-    fontFamily:'monospace',fontSize:'12px',color:'#afcce0',
-  }).setDepth(depth+2);
-  a.rectangle(882,19,117,22,CUBO_COLORS.red).setDepth(depth+1);
-  a.text(882,19,'● AO VIVO',{
-    fontFamily:'monospace',fontSize:'12px',fontStyle:'bold',color:'#ffffff',
+  const W=960,H=540,a=scene.add;
+  if(shade>0)a.rectangle(W/2,H/2,W,H,CUBO_COLORS.graphite,shade).setDepth(depth-3);
+  a.rectangle(W/2,27,W,54,CUBO_COLORS.green,0.98)
+    .setStrokeStyle(2,0x5c8173).setDepth(depth);
+  a.rectangle(78,24,142,35,CUBO_COLORS.gold).setDepth(depth+1);
+  a.text(78,24,'CUBO NEWS',{
+    fontFamily:CUBO_FONT,fontSize:'20px',fontStyle:'bold',color:'#152926',
   }).setOrigin(0.5).setDepth(depth+2);
-  a.rectangle(W/2,53,W,5,CUBO_COLORS.red).setDepth(depth+1);
-  // Tarja inferior vermelha tipo ticker de telejornal.
-  a.rectangle(W/2,H-15,W,30,CUBO_COLORS.redDark,0.98).setDepth(depth);
-  a.rectangle(W/2,H-29,W,2,0xf26d70).setDepth(depth+1);
-  a.rectangle(79,H-15,150,23,CUBO_COLORS.red).setDepth(depth+1);
-  addCuboPixelText(scene,{x:79,y:H-15,text:'PLANTÃO',size:2,
-    color:'#ffffff',depth:depth+2,maxWidth:128});
+  a.text(166,17,section,{
+    fontFamily:CUBO_FONT,fontSize:'17px',fontStyle:'bold',color:'#f5f0dc',
+  }).setDepth(depth+2);
+  a.text(166,38,headline,{
+    fontFamily:CUBO_FONT,fontSize:'12px',color:'#dbebe5',
+  }).setDepth(depth+2);
+  a.rectangle(888,21,122,25,CUBO_COLORS.graphite).setDepth(depth+1);
+  a.text(888,21,'● AO VIVO',{
+    fontFamily:CUBO_FONT,fontSize:'13px',fontStyle:'bold',color:'#edc75a',
+  }).setOrigin(0.5).setDepth(depth+2);
+  a.rectangle(W/2,54,W,4,CUBO_COLORS.gold).setDepth(depth+1);
+  a.rectangle(W/2,H-15,W,30,CUBO_COLORS.graphite,0.99).setDepth(depth);
+  a.rectangle(W/2,H-29,W,2,CUBO_COLORS.gold).setDepth(depth+1);
+  a.rectangle(77,H-15,150,24,CUBO_COLORS.gold).setDepth(depth+1);
+  a.text(77,H-15,'PLANTÃO',{
+    fontFamily:CUBO_FONT,fontSize:'15px',fontStyle:'bold',color:'#152926',
+  }).setOrigin(0.5).setDepth(depth+2);
   a.text(169,H-15,footer,{
-    fontFamily:'monospace',fontSize:'12px',color:'#ffffff',
+    fontFamily:CUBO_FONT,fontSize:'12px',color:'#f5f0dc',
   }).setOrigin(0,0.5).setDepth(depth+2);
 }
 export function addCuboPanel(scene,{
-  x=480,y=269,width=750,height=360,depth=41,accent=CUBO_COLORS.red,
-  title=null,
+  x=480,y=269,width=750,height=360,depth=41,
+  accent=CUBO_COLORS.gold,title=null,
 }={}){
-  const panel=scene.add.rectangle(x,y,width,height,CUBO_COLORS.card,0.94)
+  const panel=scene.add.rectangle(x,y,width,height,CUBO_COLORS.green,0.96)
     .setStrokeStyle(3,accent).setDepth(depth);
   scene.add.rectangle(x-width/2+6,y-height/2+5,width-12,4,accent).setDepth(depth+1);
   if(title)scene.add.text(x-width/2+17,y-height/2+14,title,{
-    fontFamily:'monospace',fontSize:'13px',fontStyle:'bold',color:'#ffffff',
+    fontFamily:CUBO_FONT,fontSize:'14px',fontStyle:'bold',color:'#f5f0dc',
   }).setDepth(depth+2);
   return panel;
 }
