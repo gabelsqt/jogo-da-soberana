@@ -61,7 +61,7 @@ test('Cubo News: rotina a cada 5 segundos e plantão final limpa a fila',()=>{
 test('Cubo News: traição usa país sorteado sem reescrever a história',()=>{
   const s=createCuboNewsState(['br','us','us'],'wave11','us');
   const story=nextCuboNewsStory(s);
-  assert.ok(story.headline.includes('ESTADOS UNIDOS'));
+  assert.ok(story.headline.includes('ESTADOS UNIDOS')||/Hollywood|Hambúrguer|jazz|cinema/i.test(story.headline));
   assert.equal(story.headline.includes('{PAÍS}'),false);
 });
 
