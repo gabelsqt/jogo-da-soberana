@@ -19,7 +19,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: soberana-v1-pages
+  group: soberana-v048-pages
   cancel-in-progress: true
 
 jobs:
