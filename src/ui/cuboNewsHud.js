@@ -39,7 +39,7 @@ export function createCuboNewsHud(scene){
   scene.game.events.emit('cubo-layout-change');
 
   drawPixelText(labelPixels,'CUBO NEWS',{pixel:2,color:'#ffffff'});
-  drawPixelText(introLabel,'TEMPO ATE O AMANHECER',{
+  drawPixelText(introLabel,'TEMPO ATÉ O AMANHECER',{
     pixel:3,color:'#94f0ff',paddingX:3,
   });
 
