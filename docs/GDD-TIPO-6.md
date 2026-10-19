@@ -82,3 +82,7 @@ Módulos e posições fixos em todos os países, da esquerda para a direita:
 - **Visuais provisórios:** desenho vetorial das cinco variantes e efeitos iniciais; sprites definitivos, cinematografias de entrada específicas, decomposição de destroços e efeitos nacionais completos exigem arte/iteração adicional.
 - **Testes de balanceamento:** aferir dificuldade real em 60 s e estabilidade com 30 invasores chineses; taxas base provisórias dos escudos individuais e dano real do feixe.
 - Consultar também **GDD.md**, seção Cubo News para redação, interface e textos aprovados.
+
+
+## Interface de transmissão v0.45 (revisão do lower third)
+A faixa da Cubo News **não cobre mais** os 960×540 pixels da cena. É uma camada HTML de **44 pixels lógicos adicionada externamente abaixo do canvas**, com manchete prata e texto rolante em faixa vermelha. O canhão permanece em (480, 494), acima da nova faixa, assim como os prédios; não modificar colisões por motivos de HUD. Cronômetro na direita, maior, transparente e sem moldura. Nos últimos 5 s pisca em vermelho e substitui a notícia por alerta. Zoom e screenshake de combate ou derrota afetam somente a cena, nunca o noticiário externo. Detalhes em `docs/GDD.md` e `docs/versao-0.45.md`.
