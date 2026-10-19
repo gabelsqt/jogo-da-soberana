@@ -836,3 +836,10 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **ANALISAR** passa a respeitar o intervalo selecionado.
 - Escopo continua **heurístico**: não é contagem de projéteis em voo, dano registrado, resultado do jogo, taxa de vitória ou bot automatizado. Nenhuma alteração automática nas ondas/campanha.
 - A implementação do pacote X1–X10 ainda é **parcial**; simulações reais estão pendentes.
+
+### Implementação incremental v0.61 — teste jogável de rascunho Wave Maker
+- Novo botão **TESTAR** no Wave Maker inicia `GameScene` com **cópia dos eventos da onda em rascunho**, `waveMakerTest: true` e duração configurada, preservando campanha e dados oficiais.
+- A `GameScene` aceita eventos de teste exclusivamente quando iniciada com `labConfig` e modo válido. A repetição do combate mantém o snapshot do teste.
+- Vitória de teste não segue a progressão da campanha; permite **voltar ao Wave Maker**. Derrota de teste também oferece retorno ao editor.
+- **Limitações importantes:** ainda não há relatórios persistentes de dano, HP, taxa de vitórias, IA automática nem simulações em lote. A lógica de ondas especiais/chefões exige playtest cuidadoso. Sem alterar publicação de rascunhos.
+- **Validação:** implementação enviada ao GitHub sem testes locais/build realizados nesta sessão.
