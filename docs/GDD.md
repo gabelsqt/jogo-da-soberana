@@ -674,3 +674,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **L10 C:** última notícia apresenta **outra estátua de braços abertos**, provocando nova confusão diplomática intergaláctica.
 - **Observação de continuidade importante:** versões 0.56–0.58 têm textos provisórios potencialmente incompatíveis (especialmente Zeca respondendo diretamente à transmissão ou tradução demasiadamente explícita). **Corrigir somente quando houver autorização para implementação; não alterar código agora.**
 - **Status:** apenas GDD e checklist atualizados.
+
+### Menu Extras — decisões N46–N55 (19/10/2026; apenas planejamento)
+- **N46 C:** cada quadro de final desbloqueado mostra **apenas a miniatura em pixel art**; o título aparece ao selecioná-lo, não sobre a miniatura.
+- **N47 A:** final bloqueado = **quadro escuro com apenas '?' centralizado**, sem identidade, bandeira ou dica.
+- **N48 B:** desbloqueio persistente acontece **no momento em que a vitória ou derrota da batalha é determinada**; para rendição, no momento em que se aceita a submissão e se resolve o desfecho, antes de mostrar a sequência narrativa.
+- **N49 A:** qualquer um dos dois finais relacionados a um país libera a ficha daquele representante.
+- **N50 A:** a ficha de **Zeca Carrara** aparece após a conclusão de qualquer campanha/final.
+- **N51 B:** a ficha da espécie/personagens alienígenas só é desbloqueada por **um final da rota Full Brazil**, não apenas ao enfrentar a onda 10.
+- **N52 A:** música de final liberada na Jukebox **exclusivamente após alcançar seu final específico**, conforme a regra de desbloqueio das músicas ouvidas.
+- **N53 B:** títulos da Jukebox correspondem à **cena** de uso (ex.: 'Traição Russa', 'Vitória Brasileira', 'Derrota'), não títulos criativos separados.
+- **N54 B:** o menu Extras apresenta **três botões de entrada** (Galeria de Finais, Galeria de Personagens, Jukebox); cada seção tem sua tela e botão de retorno.
+- **N55 C:** linguagem visual **retrô de videogame 16-bit**, menus simples em pixel art.
+- **Preservar N11–N45:** finais salvos localmente, dez posições fixas agrupadas por país/Full Brazil, derrota à esquerda/vitória à direita; reproduzir finais desbloqueados com clique para avançar e Esc para voltar; menu Extras visível apenas após primeiro final; fichas sem spoilers, Jukebox manual, sem contadores e sem notificações.
+- **Status:** decisões documentadas; não implementar, alterar assets/código ou avançar versão.
