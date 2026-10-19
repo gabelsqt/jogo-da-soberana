@@ -56,9 +56,11 @@ export class WaveMakerScene extends Phaser.Scene {
    }else{
     e.at=clamp(Math.round((dragX-150)/717*this.entry().durationMs),0,this.entry().durationMs);
    }
-   this.selected=e.id;this.dragging=true;this.render();
+   if(object.getData('kind')==='map'&&Object.hasOwn(e,'portalX'))e.portalX=e.x;
+   object.setPosition(dragX,dragY);
+   this.selected=e.id;this.dragging=true;
   });
-  this.input.on('dragend',()=>{if(this.dragging){this.persist();this.dragging=false;}});
+  this.input.on('dragend',()=>{if(this.dragging){this.persist();this.dragging=false;this.render();}});
   this.render();
  }
  drawButton(x,y,label,action,width=110,height=30,primary=false,waveIndex=null){
@@ -98,13 +100,13 @@ export class WaveMakerScene extends Phaser.Scene {
    const chosen=e.id===this.selected;
    const marker=this.add.circle(mx,my,chosen?9:6,chosen?0xffdc8b:0xff7e82).setStrokeStyle(2,0x08111d).setInteractive({draggable:true,useHandCursor:true});
    marker.setData('eventId',e.id);marker.setData('kind','map');
-   marker.on('pointerdown',()=>this.select(e.id));this.markers.add(marker);
+   marker.on('pointerup',()=>{if(!this.dragging)this.select(e.id);});this.markers.add(marker);
    const tx=150+clamp(e.at/duration,0,1)*717;
    const ty=352+(i%3)*15;
    const block=this.add.rectangle(tx,ty,Math.max(14,Math.min(44,10+e.count*2)),12,chosen?0xffdc8b:0x7eb9c8)
      .setInteractive({draggable:true,useHandCursor:true});
    block.setData('eventId',e.id);block.setData('kind','time');
-   block.on('pointerdown',()=>this.select(e.id));this.timeline.add(block);
+   block.on('pointerup',()=>{if(!this.dragging)this.select(e.id);});this.timeline.add(block);
   });
   for(let t=0;t<=5;t++){
    const x=150+t*717/5;this.timeline.add(this.add.text(x,387,Math.round(t*duration/5000)+'s',textStyle(10,'#a6bfd1')).setOrigin(0.5));
