@@ -17,6 +17,7 @@ export class WaveMakerScene extends Phaser.Scene {
   this.current=clamp(Math.round(Number(data.wave??this.labConfig.wave)),0,11);
   this.project=readWaveMakerProject(typeof localStorage==='undefined'?null:localStorage);
   this.selected=null;this.dragging=false;this.status='Rascunho isolado da campanha';
+  this.analysisRange=null; this.analysisBaseline=null;
  }
  create(){
   bindSceneMusic(this,'setup');
@@ -28,7 +29,7 @@ export class WaveMakerScene extends Phaser.Scene {
   this.add.rectangle(62,289,124,448,0x101f31).setStrokeStyle(1,0x39566d);
   this.add.text(10,74,'ONDAS',textStyle(14,'#ffe2a6'));
   WAVE_MAKER_WAVES.forEach((wave,i)=>{
-   this.drawButton(62,102+i*29,'ONDA '+i,()=>{this.current=i;this.selected=null;this.render();},108,25,false,i);
+   this.drawButton(62,102+i*29,'ONDA '+i,()=>{this.current=i;this.selected=null;this.analysisRange=null;this.analysisBaseline=null;this.render();},108,25,false,i);
   });
   this.add.text(144,72,'CAMPO DE ENTRADA  •  arraste os marcadores',textStyle(12,'#a9dbe4'));
   this.add.rectangle(510,194,736,226,0x070f1c).setStrokeStyle(2,0x436278);
@@ -39,11 +40,15 @@ export class WaveMakerScene extends Phaser.Scene {
   this.add.text(148,290,'DEFESA',textStyle(10,'#7899b3'));
   this.add.text(144,321,'LINHA DO TEMPO — arraste blocos ou edite os valores abaixo',textStyle(12,'#a9dbe4'));
   this.drawButton(822,320,'ANALISAR',()=>this.showPressure(),108,28);
+  this.drawButton(691,320,'TRECHO',()=>this.setAnalysisRange(),100,28);
+  this.drawButton(565,320,'COMPARAR',()=>this.comparePressure(),112,28);
   this.add.rectangle(510,371,736,65,0x101f31).setStrokeStyle(1,0x436278);
   this.add.text(145,418,'EVENTO SELECIONADO',textStyle(12,'#ffe2a6'));
   this.fields=this.add.container(0,0);
   this.markers=this.add.container(0,0);
   this.timeline=this.add.container(0,0);
+  this.pressureGraphics=this.add.graphics().setDepth(4);
+  this.pressureLegend=this.add.text(150,397,'',textStyle(10,'#fce4ae')).setDepth(5);
   this.statusLabel=this.add.text(145,519,'',textStyle(11,'#a4daca'));
   this.drawButton(206,492,'+ GRUPO',()=>this.addEvent(),125,34);
   this.drawButton(351,492,'DUPLICAR',()=>this.duplicate(),125,34);
@@ -94,6 +99,7 @@ export class WaveMakerScene extends Phaser.Scene {
   const entry=this.entry();if(!entry)return;
   this.waveButtons?.forEach(({rect,waveIndex})=>rect.setFillStyle(waveIndex===this.current?0x36766e:panel));
   this.markers.removeAll(true);this.timeline.removeAll(true);this.fields.removeAll(true);
+  this.renderPressure();
   const events=this.events(),duration=entry.durationMs;
   const maxShown=45;
   const visible=events.slice(0,maxShown);
@@ -141,9 +147,61 @@ export class WaveMakerScene extends Phaser.Scene {
   this.entry().events=this.events().filter(e=>e.id!==this.selected);
   this.selected=null;this.persist();this.render();
  }
+ setAnalysisRange(){
+  const duration=this.entry().durationMs;
+  const prior=this.analysisRange||{fromMs:0,toMs:duration};
+  const rawStart=window.prompt('Início do trecho (segundos)',String(prior.fromMs/1000));
+  if(rawStart===null)return;
+  const rawEnd=window.prompt('Fim do trecho (segundos)',String(prior.toMs/1000));
+  if(rawEnd===null)return;
+  const from=Number(rawStart.replace(',','.'))*1000;
+  const to=Number(rawEnd.replace(',','.'))*1000;
+  if(!Number.isFinite(from)||!Number.isFinite(to)||from<0||to>duration||to<=from){
+   window.alert('Intervalo inválido. O início deve ser menor que o fim e estar dentro da duração da onda.');
+   return;
+  }
+  this.analysisRange={fromMs:Math.round(from),toMs:Math.round(to)};
+  this.render();
+ }
+ comparePressure(){
+  const report=analyzeWavePressure(this.entry(),this.analysisRange||{});
+  if(!this.analysisBaseline||this.analysisBaseline.wave!==this.current){
+   this.analysisBaseline={wave:this.current,report};
+   this.status='Referência registrada. Modifique a onda e clique COMPARAR.';
+   this.render();return;
+  }
+  const base=this.analysisBaseline.report;
+  window.alert([
+   'COMPARAÇÃO DE ENTRADAS — ONDA '+this.current,
+   'Referência → Atual',
+   'Eventos: '+base.totalEvents+' → '+report.totalEvents,
+   'Pressão média estimada: '+base.averagePressure+' → '+report.averagePressure,
+   'Pico estimado: '+(base.peak?.pressure??0)+' → '+(report.peak?.pressure??0),
+   '',
+   'Não mede projéteis ativos, dano ou chance de vitória.'
+  ].join('\\n'));
+  this.analysisBaseline={wave:this.current,report};
+ }
+ renderPressure(){
+  if(!this.pressureGraphics)return;
+  const report=analyzeWavePressure(this.entry(),this.analysisRange||{});
+  const g=this.pressureGraphics;
+  g.clear();
+  const values=report.windows;
+  const peak=Math.max(1,...values.map(w=>w.pressure));
+  for(const w of values){
+   const x=150+(w.startMs/this.entry().durationMs)*717;
+   const width=Math.max(1,(w.endMs-w.startMs)/this.entry().durationMs*717-1);
+   const height=Math.min(40,w.pressure/peak*39);
+   g.fillStyle(w.pressure>=peak*0.8?0xffad6e:0x70c8c1,0.74);
+   g.fillRect(x,403-height,width,height);
+  }
+  const scope=this.analysisRange?'trecho '+(report.fromMs/1000)+'–'+(report.toMs/1000)+' s':'onda completa';
+  this.pressureLegend?.setText('Entradas estimadas • '+scope+' • pico '+(report.peak?.pressure??0));
+ }
  showPressure(){
   const entry=this.entry();
-  const report=analyzeWavePressure(entry);
+  const report=analyzeWavePressure(entry,this.analysisRange||{});
   const peak=report.peak;
   const message=[
    'ONDA '+this.current+' — análise de entradas (heurística)',
