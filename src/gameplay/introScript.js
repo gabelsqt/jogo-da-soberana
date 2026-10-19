@@ -1,4 +1,5 @@
-// Texto puro da abertura; testável sem Phaser. Duração: 5 quadros de 4,5 s.\nexport function introductionSlides(name){
+// Texto puro da abertura; testável sem Phaser. Duração: 5 quadros de 4,5 s.
+export function introductionSlides(name){
   return [
     {title:'Naves extraterrestres chegam à Terra!',
       body:'Objetos gigantescos foram avistados sobre o Rio de Janeiro.\nA Cubo News recomenda manter a calma. E o sinal ligado.',
