@@ -211,11 +211,13 @@ function hitTarget(scene,enemy,id,damage){
   if(!result.damage)return false;
   const module=typeof id==='number'?s.modules[id]:null;
   const x=enemy.sprite.x+(module?.offsetX??0),y=enemy.sprite.y;
-  if(result.shieldBroken){
+  if(result.barrierBroken){
     s.barrier.shatterAt=scene.time.now;
     burst(scene,enemy.sprite.x,enemy.sprite.y+39,p.barrier,70);
     scene.queueCuboNews?.('BARREIRA INIMIGA DESTRUÍDA',
       'A fortaleza perdeu temporariamente sua proteção frontal.');
+  }else if(result.moduleShieldBroken){
+    burst(scene,x,y,0x71cfff,34);
   }else if(result.moduleDestroyed||result.defeated||scene.time.now-(module?.hitAt??s.hitAt)>130){
     burst(scene,x,y,p.light,result.moduleDestroyed?45:9);
   }
@@ -223,7 +225,7 @@ function hitTarget(scene,enemy,id,damage){
   // Interrupção do laser durante a carga: 25% do HP máximo no carregamento atual.
   const a=s.action;
   if(a?.kind==='laserCharge'&&a.moduleId===id&&!module.broken){
-    a.interruptDamage+=result.damage;
+    a.interruptDamage+=result.moduleDamage;
     if(a.interruptDamage>=module.maxHp*0.25){
       stopAction(enemy);
       scene.showAttackWarning('LASER INTERROMPIDO — SOBRECARGA!');
