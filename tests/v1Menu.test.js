@@ -21,7 +21,7 @@ test('menu escolhe próximos níveis da árvore nova, incluindo 9 e 10',()=>{
 });
 test('boteco V1 não exibe diálogos legados de animais',()=>{
  const scene=readFileSync(new URL('../src/scenes/UpgradeScene.js',import.meta.url),'utf8');
- assert.match(scene,/nextV1Options\(this\.campaign, FIRST_UPGRADES\)/);
- assert.match(scene,/representativeLine\(id\)/);
+ assert.match(scene,/nextV1Options\(this\.campaign,\s*FIRST_UPGRADES\)/);
+ assert.match(scene,/representativeStoryFor\(id,option\.level\)/);
  assert.doesNotMatch(scene,/upgradeRepresentativeLine\(/);
 });
