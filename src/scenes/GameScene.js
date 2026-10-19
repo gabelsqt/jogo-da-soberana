@@ -708,39 +708,27 @@ export class GameScene extends Phaser.Scene {
   startWaveCountdown() {
     if (this.mode === 'wave0' && !this.v1Playtest) this.music.play('news', { loop: false });
     else this.music.play(waveMusic(this.mode, this.campaign));
-    // Os timers e a dificuldade da onda só começam depois do 3, 2, 1.
-    // São relógios do próprio Phaser: pausar congela também a contagem.
+    // O tempo de combate e os spawns só começam APÓS o número total (30/60)
+    // sair do centro da tela e alcançar o relógio externo à câmera.
+    // A entrada cinematográfica do Tipo 6 pode pausar esse relógio novamente
+    // até a fortaleza ficar alvejável, independentemente desta abertura.
     this.countdownActive = true;
-    this.statusText.setText('PREPARE-SE');
-    const shade = this.add.rectangle(W / 2, H / 2, W, H, 0x030b1e, 0.62)
-      .setDepth(115);
-    const title = this.add.text(W / 2, 170, MODES[this.mode].title, {
-      fontFamily: 'monospace', fontSize: '32px', fontStyle: 'bold',
-      color: '#f6dfa2', stroke: '#06152d', strokeThickness: 4,
-    }).setOrigin(0.5).setDepth(116);
-    const number = this.add.text(W / 2, 272, String(WAVE_COUNTDOWN_SECONDS), {
-      fontFamily: 'monospace', fontSize: '100px', fontStyle: 'bold',
-      color: '#a9f6e2', stroke: '#062b41', strokeThickness: 8,
-    }).setOrigin(0.5).setDepth(117);
-    const tip = this.add.text(W / 2, 356, 'PREPARE A DEFESA!', {
-      fontFamily: 'monospace', fontSize: '19px', color: '#f1f7ff',
-    }).setOrigin(0.5).setDepth(116);
-    const countdownItems = [shade, title, number, tip];
-
-    for (let n = WAVE_COUNTDOWN_SECONDS - 1; n >= 1; n -= 1) {
-      this.time.delayedCall((WAVE_COUNTDOWN_SECONDS - n) * 1000, () => {
-        number.setText(String(n));
-      });
-    }
-    this.time.delayedCall(WAVE_COUNTDOWN_SECONDS * 1000, () => {
-      countdownItems.forEach((object) => object.destroy());
+    this.elapsed = 0;
+    this.statusText.setText('TEMPO ATÉ O AMANHECER');
+    const startCombat = () => {
+      if (!this.scene.isActive('GameScene') || this.tutorialComplete) return;
       this.countdownActive = false;
       this.music.play(waveMusic(this.mode, this.campaign));
       this.elapsed = 0;
-      // A carga só começa quando a defesa fica liberada para lutar.
       for (const tower of this.supportTowers) tower.lastAttackAt = this.time.now;
       this.scheduleWaveEvents();
-    });
+    };
+    if (this.cuboNewsHud?.beginDawnIntro) {
+      this.cuboNewsHud.beginDawnIntro(this.waveDurationMs, startCombat);
+    } else {
+      // Fallback para integrações antigas sem DOM: não bloquear a onda.
+      this.time.delayedCall(1900, startCombat);
+    }
   }
 
   createSupportTowers() {
