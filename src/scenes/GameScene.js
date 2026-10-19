@@ -12,6 +12,7 @@ import { assetUrl } from '../config/assetUrl.js';
 import { preloadMechSprites, createMechSprites } from '../gameplay/mechSpriteMounts.js';
 import {
   SWARM_DANCES, SWARM_ENTRIES, WAVE0_EASY_PACING,
+  STANDARD_INVADER_FLIGHT_FACTOR,
   getV035WaveEvents, swarmDanceCenter, swarmDancePosition,
   tacticalFormationOffset, tacticalManeuverPosition, tacticalAttackPosition,
   chooseGroupDefenseTarget,
@@ -1385,11 +1386,17 @@ export class GameScene extends Phaser.Scene {
     const kind = type === 1 ? 'swarm' : 'tactical';
     const early=/^wave[012]$/.test(this.mode);
     const wave0=this.mode==='wave0';
-    const center = this.portalLane(type,centerX);
+    // Onda 0 possui cinco posições específicas; o encaixe nos três
+    // corredores históricos impediria que aparecessem cinco portais.
+    const center=wave0&&Number.isFinite(centerX)
+      ? centerX : this.portalLane(type,centerX);
     const group = {
       kind, count, centerX: center, target: null, boundToScreen:true,
+      // Todos os tipos comuns fazem as mesmas manobras em ritmo menor.
+      // A onda 0 já usa sua coreografia didática própria.
       duration:wave0?WAVE0_EASY_PACING.danceDuration:
-        early ? (kind==='swarm'?3.5:4.0) : (kind==='swarm'?5.0:5.3),
+        (early ? (kind==='swarm'?3.5:4.0) : (kind==='swarm'?5.0:5.3))
+        /STANDARD_INVADER_FLIGHT_FACTOR,
       holdDuration:wave0?WAVE0_EASY_PACING.holdDuration:early?1.15:1.35,
       portalY: type===1?68:125,
       finalFormation: kind==='tactical'?'triangle':'square',
@@ -1427,7 +1434,7 @@ export class GameScene extends Phaser.Scene {
     if (event.warning) this.showAttackWarning(event.warning);
     const level = event.level ?? 1;
     if (event.pattern === 'swarm' && event.type === 1) {
-      this.spawnV035Group(1, level, event.count ?? 3);
+      this.spawnV035Group(1,level,event.count??3,event.portalX??null);
       return;
     }
     if (event.pattern === 'tactical' && event.type === 2) {
@@ -1608,9 +1615,12 @@ export class GameScene extends Phaser.Scene {
       baseScaleY: visual.sprite.scaleY,
       hp: definition.hp,
       maxHp: definition.hp,
-      // Na onda de apresentação, o mergulho é deliberadamente mais lento.
+      // Reduz a velocidade dos inimigos comuns em TODAS as ondas.
+      // A onda 0 mantém seu mergulho ainda mais brando. O Tipo 6 usa
+      // sua própria lógica de movimentação e não é afetado.
       speed:definition.speed*(this.mode==='wave0'&&type===1
-        ?WAVE0_EASY_PACING.diveSpeedMultiplier:1),
+        ?WAVE0_EASY_PACING.diveSpeedMultiplier
+        :STANDARD_INVADER_FLIGHT_FACTOR),
       recoilSpeed: 0,
       electricSlowUntil: -1,
       frozenUntil: -1,
