@@ -146,3 +146,16 @@
 - [ ] Enemy Maker altera base global; Wave Maker sobrescreve apenas valores locais à onda, sem modificar a base global.
 - [ ] Salvar rascunho de inimigo NÃO altera campanha; publicação explícita aplica o conjunto validado.
 - [ ] Primeira entrega limita escopo a atributos de combate e arena individual; marcar funcionalidades avançadas somente após implantação efetiva.
+
+
+## Enemy Maker — testes previstos S1–S10 (ainda não implementados)
+- [ ] Alternar entre modos básico e avançado sem perder rascunho; mostrar propriedades essenciais e opções expansíveis.
+- [ ] Editar números com unidades corretas e validação de entrada.
+- [ ] Básico restringe valores a faixas seguras; avançado amplia opções sem aceitar dados inválidos.
+- [ ] Selecionar variante para edição e comparar todos os níveis numa tabela.
+- [ ] Herança de atributos: mudança do valor-base propaga apenas a níveis sem sobrescrita; níveis personalizados preservam diferenças.
+- [ ] Restaurar atributo isolado ou nível inteiro sem alterar outros níveis e sem publicar automaticamente.
+- [ ] Prévia compacta de movimento e arena completa refletem parâmetros atuais do rascunho.
+- [ ] Comparação de valores originais versus novos e testes comparativos antes/depois.
+- [ ] Publicação mostra resumo, exige confirmação e guarda backup recuperável.
+- [ ] Fechar editor com rascunho não deve alterar os inimigos ativos nas campanhas.
