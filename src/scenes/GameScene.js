@@ -729,8 +729,10 @@ export class GameScene extends Phaser.Scene {
     this.countdownActive = true;
     this.elapsed = 0;
     this.statusText.setText('TEMPO ATÉ O AMANHECER');
+    let combatStarted=false;
     const startCombat = () => {
-      if (!this.scene.isActive('GameScene') || this.tutorialComplete) return;
+      if (combatStarted || !this.scene.isActive('GameScene') || this.tutorialComplete) return;
+      combatStarted=true;
       this.countdownActive = false;
       this.music.play(waveMusic(this.mode, this.campaign));
       this.elapsed = 0;
@@ -739,6 +741,12 @@ export class GameScene extends Phaser.Scene {
     };
     if (this.cuboNewsHud?.beginDawnIntro) {
       this.cuboNewsHud.beginDawnIntro(this.waveDurationMs, startCombat);
+      // Failsafe: uma animação DOM/tween interrompida nunca pode bloquear a onda.
+      this.time.delayedCall(5300,()=>{
+        if(combatStarted || !this.scene.isActive('GameScene'))return;
+        this.cuboNewsHud?.cancelDawnIntro?.();
+        startCombat();
+      });
     } else {
       // Fallback para integrações antigas sem DOM: não bloquear a onda.
       this.time.delayedCall(1900, startCombat);
