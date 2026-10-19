@@ -268,18 +268,32 @@ export function hitType6Segment(scene,enemy,x1,y1,x2,y2,damage,radius=0){
   for(const id of targets)if(hitTarget(scene,enemy,id,damage))break;
   return targets.length>0;
 }
-export function hitType6Bullet(scene,enemy,x,y,damage,radius=0){
-  const s=enemy.type6;
-  if(!s.introComplete)return {blocked:false,target:null};
-  const target=type6PointTarget(s,enemy.sprite.x,enemy.sprite.y,x,y,radius);
-  if(target!==null){hitTarget(scene,enemy,target,damage);return {blocked:true,target};}
-  // Estruturas destruídas são transparentes para projéteis.
-  if(s.modules.some(m=>m.broken&&Math.abs(x-enemy.sprite.x-m.offsetX)<=m.halfWidth&&
-    Math.abs(y-enemy.sprite.y)<=m.halfHeight))return {blocked:false,target:null};
-  if(type6HullContains(enemy.sprite.x,enemy.sprite.y,x,y,radius)){
-    burst(scene,x,y,0x929ead,5);return {blocked:true,target:null};
-  }
-  return {blocked:false,target:null};
+// Colisão contínua: um tiro rápido não pode atravessar o módulo entre frames.
+// O primeiro alvo vivo cruza o segmento, com prioridade total para a barreira.
+// A função também preserva disparos que apenas roçam carcaças destruídas.
+export function type6BulletContact(enemy,fromX,fromY,x,y,radius=0){
+  if(!enemy?.type6?.introComplete||enemy.type6.defeated)return null;
+  const s=enemy.type6,cx=enemy.sprite.x,cy=enemy.sprite.y;
+  const targets=type6SegmentTargets(s,cx,cy,fromX,fromY,x,y,radius);
+  if(targets.length)return targets[0];
+  // Área do casco sem módulo ativo bloqueia o disparo sem infligir dano.
+  const sweptHull=type6HullContains(cx,cy,x,y,radius)||
+    type6HullContains(cx,cy,fromX,fromY,radius)||
+    // Aproximação conservadora para segmentos rápidos que atravessam o casco.
+    (Math.min(fromX,x)<=cx+395+radius&&Math.max(fromX,x)>=cx-395-radius&&
+     Math.min(fromY,y)<=cy+61+radius&&Math.max(fromY,y)>=cy-61-radius);
+  if(!sweptHull)return null;
+  // Casco destruído pode ser atravessado: o núcleo só recebe dano ao abrir.
+  const transparent=s.modules.some(m=>m.broken&&
+    Math.abs(x-cx-m.offsetX)<=m.halfWidth&&Math.abs(y-cy)<=m.halfHeight);
+  return transparent?null:'hull';
+}
+export function hitType6Bullet(scene,enemy,x,y,damage,radius=0,fromX=x,fromY=y){
+  const target=type6BulletContact(enemy,fromX,fromY,x,y,radius);
+  if(target===null)return {blocked:false,target:null};
+  if(target!=='hull')hitTarget(scene,enemy,target,damage);
+  else burst(scene,x,y,0x929ead,5);
+  return {blocked:true,target:target==='hull'?null:target};
 }
 // Uma bomba abatida detona projéteis próximos. Evitar loops e partículas ilimitadas.
 export function detonateType6Bomb(scene,shot){
