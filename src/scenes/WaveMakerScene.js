@@ -42,6 +42,7 @@ export class WaveMakerScene extends Phaser.Scene {
   this.drawButton(822,320,'ANALISAR',()=>this.showPressure(),108,28);
   this.drawButton(691,320,'TRECHO',()=>this.setAnalysisRange(),100,28);
   this.drawButton(565,320,'COMPARAR',()=>this.comparePressure(),112,28);
+  this.drawButton(431,320,'TESTAR',()=>this.testDraft(),116,28);
   this.add.rectangle(510,371,736,65,0x101f31).setStrokeStyle(1,0x436278);
   this.add.text(145,418,'EVENTO SELECIONADO',textStyle(12,'#ffe2a6'));
   this.fields=this.add.container(0,0);
@@ -146,6 +147,19 @@ export class WaveMakerScene extends Phaser.Scene {
   if(!this.currentEvent())return;
   this.entry().events=this.events().filter(e=>e.id!==this.selected);
   this.selected=null;this.persist();this.render();
+ }
+ testDraft(){
+  // Snapshot da onda atual, exclusivamente para teste; não publicar.
+  const entry=this.entry();
+  if(!entry||!Array.isArray(entry.events))return;
+  this.persist();
+  this.scene.start('GameScene',{
+   mode:'wave'+this.current,
+   labConfig:{...this.labConfig,wave:Math.min(this.current,9)},
+   waveMakerTest:true,
+   waveMakerEvents:entry.events.map(event=>({...event})),
+   waveMakerDuration:entry.durationMs,
+  });
  }
  setAnalysisRange(){
   const duration=this.entry().durationMs;
