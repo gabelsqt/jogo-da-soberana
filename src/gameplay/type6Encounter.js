@@ -202,7 +202,12 @@ export function updateType6Encounter(scene,enemy,dt){
       }
     }
   }
-  drawType6Ship(enemy.graphics,s,scene.time.now);
+  // Chefões chineses e coreanos produzem muitos objetos/efeitos. Renderizar o
+  // casco a até 30 fps mantém TODOS os passos de física/dano em 60 fps.
+  if(!enemy.lastType6PaintAt||scene.time.now-enemy.lastType6PaintAt>=33){
+    drawType6Ship(enemy.graphics,s,scene.time.now);
+    enemy.lastType6PaintAt=scene.time.now;
+  }
   drawActiveLaser(scene,enemy);
 }
 function hitTarget(scene,enemy,id,damage){
