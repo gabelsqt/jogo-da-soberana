@@ -29,7 +29,7 @@ test('Cubo News: manchetes aparecem em caixa mista e termos brasileiros preserva
   assert.equal(formatCuboHeadline('O Brasil segue confiante'),'O Brasil segue confiante');
   assert.equal(formatCuboTime(30000),'30');
 });
-test('HUD bitmap e vinheta de zoom não criam GameObjects de UI dentro do Phaser',()=>{
+test('HUD de televisão IBM Plex Sans e zoom não criam GameObjects de interface',()=>{
   const previousDocument=globalThis.document;
   const root=mockEl(),broadcast=mockEl(),version=mockEl();
   root.hidden=true;
@@ -74,8 +74,8 @@ test('HUD bitmap e vinheta de zoom não criam GameObjects de UI dentro do Phaser
     assert.equal(root.hidden,false);
     assert.equal(version.hidden,true);
     assert.equal(broadcast.dataset.cuboNews,'visible');
-    assert.ok(labelPixels.paint.length>10);
-    assert.ok(introLabel.paint.length>10);
+    assert.equal(introLabel.textContent,'Tempo até o amanhecer');
+    assert.equal(root.hidden,false);
     hud.update(8900,30000,{
       headline:'CUBO NEWS PERGUNTA SOBRE FLAMENGO',
       subtitle:'Cristo continua de braços abertos.',
@@ -83,16 +83,16 @@ test('HUD bitmap e vinheta de zoom não criam GameObjects de UI dentro do Phaser
     assert.equal(timerReader.textContent,'22');
     assert.equal(timer.getAttribute('aria-label'),'Tempo restante: 22 segundos');
     assert.equal(headline.textContent,'Cubo News pergunta sobre Flamengo');
-    assert.ok(headlinePixels.paint.length>15);
-    assert.ok(timerPixels.paint.length>15);
+    assert.equal(headline.title,'Cubo News pergunta sobre Flamengo');
+    assert.equal(timer.style.color,'');
     assert.match(crawlOne.textContent,/Cristo continua/);
     assert.equal(crawlOne.textContent,crawlTwo.textContent);
-    assert.ok(crawlOnePixels.paint.length>15);
+    assert.equal(crawl.getAttribute('aria-label'),'Cristo continua de braços abertos.');
     assert.match(crawlTrack.style.animation,/cubo-scroll/);
     let started=0;
     hud.beginDawnIntro(30000,()=>started++);
     assert.equal(intro.hidden,false);
-    assert.ok(introNumber.paint.length>20);
+    assert.equal(introNumber.textContent,'30');
     assert.equal(camera.zoom,DAWN_WORLD_ZOOM);
     assert.equal(timer.style.opacity,'0');
     assert.equal(later.length,1);
