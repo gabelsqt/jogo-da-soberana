@@ -519,3 +519,16 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **Zeca Carrara:** usuário aprovou trocar camisa floral multicolorida por **camisa floral retrô em tons marrons/bege com flores claras**, mantendo bigode, cabelo, blazer claro, colar, copo de cerveja e gesto positivo. Versões com Rio de Janeiro e personagem isolado geradas.
 - Produzidos também os retratos-base de **Victor McDollar** (EUA), **Kim Lin Doo** (Coreia do Sul), **Tatiana Tanquova** (Rússia) e **Mei Taxaram** (China), cada qual nas versões com cenário e recorte transparente. Futuros retratos de expressões diversas permanecem planejados.
 - Integração inicial dos retratos ao **boteco / UpgradeScene**, sem alterar escolhas ou upgrades. **PNG binários fornecidos via ZIP da conversa, ainda não commitados no GitHub**; a interface depende da extração para `public/assets/lideres/`. Referência: `docs/versao-0.55.md`.
+
+### Boteco — decisões B1–B10 aprovadas (19/10/2026; somente planejamento)
+- **B1 A — após cada onda:** o jogador visita o boteco a cada vitória.
+- **B2 C — cinco líderes com estados:** exibir todos, indicando claramente disponível, indisponível ou já escolhido.
+- **B3 A — clique direto no retrato:** abre a proposta do líder. **Comentário do usuário:** antes de liberar os cliques, apresentar **comentários curtos sobre o que acabou de acontecer** na onda recém-encerrada, e só então permitir clicar num retrato.
+- **B4 B — pequenas conversas:** cada proposta é precedida por diálogo breve de duas ou três falas.
+- **B5 A — expressões por situação:** futuras variantes estáticas de retratos (neutro, feliz, irritado, assustado etc.) escolhidas segundo o contexto; apenas retratos-base estão em produção agora.
+- **B6 A — foco e painel lateral:** manter ampliação do líder selecionado e painel lateral de informações.
+- **B7 C — indicadores + demonstração:** comparar estatísticas antes/depois do upgrade e, quando viável, apresentar pequena prévia visual.
+- **B8 B — alternar humor e seriedade:** leveza nos encontros comuns, maior peso dramático nos momentos importantes.
+- **B9 B — reação breve do líder:** após confirmação, uma fala e um efeito visual discretos antes da continuação.
+- **B10 B — Zeca participativo:** o protagonista comenta propostas e responde aos demais líderes.
+- **Estado:** decisões de design aprovadas e documentadas; **não implementar** nesta rodada. Preservar o fluxo jogável até uma etapa de implementação expressamente autorizada.
