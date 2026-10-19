@@ -399,3 +399,10 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Próximas prioridades: boteco diurno com cinco retratos e seleção animada; Cubo News com HUD escuro e fontes aprovadas; abertura em visual novel no computador da repartição; diálogos provisórios; polimento textual ao final.
 - Reservar espaço para prévias animadas de upgrades, sem implementar os vídeos agora.
 - Feedback visual Tipo 6 implementado na v0.51: flashes localizados, microtremor exclusivamente gráfico e bursts reforçados.
+
+## Bugs reportados em playtest — 19/10/2026 (investigação, não corrigidos)
+- Travamento intermitente ao iniciar a onda 0.
+- Travamento intermitente na onda 11 com build totalmente coreana.
+- Após derrota na onda 11 e aceite de reforço brasileiro, foi observado um retângulo preto cobrindo parte inferior esquerda do cenário.
+- Evidências: capturas fornecidas pelo jogador no chat. Investigar logs do console, etapas de transição/reinício de `GameScene`, limpeza dos objetos de efeitos da build coreana, carregamento e desempenho. Não atribuir causa sem reprodução.
+- Critérios de aceite: onda 0 inicializa repetidamente sem travar; onda 11 coreana conclui várias tentativas; reinício com reforço brasileiro não deixa artefatos visuais; `npm test` e `npm run build` passam. Registrar correções na próxima versão quando confirmadas.
