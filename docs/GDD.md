@@ -828,3 +828,11 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **X9 C:** suportar **teste de onda isolada e simulação de campanha inteira**.
 - **X10 C:** onda só pode ser considerada balanceada após **limites técnicos respeitados e viabilidade da build brasileira básica verificada na prática**.
 - **Implementação incremental v0.59:** Wave Maker inclui botão **ANALISAR** com uma **heurística de concentração temporal das ENTRADAS de inimigos**, calculada do rascunho em intervalos de 1 s e sugestão de espaçamento. **Não é** simulação física de projéteis, danos, precisão de mira, sobrevivência ou campanha. X1–X10 continuam **parcialmente implementadas** até integração de simulador real. Não confundir score heurístico com dificuldade validada.
+
+### Implementação incremental v0.60 — Wave Maker
+- Adicionado **gráfico em barras da concentração estimada de entradas** ao longo do tempo.
+- **TRECHO** permite escolher intervalo inicial/final em segundos para o relatório e para o gráfico.
+- **COMPARAR** memoriza a pressão estimada da onda em edição e, após mudanças, mostra **antes/depois** (eventos, média e pico); a referência só dura a sessão atual do editor.
+- **ANALISAR** passa a respeitar o intervalo selecionado.
+- Escopo continua **heurístico**: não é contagem de projéteis em voo, dano registrado, resultado do jogo, taxa de vitória ou bot automatizado. Nenhuma alteração automática nas ondas/campanha.
+- A implementação do pacote X1–X10 ainda é **parcial**; simulações reais estão pendentes.
