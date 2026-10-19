@@ -172,3 +172,17 @@
 - [ ] Testar quantidade variável de inimigos e formações disponíveis, respeitando compatibilidade.
 - [ ] Simulação termina por eliminação de todos ou prazo configurado; validar também saída manual.
 - [ ] Após teste, repetir, visualizar resultados ou retornar ao Enemy Maker sem perder alterações não publicadas.
+
+
+## Integração Enemy Maker ↔ Wave Maker — validação futura U1–U10
+- [ ] Identificador técnico tipo + nível permanece estável mesmo após alterar nome descritivo opcional.
+- [ ] Editor impede criação de novos tipos/classes e edita apenas inimigos existentes.
+- [ ] JSON central representa todos os inimigos e variantes; exportação individual preserva esquema e dados.
+- [ ] Atualização global publicada reflete nas ondas sem override; sobrescritas locais permanecem intactas.
+- [ ] Wave Maker avisa que a base publicada mudou, mostra versão disponível e não descarta rascunhos ao recarregar.
+- [ ] Publicação executa verificação de esquema e testes básicos de ataque/movimento; falhas impedem aplicar dados.
+- [ ] Painel mostra ondas afetadas e detalhes de variantes/overrides antes de publicar.
+- [ ] Comparar snapshots publicados e restaurar versão anterior sem perder a possibilidade de nova reversão.
+- [ ] Importar JSON com prévia de diferenças e validação, sem modificar dados ativos antes da publicação.
+- [ ] Publicação separada e publicação conjunta opcional preservam consistência; testar falha parcial e recuperação.
+- [ ] **Não marcar como testado** antes de implementar e validar em ambiente real.
