@@ -688,3 +688,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **N55 C:** linguagem visual **retrô de videogame 16-bit**, menus simples em pixel art.
 - **Preservar N11–N45:** finais salvos localmente, dez posições fixas agrupadas por país/Full Brazil, derrota à esquerda/vitória à direita; reproduzir finais desbloqueados com clique para avançar e Esc para voltar; menu Extras visível apenas após primeiro final; fichas sem spoilers, Jukebox manual, sem contadores e sem notificações.
 - **Status:** decisões documentadas; não implementar, alterar assets/código ou avançar versão.
+
+
+### Gameplay e balanceamento — decisões O1–O10 aprovadas (19/10/2026; somente planejamento)
+- **O1 C:** reduzir a quantidade de projéteis combinando **intervalos maiores entre disparos e menos tiros por rajada**; respeitar repertórios já implementados e a preferência por evitar novas mecânicas.
+- **O2 C:** **limite próprio de projéteis inimigos simultâneos por onda**, configurável no **Wave Maker**, substituindo progressão fixa automática como meta de design. Números serão definidos após balanceamento.
+- **O3 C:** pausas planejadas **entre eventos da onda**, mantendo os ataques individuais dos inimigos; parametrizar agendamento no Wave Maker.
+- **O4 A:** projéteis inimigos comuns, ao serem interceptados, exibem **clarão branco seguido de pequena explosão colorida conforme o tipo**. Isso não obriga alterar a cor do projétil ainda em voo.
+- **O5 C:** bombas resistentes do Tipo 6 exibem **quatro estágios de dano visual** com rachaduras e perda de pequenas peças, **sem modificar suas colisões**.
+- **O6 B:** piscada branca de impacto dura **cerca de 0,12 s**.
+- **O7 B:** tremor visual da bomba **proporcional ao dano recebido**, sem interferir na hitbox.
+- **O8 A:** **cada projétil interceptado deve gerar seu pequeno efeito visível**; não agregar impactos próximos em uma única explosão. Usar efeitos eficientes em vez de omitir os efeitos, com ajustes de desempenho que preservem feedback individual.
+- **O9 C:** todas as ondas devem ser sobrevivíveis com **build brasileira básica e margem de erro humana**, sem exigir desempenho praticamente perfeito; validar com testes reais.
+- **O10 A:** prioridade do próximo pacote de implementação: **projéteis e dificuldade**, começando por limites configuráveis, cadência, pausas entre eventos e interceptação; **não executar ainda**.
+- **Status:** somente GDD e checklist atualizados; nenhum código, asset ou versão alterado nesta rodada.
