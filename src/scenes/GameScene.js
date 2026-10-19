@@ -4567,7 +4567,7 @@ export class GameScene extends Phaser.Scene {
         notice.setText('AMEAÇA DE NÍVEL SUPERIOR • CANHÃO NA MIRA');
         this.tweens.add({targets:core,scale:1.7,alpha:0.6,duration:230,yoyo:true,repeat:3,
           onComplete:()=>{
-            beam.setVisible(true);beam.height=Math.max(0,CANNON.y-172);
+            beam.setVisible(true);beam.setDisplaySize(14,Math.max(1,CANNON.y-172));
             this.cameras.main.shake(450,0.013);
             impact.setVisible(true);
             this.tweens.add({targets:impact,scale:12,alpha:0,duration:620,
