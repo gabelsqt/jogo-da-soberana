@@ -7,6 +7,7 @@ import {
 import {addMenuButton} from '../ui/menuButton.js';
 import {addCuboBroadcastFrame,addCuboPanel,addCuboPixelText} from '../ui/cuboNewsTheme.js';
 import {GAME_VERSION_LABEL} from '../config/version.js';
+import {resolvePlayerName,getSavedPlayerName,savePlayerName} from '../gameplay/playerIdentity.js';
 
 export class MenuScene extends Phaser.Scene{
   constructor(){super({key:'MenuScene'});}
@@ -34,9 +35,15 @@ export class MenuScene extends Phaser.Scene{
     this.add.text(W/2,219,'Defesa antiaérea  •  Playtest V1',{
       fontFamily:'monospace',fontSize:'15px',color:'#d3e4f4',
     }).setOrigin(0.5).setDepth(34);
-    const startGame=()=>this.scene.start('GameScene',{
-      mode:'wave0',campaign:{choices:[]},
-    });
+    const startGame=()=>{
+      if(!this.registry.get('playerName')){
+        if(this.playerNamePanel)this.playerNamePanel.hidden=false;
+        return;
+      }
+      this.scene.start('IntroScene',{
+        playerName:this.registry.get('playerName'),campaign:{choices:[]},
+      });
+    };
     const testUpgrades=()=>this.scene.start('V1PlaytestScene');
     addMenuButton(this,{x:W/2,y:282,text:'▶  Começar campanha V1',
       onClick:startGame,primary:true,depth:34,width:388});
@@ -59,5 +66,30 @@ export class MenuScene extends Phaser.Scene{
     }).setOrigin(1,1).setDepth(52);
     this.input.keyboard.on('keydown-ENTER',startGame);
     this.input.keyboard.on('keydown-U',testUpgrades);
+    this.installNameGate();
+  }
+  installNameGate(){
+    if(typeof document==='undefined')return;
+    const panel=document.getElementById('player-name-panel');
+    const input=document.getElementById('player-name-input');
+    if(!panel||!input)return;
+    this.playerNamePanel=panel;
+    const store=typeof window!=='undefined'?window.localStorage:null;
+    const saved=getSavedPlayerName(store);
+    if(!this.registry.get('playerName')){
+      input.value=saved;panel.hidden=false;
+      this.time.delayedCall(180,()=>input.focus());
+    }else panel.hidden=true;
+    const submit=event=>{
+      event.preventDefault();
+      const name=resolvePlayerName(input.value);
+      this.registry.set('playerName',savePlayerName(store,name));
+      input.value=name;
+      panel.hidden=true;
+    };
+    panel.addEventListener('submit',submit);
+    this.events.once('shutdown',()=>{
+      panel.removeEventListener('submit',submit);panel.hidden=true;
+    });
   }
 }
