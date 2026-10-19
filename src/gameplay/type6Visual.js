@@ -140,6 +140,15 @@ export function drawType6Ship(g,state,ageMs=0) {
         g.lineStyle(3,0xffa36d,0.90).lineBetween(x+12,y-7,x+32,y-20);
       }
       g.fillStyle(p.light,0.38+0.60*pulse).fillRect(x-16,y-6,32,12);
+      if(module.shield>0){
+        const fraction=module.shield/module.maxShield;
+        const color=fraction>0.75?0x388bff:fraction>0.50?0x35c86d:
+          fraction>0.25?0xf1cb35:0xf04a52;
+        g.lineStyle(4,color,0.55+0.22*pulse);
+        g.strokeRoundedRect(x-61,y-46,122,92,9);
+        g.lineStyle(2,color,0.17+0.16*pulse);
+        g.strokeRoundedRect(x-65,y-50,130,100,12);
+      }
 
     }
   }
