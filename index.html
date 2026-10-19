@@ -73,7 +73,7 @@
         pointer-events: none;
         overflow: visible;
         container-type: inline-size;
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: monospace;
         isolation: isolate;
       }
       #cubo-news-overlay[hidden] { display: none !important; }
@@ -84,9 +84,10 @@
         width: 78.5%;
         height: 55%;
         box-sizing: border-box;
-        background: linear-gradient(180deg, #f4f4f5 0%, #bbbbbe 100%);
-        box-shadow: inset 0 1px 0 #ffffffa0;
-        border-left: 0.32cqw solid #c51d27;
+        background: #c5cbd5;
+        border-top: 0.2cqw solid #f4f7fd;
+        border-bottom: 0.25cqw solid #53637c;
+        border-left: 0.42cqw solid #c51d27;
         overflow: hidden;
         display: flex;
         align-items: center;
@@ -100,8 +101,8 @@
         line-height: 1.65cqw;
         padding: 0 1.4cqw 0 0.9cqw;
         box-sizing: border-box;
-        clip-path: polygon(0 0, 91% 0, 100% 100%, 0 100%);
-        background: #cf1422;
+        clip-path: polygon(0 0, 94% 0, 94% 25%, 100% 25%, 100% 76%, 94% 76%, 94% 100%, 0 100%);
+        background: #cb172e;
         color: white;
         font-size: 1.22cqw;
         font-weight: 900;
@@ -134,7 +135,7 @@
         align-items: center;
         overflow: hidden;
         background: #bd091b;
-        box-shadow: inset 0 1px 0 #f8555a66;
+        border-top: 0.16cqw solid #ff7080;
       }
       .cubo-crawl-track {
         width: max-content;
@@ -160,21 +161,16 @@
       }
       .cubo-time {
         position: absolute;
-        right: 1.5%;
-        bottom: -0.1cqw;
-        font-family: 'Arial Black', Impact, ui-monospace, monospace;
-        font-size: 6.0cqw;
-        line-height: 0.98;
-        font-weight: 900;
-        letter-spacing: -0.065em;
-        font-variant-numeric: tabular-nums;
+        right: 0.6%;
+        bottom: -0.25cqw;
+        font-family: monospace;
+        image-rendering: pixelated;
         color: rgba(239, 248, 255, 0.70);
-        text-shadow: 0 0.17cqw 0.42cqw rgba(0, 0, 0, 0.84);
+        filter: drop-shadow(0.25cqw 0.25cqw 0 #060b18);
         white-space: nowrap;
         text-align: right;
       }
       #cubo-news-overlay.cubo-warning .cubo-time {
-        color: rgba(255, 63, 79, 0.95);
         animation: cubo-warning-pulse 0.36s steps(2, jump-none) infinite;
       }
       #cubo-news-overlay.cubo-warning .cubo-crawl {
@@ -188,6 +184,107 @@
       @media (prefers-reduced-motion: reduce) {
         .cubo-crawl-track { animation-duration: 24s; }
         #cubo-news-overlay.cubo-warning .cubo-time { animation: none; }
+      }
+
+      /* Bitmap real (5×7 desenhado em canvas com pixels duros).
+         Sem depender de fontes externas: o jogo funciona offline no itch.io. */
+      .cubo-accessible {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      #cubo-label-pixels,
+      #cubo-headline-pixels,
+      .cubo-crawl-pixels,
+      #cubo-time-pixels,
+      #cubo-dawn-label,
+      #cubo-dawn-number {
+        display: block;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        -ms-interpolation-mode: nearest-neighbor;
+      }
+      #cubo-label-pixels {
+        width: 11.6cqw;
+        height: 1.52cqw;
+      }
+      .cubo-story { align-items: center; }
+      #cubo-headline-pixels {
+        position: absolute;
+        left: 0.6cqw;
+        top: 50%;
+        transform: translateY(-50%);
+        max-width: calc(100% - 0.9cqw);
+        height: 1.65cqw;
+      }
+      .cubo-crawl-track {
+        font-size: 0;
+        height: 100%;
+      }
+      .cubo-crawl-pixels {
+        height: 1.48cqw;
+        align-self: center;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
+      #cubo-time-pixels {
+        width: 16.1cqw;
+        height: 10.3cqw;
+        opacity: 0.76;
+      }
+      /* Abertura de onda: camada DOM fixa na moldura, fora da câmera do jogo. */
+      #cubo-dawn-intro {
+        position: absolute;
+        inset: 0 0 auto 0;
+        width: 100%;
+        height: 92.46575%;
+        z-index: 40;
+        pointer-events: none;
+        container-type: inline-size;
+        overflow: visible;
+      }
+      #cubo-dawn-intro[hidden] { display: none !important; }
+      .cubo-dawn-frame {
+        position: absolute;
+        left: 25%;
+        top: 28%;
+        width: 50%;
+        height: 47%;
+        background: rgba(5, 16, 33, 0.82);
+        border: 0.35cqw solid #72cbe8;
+        box-shadow: 0.7cqw 0.7cqw 0 #040b16;
+        image-rendering: pixelated;
+      }
+      #cubo-dawn-label {
+        position: absolute;
+        left: 50%;
+        top: 39%;
+        width: 39cqw;
+        height: 2.85cqw;
+        transform: translate(-50%, -50%);
+        opacity: 1;
+      }
+      #cubo-dawn-number {
+        position: absolute;
+        left: 50%;
+        top: 54%;
+        width: 20.1cqw;
+        height: 12.8cqw;
+        transform: translate(-50%, -50%);
+        transform-origin: 50% 50%;
+        filter: drop-shadow(0.6cqw 0.6cqw 0 #071423);
+      }
+      #cubo-news-overlay.cubo-intro-running #cubo-time-pixels {
+        opacity: 0;
+      }
+      #cubo-dawn-intro.cubo-dawn-traveling .cubo-dawn-frame,
+      #cubo-dawn-intro.cubo-dawn-traveling #cubo-dawn-label {
+        opacity: 0;
       }
       #game canvas {
         display: block;
@@ -257,17 +354,31 @@
         <div id="game" aria-label="Jogo Soberania"></div>
         <section id="cubo-news-overlay" aria-label="Noticiário da Cubo News" hidden>
           <div class="cubo-story">
-            <span id="cubo-headline" class="cubo-headline">INVASÃO ALIENÍGENA — PLANTÃO CUBO NEWS</span>
+            <span id="cubo-headline" class="cubo-accessible">INVASÃO ALIENÍGENA — PLANTÃO CUBO NEWS</span>
+            <canvas id="cubo-headline-pixels" aria-hidden="true"></canvas>
           </div>
-          <div class="cubo-label">CUBO NEWS</div>
+          <div class="cubo-label">
+            <span class="cubo-accessible">CUBO NEWS</span>
+            <canvas id="cubo-label-pixels" aria-hidden="true"></canvas>
+          </div>
           <div class="cubo-crawl" aria-label="Subtítulo em movimento">
             <div id="cubo-crawl-track" class="cubo-crawl-track">
-              <span id="cubo-crawl-one">Cubo News acompanha a defesa nacional ao vivo.</span>
-              <span id="cubo-crawl-two" aria-hidden="true">Cubo News acompanha a defesa nacional ao vivo.</span>
+              <span id="cubo-crawl-one" class="cubo-accessible">Cubo News acompanha a defesa nacional ao vivo.</span>
+              <canvas id="cubo-crawl-one-pixels" class="cubo-crawl-pixels" aria-hidden="true"></canvas>
+              <span id="cubo-crawl-two" class="cubo-accessible" aria-hidden="true">Cubo News acompanha a defesa nacional ao vivo.</span>
+              <canvas id="cubo-crawl-two-pixels" class="cubo-crawl-pixels" aria-hidden="true"></canvas>
             </div>
           </div>
-          <div id="cubo-time" class="cubo-time" role="timer" aria-label="Tempo restante">00:30</div>
+          <div id="cubo-time" class="cubo-time" role="timer" aria-label="Tempo restante: 30 segundos">
+            <span id="cubo-time-reader" class="cubo-accessible">30</span>
+            <canvas id="cubo-time-pixels" aria-hidden="true"></canvas>
+          </div>
         </section>
+        <div id="cubo-dawn-intro" aria-hidden="true" hidden>
+          <div class="cubo-dawn-frame"></div>
+          <canvas id="cubo-dawn-label" aria-hidden="true"></canvas>
+          <canvas id="cubo-dawn-number" aria-hidden="true"></canvas>
+        </div>
       </div>
       <div id="rotate-notice" role="status" aria-live="polite" hidden>
         <div id="rotate-message">
