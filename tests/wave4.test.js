@@ -32,7 +32,7 @@ test('Onda 4 tem 80 inimigos blindados com a composição aprovada', () => {
   assert.ok(events.every(({ at }) => at >= 0 && at < 20000));
   assert.ok(events.every((event, index) => index === 0 ||
     event.at >= events[index - 1].at));
-  assert.equal(events.at(-1).at, 19500);
+  assert.equal(events.at(-1).at, 13500);
 });
 
 test('pinças têm caças nos dois lados e atrasos exatos de 1,5 s', () => {
@@ -40,16 +40,16 @@ test('pinças têm caças nos dois lados e atrasos exatos de 1,5 s', () => {
   const paired = events.filter(({ pattern }) => pattern === 'pincer');
   assert.deepEqual(paired.map(({ at, type }) => [at, type]),
     [[13800, 4], [57800, 4]].map(([at, type]) =>
-      [Math.round(at / 63800 * 19500), type]));
+      [Math.round(at / 63800 * 13500), type]));
   assert.ok(paired.every(({ warning }) => Boolean(warning)));
 
   const singles = events.filter(({ type, side }) => type === 4 && side);
   assert.deepEqual(singles.map(({ at, side }) => [at, side]), [
     [38500, 'left'], [40000, 'right'],
     [46000, 'right'], [47500, 'left'],
-  ].map(([at, side]) => [Math.round(at / 63800 * 19500), side]));
-  assert.ok(Math.abs(singles[1].at - singles[0].at - 1500 * 19500 / 63800) <= 1);
-  assert.ok(Math.abs(singles[3].at - singles[2].at - 1500 * 19500 / 63800) <= 1);
+  ].map(([at, side]) => [Math.round(at / 63800 * 13500), side]));
+  assert.ok(Math.abs(singles[1].at - singles[0].at - 1500 * 13500 / 63800) <= 1);
+  assert.ok(Math.abs(singles[3].at - singles[2].at - 1500 * 13500 / 63800) <= 1);
   assert.ok(events.some(({ type, group, count }) => type === 2 && group && count === 4));
   assert.ok(events.some(({ type, pattern, count }) =>
     type === 2 && pattern === 'orbit' && count === 10));
