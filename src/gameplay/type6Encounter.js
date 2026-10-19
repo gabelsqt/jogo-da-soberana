@@ -22,7 +22,8 @@ export function spawnType6Encounter(scene, options={}) {
     hp:state.coreHp,maxHp:state.coreMaxHp,sourceBossId:null,
     phase:'arrival6',age:0,phaseAge:0,
     shockOffset:{x:0,y:0,vx:0,vy:0},russianPullOffset:{x:0,y:0},
-    hitVisualOffsetX:0,electricSlowUntil:-1,frozenUntil:-1,
+    hitVisualOffsetX:0,impactShakeUntil:0,impactShakeStrength:0,
+    electricSlowUntil:-1,frozenUntil:-1,
     recoilSpeed:0,velocityX:0,velocityY:0,
     lastHitAt:-Infinity,target:scene.chooseDefenseTarget(),
     baseScaleX:1,baseScaleY:1,box:null,bossLabel:null,
@@ -149,6 +150,13 @@ export function updateType6Encounter(scene,enemy,dt) {
       }
     }
   }
+  // Tremor só nos Graphics: sprite/hitboxes mantêm suas coordenadas reais.
+  const remaining=Math.max(0,enemy.impactShakeUntil-scene.time.now);
+  const intensity=enemy.impactShakeStrength*Math.min(1,remaining/105);
+  enemy.graphics.setPosition(
+    Math.sin(scene.time.now*0.18)*intensity,
+    Math.cos(scene.time.now*0.23)*intensity*0.5,
+  );
   drawType6Ship(enemy.graphics,s,scene.time.now);
   if(s.charging && scene.boss6WarningText?.active){
     const remain=Math.max(0,(scene.waveDurationMs-scene.elapsed)/1000);
@@ -195,10 +203,14 @@ function hitTarget(scene,enemy,id,damage) {
   const x=enemy.sprite.x+(module?.offsetX??0);
   const y=enemy.sprite.y;
   const previousHitAt=module?.hitAt??state.hitAt;
+  const heavy=result.moduleDestroyed||result.shieldBroken||result.coreExposed;
+  // Reação local contínua, mas sem sacudir a nave violentamente em rajadas.
+  enemy.impactShakeStrength=Math.max(enemy.impactShakeStrength*(Math.max(0,enemy.impactShakeUntil-scene.time.now)/125),heavy?4.5:1.8);
+  enemy.impactShakeUntil=scene.time.now+(heavy?155:100);
   if(result.shieldBroken||result.moduleDestroyed||result.defeated||
       result.coreExposed||scene.time.now-previousHitAt>=110){
     burst(scene,x,y,result.shieldBroken?p.glow:p.light,
-      result.shieldBroken?42:result.moduleDestroyed?48:8);
+      result.shieldBroken?42:result.moduleDestroyed?52:id==='core'?20:15);
   }
   if(module)module.hitAt=scene.time.now;
   else state.hitAt=scene.time.now;
