@@ -22,7 +22,8 @@ export function spawnType6Encounter(scene,options={}){
     hp:state.coreHp,maxHp:state.coreMaxHp,sourceBossId:null,
     phase:'arrival6',age:0,phaseAge:0,
     shockOffset:{x:0,y:0,vx:0,vy:0},russianPullOffset:{x:0,y:0},
-    hitVisualOffsetX:0,electricSlowUntil:-1,frozenUntil:-1,
+    hitVisualOffsetX:0,impactShakeUntil:0,impactShakeStrength:0,
+    electricSlowUntil:-1,frozenUntil:-1,
     recoilSpeed:0,velocityX:0,velocityY:0,
     lastHitAt:-Infinity,target:scene.chooseDefenseTarget(),
     baseScaleX:1,baseScaleY:1,box:null,bossLabel:null,
@@ -202,6 +203,11 @@ export function updateType6Encounter(scene,enemy,dt){
       }
     }
   }
+  // Microtremor restrito ao desenho; contêiner e hitboxes não mudam.
+  const shakeLeft=Math.max(0,enemy.impactShakeUntil-scene.time.now);
+  const shake=enemy.impactShakeStrength*Math.min(1,shakeLeft/100);
+  enemy.graphics.setPosition(Math.sin(scene.time.now*0.2)*shake,
+    Math.cos(scene.time.now*0.24)*shake*0.5);
   // Chefões chineses e coreanos produzem muitos objetos/efeitos. Renderizar o
   // casco a até 30 fps mantém TODOS os passos de física/dano em 60 fps.
   if(!enemy.lastType6PaintAt||scene.time.now-enemy.lastType6PaintAt>=33){
@@ -214,6 +220,10 @@ function hitTarget(scene,enemy,id,damage){
   const s=enemy.type6,p=TYPE6_PALETTES[s.country],previousShield=type6BarrierActive(s);
   const result=type6Damage(s,id,damage);
   if(!result.damage)return false;
+  const major=result.barrierBroken||result.moduleShieldBroken||result.moduleDestroyed;
+  enemy.impactShakeStrength=Math.max(major?4.5:1.7,
+    enemy.impactShakeStrength*Math.max(0,enemy.impactShakeUntil-scene.time.now)/150);
+  enemy.impactShakeUntil=scene.time.now+(major?150:110);
   const module=typeof id==='number'?s.modules[id]:null;
   const x=enemy.sprite.x+(module?.offsetX??0),y=enemy.sprite.y;
   if(result.barrierBroken){
@@ -224,7 +234,7 @@ function hitTarget(scene,enemy,id,damage){
   }else if(result.moduleShieldBroken){
     burst(scene,x,y,0x71cfff,34);
   }else if(result.moduleDestroyed||result.defeated||scene.time.now-(module?.hitAt??s.hitAt)>130){
-    burst(scene,x,y,p.light,result.moduleDestroyed?45:9);
+    burst(scene,x,y,p.light,result.moduleDestroyed?50:id==='core'?19:15);
   }
   if(module)module.hitAt=scene.time.now;else s.hitAt=scene.time.now;
   // Interrupção do laser durante a carga: 25% do HP máximo no carregamento atual.
