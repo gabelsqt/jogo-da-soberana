@@ -20,6 +20,9 @@ export function createCuboNewsHud(scene){
   const crawlTwo=root.querySelector('#cubo-crawl-two');
   const crawlTrack=root.querySelector('#cubo-crawl-track');
   const timer=root.querySelector('#cubo-time');
+  const versionBadge=document.getElementById('build-version');
+  const wasVersionHidden=versionBadge?.hidden??false;
+  if(versionBadge)versionBadge.hidden=true;
   root.hidden=false;
   broadcast.dataset.cuboNews='visible';
   scene.game.events.emit('cubo-layout-change');
@@ -30,6 +33,7 @@ export function createCuboNewsHud(scene){
     if(destroyed)return;
     destroyed=true;
     root.hidden=true;
+    if(versionBadge)versionBadge.hidden=wasVersionHidden;
     root.classList.remove('cubo-warning');
     broadcast.dataset.cuboNews='hidden';
     scene.game.events.emit('cubo-layout-change');
