@@ -412,3 +412,9 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - O início da onda deve ser idempotente: se o callback da animação visual não concluir, um limite de segurança de 5,3 segundos encerra a intro e inicia a onda exatamente uma vez.
 - O mecanismo cobre onda 0 e onda 11; esta é uma correção preventiva para o relato de tela estática sem inimigos e cronômetro. Causa real ainda depende de reprodução.
 - Quadrado preto depois do reforço brasileiro permanece em investigação; não marcar como resolvido.
+
+### Correção do HUD Phaser — v0.53 (19/10/2026)
+- Erro observado na onda 11 full Rússia: `Uncaught TypeError: can't access property "drawImage", this.data is null` em `Phaser.Text.setText`, chamado por `updateHud` ao atualizar o rótulo do especial.
+- Decisão implementada: rótulos de texto ocultos/inativos não devem receber `setText`; textos visíveis só são atualizados quando o conteúdo muda, reduzindo regeneração de texturas.
+- A campanha mantém `specialLabel` e `ultimateLabel` ocultos (informação exibida pela Cubo News); nenhuma alteração de jogabilidade.
+- Ainda é necessário reproduzir/validar no Firefox e executar testes locais antes de considerar a origem completa do erro resolvida.
