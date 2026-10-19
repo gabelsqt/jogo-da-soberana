@@ -78,3 +78,18 @@
 - [ ] Comandante alienígena insiste que o Cristo feche os braços.
 - [ ] Epílogo Full Brazil celebra no boteco, seguido de pedidos internacionais de ajuda.
 - [ ] Última notícia mostra outra estátua provocando confusão intergaláctica.
+
+## Menu Extras e desbloqueios N11–N55 — testes futuros (ainda não implementados)
+- [ ] Menu Extras só aparece após o primeiro final concluído; contém três botões distintos e telas com retorno.
+- [ ] Grade com dez finais em posições fixas, pares por país/Full Brazil: **derrota esquerda, vitória direita**.
+- [ ] Bloqueados mostram **somente ? centralizado** em quadro escuro, sem bandeiras, nomes ou contadores.
+- [ ] Desbloqueados exibem **somente miniatura**, sem título sobreposto; título aparece ao selecionar.
+- [ ] Conquista do final salva automaticamente ao determinar vitória/derrota; rendição também salva ao aceitar o ultimato.
+- [ ] Galeria preserva desbloqueios entre campanhas/reabertura do navegador, não tem botão de apagar nem avisos de conquista.
+- [ ] Seleção de final desbloqueado reproduz sequência completa imediatamente; avança por clique/toque e Esc retorna à galeria.
+- [ ] Após a conclusão normal, tela escura **FIM** por 5 segundos; em seguida aceita tecla/clique para voltar ao menu.
+- [ ] Ficha de cada representante libera após qualquer final do país; Zeca após qualquer final; alienígenas apenas após final Full Brazil.
+- [ ] Fichas estáticas mostram retratos, descrições, falas e tecnologias **sem revelar planos colonizadores**.
+- [ ] Jukebox libera músicas conforme ouvidas e músicas de desfecho somente no final correspondente.
+- [ ] Jukebox mostra nomes de cenas, um título por vez, controles simples; música continua dentro do menu Extras e para ao retornar ao menu principal.
+- [ ] Menu Extras usa visual retrô pixel art 16-bit.
