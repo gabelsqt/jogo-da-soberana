@@ -159,3 +159,16 @@
 - [ ] Comparação de valores originais versus novos e testes comparativos antes/depois.
 - [ ] Publicação mostra resumo, exige confirmação e guarda backup recuperável.
 - [ ] Fechar editor com rascunho não deve alterar os inimigos ativos nas campanhas.
+
+
+## Enemy Maker — simulação T1–T10 (testar após implementação, ainda pendente)
+- [ ] Arena de teste usa fundo neutro e distingue claramente inimigo, tiros e defesa.
+- [ ] Pausar/retomar congela a simulação corretamente; velocidades 0,5×, 1× e 2× preservam lógica e resultados esperados.
+- [ ] Valores de movimento existentes (velocidade/aceleração) afetam a simulação sem criar rotas novas.
+- [ ] Canhão automático e canhão manual são selecionáveis; comparar resultados sem misturar métricas.
+- [ ] Hitboxes e trajetórias podem ser mostradas/ocultadas **independentemente** e não alteram colisões.
+- [ ] Painel básico apresenta métricas essenciais; modo avançado expande estatísticas e não atrapalha visão.
+- [ ] Duas execuções com as mesmas condições/seed produzem resultados consistentes; variação aleatória é opcional.
+- [ ] Testar quantidade variável de inimigos e formações disponíveis, respeitando compatibilidade.
+- [ ] Simulação termina por eliminação de todos ou prazo configurado; validar também saída manual.
+- [ ] Após teste, repetir, visualizar resultados ou retornar ao Enemy Maker sem perder alterações não publicadas.
