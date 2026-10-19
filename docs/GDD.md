@@ -494,3 +494,8 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **Decisão 33 — C, importar ou substituir:** ao importar JSON, oferecer criar um novo projeto ou substituir o projeto selecionado, com confirmação explícita ao substituir. Importar nunca publica automaticamente na campanha.
 - **Decisão 34 — A, primeira entrega funcional:** implementar primeiro editor de eventos básicos com criar, mover, duplicar e excluir grupos; editar tempos e posições; salvar rascunho. Não exigir simulação, relatório ou publicação nessa primeira entrega.
 - **Especificação técnica consolidada:** ver `docs/GDD-WAVE-MAKER.md`. Ainda depende de revisão/aprovação final; nenhuma implementação autorizada nesta etapa.
+
+### Wave Maker — Etapa 1 entregue para teste, v0.54 (19/10/2026)
+- Registrada como **implementada inicialmente**: `WaveMakerScene` integrada ao Laboratório; lista de ondas 0–11, importação de eventos efetivos em rascunhos independentes, mapas e blocos temporais arrastáveis, edição numérica via diálogo, criação/duplicação/exclusão de grupos e salvamento local.
+- Os eventos existentes e campos extras ficam preservados no modelo. Ainda não se edita o comportamento da campanha nem se executam rascunhos em combate.
+- Limitações e pendências de interface/recursos planejados em `docs/versao-0.54.md`. Testes automatizados e playtest local pendentes.
