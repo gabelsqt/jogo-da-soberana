@@ -584,3 +584,16 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **F9 A:** enquanto o núcleo carrega a superarma, os módulos **param de atacar**; combate se concentra no núcleo e na animação de sucção progressiva.
 - **F10 A:** o jogador aprende os ataques durante a luta por meio de animações das próprias armas. Não incluir HUD/alertas adicionais.
 - **Status:** somente documentação desta rodada; não implementar, modificar balanceamento, código ou versão. F1–F4 são reafirmações de comportamentos já presentes no jogo.
+
+### UX e feedback visual — decisões G1–G10 aprovadas (19/10/2026; somente planejamento)
+- **G1 A — HUD mínimo:** exibir somente informações essenciais, mantendo a área do combate desobstruída e evitando banners.
+- **G2 C — impacto no canhão:** clarão local, pequeno tremor de tela e som breve ao receber dano.
+- **G3 C — acertos por classe:** inimigos comuns exibem clarões discretos, inimigos pesados têm resposta visual mais forte.
+- **G4 A — dano progressivo:** rachaduras, faíscas e degradação visual em alvos resistentes, sem depender de barras extras.
+- **G5 C — Supremo pronto:** ícone compacto junto ao canhão e brilho do próprio canhão. **Comentário vinculante:** quando o Supremo ficar disponível, o **representante do país associado ao Supremo aparece e faz um comentário rápido antes de o jogador ter que digitar** para acioná-lo. Planejar apresentação curta sem poluir a HUD nem alterar a regra de acionamento já existente; o instante exato da fala e da digitação deve ser especificado antes de implementar.
+- **G6 A — prioridade das notícias:** alertas críticos substituem mensagens de menor importância na barra inferior da Cubo News (canal narrativo único).
+- **G7 B — adaptação de telas:** reposicionar elementos conforme a tela, sem mudar a lógica do combate.
+- **G8 B — explosões por importância:** impactos comuns discretos; grandes explosões reservadas a acontecimentos decisivos.
+- **G9 C — módulo Tipo 6 destruído:** explosão localizada, efeitos elétricos e módulo permanentemente apagado/inativo.
+- **G10 C — acessibilidade:** opções independentes para reduzir/desligar tremores de tela e reduzir flashes/partículas.
+- **Status:** somente GDD atualizado; nada implementado nem alterado em código, assets ou versão nesta rodada.
