@@ -48,21 +48,21 @@ test('míssil dos EUA escala 1/2/4/8, e ondas superam o raio da explosão',()=>{
   }
 });
 
-test('matryoshka tem 8/12/16/24 estilhaços e escudo congela mais que o tiro',()=>{
+test('matryoshka tem 8/12/16/24 estilhaços sem efeitos defensivos',()=>{
   for(const [tier,shards] of [[2,8],[4,12],[6,16],[8,24]]){
     const b=v1SpecialConfig(countryAt('ru',tier));
     assert.equal(b.ruShards,shards);
-    assert.ok(b.ruShieldFreezeMs>b.ruFreezeMs);
-    assert.ok(b.ruShieldRadius>0);
+    assert.ok(b.ruFreezeMs>0);\n    assert.equal(b.ruShieldFreezeMs,undefined);
+    assert.equal(b.ruShieldRadius,undefined);
   }
 });
 
-test('encomendas e espelhos evoluem sem projéteis recursivos adicionais',()=>{
+test('encomendas e reflexos ofensivos evoluem sem bônus de escudo',()=>{
   for(const [tier,payloads,rays] of [[2,1,3],[4,2,6],[6,3,12],[8,4,24]]){
     assert.equal(v1SpecialConfig(countryAt('cn',tier)).cnPayloads,payloads);
     const kr=v1SpecialConfig(countryAt('jp',tier));
     assert.equal(kr.krReflections,rays);
-    assert.ok(kr.krShieldChance>0&&kr.krShieldChance<=1);
+    assert.equal(kr.krShieldChance,undefined);
   }
 });
 
