@@ -6,6 +6,7 @@ import {
 import { FIRST_UPGRADES, getFirstUpgrade } from '../gameplay/upgrades.js';
 import { SECOND_UPGRADES } from '../gameplay/secondUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import {addCuboBroadcastFrame,addCuboPixelText} from '../ui/cuboNewsTheme.js';
 
 // Painel de laboratório: sobrepõe o combate pausado, permitindo testar
 // melhorias isoladas ou várias combinações sem consumi-las na campanha.
@@ -31,14 +32,17 @@ export class UpgradeLabScene extends Phaser.Scene {
     this.add.rectangle(W / 2, H / 2, W - 24, H - 24, 0x071a30, 0.98)
       .setStrokeStyle(2, 0x568cba).setDepth(2);
 
-    this.add.text(W / 2, 44, 'LABORATÓRIO DE UPGRADES', {
-      fontFamily: 'monospace', fontSize: '29px',
-      color: '#f9e69c', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(3);
-
-    this.add.text(W / 2, 81, 'ATIVAR / DESATIVAR • COMBINAÇÕES LIVRES • NÃO AFETA A CAMPANHA', {
-      fontFamily: 'monospace', fontSize: '12px', color: '#bee0f4',
-    }).setOrigin(0.5).setDepth(3);
+    addCuboBroadcastFrame(this,{
+      section:'Laboratório em tempo real',
+      headline:'Análise tática • Combinações e equipamentos',
+      footer:'Simulação de armamentos • Sem efeito sobre a campanha',
+      depth:50,
+    });
+    addCuboPixelText(this,{x:W/2,y:78,text:'Painel de upgrades',
+      size:3,color:'#ffe6a2',depth:5,maxWidth:700});
+    this.add.text(W/2,99,'Ativar / desativar • Combinações livres • Não afeta a campanha',{
+      fontFamily:'monospace',fontSize:'12px',color:'#bee0f4',
+    }).setOrigin(0.5).setDepth(5);
 
     this.levelSwitch = this.add.text(W / 2, 108, '', {
       fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold',
@@ -64,8 +68,8 @@ export class UpgradeLabScene extends Phaser.Scene {
         ...extra,
       }).setOrigin(0.5).setDepth(4);
 
-      label(143, upgrade.flag + ' • ' + (upgrade.shortName ?? upgrade.name).toUpperCase(), '20px', '#f4fbff', { fontStyle: 'bold' });
-      const titleLabel = label(207, upgrade.title.toUpperCase(), '15px', '#ffe9b5',
+      label(143, upgrade.flag + ' • ' + (upgrade.shortName ?? upgrade.name), '20px', '#f4fbff', { fontStyle: 'bold' });
+      const titleLabel = label(207, upgrade.title, '15px', '#ffe9b5',
         { fontStyle: 'bold' });
       const descriptionLabel = label(298, upgrade.description, '12px', '#d3e2ef',
         { lineSpacing: 3 });
@@ -100,9 +104,7 @@ export class UpgradeLabScene extends Phaser.Scene {
       text: '▶ VOLTAR AO CAMPO [U]', onClick: () => this.closeLab(), primary: true,
       depth: 4, fontSize: '16px',
     });
-    this.add.text(W / 2, 516, '1–5: NÍVEL DA ABA  •  N: TROCAR NÍVEL  •  SHIFT+1–5: TORRE', {
-      fontFamily: 'monospace', fontSize: '12px', color: '#9abfd5',
-    }).setOrigin(0.5).setDepth(4);
+    // Atalhos seguem válidos; a faixa da emissora ocupa agora o rodapé.
 
     this.input.keyboard.on('keydown', (event) => {
       if (event.key === '0') this.clearUpgrades();
@@ -159,7 +161,7 @@ export class UpgradeLabScene extends Phaser.Scene {
     );
     for (const { card, status, towerStatus, upgrade, titleLabel, descriptionLabel } of this.cards) {
       const effect = this.displayLevel === 1 ? upgrade : SECOND_UPGRADES[upgrade.id];
-      titleLabel.setText(effect.title.toUpperCase());
+      titleLabel.setText(effect.title);
       descriptionLabel.setText(effect.description);
       const active = (this.displayLevel === 1
         ? this.selectedIds : this.selectedSecondIds).includes(upgrade.id);
