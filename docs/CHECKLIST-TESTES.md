@@ -229,3 +229,12 @@
 - [ ] Verificar limites técnicos e viabilidade prática da build brasileira básica antes de classificar onda como balanceada.
 - [ ] **v0.59 parcial:** abrir Wave Maker > ANALISAR; validar mensagem de concentração de entradas, pico e sugestões; confirmar que não são apresentados como resultados de combate.
 - [ ] Rodar `npm test` e `npm run build` no clone antes de marcar a v0.59 como validada.
+
+## Wave Maker v0.60 — verificação de interface ainda pendente
+- [ ] Gráfico da linha do tempo representa entradas estimadas e identifica pico; não confundir com projéteis ativos.
+- [ ] TRECHO aceita valores em segundos dentro da duração da onda, rejeita intervalos inválidos e não altera eventos.
+- [ ] ANALISAR considera o intervalo selecionado.
+- [ ] COMPARAR cria referência da onda atual e depois exibe valores antes/depois; troca de onda limpa referência.
+- [ ] Selecionar onda, mover eventos, salvar rascunho e reiniciar editor não causa erros gráficos.
+- [ ] Rodar testes com `npm test`, build com `npm run build` e inspecionar layout 960×540 no navegador.
+- [ ] Simulação real, métricas de dano, sobrevivência, lote de testes e campanha completa continuam pendentes (X1–X10).
