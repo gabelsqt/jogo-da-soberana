@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { getWaveEvents, WAVE_LAST_SPAWN_MS, scheduledEnemyCount, waveOutcome } from '../src/gameplay/waves.js';
 import {
-  SWARM_DANCES, SWARM_ENTRIES, TACTICAL_FORMATIONS,
+  SWARM_DANCES, SWARM_ENTRIES, TACTICAL_FORMATIONS, WAVE0_EASY_PACING,
   V035_SWARM_SIZES, V035_SQUAD_SIZES, getV035WaveEvents,
   progressiveGroupCount, swarmDanceCenter, swarmDancePosition, swarmOffset,
   tacticalFormationOffset, tacticalManeuverPosition, tacticalAttackPosition,
@@ -30,11 +30,17 @@ test('v0.35 preserva 30 segundos, agenda em até 13,5s e vitória antecipada', (
   }
 });
 
-test('onda 0 tem apenas quatro grupos pequenos, preservando as coreografias',()=>{
+test('onda 0 tem 22 alvos em quatro grupos lentos, preservando as coreografias',()=>{
   const events=getV035WaveEvents('wave0',getWaveEvents('wave0'));
-  assert.deepEqual(events.map(e=>e.count),[3,4,4,5]);
-  assert.deepEqual(events.map(e=>e.at),[1100,4600,8100,11600]);
-  assert.equal(scheduledEnemyCount(events),16);
+  assert.deepEqual(events.map(e=>e.count),[5,5,6,6]);
+  assert.deepEqual(events.map(e=>e.at),[900,4200,7800,11400]);
+  assert.equal(scheduledEnemyCount(events),22);
+  assert.equal(WAVE0_EASY_PACING.danceDuration,6.5);
+  assert.equal(WAVE0_EASY_PACING.holdDuration,3.1);
+  assert.equal(WAVE0_EASY_PACING.firstShotDelay,1.5);
+  assert.equal(WAVE0_EASY_PACING.shotStagger,0.2);
+  assert.equal(WAVE0_EASY_PACING.diveSpeedMultiplier,0.7);
+  assert.equal(WAVE0_EASY_PACING.bulletSpeedMultiplier,0.85);
   assert.ok(events.every(e=>e.type===1&&e.pattern==='swarm'));
 });
 
