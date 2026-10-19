@@ -23,24 +23,28 @@ const makeText=(scene,x,y,str,size=16,color='#dce8ee',width=null,opts={})=>
 
 function portrait(scene,option,index){
   const color=option.locked?0x68737d:(option.color??0x668eac);
-  const face=scene.add.graphics();
-  // Retrato provisório com silhueta diferente por país. A área comportará
-  // retratos definitivos sem precisar trocar o comportamento do menu.
-  face.fillStyle(0x101d2b,0.98).fillRoundedRect(-56,-67,112,133,8);
-  face.lineStyle(3,color,1).strokeRoundedRect(-56,-67,112,133,8);
-  face.fillStyle(color,0.72).fillCircle(0,-27,23);
-  face.fillStyle(color,0.72).fillRoundedRect(-39,-3,78,36,14);
-  face.fillStyle(COLOR.ink,0.8).fillRect(-19,-31,9,4).fillRect(10,-31,9,4);
-  face.lineStyle(3,COLOR.amber,0.85).lineBetween(-10,-15,10,-15);
-  face.fillStyle(COLOR.ink,0.95).fillRoundedRect(-48,34,96,25,3);
-  const emblem=makeText(scene,0,-27,REPRESENTATIVES[option.id].emblem,13,
-    '#f8fafb',null,{fontStyle:'bold'}).setOrigin(0.5);
+  const id=option.id;
+  const frame=scene.add.graphics();
+  frame.fillStyle(0x101d2b,0.98).fillRoundedRect(-56,-67,112,133,8);
+  frame.lineStyle(3,color,1).strokeRoundedRect(-56,-67,112,133,8);
+  const portraitKey='leader-'+id+'-full';
+  const loaded=scene.textures.exists(portraitKey);
+  const image=loaded?scene.add.image(0,-1,portraitKey).setDisplaySize(106,125):null;
+  if(image){
+    const maskShape=scene.make.graphics({x:0,y:0,add:false});
+    maskShape.fillStyle(0xffffff,1).fillRoundedRect(-53,-64,106,125,6);
+    image.setMask(maskShape.createGeometryMask());
+  }else{
+    frame.fillStyle(color,0.72).fillCircle(0,-27,23);
+    frame.fillStyle(color,0.72).fillRoundedRect(-39,-3,78,36,14);
+  }
+  const footer=scene.add.rectangle(0,46,104,30,0x101d2b,0.94);
   const label=makeText(scene,0,43,option.shortName??option.name,12,
-    '#dce8ee',96,{fontStyle:'bold',align:'center'}).setOrigin(0.5);
+    '#dce8ee',100,{fontStyle:'bold',align:'center'}).setOrigin(0.5);
   const lvl=makeText(scene,0,76,'Nível '+option.level,11,
     '#e2a45e',null,{fontStyle:'bold'}).setOrigin(0.5);
-  const node=scene.add.container(BOTECO_CHAIR_X[index],BOTECO_PORTRAIT_Y,
-    [face,emblem,label,lvl]).setDepth(26);
+  const children=image?[frame,image,footer,label,lvl]:[frame,footer,label,lvl];
+  const node=scene.add.container(BOTECO_CHAIR_X[index],BOTECO_PORTRAIT_Y,children).setDepth(26);
   node.setSize(114,161).setInteractive({useHandCursor:true});
   return {node,option,index,originX:BOTECO_CHAIR_X[index],originY:BOTECO_PORTRAIT_Y};
 }
@@ -66,7 +70,15 @@ export class UpgradeScene extends Phaser.Scene {
       this.campaign.choices.length;
     this.chosen=false;this.focused=null;
   }
-  preload(){this.load.image('boteco-dia',assetUrl('assets/cenario/boteco_dia.webp'));}
+  preload(){
+    this.load.image('boteco-dia',assetUrl('assets/cenario/boteco_dia.webp'));
+    // Os retratos são arquivos opcionais: a silhueta provisória continua funcionando
+    // quando o pacote de PNGs ainda não foi instalado localmente.
+    for(const id of ['br','us','jp','ru','cn']){
+      this.load.image('leader-'+id+'-full',assetUrl('assets/lideres/'+id+'_retrato.png'));
+      this.load.image('leader-'+id+'-cutout',assetUrl('assets/lideres/'+id+'_personagem.png'));
+    }
+  }
   create(){
     bindSceneMusic(this,'upgrades');
     this.add.image(W/2,H/2,'boteco-dia').setDisplaySize(W,H).setDepth(1);
@@ -171,8 +183,8 @@ export class UpgradeScene extends Phaser.Scene {
     }
     const option=current.option;
     this.countryTag.setText(REPRESENTATIVES[id].label+' • NÍVEL '+option.level);
-    this.characterName.setText(REPRESENTATIVES[id].label==='COREIA DO SUL'
-      ?'Kim Lin Doo':'Representante '+REPRESENTATIVES[id].emblem);
+    this.characterName.setText({br:'Zeca Carrara',us:'Victor McDollar',
+      jp:'Kim Lin Doo',ru:'Tatiana Tanquova',cn:'Mei Taxaram'}[id]??'Representante');
     this.flavorText.setText('“'+representativeStoryFor(id,option.level)+'”');
     this.upgradeTitle.setText(option.title);
     this.upgradeDescription.setText(option.description);
