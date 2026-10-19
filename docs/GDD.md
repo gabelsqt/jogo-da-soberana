@@ -758,3 +758,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **S9 C:** comparação **numérica original × modificada** e opção de testes em separado para antes/depois.
 - **S10 C:** publicação protegida por **resumo de alterações, confirmação explícita e backup/snapshot automático** do estado anterior para reversão.
 - **Estado:** apenas documentar; não implementar nem modificar código, assets ou versão.
+
+
+### Enemy Maker — simulação e comportamento, decisões T1–T10 aprovadas (19/10/2026; só planejamento)
+- **T1 A:** arena de teste **neutra**, com fundo simples e visual desobstruído para observar inimigos e ataques; não usar cenário obrigatório do Rio.
+- **T2 C:** controles independentes de **pausar/retomar** e **velocidade de simulação** (por exemplo 0,5×, 1× e 2×).
+- **T3 A:** movimentação: editar **velocidade, aceleração e demais atributos já implementados**; não acrescentar ferramenta para desenhar rotas nesta decisão.
+- **T4 C:** escolher entre **canhão automático** para teste padronizado e **controle manual pelo jogador**.
+- **T5 C:** overlays de debug **independentes** para hitboxes e trajetórias.
+- **T6 C:** indicadores compactos de simulação com **painel avançado expansível** de métricas.
+- **T7 C:** execuções **reproduzíveis** com as mesmas condições, podendo optar por variação de aleatoriedade; registrar condições ou semente para comparação.
+- **T8 C:** teste com **quantidade configurável de inimigos** e **formações existentes compatíveis**.
+- **T9 C:** encerrar o teste quando **todos os inimigos forem derrotados** ou o **tempo configurado terminar** (o evento que ocorrer primeiro); preservar encerramento manual.
+- **T10 C:** ao finalizar, oferecer **repetir, visualizar resultados ou retornar à edição**, mantendo o rascunho.
+- **Escopo:** essas funcionalidades descrevem o editor completo planejado; a primeira entrega permanece a versão incremental R10 B (atributos de combate + teste individual). **Não implementar nem versionar** agora.
