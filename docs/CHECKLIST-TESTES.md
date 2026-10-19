@@ -65,3 +65,16 @@
 | — | 0.58 | Aguardando teste geral | Não testado | Anotar aqui após o primeiro playtest |
 
 > Ao receber resultados, marcar apenas o que foi efetivamente verificado e registrar bugs reproduzíveis com a onda e as etapas para repetir.
+
+## Continuidade narrativa L1–L10 — conferir após implementação futura
+- [ ] Notícias iniciais relatam OVNIs observando o Cristo Redentor, mas **não explicam** a motivação antes da revelação.
+- [ ] Flagrantes de alienígenas na praia, tomando sol e bebendo água de coco, aparecem em notícias ao longo da campanha.
+- [ ] Humanoides alienígenas pequenos, arrogantes e **sempre de braços cruzados**.
+- [ ] Transmissão alienígena antes da onda 10 é inicialmente **ininteligível**; linguistas brasileiros traduzem progressivamente, começando por ameaças.
+- [ ] A exigência de fechar os braços só fica inteligível depois do esforço dos linguistas.
+- [ ] **Zeca fala com o jogador**, não negocia nem conversa diretamente com alienígenas; revisar fala provisória da v0.56.
+- [ ] Alienígenas continuam atacando sem dar tempo para explicações; **não** justificar a guerra com burocracia imperial.
+- [ ] Linguistas explicam **posteriormente** aos alienígenas o que é uma estátua e o gesto de acolhimento.
+- [ ] Comandante alienígena insiste que o Cristo feche os braços.
+- [ ] Epílogo Full Brazil celebra no boteco, seguido de pedidos internacionais de ajuda.
+- [ ] Última notícia mostra outra estátua provocando confusão intergaláctica.
