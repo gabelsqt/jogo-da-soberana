@@ -86,3 +86,7 @@ Módulos e posições fixos em todos os países, da esquerda para a direita:
 
 ## Interface de transmissão v0.45 (revisão do lower third)
 A faixa da Cubo News **não cobre mais** os 960×540 pixels da cena. É uma camada HTML de **44 pixels lógicos adicionada externamente abaixo do canvas**, com manchete prata e texto rolante em faixa vermelha. O canhão permanece em (480, 494), acima da nova faixa, assim como os prédios; não modificar colisões por motivos de HUD. Cronômetro na direita, maior, transparente e sem moldura. Nos últimos 5 s pisca em vermelho e substitui a notícia por alerta. Zoom e screenshake de combate ou derrota afetam somente a cena, nunca o noticiário externo. Detalhes em `docs/GDD.md` e `docs/versao-0.45.md`.
+
+
+## Apresentação de ondas v0.46
+Antes das ondas 10/11 (e de qualquer onda comum), apresentar **“TEMPO ATÉ O AMANHECER”** com `30` ou `60` em fonte pixel bitmap gigante no centro da tela. O número desliza até a posição grande do cronômetro externo da Cubo News e **só então a onda começa**. A lógica já aprovada permanece: no encontro Tipo 6 o relógio congela durante a entrada cinematográfica do chefão e só conta quando ele fica alvejável. Nas ondas 0–9, o noticiário mantém tom aliviado e confiante devido à falsa promessa de retirada dos invasores ao amanhecer, condicionada ao Cristo Redentor (“Líder Supremo”) cruzar os braços; o impasse é permanente.
