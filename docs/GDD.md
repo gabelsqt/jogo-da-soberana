@@ -418,3 +418,8 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Decisão implementada: rótulos de texto ocultos/inativos não devem receber `setText`; textos visíveis só são atualizados quando o conteúdo muda, reduzindo regeneração de texturas.
 - A campanha mantém `specialLabel` e `ultimateLabel` ocultos (informação exibida pela Cubo News); nenhuma alteração de jogabilidade.
 - Ainda é necessário reproduzir/validar no Firefox e executar testes locais antes de considerar a origem completa do erro resolvida.
+
+## Soberania Wave Maker — direção aprovada para planejamento (19/10/2026)
+- Criar ferramenta visual integrada ao laboratório para projetar e testar ondas sem editar código: origem/posição dos inimigos, tipo, quantidade, instante de entrada e sequência de eventos.
+- Proposta arquitetural em avaliação: editor com mapa de spawn, linha do tempo e prévia jogável, persistência local e exportação/importação JSON; definições separadas da lógica de execução para permitir reaproveitar o sistema de ondas.
+- Escopo, interface, parâmetros avançados e modo de publicação no jogo ainda precisam de decisão; não confundir este registro de intenção com funcionalidade implementada.
