@@ -2,7 +2,15 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.45
+## Versão atual — 0.46
+
+**Cubo News em pixel art + abertura do amanhecer:** o HUD inferior agora usa uma fonte bitmap 5×7 própria do jogo, cores chapadas e contornos retos. O cronômetro está ainda maior e exibe apenas os **segundos** (30, 29, 28...), sem `00:`. Antes de cada onda, o texto **TEMPO ATÉ O AMANHECER** e o número total (30 ou 60) aparecem centralizados; o número desliza até o relógio à direita, e **somente depois** os disparos, spawns e o cronômetro começam. Nos chefões, a contagem permanece parada até que a fortaleza esteja alvejável.
+
+Nas ondas **0–9**, a Cubo News se mantém tranquilíssima: os ETs prometeram deixar o Rio ao amanhecer assim que o “Líder Supremo” cruzar os braços. Como o Cristo Redentor nunca cruza os braços, a invasão se repete todas as noites. A emissora insiste em tratar o compromisso como confiável. A cobertura de emergência passa a ser desesperada somente nas ondas 10–11.
+
+O noticiário continua uma **faixa externa e imóvel** abaixo do canvas; zoom/screen shake não afetam letras, ticker ou relógio. Nenhum PNG ou fonte extra é necessário. [Notas da versão 0.46](docs/versao-0.46.md).
+
+## Versão anterior — 0.45
 
 **Cubo News compacta e independente da câmera:** a faixa agora ocupa apenas **44 pixels lógicos** de altura, renderizada em HTML **ABAIXO** do canvas do jogo, como uma transmissão televisiva. O canhão e os prédios ficam inteiramente acima da faixa, sem trocar a imagem do Rio e sem alterar a posição ou a física das armas. Manchete preta sobre prata, selo vermelho `CUBO NEWS` e **subtítulo rolando da direita para a esquerda** sobre uma tira vermelha, conforme a referência aprovada. À direita, um relógio **maior, sem caixa e semitransparente**, piscando em vermelho nos últimos cinco segundos. Como o HUD não é parte da cena Phaser, nem tremores de câmera nem zooms de destruição o movem.
 
