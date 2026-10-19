@@ -52,7 +52,7 @@ test('Onda 3 tem 88 invasores em ondas legíveis e sobrepostas, sem chefe', () =
   assert.equal(MODES.wave3.minDuration, 30000);
   assert.equal(scheduledEnemyCount(wave), 88);
   assert.ok(wave.at(0).at > 0 && wave.at(0).at < 500);
-  assert.equal(wave.at(-1).at, 19500);
+  assert.equal(wave.at(-1).at, 13500);
   assert.ok(wave.every(({ at }) => at >= 0 && at < MODES.wave3.minDuration));
   assert.ok(wave.every(({ type }) => [1, 2, 3, 4].includes(type)));
   assert.ok(wave.every((event, index) => index === 0 || event.at >= wave[index - 1].at));
