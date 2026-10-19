@@ -5,7 +5,7 @@ import { addMenuButton } from '../ui/menuButton.js';
 import {addCuboBroadcastFrame} from '../ui/cuboNewsTheme.js';
 
 const W=960,H=540;
-const FONT='monospace';
+const FONT='IBM Plex Sans, system-ui, sans-serif';
 
 // Tela de finais estilo anime: quatro quadros estáticos por resultado.
 // Ilustração definitiva poderá substituir o painel central de cada quadro.
