@@ -52,7 +52,8 @@ test('matryoshka tem 8/12/16/24 estilhaços sem efeitos defensivos',()=>{
   for(const [tier,shards] of [[2,8],[4,12],[6,16],[8,24]]){
     const b=v1SpecialConfig(countryAt('ru',tier));
     assert.equal(b.ruShards,shards);
-    assert.ok(b.ruFreezeMs>0);\n    assert.equal(b.ruShieldFreezeMs,undefined);
+    assert.ok(b.ruFreezeMs>0);
+    assert.equal(b.ruShieldFreezeMs,undefined);
     assert.equal(b.ruShieldRadius,undefined);
   }
 });
