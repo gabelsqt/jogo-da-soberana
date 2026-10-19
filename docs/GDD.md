@@ -786,3 +786,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **U9 C:** importação de JSON apresenta **prévia das diferenças e validação** antes de incorporar dados ao rascunho.
 - **U10 B:** Enemy Maker e Wave Maker mantêm publicação independente, com **publicação conjunta opcional** quando existirem dependências entre alterações; documentar procedimento de consistência/rollback posteriormente.
 - **Estado:** registro no GDD apenas, sem implementar, alterar código, assets, configurações publicadas ou número de versão.
+
+
+### Wave Maker e Enemy Maker — publicação e recuperação, decisões V1–V10 (19/10/2026; somente planejamento)
+- **V1 A:** quando houver valor global e sobrescrita local, **o ajuste local do Wave Maker prevalece** naquela onda.
+- **V2 C:** valores herdados e sobrescritos aparecem com **ícone de origem e explicação detalhada ao selecionar**, sem poluir a interface.
+- **V3 C:** antes de publicar alterações globais, mostrar **resumo de impacto** e **lista expansível** das ondas e propriedades afetadas.
+- **V4 A:** publicação conjunta deve ser **atômica**: se qualquer etapa falhar, **nenhuma configuração entra em vigor**; prever restauração consistente do estado anterior.
+- **V5 C:** **autosave local dos rascunhos** e botão explícito **Salvar rascunho**; jamais confundir salvar com publicar.
+- **V6 C:** histórico de publicações com **data, hora e nota descritiva opcional**.
+- **V7 A:** restaurar uma versão publicada **não apaga nem substitui rascunhos em andamento**.
+- **V8 C:** exportar tanto **backup completo de Enemy Maker + Wave Maker** quanto arquivos separados de cada editor.
+- **V9 C:** ao importar backup completo, escolher **somente inimigos, somente ondas ou ambos**; compatibilizar com prévia de diferenças e validação aprovada em U9.
+- **V10 C:** publicação requer **validação estrutural dos dados e execução automática de testes básicos** antes de aplicar modificações.
+- **Estado:** registro documental sem implementação, alteração de código, configurações ativas ou versão.
