@@ -47,7 +47,10 @@ test('hybrid combinations retain independent offensive effects without country s
   assert.equal(stats.fragmentation,true);
   assert.equal(stats.collateral,true);
   assert.equal(stats.bulletsPerShot,3);
-  assert.equal(stats.shieldRegen,3.5);\n  assert.equal(stats.shieldBonus,0);\n  assert.equal(stats.shieldPulse,false);\n  assert.equal(stats.shieldIntercept,false);
+  assert.equal(stats.shieldRegen,3.5);
+  assert.equal(stats.shieldBonus,0);
+  assert.equal(stats.shieldPulse,false);
+  assert.equal(stats.shieldIntercept,false);
 });
 test('derived projectile cannot spawn a second descendant', () => {
   assert.equal(MAX_PROJECTILE_GENERATION,1);
