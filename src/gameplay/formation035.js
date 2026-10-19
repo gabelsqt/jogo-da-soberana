@@ -6,6 +6,20 @@ export const SWARM_DANCES = Object.freeze([
 ]);
 export const SWARM_ENTRIES = Object.freeze(['together', 'staggered']);
 export const TACTICAL_FORMATIONS = Object.freeze(['triangle', 'square']);
+/** Ritmo global dos inimigos comuns (tipos 1–5). Chefões Tipo 6
+ * conservam seu sistema próprio de fases, velocidades e telegráficos. */
+export const STANDARD_INVADER_FLIGHT_FACTOR = 0.78;
+
+/** Cinemática da onda 0: 1 portal sozinho, depois pares simultâneos.
+ * Cinco pontos reais distintos, sem encaixe nos três corredores antigos. */
+export const WAVE0_PORTAL_SEQUENCE = Object.freeze([
+  Object.freeze({at:800, portalX:480, count:8}),
+  Object.freeze({at:4600, portalX:235, count:10}),
+  Object.freeze({at:4600, portalX:725, count:10}),
+  Object.freeze({at:9600, portalX:125, count:10}),
+  Object.freeze({at:9600, portalX:835, count:10}),
+]);
+
 
 export const WAVE0_EASY_PACING=Object.freeze({
   counts:Object.freeze([5,5,6,6]), // 22 naves em quatro desenhos, sem sobrecarregar o primeiro contato.
@@ -50,12 +64,12 @@ export function progressiveGroupCount(wave, type, progress) {
 export function getV035WaveEvents(mode, legacyEvents) {
   const wave = campaignWaveIndex(mode);
   if (wave === null) return legacyEvents.map(event => ({ ...event }));
-  // v0.49.2: primeira noite com mais alvos, mas muito mais tempo para
-  // observar a formação, mirar e interceptar antes de qualquer ofensiva.
+  // v0.49.3: sequência ensaiada de CINCO portais no céu do Rio:
+  // primeiro o central isolado, depois dois pares simultâneos. Os 48
+  // inimigos continuam com a entrada dos projéteis adiada na onda 0.
   if (wave === 0) {
-    return WAVE0_EASY_PACING.counts.map((count,index)=>({
-      at:WAVE0_EASY_PACING.entryTimes[index],
-      type:1,pattern:'swarm',count,level:1,
+    return WAVE0_PORTAL_SEQUENCE.map(({at,portalX,count})=>({
+      at,portalX,type:1,pattern:'swarm',count,level:1,
     }));
   }
   const regular = legacyEvents.filter(event => event.type !== 1).map(event => {
