@@ -334,3 +334,12 @@ Refinamento solicitado após playtest: zoom gradual até **1,65×**, com foco no
 - A onda e os spawns só começam depois que ambas as transições terminam. Pausar a cena pausa a vinheta; encerrar a cena no meio restaura zoom=1 para não deixar câmera aproximada.
 - As regras do Tipo 6 continuam: após a abertura do contador, o tempo só começa quando o chefão está alvejável.
 - O HUD de notícias segue externo ao canvas (faixa de 44 px sob 960×540), sem cobrir o Rio nem o canhão; notícias/ritmo/editorial inalterados.
+
+
+## Game Soberana v0.48 — Fonte de caixa mista e menus Cubo News (19/10/2026)
+- A fonte bitmap 5×7 existente passa a ter **glifos minúsculos próprios**. Preserve o caso e os acentos originais no renderer, sem converter todos os textos a maiúsculas. O uso indiscriminado de CAIXA ALTA prejudicou a leitura.
+- Manchetes de origem em maiúsculas são apresentadas no HUD em **caixa de frase**, preservando nomes próprios, siglas, referências brasileiras e o conteúdo original do banco de notícias. Subtítulos são corridos em pixels com minúsculas; manter contraste e bom espaçamento.
+- O **cronômetro maior, apenas em segundos**, e o número central da vinheta “Tempo até o amanhecer” recuperam a **fonte verdadeiramente pixelada**. O zoom-out e o tempo total da v0.47 permanecem inalterados.
+- **Identidade comum em todos os menus:** cabeçalho vermelho azul-marinho `Cubo News`, marca AO VIVO, chamadas jornalísticas, títulos em pixel art misturando maiúsculas e minúsculas, botões retangulares com detalhes vermelhos, e tarja de plantão. Telas abrangidas: MenuScene, PauseScene, UpgradeScene (mesa de boteco preservada), V1PlaytestScene, LabSetupScene, UpgradeLabScene, EndingScene e painéis de derrota/vitória/última batalha em GameScene.
+- **Sem alterar navegação, teclas, fluxo da campanha, regras de upgrades ou de chefões.** Scripts reutilizáveis: `src/ui/cuboNewsTheme.js`, `src/ui/menuButton.js` e `src/ui/pixelFont.js`.
+- A faixa de notícias de combate permanece fora do canvas Phaser. O menu é renderizado pelo Phaser com layout nativo e texto em imagem bitmap para elementos de destaque; textos longos de ajuda ficam monoespaçados, legíveis.
