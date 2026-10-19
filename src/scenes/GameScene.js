@@ -961,7 +961,8 @@ export class GameScene extends Phaser.Scene {
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
       const hostile = this.enemyBullets[i];
       if (Math.hypot(hostile.sprite.x - x, hostile.sprite.y - y) <= SHOCK_BLAST_RADIUS + 7) {
-        this.removeEnemyBullet(i);
+        if(hostile.colossal)detonateType6Bomb(this,hostile);
+        else this.removeEnemyBullet(i);
       }
     }
 
@@ -2336,7 +2337,8 @@ export class GameScene extends Phaser.Scene {
         blast.x, blast.y, this.time.now - blast.bornAt,
         shot.sprite.x, shot.sprite.y, 8,
       ))) {
-        this.removeEnemyBullet(i);
+        if(shot.colossal)detonateType6Bomb(this,shot);
+        else this.removeEnemyBullet(i);
         continue;
       }
       if (Phaser.Math.Distance.Between(
@@ -2825,7 +2827,10 @@ export class GameScene extends Phaser.Scene {
       const bullet = this.enemyBullets[i];
       if (laserHitsTarget(
         startX, startY, endX, endY, bullet.sprite.x, bullet.sprite.y, PLASMA_HALF_WIDTH, 7,
-      )) this.removeEnemyBullet(i);
+      )) {
+        if(bullet.colossal)detonateType6Bomb(this,bullet);
+        else this.removeEnemyBullet(i);
+      }
     }
     if (this.combat.residualSlash && drawFlash) {
       this.createResidualSlash(startX, startY, endX, endY, initialHitIds);
