@@ -716,3 +716,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **P9 A:** comparação **lado a lado dos resultados de dois testes**, antes/depois.
 - **P10 A:** alterações no Wave Maker ficam em **rascunho separado** e só afetam a campanha depois de **publicação explícita**, preservando fluxo de rascunhos já aprovado.
 - **Estado:** registrar sem implementar nem alterar versões; P2 requer confirmação verbal/seleção posterior.
+
+
+### Wave Maker e Enemy Maker — decisões Q1–Q10 (19/10/2026; somente planejamento)
+- **Q1 C — resolve P2:** cadência/frequência de disparos poderá ser ajustada tanto por **multiplicador geral da onda** quanto por **ajustes específicos por classe de inimigo**. Esta confirmação encerra a pendência P2.
+- **Q2 A com complemento autoral prioritário:** alterações do **Wave Maker** são locais à onda editada. Criar como ferramenta **separada o Enemy Maker**, destinado a ajustar propriedades **gerais/globais de cada tipo de inimigo**. Wave Maker e Enemy Maker devem aparecer como **duas opções próprias** de ferramenta; detalhar relação entre valores globais e substituições locais antes de implementar. Não editar globalmente inimigos como efeito colateral de salvar uma onda.
+- **Q3 B:** prévia animada da entrada e posicionamento dos inimigos na onda.
+- **Q4 C:** eventos na linha do tempo têm **ícone/miniatura e cor** para distinguir as classes.
+- **Q5 C:** duplicar ondas completas **e** copiar/colar eventos selecionados.
+- **Q6 C:** comandos de **desfazer/refazer** e versões/snapshots nomeados de ondas.
+- **Q7 C:** após um teste, **repetir imediatamente com a mesma build** ou ajustar a build e repetir.
+- **Q8 C:** histórico de testes **no navegador** e **exportação de resultados** (arquivo, com formato a determinar).
+- **Q9 B:** indicador estimado de dificuldade combina quantidade de inimigos, projéteis, velocidade e intervalos; não apresentar essa estimativa como chance de vitória real comprovada.
+- **Q10 A:** primeira prioridade de implementação do Wave Maker: **limites de projéteis por onda, cadência e tamanho das rajadas**. Isto não autoriza implementar ainda.
+- **Status:** somente planejamento no GDD; nenhuma alteração de código, assets ou versão.
