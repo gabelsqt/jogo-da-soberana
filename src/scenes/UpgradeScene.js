@@ -1,171 +1,206 @@
-import { bindSceneMusic } from '../audio/music.js';
 import Phaser from 'phaser';
+import {bindSceneMusic} from '../audio/music.js';
+import {GAME_WIDTH as W,GAME_HEIGHT as H} from '../config/scenery.js';
+import {nextV1Options,chooseV1Upgrade} from '../gameplay/v1Upgrades.js';
+import {normalizeCampaignState} from '../gameplay/progression.js';
+import {FIRST_UPGRADES} from '../gameplay/upgrades.js';
 import {
-  GAME_WIDTH as W, GAME_HEIGHT as H,
-  preloadRioBackdrop, drawRioBackdrop,
-} from '../config/scenery.js';
-import { getFirstUpgrade, FIRST_UPGRADES } from '../gameplay/upgrades.js';
-import { nextV1Options, chooseV1Upgrade } from '../gameplay/v1Upgrades.js';
-import {
-  normalizeCampaignState, nextUpgradeOptions,
-  chooseCampaignUpgrade, nextWaveAfterChoice,
-} from '../gameplay/progression.js';
-import { REPRESENTATIVES, representativeLine } from '../gameplay/representatives.js';
-import {addCuboBroadcastFrame,addCuboPixelText} from '../ui/cuboNewsTheme.js';
+  REPRESENTATIVES,representativeLine,representativeStoryFor,
+} from '../gameplay/representatives.js';
+import {addCuboBroadcastFrame,CUBO_FONT} from '../ui/cuboNewsTheme.js';
+import {BOTECO_DIA_IMAGE} from '../assets/botecoDiaEmbedded.js';
 
-const FONT = 'IBM Plex Sans, system-ui, sans-serif';
-const SLOTS = [130, 305, 480, 655, 830];
+export const BOTECO_CHAIR_X=Object.freeze([116,298,480,662,844]);
+export const BOTECO_PORTRAIT_Y=241;
+export const BOTECO_FOCUS=Object.freeze({x:155,y:163,scale:1.47,duration:320});
+const COLOR={ink:0x0b1621,panel:0x193043,outline:0x5b788f,
+  cream:0xdce8ee,amber:0xe2a45e,red:0xc45151};
+const makeText=(scene,x,y,str,size=16,color='#dce8ee',width=null,opts={})=>
+  scene.add.text(x,y,str,{
+    fontFamily:CUBO_FONT,fontSize:size+'px',color,wordWrap:width?{width,useAdvancedWrap:true}:undefined,
+    lineSpacing:3,...opts,
+  });
 
-function text(scene, x, y, value, size = 14, color = '#f9f2e6', width) {
-  return scene.add.text(x, y, value, {
-    fontFamily: FONT, fontSize: size + 'px', color,
-    align: 'center', fontStyle: 'bold', lineSpacing: 3,
-    ...(width ? { wordWrap: { width, useAdvancedWrap: true } } : {}),
-  }).setOrigin(0.5).setDepth(42);
+function portrait(scene,option,index){
+  const color=option.locked?0x68737d:(option.color??0x668eac);
+  const face=scene.add.graphics();
+  // Retrato provisório com silhueta diferente por país. A área comportará
+  // retratos definitivos sem precisar trocar o comportamento do menu.
+  face.fillStyle(0x101d2b,0.98).fillRoundedRect(-56,-67,112,133,8);
+  face.lineStyle(3,color,1).strokeRoundedRect(-56,-67,112,133,8);
+  face.fillStyle(color,0.72).fillCircle(0,-27,23);
+  face.fillStyle(color,0.72).fillRoundedRect(-39,-3,78,36,14);
+  face.fillStyle(COLOR.ink,0.8).fillRect(-19,-31,9,4).fillRect(10,-31,9,4);
+  face.lineStyle(3,COLOR.amber,0.85).lineBetween(-10,-15,10,-15);
+  face.fillStyle(COLOR.ink,0.95).fillRoundedRect(-48,34,96,25,3);
+  const emblem=makeText(scene,0,-27,REPRESENTATIVES[option.id].emblem,13,
+    '#f8fafb',null,{fontStyle:'bold'}).setOrigin(0.5);
+  const label=makeText(scene,0,43,option.shortName??option.name,12,
+    '#dce8ee',96,{fontStyle:'bold',align:'center'}).setOrigin(0.5);
+  const lvl=makeText(scene,0,76,'Nível '+option.level,11,
+    '#e2a45e',null,{fontStyle:'bold'}).setOrigin(0.5);
+  const node=scene.add.container(BOTECO_CHAIR_X[index],BOTECO_PORTRAIT_Y,
+    [face,emblem,label,lvl]).setDepth(26);
+  node.setSize(114,161).setInteractive({useHandCursor:true});
+  return {node,option,index,originX:BOTECO_CHAIR_X[index],originY:BOTECO_PORTRAIT_Y};
 }
 
-// Cenário provisório em pixels para viabilizar a UX enquanto a arte aprovada
-// da mesa de boteco e os 20 retratos finais não forem exportados em PNG.
-function drawMeetingRoom(scene) {
-  const g = scene.add.graphics().setDepth(6);
-  g.fillStyle(0x19192a).fillRect(0, 0, W, H);
-  g.fillStyle(0x2b2b3e).fillRect(0, 0, W, 290);
-  g.fillStyle(0x34303a).fillRect(0, 290, W, 250);
-  for (let y = 302; y < H; y += 26) {
-    g.lineStyle(2, 0x4b4042, 0.8).lineBetween(0, y, W, y);
+function outlinePlaceholder(scene,x,y,w,h){
+  const g=scene.add.graphics().setDepth(45);
+  g.fillStyle(0x101c29,0.96).fillRoundedRect(x,y,w,h,6);
+  g.lineStyle(2,0x587389,0.95).strokeRoundedRect(x,y,w,h,6);
+  // Pontilhado discreto indica uma área futura, não um botão quebrado.
+  g.lineStyle(1,0x839bb0,0.65);
+  for(let xx=x+14;xx<x+w-10;xx+=17){
+    g.lineBetween(xx,y+10,Math.min(xx+8,x+w-10),y+10);
+    g.lineBetween(xx,y+h-10,Math.min(xx+8,x+w-10),y+h-10);
   }
-  // Cinco cadeiras, todas de frente para o jogador.
-  for (const x of SLOTS) {
-    g.fillStyle(0x871e2b).fillRoundedRect(x - 45, 135, 90, 150, 12);
-    g.fillStyle(0xc34b4d).fillRoundedRect(x - 36, 143, 72, 121, 10);
-    g.lineStyle(4, 0x611423).strokeRoundedRect(x - 45, 135, 90, 150, 12);
-    g.fillStyle(0x6a1726).fillRect(x - 50, 273, 12, 78).fillRect(x + 38, 273, 12, 78);
-  }
-  // Tampo de plástico vermelho brasileiro, sem logotipos de marcas.
-  g.fillStyle(0x330d18).fillEllipse(W / 2, 411, 890, 196);
-  g.fillStyle(0xa92834).fillEllipse(W / 2, 390, 880, 180);
-  g.lineStyle(8, 0xd45154).strokeEllipse(W / 2, 390, 862, 167);
-  g.lineStyle(3, 0x6b1629).strokeEllipse(W / 2, 390, 804, 133);
-  g.fillStyle(0xdf5961).fillRect(277, 329, 406, 5);
   return g;
 }
 
 export class UpgradeScene extends Phaser.Scene {
-  constructor() { super({ key: 'UpgradeScene' }); }
-
-  init(data = {}) {
-    this.campaign = normalizeCampaignState(data.campaign);
-    this.completedWave = Number.isInteger(data.completedWave)
-      ? data.completedWave : this.campaign.choices.length === 0 ? 0 : 1;
-    this.chosen = false;
-    this.focused = null;
+  constructor(){super({key:'UpgradeScene'});}
+  init(data={}){
+    this.campaign=normalizeCampaignState(data.campaign);
+    this.completedWave=Number.isInteger(data.completedWave)?data.completedWave:
+      this.campaign.choices.length;
+    this.chosen=false;this.focused=null;
   }
-
-  preload() { preloadRioBackdrop(this); }
-
-  create() {
-    bindSceneMusic(this, 'upgrades');
-    // O cenário do Rio permanece carregado para o jogo; a cena de reunião
-    // usa um ambiente próprio sem reutilizar o campo de batalha.
-    drawMeetingRoom(this);
-    // A mesa do boteco é mantida; a emissora enquadra a negociação como
-    // um boletim de relações internacionais, sem substituir o cenário.
+  preload(){this.load.image('boteco-dia',BOTECO_DIA_IMAGE);}
+  create(){
+    bindSceneMusic(this,'upgrades');
+    this.add.image(W/2,H/2,'boteco-dia').setDisplaySize(W,H).setDepth(1);
+    // A arte diurna é central: cabeçalho discreto, sem cobrir a janela do Rio.
     addCuboBroadcastFrame(this,{
       section:'Mesa de negociações',
-      headline:'Especial: aliados disputam influência sobre a defesa brasileira',
-      footer:'Análise diplomática • Ao vivo na Cubo News',
-      depth:52,
+      headline:'Onda '+this.completedWave+' concluída • Escolha quem vai apoiar o Brasil',
+      footer:'Cinco representantes • O acordo só é fechado após sua confirmação',
+      depth:14,
     });
-    this.add.rectangle(W / 2, 98, W, 76, 0x134b45, 0.94).setDepth(38);
-    addCuboPixelText(this,{x:W/2,y:83,text:'Mesa de negociações',
-      size:3,color:'#edc75a',depth:43,maxWidth:630});
-    text(this, W / 2, 119,
-      'Onda ' + this.completedWave + ' concluída  •  Escolha uma melhoria',
-      13, '#b6dcee');
+    this.add.rectangle(W/2,81,770,30,COLOR.ink,0.84).setDepth(16)
+      .setStrokeStyle(1,COLOR.amber);
+    makeText(this,W/2,81,'Clique no retrato de um representante para ouvir a proposta',
+      17,'#dce8ee',null,{fontStyle:'bold'}).setOrigin(0.5).setDepth(17);
 
-    this.options = nextV1Options(this.campaign, FIRST_UPGRADES);
-    this.tiles = [];
-    this.options.forEach((option, index) => {
-      const x = SLOTS[index];
-      const inactive = option.locked;
-      const tile = this.add.rectangle(x, 222, 126, 140, inactive ? 0x17202a : 0x202a3b, 1)
-        .setStrokeStyle(4, inactive ? 0x64717b : option.color).setDepth(29);
-      const symbol = text(this, x, 193, REPRESENTATIVES[option.id].emblem, 33,
-        inactive ? '#7d8596' : '#fff6da');
-      const name = text(this, x, 236, option.shortName ?? option.name, 12,
-        inactive ? '#7d8596' : '#ffffff', 120);
-      const level = text(this, x, 264, 'Nível ' + option.level, 12,
-        inactive ? '#9d7b82' : '#f6d795');
-      this.tiles.push({ tile, symbol, name, level, option, x });
-      if (!inactive) {
-        tile.setInteractive({ useHandCursor: true });
-        tile.on('pointerdown', (pointer, _x, _y, event) => {
-          event?.stopPropagation();
-          if (pointer.leftButtonDown()) this.focusCountry(option.id);
-        });
+    this.options=nextV1Options(this.campaign,FIRST_UPGRADES);
+    this.portraits=this.options.map((option,index)=>portrait(this,option,index));
+    // Esta sobreposição escurece TODO o boteco, inclusive os retratos
+    // não selecionados. O escolhido sobe acima dela por animação.
+    this.focusDim=this.add.rectangle(W/2,H/2,W,H,0x030b15,0.83)
+      .setDepth(33).setVisible(false).setInteractive();
+    this.focusDim.on('pointerdown',()=>{}); // Fundo não aceita o upgrade.
+    this.focusPanel=this.add.rectangle(632,164,612,202,COLOR.panel,0.97)
+      .setStrokeStyle(2,COLOR.amber).setDepth(43).setVisible(false);
+    this.countryTag=makeText(this,348,74,'',13,'#e2a45e',555,
+      {fontStyle:'bold'}).setDepth(46).setVisible(false);
+    this.characterName=makeText(this,348,96,'',20,'#ffffff',555,
+      {fontStyle:'bold'}).setDepth(46).setVisible(false);
+    this.flavorText=makeText(this,348,130,'',15,'#dce8ee',555)
+      .setDepth(46).setVisible(false);
+    this.upgradeTitle=makeText(this,348,202,'',15,'#e2a45e',555,
+      {fontStyle:'bold'}).setDepth(46).setVisible(false);
+    this.upgradeDescription=makeText(this,348,224,'',13,'#dce8ee',555)
+      .setDepth(46).setVisible(false);
+    this.previewBox=outlinePlaceholder(this,290,280,664,113).setVisible(false);
+    this.previewLabel=makeText(this,623,319,'Prévia animada do upgrade (em breve)',
+      16,'#93aabe',null,{fontStyle:'bold'}).setOrigin(0.5).setDepth(46).setVisible(false);
+    this.previewHint=makeText(this,623,349,'Espaço reservado para demonstrar as mudanças no canhão',
+      12,'#8fa7b9').setOrigin(0.5).setDepth(46).setVisible(false);
+    this.acceptButton=this.createButton(734,448,320,'Aceitar upgrade [ENTER]',true,
+      ()=>this.focused&&this.selectUpgrade(this.focused)).setVisible(false);
+    this.backButton=this.createButton(393,448,215,'Voltar [ESC]',false,
+      ()=>this.unfocus()).setVisible(false);
+    this.overlayItems=[
+      this.focusPanel,this.countryTag,this.characterName,this.flavorText,
+      this.upgradeTitle,this.upgradeDescription,this.previewBox,
+      this.previewLabel,this.previewHint,this.acceptButton,this.backButton,
+    ];
+    for(const tile of this.portraits){
+      if(tile.option.locked){tile.node.setAlpha(0.5).disableInteractive();continue;}
+      tile.node.on('pointerover',()=>{if(!this.focused)tile.node.setScale(1.07);});
+      tile.node.on('pointerout',()=>{if(!this.focused)tile.node.setScale(1);});
+      tile.node.on('pointerdown',(pointer,_x,_y,event)=>{
+        event?.stopPropagation();
+        if(pointer.leftButtonDown()&&!this.chosen)this.focusCountry(tile.option.id);
+      });
+    }
+    this.input.keyboard.on('keydown',(event)=>{
+      const hit=/^[1-5]$/.exec(event.key);
+      if(hit){
+        const option=this.options[Number(hit[0])-1];
+        if(option&&!option.locked)this.focusCountry(option.id);
       }
     });
-
-    this.dialoguePanel = this.add.rectangle(W / 2, 408, 790, 155, 0x0b1729, 0.96)
-      .setStrokeStyle(3, 0xe6b45b).setDepth(39);
-    this.dialogueTitle = text(this, W / 2, 351, 'Escolha um representante', 17, '#ffe0a0');
-    this.dialogueBody = text(this, W / 2, 395,
-      'Clique em um dos cinco retratos para ouvir a proposta.', 15, '#f2f6ff', 740);
-    this.dialogueUpgrade = text(this, W / 2, 441, '', 12, '#a3eaca', 720);
-
-    this.confirmSurface = this.add.rectangle(W / 2, 496, 350, 37, 0x344451)
-      .setStrokeStyle(2, 0x7f929f).setDepth(43).setInteractive({ useHandCursor: true });
-    this.confirmLabel = text(this, W / 2, 496, 'Selecione um representante', 14, '#f1f1f1');
-    this.confirmSurface.on('pointerdown', (pointer, _x, _y, event) => {
-      event?.stopPropagation();
-      if (pointer.leftButtonDown() && this.focused) this.selectUpgrade(this.focused);
-    });
-    this.input.keyboard.on('keydown', (event) => {
-      const match = /^[1-5]$/.exec(event.key);
-      if (!match) return;
-      const option = this.options[Number(match[0]) - 1];
-      if (option && !option.locked) this.focusCountry(option.id);
-    });
-    this.input.keyboard.on('keydown-ENTER', () => {
-      if (this.focused) this.selectUpgrade(this.focused);
+    this.input.keyboard.on('keydown-ESC',()=>{if(!this.chosen)this.unfocus();});
+    this.input.keyboard.on('keydown-ENTER',()=>{
+      if(this.focused&&!this.chosen)this.selectUpgrade(this.focused);
     });
   }
-
-  focusCountry(id) {
-    if (this.chosen) return;
-    const selected = this.tiles.find((tile) => tile.option.id === id);
-    if (!selected || selected.option.locked) return;
-    this.focused = id;
-    for (const tile of this.tiles) {
-      const active = tile.option.id === id;
-      tile.tile.setScale(active ? 1.16 : 1).setDepth(active ? 35 : 29)
-        .setStrokeStyle(active ? 5 : 3, tile.option.locked ? 0x64717b : tile.option.color);
-      tile.symbol.setScale(active ? 1.24 : 1).setDepth(active ? 48 : 42);
-      tile.name.setDepth(active ? 48 : 42);
-      tile.level.setDepth(active ? 48 : 42);
+  createButton(x,y,width,label,primary,callback){
+    const fill=primary?COLOR.amber:COLOR.panel;
+    const bg=this.add.rectangle(0,0,width,48,fill)
+      .setStrokeStyle(2,primary?0xdce8ee:COLOR.outline);
+    const txt=makeText(this,0,0,label,16,primary?'#0b1621':'#dce8ee',
+      width-26,{fontStyle:'bold',align:'center'}).setOrigin(0.5);
+    const node=this.add.container(x,y,[bg,txt]).setDepth(48).setSize(width,48)
+      .setInteractive({useHandCursor:true});
+    node.on('pointerover',()=>bg.setFillStyle(primary?0xf1bf7a:0x315470));
+    node.on('pointerout',()=>bg.setFillStyle(fill));
+    node.on('pointerdown',(pointer,_x,_y,event)=>{
+      event?.stopPropagation();if(pointer.leftButtonDown()&&!this.chosen)callback();
+    });
+    node.label=txt;
+    return node;
+  }
+  focusCountry(id){
+    if(this.chosen)return;
+    const current=this.portraits.find(x=>x.option.id===id);
+    if(!current||current.option.locked)return;
+    this.focused=id;
+    this.focusDim.setVisible(true);
+    this.overlayItems.forEach(item=>item.setVisible(true));
+    for(const tile of this.portraits){
+      const active=tile.option.id===id;
+      this.tweens.killTweensOf(tile.node);
+      tile.node.setDepth(active?57:27).setAlpha(active?1:0.27);
+      this.tweens.add({targets:tile.node,
+        x:active?BOTECO_FOCUS.x:tile.originX,
+        y:active?BOTECO_FOCUS.y:tile.originY,
+        scale:active?BOTECO_FOCUS.scale:1,
+        duration:BOTECO_FOCUS.duration,ease:'Cubic.Out'});
     }
-    const option = selected.option;
-    this.dialogueTitle.setText(REPRESENTATIVES[id].label + ' — REPRESENTANTE');
-    this.dialogueBody.setText('“' + (representativeLine(id)) + '”');
-    this.dialogueUpgrade.setText(
-      option.title + ' — ' + option.description,
-    );
-    this.confirmSurface.setFillStyle(0x22644e).setStrokeStyle(3, 0xb1f1c9);
-    this.confirmLabel.setText('Aceitar ' + REPRESENTATIVES[id].label + ' [ENTER]');
+    const option=current.option;
+    this.countryTag.setText(REPRESENTATIVES[id].label+' • NÍVEL '+option.level);
+    this.characterName.setText(REPRESENTATIVES[id].label==='COREIA DO SUL'
+      ?'Kim Lin Doo':'Representante '+REPRESENTATIVES[id].emblem);
+    this.flavorText.setText('“'+representativeStoryFor(id,option.level)+'”');
+    this.upgradeTitle.setText(option.title);
+    this.upgradeDescription.setText(option.description);
+    this.acceptButton.label.setText('Aceitar '+REPRESENTATIVES[id].label+' [ENTER]');
   }
-
-  selectUpgrade(id) {
-    if (this.chosen) return;
-    const next = chooseV1Upgrade(this.campaign, id);
-    if (!next) return;
-    const mode = `wave${next.choices.length}`;
-    if (!mode) return;
-    this.chosen = true;
-    this.dialogueBody.setText('“' + representativeLine(id, 'accepted') + '”');
-    this.confirmSurface.disableInteractive();
-    this.confirmLabel.setText('Parceria confirmada!');
-    this.time.delayedCall(1200, () => {
-      this.scene.start('GameScene', { mode, campaign: next });
+  unfocus(){
+    if(this.chosen||!this.focused)return;
+    this.focused=null;this.focusDim.setVisible(false);
+    this.overlayItems.forEach(item=>item.setVisible(false));
+    for(const tile of this.portraits){
+      this.tweens.killTweensOf(tile.node);
+      tile.node.setDepth(26).setAlpha(tile.option.locked?0.5:1);
+      this.tweens.add({targets:tile.node,x:tile.originX,y:tile.originY,
+        scale:1,duration:BOTECO_FOCUS.duration,ease:'Cubic.Out'});
+    }
+  }
+  selectUpgrade(id){
+    if(this.chosen||!this.focused)return;
+    const next=chooseV1Upgrade(this.campaign,id);
+    if(!next)return;
+    this.chosen=true;
+    this.flavorText.setText('“'+representativeLine(id,'accepted')+'”');
+    this.acceptButton.disableInteractive();this.backButton.disableInteractive();
+    this.acceptButton.label.setText('Parceria confirmada!');
+    this.time.delayedCall(1100,()=>{
+      if(this.scene.isActive())this.scene.start('GameScene',{
+        mode:`wave${next.choices.length}`,campaign:next,
+      });
     });
   }
 }
