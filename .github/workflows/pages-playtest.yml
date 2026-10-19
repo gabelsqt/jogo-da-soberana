@@ -26,7 +26,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
+      name: soberana-v044-playtest
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Baixar versão de teste (não publica outras branches)
