@@ -302,3 +302,15 @@ Refinamento solicitado após playtest: zoom gradual até **1,65×**, com foco no
 - Regras compartilhadas do Tipo 6 e cinco variantes atualizadas em `docs/GDD-TIPO-6.md`.
 - Motor de combate, efeitos de escudo, entrada cronometrada, novo lower-third e notícias dinâmicas integrados à branch de desenvolvimento.
 - O desenho de sprites e algumas cinematografias permanecem como **placeholders** até fase de arte.
+
+
+## Cubo News v0.45 — Composição de televisão separada da cena (19/10/2026)
+**Esta seção substitui o desenho anterior do lower third da v0.44, sem alterar a linha editorial, intervalos ou fila aprovados.**
+- O **canvas de jogo permanece com resolução lógica 960×540**; o noticiário é um elemento HTML **externo** logo abaixo do canvas, com altura nominal de **44 px**, dimensionado junto com ele. Assim, os prédios do Rio e o canhão continuam inteiros dentro da imagem, acima do noticiário: **não há necessidade de mudar a arte de fundo nem deslocar o canhão**.
+- O visor completo em ondas ocupa 960×584 unidades lógicas; nos menus, o ticker desaparece e o jogo retorna a 960×540. A função de responsividade reduz a composição para caber integralmente na área útil, respeitando safe areas e o aspecto original do jogo.
+- Referência editorial: etiqueta **vermelha trapezoidal CUBO NEWS**, bloco fino de **manchete em preto sobre prata/cinza**, e rodapé **vermelho** com subtítulo **em movimento contínuo da direita para a esquerda** (duas cópias, laço sem lacunas).
+- O cronômetro ocupa a **direita**, com números muito maiores, **sem moldura**, cor branca semitransparente, leve sombra. Nos últimos 5 segundos pulsa em **vermelho**; a sirene e o plantão final permanecem.
+- A faixa, incluindo relógio, é **DOM externo**, nunca GameObjects Phaser. Não recebe efeitos de `camera.shake`, `camera.setZoom`, CRT ou deslocamento do mapa. A mira e as hitboxes continuam relativas apenas ao canvas 960×540.
+- A cada notícia troca manchete e subtítulo; o ticker reinicia o movimento com duas cópias de texto. A fila, a publicidade, as notícias urgentes e os intervalos de **5 s** permanecem idênticos aos definidos na v0.44.
+- Badge de versão e outros textos persistentes de campanha não são desenhados sobre a faixa. O selo de versão fica oculto enquanto a transmissão está ativa.
+- A nova apresentação usa apenas HTML e CSS; não exige nova imagem de fundo nem sprites extras. A troca de cenas mostra/oculta o noticiário e recalcula o layout sem interferir com o estado do jogo.
