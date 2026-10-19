@@ -86,6 +86,9 @@ export class MenuScene extends Phaser.Scene{
       this.registry.set('playerName',savePlayerName(store,name));
       input.value=name;
       panel.hidden=true;
+      // Confirmar o nome começa imediatamente o plantão, sem exigir
+      // um segundo clique no botão de campanha do menu.
+      this.scene.start('IntroScene',{playerName:name,campaign:{choices:[]}});
     };
     panel.addEventListener('submit',submit);
     this.events.once('shutdown',()=>{
