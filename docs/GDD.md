@@ -435,3 +435,9 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **Opção A aprovada:** os eventos podem ser arrastados na linha do tempo para mudar o instante de entrada, e também editados por campos numéricos com precisão (por exemplo, 7,5 s).
 - Ambos os controles devem permanecer sincronizados; a posição do evento e o valor do campo representam o mesmo tempo.
 - Planejamento apenas: nenhuma mudança no comportamento das ondas ou código do editor nesta decisão.
+
+### Wave Maker — posicionamento espacial aprovado (19/10/2026)
+- **Posicionamento livre aprovado:** selecionar e arrastar o ponto de entrada de cada evento diretamente no campo de batalha.
+- A posição deve também ser editável numericamente por coordenadas X/Y. Alterações no campo e nos valores numéricos permanecem sincronizadas.
+- O editor deve mostrar claramente limites do cenário e posição real de surgimento, sem modificar os padrões de movimento já definidos para cada tipo sem decisão posterior.
+- Apenas planejamento nesta etapa; não implementar nem mudar ondas atuais ainda.
