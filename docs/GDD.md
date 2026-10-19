@@ -454,3 +454,11 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **Decisão 8 — C, ambos (aprovação com dúvida expressa):** prever duplicação manual de eventos e repetição automática por quantidade/intervalo. **Comentário do usuário: "Não entendi essa pergunta."** Esclarecer com exemplos antes de especificar o funcionamento detalhado; não tomar a aprovação como definição dos detalhes.
 - **Decisão 9 — C, versões e histórico de alterações:** permitir salvar rascunhos, recuperar versões anteriores e importar/exportar JSON. Persistência técnica e política de retenção ainda a definir.
 - **Status:** somente planejamento. Não alterar código do editor, ondas da campanha nem lógica dos inimigos por estas decisões.
+
+### Soberania Wave Maker — decisões 10–14 aprovadas (19/10/2026; somente planejamento)
+- **Decisão 10 — A: cinco níveis fixos de agressividade.** Perfis: Pacífico, Leve, Moderado, Intenso e Extremo. Cada perfil determinará automaticamente o comportamento ofensivo do grupo, sem controles avançados individuais na versão planejada. Valores precisos e interações com os padrões atuais ainda a definir.
+- **Decisão 11 — A: simulação visual completa.** O editor deverá mostrar naves, movimentos e projéteis e permitir pausar, acelerar e navegar para um instante específico da onda; oferecer separadamente o teste jogável já aprovado. A implementação técnica da navegação temporal permanece aberta.
+- **Decisão 12 — C: histórico automático mais versões nomeadas.** Recuperação de rascunhos por salvamento automático e criação manual de marcos nomeados; definir depois armazenamento, limites e restauração.
+- **Decisão 13 — A: criar uma cópia editável.** Abrir uma onda oficial no editor gera rascunho independente; alterações e testes não alteram a definição original.
+- **Decisão 14 — A: exportar JSON para integração no código.** Publicação oficial é feita pela integração deliberada do JSON no código/repositório, não por substituição automática no navegador. A exportação não modifica sozinha a campanha.
+- **Status:** decisões de design registradas, sem implementação, alteração das ondas atuais ou incremento de versão. Próximos pontos de planejamento: parâmetros numéricos dos cinco perfis, formato do JSON, arquitetura da simulação e histórico.
