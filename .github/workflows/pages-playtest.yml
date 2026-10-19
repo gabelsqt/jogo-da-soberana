@@ -1,9 +1,9 @@
-name: Playtest v1 — GitHub Pages
+name: Playtest v0.44 — GitHub Pages
 
 on:
   push:
     branches:
-      - feat/v1-upgrades-64-68
+      - feat/brasil2-arraial-balístico
     paths:
       - 'src/**'
       - 'public/**'
