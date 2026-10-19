@@ -2,7 +2,11 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.49
+## Versão atual — 0.49.1
+
+**Ajuste de balanceamento da onda 0:** 16 inimigos em quatro formações coreografadas (3, 4, 4 e 5 naves), espaçadas de 1,1 s até 11,6 s; preserva os padrões e reduz significativamente a pressão inicial. As ondas 1–11 não foram modificadas neste ajuste.
+
+## Versão anterior — 0.49
 
 **Cubo News — Emissora Oficial Brasileira:** abandona tipografia em pixels na interface e passa para **IBM Plex Sans**, fundo verde-petróleo, ouro, creme e grafite, mantendo todos os menus na mesma linguagem visual. A imprensa elogia gastronomia, música e cinema dos países que ajudam o Brasil e muda imediatamente de discurso quando ocorre uma traição.
 
