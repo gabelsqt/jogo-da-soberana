@@ -125,6 +125,12 @@ export class GameScene extends Phaser.Scene {
 
   init(data = {}) {
     this.mode = MODES[data.mode] ? data.mode : 'wave0';
+    // Teste de combate usa um snapshot recebido, sem publicar rascunhos.
+    this.waveMakerTest = Boolean(data.waveMakerTest && data.labConfig && /^wave(?:[0-9]|10|11)$/.test(this.mode));
+    this.waveMakerEvents = this.waveMakerTest && Array.isArray(data.waveMakerEvents)
+      ? data.waveMakerEvents.map(event=>({...event})) : null;
+    this.waveMakerDuration = this.waveMakerTest && Number.isFinite(data.waveMakerDuration)
+      ? Math.max(1000,Math.min(120000,data.waveMakerDuration)) : null;
     this.v1Playtest = Boolean(data.v1Playtest);
     this.previewDestruction = Boolean(data.previewDestruction);
     this.deathSequence = null;
@@ -153,6 +159,7 @@ export class GameScene extends Phaser.Scene {
         resistanceLevels:this.brazilResistanceLevels} : this.campaign;
     this.waveDurationMs=this.mode.startsWith('wave')
       ? MODES[this.mode].minDuration:WAVE_DURATION_MS;
+    if(this.waveMakerDuration!==null)this.waveDurationMs=this.waveMakerDuration;
     this.upgradeId = this.campaign.choices.at(-1) ?? null;
     this.thirdIds = this.unifiedLab
       ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 3)
@@ -194,7 +201,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   getRunOptions() {
-    if (this.unifiedLab) return { mode: this.mode, labConfig: this.labConfig };
+    if (this.unifiedLab) return { mode: this.mode, labConfig: this.labConfig,
+      ...(this.waveMakerTest?{waveMakerTest:true,waveMakerEvents:this.waveMakerEvents?.map(e=>({...e})),waveMakerDuration:this.waveMakerDuration}:{}) };
     if (this.mode === 'upgradeLab') {
       return {
         mode: this.mode, upgradeIds: [...this.upgradeIds],
@@ -497,9 +505,9 @@ export class GameScene extends Phaser.Scene {
     if (this.unifiedLab && this.mode === 'lab') {
       // Arena livre: nenhum spawn agendado e nenhuma duração limite.
       this.waveEvents = [];
-    } else if (this.mode === 'wave11' && !this.v1Playtest) {
+    } else if (this.mode === 'wave11' && !this.v1Playtest && !this.waveMakerTest) {
       this.showFinalePrelude();
-    } else if (this.mode === 'wave10' && !this.v1Playtest) {
+    } else if (this.mode === 'wave10' && !this.v1Playtest && !this.waveMakerTest) {
       this.showAlienRevelation();
     } else if (this.mode.startsWith('wave')) {
       this.startWaveCountdown();
