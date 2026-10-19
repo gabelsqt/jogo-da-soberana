@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { analyzeWavePressure } from '../gameplay/wavePressure.js';
 import { bindSceneMusic } from '../audio/music.js';
 import { normalizeLabConfig } from '../gameplay/labConfig.js';
 import {
@@ -37,6 +38,7 @@ export class WaveMakerScene extends Phaser.Scene {
   this.add.text(148,86,'TOPO / SPAWN',textStyle(10,'#7899b3'));
   this.add.text(148,290,'DEFESA',textStyle(10,'#7899b3'));
   this.add.text(144,321,'LINHA DO TEMPO — arraste blocos ou edite os valores abaixo',textStyle(12,'#a9dbe4'));
+  this.drawButton(822,320,'ANALISAR',()=>this.showPressure(),108,28);
   this.add.rectangle(510,371,736,65,0x101f31).setStrokeStyle(1,0x436278);
   this.add.text(145,418,'EVENTO SELECIONADO',textStyle(12,'#ffe2a6'));
   this.fields=this.add.container(0,0);
@@ -138,6 +140,21 @@ export class WaveMakerScene extends Phaser.Scene {
   if(!this.currentEvent())return;
   this.entry().events=this.events().filter(e=>e.id!==this.selected);
   this.selected=null;this.persist();this.render();
+ }
+ showPressure(){
+  const entry=this.entry();
+  const report=analyzeWavePressure(entry);
+  const peak=report.peak;
+  const message=[
+   'ONDA '+this.current+' — análise de entradas (heurística)',
+   report.totalEvents+' eventos em '+(entry.durationMs/1000)+' segundos',
+   'Média de pressão: '+report.averagePressure,
+   peak?'Pico: '+(peak.startMs/1000)+'–'+(peak.endMs/1000)+' s • '+peak.enemyCount+' inimigos • pontuação '+peak.pressure:'Sem eventos na onda',
+   ...report.suggestions,
+   '',report.warning,
+   'Análise estática; não determina resultado da batalha.'
+  ].join('\n');
+  window.alert(message);
  }
  resetDraft(){
   if(!window.confirm('Descartar o rascunho desta onda e copiar novamente os eventos oficiais?'))return;
