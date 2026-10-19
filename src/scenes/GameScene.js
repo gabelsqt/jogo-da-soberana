@@ -50,6 +50,7 @@ import {
 import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import {addCuboBroadcastFrame} from '../ui/cuboNewsTheme.js';
+import {CANNON_DOME_RADIUS,cannonShieldColor,cannonDomeIntercept} from '../gameplay/shieldDome049.js';
 import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
 import { resolveFinalOpponent, finalePrelude, FINALE_COUNTRIES } from '../gameplay/campaignFinale.js';
@@ -398,7 +399,7 @@ export class GameScene extends Phaser.Scene {
     this.boss6DoomFired=false;
     this.boss6WarningText=null;
     this.cannonHealth = 100;
-    this.shieldMax = 80 + (this.thirdIds.length + this.fourthIds.length) * 8 + (this.isV1Campaign ? this.combat.shieldBonus : 0);
+    this.shieldMax = 80; // v0.49: escudo padrão, nenhuma melhoria de país altera HP.
     this.shield = this.shieldMax;
     this.lastDamageAt = -10000;
     this.aimAngle = -Math.PI / 2;
@@ -2364,50 +2365,10 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  reflectV1ShieldProjectile(shot) {
-    if(!this.isV1Campaign || !this.specialBuild?.stages.jp ||
-      this.shield<=0 || shot.target?.kind==='tower')return false;
-    this.shieldReflectCount++;
-    if(((this.shieldReflectCount*37)%100)/100 >= this.specialBuild.krShieldChance)return false;
-    // O painel reflete parte do disparo; usa o HP existente do escudo.
-    this.lastDamageAt=this.time.now;
-    this.shield=Math.max(0,this.shield-7);
-    const enemy=this.enemies.reduce((best,e)=>!best ||
-      Math.hypot(e.sprite.x-CANNON.x,e.sprite.y-CANNON.y) <
-      Math.hypot(best.sprite.x-CANNON.x,best.sprite.y-CANNON.y)?e:best,null);
-    if(enemy) {
-      const line=this.add.graphics().setDepth(55);
-      line.lineStyle(4,0xebadff,0.9);
-      line.lineBetween(shot.sprite.x,shot.sprite.y,enemy.sprite.x,enemy.sprite.y);
-      this.tweens.add({targets:line,alpha:0,duration:220,onComplete:()=>line.destroy()});
-      const idx=this.enemies.findIndex(e=>e.uid===enemy.uid);
-      if(idx>=0)this.impactInvader(idx,this.specialBuild.krReflectDamage,0,'#f1c4ff',false);
-    }
-    this.reactV1ShieldImpact();
-    return true;
-  }
-
-  reactV1ShieldImpact() {
-    if(!this.isV1Campaign || this.shield<=0 || !this.specialBuild ||
-      this.time.now-this.lastV1ShieldPulse<420)return;
-    this.lastV1ShieldPulse=this.time.now;
-    const build=this.specialBuild;
-    if(build.stages.us) {
-      // Antenas americanas: pulso só empurra; não aplica dano.
-      const radius=70+build.stages.us*15;
-      this.drawV1SpecialPulse(CANNON.x,CANNON.y-25,radius,0xffac67);
-      this.pushV1EnemiesUp(CANNON.x,CANNON.y-25,radius,build.usPush);
-    }
-    if(build.stages.ru) {
-      // Armadura Siberiana: fragmentos apenas congelam, sem causar dano.
-      for(const enemy of this.enemies) {
-        if(Math.hypot(enemy.sprite.x-CANNON.x,enemy.sprite.y-CANNON.y) <
-          build.ruShieldRadius+enemyContactRadius(enemy.type))
-          this.freezeRussianEnemy(enemy,build.ruShieldFreezeMs);
-      }
-      this.drawV1SpecialPulse(CANNON.x,CANNON.y-10,build.ruShieldRadius,0x8de7ff);
-    }
-  }
+  // v0.49: upgrades de escudo foram removidos. Projéteis causam dano
+  // à cúpula universal, sem reflexos nem pulsos defensivos por país.
+  reflectV1ShieldProjectile(_shot) { return false; }
+  reactV1ShieldImpact() {}
 
   removeEnemyBullet(index) {
     const shot = this.enemyBullets[index];
@@ -2781,7 +2742,7 @@ export class GameScene extends Phaser.Scene {
     this.basicShotCount = nextShot;
     // O laser coreano mantém a direção da mira original (a oscilação da
     // Gambiarra altera apenas as balas básicas, não a arma laser).
-    if (this.combat.plasmaEvery > 0 && this.basicShotCount % this.combat.plasmaEvery === 0) {
+    if (this.combat.plasmaEvery > 0 && this.basicShotCount % (this.isV1Campaign ? this.combat.plasmaEvery * 2 : this.combat.plasmaEvery) === 0) {
       this.fireLightstickBeam(angle);
     }
     if (this.isV1Campaign && this.combat.missileEvery && nextShot % this.combat.missileEvery === 0) {
@@ -3998,10 +3959,10 @@ export class GameScene extends Phaser.Scene {
               bullet.sprite.x,bullet.sprite.y,Math.max(7,bullet.usRadius));
             const key=enemy.uid+':'+target;
             if(target!==null&&bullet.hitEnemyIds.has(key))continue;
-            if(target!==null)bullet.hitEnemyIds.add(key);
             const hit=hitType6Bullet(this,enemy,bullet.sprite.x,bullet.sprite.y,
-              bullet.damage,Math.max(7,bullet.usRadius));
+              bullet.damage,Math.max(7,bullet.usRadius),previousX,previousY);
             if(!hit.blocked)continue;
+            if(hit.target!==null)bullet.hitEnemyIds.add(enemy.uid+':'+hit.target);
             if(bullet.fragmentation)this.explodeFragments(bullet.sprite.x,bullet.sprite.y,
               enemy.uid);
             if(bullet.usGrowthMax>1)this.explodeAmericanPrimary(bullet.sprite.x,
@@ -4076,7 +4037,6 @@ export class GameScene extends Phaser.Scene {
 
   damageCannon(amount) {
     if (this.tutorialComplete) return;
-    if(this.isV1Campaign && this.shield>0)this.reactV1ShieldImpact();
     this.lastDamageAt = this.time.now;
     if (this.mode === 'upgradeLab' || this.mode === 'lab') {
       // Laboratórios: escudo ainda pode sofrer dano, mas o teste não termina.
@@ -4087,9 +4047,6 @@ export class GameScene extends Phaser.Scene {
     const result = applyShieldedHit(this.shield, this.cannonHealth, amount);
     this.shield = result.shield;
     this.cannonHealth = result.health;
-    if (this.isV1Campaign && this.combat.shieldPulse && this.shield > 0) {
-      this.shield = Math.min(this.shieldMax, this.shield + amount*0.08);
-    }
     if (this.cannonHealth === 0) this.showDefeat();
   }
 
@@ -4200,151 +4157,26 @@ export class GameScene extends Phaser.Scene {
   drawShield() {
     const graphics = this.shieldGraphics;
     graphics.clear();
-    const brazilRing = this.isV1Campaign && v1CountryLevels(this.combatCampaign).br >= 2;
-    const dome = (x, y, radius, shield, max, fullRing = false, centerOffsetY = 10) => {
-      if (shield <= 0) return;
-      // A melhoria brasileira AUMENTA visualmente a cúpula e sua faixa
-      // de detecção, sem alterar a resistência total (HP) do escudo.
-      const drawRadius = radius + (this.combat.electricFence ? ELECTRIC_FENCE_RADIUS_BONUS : 0);
-      const fraction = shield / max;
-      const color = fraction > 0.75 ? 0x388bff : fraction > 0.50 ? 0x35c86d : fraction > 0.25 ? 0xf1cb35 : 0xf04a52;
-      graphics.lineStyle(3, color, Math.max(0.35, fraction));
-      graphics.beginPath();
-      graphics.arc(x, y + centerOffsetY, drawRadius,
-        fullRing ? 0 : Math.PI, Math.PI * 2, false);
-      graphics.strokePath();
-      if (this.combat.electricFence) {
-        // Verde de cerca elétrica + cacos de vidro acompanhando a borda.
-        const cy = y + 10;
-        const electricGlow = fenceGlowAt(this.time.now, fraction);
-        graphics.lineStyle(5, 0x60ffb9, electricGlow * 0.16);
-        graphics.beginPath();
-        graphics.arc(x, cy, drawRadius + 3, Math.PI, Math.PI * 2, false);
-        graphics.strokePath();
-        graphics.lineStyle(1, 0xa4faad, Math.max(0.23, fraction * 0.70));
-        graphics.beginPath();
-        graphics.arc(x, cy, drawRadius + 2, Math.PI, Math.PI * 2, false);
-        graphics.strokePath();
-        graphics.fillStyle(0xa6f2bf, Math.max(0.3, fraction * 0.78));
-        for (let i = 1; i <= 11; i += 1) {
-          const angle = Math.PI + (i / 12) * Math.PI;
-          const cos = Math.cos(angle);
-          const sin = Math.sin(angle);
-          const gx = x + drawRadius * cos;
-          const gy = cy + drawRadius * sin;
-          graphics.fillTriangle(
-            gx - sin * 3, gy + cos * 3,
-            gx + sin * 3, gy - cos * 3,
-            gx + cos * 7, gy + sin * 7,
-          );
-        }
-        // Reflexos correm ao longo dos cacos mesmo quando não há OVNIs.
-        // Reutiliza o Graphics da cúpula em vez de emitir partículas.
-        for (let i = 0; i < 3; i += 1) {
-          const position = ((this.time.now * 0.00016 + i / 3) % 1);
-          const angle = Math.PI + position * Math.PI;
-          const cos = Math.cos(angle);
-          const sin = Math.sin(angle);
-          const gx = x + (drawRadius + 4) * cos;
-          const gy = cy + (drawRadius + 4) * sin;
-          graphics.lineStyle(1.4, 0xf3fff4, electricGlow * 0.75);
-          graphics.lineBetween(gx - 3, gy, gx + 3, gy);
-          graphics.lineBetween(gx, gy - 3, gx, gy + 3);
-        }
-        // Pequenos arcos da cerca: brilho somente decorativo.
-        for (let i = 0; i < 3; i += 1) {
-          const angle = Math.PI + (i + 0.5) * Math.PI / 3;
-          const cx = x + (drawRadius + 3) * Math.cos(angle);
-          const sy = cy + (drawRadius + 3) * Math.sin(angle);
-          const flicker = Math.sin(this.time.now * 0.017 + i * 2.7);
-          if (flicker < 0) continue;
-          graphics.lineStyle(1.2, 0xc9ffd5, flicker * electricGlow * 0.7);
-          graphics.lineBetween(cx - 5, sy, cx, sy - 4);
-          graphics.lineBetween(cx, sy - 4, cx + 4, sy + 1);
-        }
-      }
-    };
-    dome(CANNON.x, CANNON.y,
-      brazilRing ? ARRAIAL.shieldDomeRadius : 62,
-      this.shield, this.shieldMax, false, 10);
-    if (brazilRing && this.shield > 0) {
-      // Fogueira no chão: elipse achatada ao redor da base do canhão.
-      const age=this.firePulse ? this.time.now-this.firePulse.bornAt : ARRAIAL.firePulseDuration;
-      const pulsing=age<ARRAIAL.firePulseDuration;
-      const radius=pulsing ? firePulseRadius(age) : ARRAIAL.fireRingRadius;
-      const cx=CANNON.x, cy=CANNON.y+7;
-      const flatten=ARRAIAL.fireRingFlatten;
-      graphics.lineStyle(pulsing?6:4,pulsing?0xffc35b:0xff8432,0.9);
-      graphics.strokeEllipse(cx,cy,radius*2,radius*2*flatten);
-      graphics.lineStyle(2,0xffdf84,pulsing?0.65:0.4);
-      graphics.strokeEllipse(cx,cy,radius*1.83,radius*1.83*flatten);
-      for(let i=0;i<20;i++){
-        const angle=i*Math.PI*2/20;
-        const fx=cx+radius*Math.cos(angle);
-        const fy=cy+radius*flatten*Math.sin(angle);
-        const flicker=5+4*(0.5+0.5*Math.sin(this.time.now*0.014+i*2.1));
-        graphics.fillStyle(i%2?0xff932c:0xffdf63,0.85);
-        graphics.fillTriangle(fx-3,fy,fx+3,fy,fx,fy-flicker*(pulsing?1.8:1));
-      }
-    }
-    // Acessórios de escudo combináveis, desenhados sobre a mesma barra de HP.
-    if(this.isV1Campaign && this.specialBuild && this.shield>0){
-      const stages=this.specialBuild.stages;
+    // Escudo universal — cúpula 180% maior e com colisão idêntica.
+    // Não aplicar quaisquer acessórios ou mecânicas de defesa por upgrade.
+    if(this.shield>0){
       const fraction=this.shield/this.shieldMax;
-      const cx=CANNON.x,cy=CANNON.y+10,rad=68+
-        (this.combat.electricFence?ELECTRIC_FENCE_RADIUS_BONUS:0);
-      // EUA: duas antenas laterais de choque, sem tiro ofensivo.
-      if(stages.us)for(const side of [-1,1]){
-        const x=cx+side*(rad-6), y=cy+5, h=11+stages.us*8;
-        graphics.lineStyle(4,0xffaa60,fraction);
-        graphics.lineBetween(x,y,x,y-h);
-        graphics.fillStyle(0xffdfac,fraction);
-        graphics.fillCircle(x,y-h,3+stages.us);
-        graphics.lineStyle(2,0xffd697,0.6*fraction);
-        graphics.strokeCircle(x,y-h,5+stages.us*2);
-      }
-      // Rússia: placas cristalinas de proteção.
-      if(stages.ru){
-        const maximum=3+stages.ru*2;
-        for(let i=0;i<maximum;i++){
-          const a=Math.PI+(i+0.5)*Math.PI/maximum;
-          const x=cx+rad*Math.cos(a),y=cy+rad*Math.sin(a),size=4+stages.ru*2;
-          graphics.fillStyle(0x9cefff,0.35+fraction*0.6);
-          graphics.fillTriangle(x-size,y+size/2,x,y-size*1.5,x+size,y+size/2);
-          graphics.lineStyle(1,0xffffff,0.8*fraction);
-          graphics.lineBetween(x,y-size*1.5,x+size,y+size/2);
-        }
-      }
-      // China: caixinhas maiores nos níveis altos; desaparecem com o HP.
-      if(stages.cn){
-        const maximum=2+stages.cn*2,count=Math.ceil(maximum*fraction);
-        for(let i=0;i<count;i++){
-          const a=Math.PI+(i+0.5)*Math.PI/maximum;
-          const x=cx+(rad-4)*Math.cos(a),y=cy+(rad-4)*Math.sin(a);
-          const size=7+stages.cn*2;
-          graphics.fillStyle(0xb97b41,0.94);
-          graphics.fillRect(x-size/2,y-size/2,size,size);
-          graphics.lineStyle(1,0xffe3a3,0.9);
-          graphics.strokeRect(x-size/2,y-size/2,size,size);
-          graphics.lineBetween(x,y-size/2,x,y+size/2);
-        }
-      }
-      // Coreia: painéis de espelho girando ao redor do canhão.
-      if(stages.jp){
-        const maximum=2+stages.jp*2,count=Math.ceil(maximum*fraction);
-        for(let i=0;i<count;i++){
-          const a=Math.PI+(i+0.5)*Math.PI/maximum+
-            0.1*Math.sin(this.time.now*0.001);
-          const x=cx+(rad+9)*Math.cos(a),y=cy+(rad+9)*Math.sin(a);
-          const size=6+stages.jp;
-          graphics.fillStyle(0xe9b0ff,0.84);
-          graphics.fillTriangle(x,y-size,x+size,y,x,y+size);
-          graphics.fillTriangle(x,y-size,x-size,y,x,y+size);
-          graphics.lineStyle(1,0xffffff,0.88);
-          graphics.lineBetween(x,y-size,x+size,y);
-        }
-      }
+      const color=cannonShieldColor(this.shield,this.shieldMax);
+      graphics.lineStyle(5,color,0.47+0.43*fraction);
+      graphics.beginPath();
+      graphics.arc(CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS,Math.PI,Math.PI*2,false);
+      graphics.strokePath();
+      graphics.lineStyle(2,color,0.14+0.20*fraction);
+      graphics.beginPath();
+      graphics.arc(CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS+6,Math.PI,Math.PI*2,false);
+      graphics.strokePath();
     }
+    const dome=(x,y,radius,shield,max)=>{
+      if(shield<=0)return;
+      graphics.lineStyle(3,cannonShieldColor(shield,max),0.8);
+      graphics.beginPath();graphics.arc(x,y,radius,Math.PI,Math.PI*2,false);
+      graphics.strokePath();
+    };
     for (const tower of this.supportTowers) {
       if (tower.health > 0) {
         dome(tower.x, tower.y, tower.shieldRadius, tower.shield, tower.shieldMax);
@@ -4768,7 +4600,7 @@ export class GameScene extends Phaser.Scene {
     this.drawEnemyHealthBars();
 
     if (this.time.now - this.lastDamageAt > SHIELD_REGEN_DELAY && this.shield < this.shieldMax) {
-      this.shield = Math.min(this.shieldMax, this.shield + (this.isV1Campaign ? this.combat.shieldRegen : SHIELD_REGEN_RATE) * dt);
+      this.shield = Math.min(this.shieldMax, this.shield + SHIELD_REGEN_RATE * dt);
     }
     for (const tower of this.supportTowers) {
       if (tower.health > 0 && tower.shield < tower.shieldMax &&
