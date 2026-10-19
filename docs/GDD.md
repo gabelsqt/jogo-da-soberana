@@ -380,3 +380,14 @@ Aumentar quantidade não significa antecipar dano: primeiro mostrar a coreografi
 **Velocidade dos inimigos em todas as ondas:** voos, perseguições e mergulhos dos invasores comuns (tipos 1–5) passam a usar **78% da velocidade anterior**, além de coreografias desaceleradas nas outras ondas; a onda 0 conserva o mergulho didático a 70% e a dança lenta de 6,5 s. O Tipo 6 mantém seu ritmo especial para não alterar o equilíbrio dos chefões.
 
 A abertura continua educativa por causa do atraso de tiros e da pausa anterior aos mergulhos. Não antecipar a fase ofensiva do relógio: após os 20 segundos decorridos (últimos dez segundos), as coreografias cessam, conforme decisão 164.
+
+
+## Decisões 170–180 — Pacote v0.50 (19/10/2026)
+**170-A:** cinco retratos sobre as cadeiras da imagem do boteco de DIA do usuário (Brasil, EUA, Coreia, Rússia, China). **171-A:** clique escurece todo o boteco/outros retratos; retrato selecionado cresce, anima ao canto superior esquerdo. **172-A:** texto flavor e informações mecânicas do upgrade simultâneos, com espaço abaixo para vídeo futuro (não implementar vídeo agora).
+**173-A:** Cubo News retorna à paleta AZUL-NOTURNO jornalístico `#0B1621`/ `#193043`/ `#DCE8EE`/ `#E2A45E`/ `#C45151`. **174-B:** IBM Plex Sans no texto, IBM Plex Mono nos números. **175-A:** cronômetro maior, discreto e sem moldura.
+**176-A:** introdução visual novel de 20–30 segundos com avanço automático e por clique. **177-A modificada:** o nome é digitado ao LOGIN no PC velho de trabalho; depois surge a área de trabalho e o jogador CLICA o link da Cubo News no navegador em vez de trabalhar. **178-A:** diálogos dos próprios alienígenas ao verem o Cristo, não só jornalista narrando.
+**179-C e observações posteriores:** histórias idiotas de representantes com humor brasileiro, escolhidas como base. Brasil = foguete de São João confundido com armamento aeroespacial; EUA = pontos de milhas/sala VIP confundidos com promoção militar; Coreia = Kim Lin Doo, integrante de K-pop convocado ao serviço militar e promovido involuntariamente, brinca com BTS (Batalhão Tático de Seul); Rússia = congelamento de contas bancárias interpretado como tecnologia criogênica; China = logística com cinco estrelas que vira comando militar automaticamente. **180-B:** cada biografia aparece progressivamente conforme o jogador escolhe novos upgrades daquele país.
+Todos os diálogos de humor e manchetes são **PLACEHOLDERS editáveis**; a revisão integral de textos ocorrerá perto do lançamento. Textos mecânicos dos upgrades devem ser sempre precisos. Personagem ex sem gênero.
+**BUG OBRIGATÓRIO:** Brasil nível 10, `Metralhadora da Soberania`, deve atingir Tipo 6 corretamente mesmo se mirar no vão entre módulos, sem contornar barreira, escudos próprios ou núcleo vulnerável.
+
+Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir novos sistemas defensivos nem rebalancear efeitos ofensivos. `main` permanece intocada.
