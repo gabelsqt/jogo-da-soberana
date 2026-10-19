@@ -133,3 +133,16 @@
 - [ ] Resultados ficam em histórico local e podem ser exportados.
 - [ ] Indicador de dificuldade usa quantidade, tiros, velocidade e pausas, indicando claramente que é estimativa.
 - [ ] Antes de implementar controles, verificar prioridade de limites, cadência e rajadas. Não marcar como concluído sem testar no navegador.
+
+
+## Enemy Maker — validação futura R1–R10 (não implementado nesta rodada)
+- [ ] Laboratório exibe **Wave Maker** e **Enemy Maker** como opções distintas.
+- [ ] Galeria de inimigos mostra nomes e miniaturas corretas, sem selecionar tipo errado.
+- [ ] Interface completa prevista contempla atributos de combate e movimentação.
+- [ ] Valores globais do tipo e ajustes por nível funcionam com precedência documentada.
+- [ ] Apenas ataques já existentes podem ser ajustados; nenhuma ferramenta cria ataque novo implicitamente.
+- [ ] Sprite animado é exibido sem cortes/tremores indevidos; botão de testar ataques abre cenário correto.
+- [ ] Arena permite testar um inimigo isolado e, futuramente, um grupo configurável.
+- [ ] Enemy Maker altera base global; Wave Maker sobrescreve apenas valores locais à onda, sem modificar a base global.
+- [ ] Salvar rascunho de inimigo NÃO altera campanha; publicação explícita aplica o conjunto validado.
+- [ ] Primeira entrega limita escopo a atributos de combate e arena individual; marcar funcionalidades avançadas somente após implantação efetiva.
