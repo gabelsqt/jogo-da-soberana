@@ -623,3 +623,16 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **I9 A:** diálogos de visual novel avançam **por clique ou toque**, no ritmo escolhido pelo jogador.
 - **I10 C:** suspeitas são comunicadas com falas ambíguas e futuras variações de retrato/expressão situacional, sem entregar antecipadamente o traidor sorteado.
 - **Status e consistência:** somente planejamento. **Nenhum código ou asset alterado nesta rodada**; arquivos e falas existentes que contenham os nomes antigos serão atualizados numa etapa de implementação autorizada. Todas as regras anteriores compatíveis permanecem válidas.
+
+### Mistério alienígena, traição e finais — decisões J1–J10 aprovadas (19/10/2026; planejamento)
+- **J1 C:** os ataques exclusivamente noturnos decorrem de estratégia/objetivo oculto mais surpreendente; motivo definitivo ainda será definido.
+- **J2 B:** o chefão alienígena revela suas intenções por meio de comunicação durante o confronto final. **Conciliar com J10:** a revelação substancial do motivo ocorre **antes da onda 10**, durante a sequência narrativa que antecede esse confronto; o chefão pode ser a fonte ou confirmar a revelação por comunicação prévia. Não postergar a informação para depois da batalha.
+- **J3 A:** traição dos países e invasão alienígena são **conflitos independentes**. Traidor se aproveita da crise, sem pacto ou manipulação alienígena.
+- **J4 C:** cada país traidor tem motivação própria ligada à personalidade e aos seus interesses.
+- **J5 B:** cena de discussão: traidor justifica sua ação, Zeca contesta, seguindo-se a oferta de rendição já aprovada.
+- **J6 C:** se o jogador aceitar o ultimato, a **Cubo News anuncia a submissão** antes do respectivo final de colonização. Nenhuma batalha contra o traidor nessa ramificação.
+- **J7 C:** quatro finais de colonização compartilham estrutura inicial, mas incluem consequências e piadas específicas de cada país.
+- **J8 A:** vitória contra o traidor é celebrada **no boteco**, centro da história; não exigir festa nas ruas.
+- **J9 A:** líder traidor derrotado recebe **humilhação cômica** após sua derrota; detalhar contexto e tom em roteirização futura.
+- **J10 C com comentário:** o verdadeiro motivo da invasão é esclarecido **antes da onda 10**; a vitória Full Brazil confirma/fecha a revelação. **Derrotar o chefão com o Supremo brasileiro pode render tratamento especial ainda a especificar**, sem mudar agora a regra de Supremo, a vitória ou as dez terminações aprovadas. O usuário considera especialmente interessante vencer dessa forma; definir mais tarde como reconhecer essa condição sem criar um 11º final obrigatório.
+- **Status:** planejamento apenas; nenhum código, asset, balanceamento ou versão alterado.
