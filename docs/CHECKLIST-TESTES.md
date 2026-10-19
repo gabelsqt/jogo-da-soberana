@@ -214,3 +214,18 @@
 - [ ] Marcador de rascunho não publicado aparece nos objetos modificados e apresenta detalhes sob demanda, desaparecendo somente após publicação efetiva.
 - [ ] Interface desktop funciona com teclado e mouse; em celular há consulta legível, sem exigir ferramentas completas.
 - [ ] Manter testes desmarcados até implementação e validação reais.
+
+
+## Testes de balanceamento X1–X10 — aprovados / implantação gradual
+- [ ] Testar vitória conforme a regra real da campanha para cada onda.
+- [ ] Testes repetidos calculam taxa de vitória e HP restante para build básica.
+- [ ] Simular combate da onda inteira e de trecho selecionado com reset consistente de estado.
+- [ ] Exibir gráficos ao longo do tempo de projéteis efetivamente ativos e dano realmente sofrido.
+- [ ] Quantidade configurável de simulações automáticas em lote; isolar parâmetros e random seeds.
+- [ ] Canhão automático oferece mira ideal e simulação de erro/tempo de reação humanos.
+- [ ] Resumo de taxa de vitórias e painel de estatísticas expansível com dano, vida e interceptações.
+- [ ] Recomendações de balanceamento não alteram automaticamente rascunho/campanha.
+- [ ] Simular onda isolada e campanha completa.
+- [ ] Verificar limites técnicos e viabilidade prática da build brasileira básica antes de classificar onda como balanceada.
+- [ ] **v0.59 parcial:** abrir Wave Maker > ANALISAR; validar mensagem de concentração de entradas, pico e sugestões; confirmar que não são apresentados como resultados de combate.
+- [ ] Rodar `npm test` e `npm run build` no clone antes de marcar a v0.59 como validada.
