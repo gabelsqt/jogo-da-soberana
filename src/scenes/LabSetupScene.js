@@ -4,6 +4,7 @@ import { GAME_WIDTH as W, GAME_HEIGHT as H, preloadRioBackdrop, drawRioBackdrop 
 import { FIRST_UPGRADES } from '../gameplay/upgrades.js';
 import { normalizeLabConfig, changeLabWave, changeLabLevel, configuredTowerCountries, configuredTowerLoadout } from '../gameplay/labConfig.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import {addCuboBroadcastFrame,addCuboPixelText} from '../ui/cuboNewsTheme.js';
 
 export class LabSetupScene extends Phaser.Scene {
   constructor() { super({ key: 'LabSetupScene' }); }
@@ -13,12 +14,17 @@ export class LabSetupScene extends Phaser.Scene {
     bindSceneMusic(this, 'setup');
     drawRioBackdrop(this);
     this.add.rectangle(W / 2, H / 2, W, H, 0x051021, 0.92).setDepth(30);
-    this.add.text(W / 2, 37, 'LABORATÓRIO SOBERANA', {
-      fontFamily: 'monospace', fontSize: '29px', color: '#f9dfa0', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(32);
-    this.add.text(W / 2, 76, 'ESCOLHA A ONDA E OS NÍVEIS • NÃO ALTERA A CAMPANHA', {
-      fontFamily: 'monospace', fontSize: '13px', color: '#b8e9f8',
-    }).setOrigin(0.5).setDepth(32);
+    addCuboBroadcastFrame(this,{
+      section:'Laboratório de defesa',
+      headline:'Arquivo técnico • Simulador experimental',
+      footer:'Operação de teste independente da campanha',
+      depth:50,
+    });
+    addCuboPixelText(this,{x:W/2,y:80,text:'Laboratório Soberana',
+      size:3,color:'#ffe5ae',depth:34,maxWidth:700});
+    this.add.text(W / 2, 107, 'Escolha a onda e os níveis • Não altera a campanha', {
+      fontFamily:'monospace',fontSize:'13px',color:'#b8e9f8',
+    }).setOrigin(0.5).setDepth(34);
     this.drawButton(325, 125, '◀', () => this.setConfig(changeLabWave(this.config, -1)), 64);
     this.waveText = this.add.text(W / 2, 125, '', {
       fontFamily: 'monospace', fontSize: '23px', color: '#f8e4a9', fontStyle: 'bold',
@@ -31,7 +37,7 @@ export class LabSetupScene extends Phaser.Scene {
     this.levelTexts = {};
     FIRST_UPGRADES.forEach((country, index) => {
       const y = 209 + index * 45;
-      this.add.text(215, y, (country.flag + '  ' + (country.shortName ?? country.name)).toUpperCase(), {
+      this.add.text(215, y, (country.flag + '  ' + (country.shortName ?? country.name)), {
         fontFamily: 'monospace', fontSize: '17px', color: '#ffffff',
       }).setOrigin(0, 0.5).setDepth(35);
       this.drawButton(538, y, '−', () => this.setConfig(changeLabLevel(this.config, country.id, -1)), 49);
