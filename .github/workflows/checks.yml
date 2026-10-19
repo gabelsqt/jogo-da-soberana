@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
 
+# Cada nova revisão substitui os jobs de PR anteriores da mesma branch.
+# Evita acumular dezenas de builds enquanto o patch é refinado.
+concurrency:
+  group: soberana-checks-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
