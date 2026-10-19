@@ -2340,6 +2340,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   fireEnemyProjectile(enemy, target = this.chooseDefenseTarget()) {
+    // Proteção de desempenho para o enxame Tipo 6 chinês e salvas de formação.
+    // Preserva até 140 projéteis interceptáveis ao mesmo tempo na tela.
+    if(this.enemyBullets.length>=140||this.tutorialComplete||!enemy.sprite.active)return;
     // A nave abre o compartimento de bombas ao disparar.
     if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
       enemy.sprite.play('tipo3_bombardeio', true);
@@ -2356,13 +2359,14 @@ export class GameScene extends Phaser.Scene {
       const dx = target.x - x;
       const dy = target.y - y;
       const distance = Math.max(1, Math.hypot(dx, dy));
-      const projectile = this.add.rectangle(x, y, 11, 11, ENEMY_SHOT_COLOR)
-        .setStrokeStyle(1, 0xfff5bc).setDepth(28);
+      const projectile = this.add.rectangle(x,y,16.5,16.5,ENEMY_SHOT_COLOR)
+        .setStrokeStyle(2,0xfff5bc).setDepth(28);
       this.enemyBullets.push({
         sprite: projectile,
         hp: enemy.definition.shotHp ?? 1,
         target,
-        damage:profile?.damage??ENEMY_BULLET_DAMAGE,
+        damage:profile?.damage??(enemy.type<=2?14:ENEMY_BULLET_DAMAGE),
+        radius:8.25,
         vx: dx / distance * 160*(profile?.speedMultiplier??1),
         vy: dy / distance * 160*(profile?.speedMultiplier??1),
       });
@@ -2372,19 +2376,22 @@ export class GameScene extends Phaser.Scene {
   updateEnemyBullets(dt) {
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
       const shot = this.enemyBullets[i];
+      const previousX=shot.sprite.x,previousY=shot.sprite.y;
       shot.sprite.x += shot.vx * dt;
       shot.sprite.y += shot.vy * dt;
       if (this.specialBlasts.some((blast) => blastCatchesTarget(
         blast.x, blast.y, this.time.now - blast.bornAt,
-        shot.sprite.x, shot.sprite.y, 8,
+        shot.sprite.x, shot.sprite.y, shot.radius??8,
       ))) {
         if(shot.colossal)detonateType6Bomb(this,shot);
         else this.removeEnemyBullet(i);
         continue;
       }
-      if (Phaser.Math.Distance.Between(
-        shot.sprite.x, shot.sprite.y, shot.target.x, shot.target.y,
-      ) < 14) {
+      const domeHit=shot.target?.kind==='cannon'&&this.shield>0&&
+        cannonDomeIntercept(previousX,previousY,shot.sprite.x,shot.sprite.y);
+      if(domeHit || Phaser.Math.Distance.Between(
+        shot.sprite.x,shot.sprite.y,shot.target.x,shot.target.y,
+      ) < Math.max(14,(shot.radius??8)+6)) {
         const reflected=this.reflectV1ShieldProjectile(shot);
         this.removeEnemyBullet(i);
         if(!reflected){
@@ -2827,7 +2834,7 @@ export class GameScene extends Phaser.Scene {
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
       const bullet = this.enemyBullets[i];
       if (laserHitsTarget(
-        startX, startY, endX, endY, bullet.sprite.x, bullet.sprite.y, PLASMA_HALF_WIDTH, 7,
+        startX, startY, endX, endY, bullet.sprite.x, bullet.sprite.y, PLASMA_HALF_WIDTH, bullet.radius??7,
       )) {
         if(bullet.colossal)detonateType6Bomb(this,bullet);
         else this.removeEnemyBullet(i);
@@ -3385,7 +3392,9 @@ export class GameScene extends Phaser.Scene {
       const alive=targets.filter(t=>liveIds.has(t.uid));
       if(!alive.length)break;
       const target=alive[cursor++%alive.length];
-      if(g){
+      if(g && ray<8){
+        // No limite de 24 reflexos, desenha até oito linhas por pulso.
+        // Os demais reflexos mantêm seu dano; evita congelar a onda 11.
         g.lineStyle(ray%2?2:3,ray%3===0?0xffffff:0xe69aff,0.72);
         g.lineBetween(x,y,target.sprite.x,target.sprite.y);
       }
@@ -3980,7 +3989,7 @@ export class GameScene extends Phaser.Scene {
           const hostile = this.enemyBullets[j];
           if (Phaser.Math.Distance.Between(
             bullet.sprite.x, bullet.sprite.y, hostile.sprite.x, hostile.sprite.y,
-          ) >= 9+Math.max(7,bullet.usRadius)) continue;
+          ) >= (hostile.radius??8.25)+Math.max(7,bullet.usRadius)+3) continue;
           hostile.hp -= bullet.damage;
           if (hostile.hp <= 0){
             if(hostile.colossal)detonateType6Bomb(this,hostile);
@@ -4358,6 +4367,35 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  beginDawnWithdrawal(){
+    if(this.sunrisePlaying||this.tutorialComplete)return;
+    this.sunrisePlaying=true;
+    this.countdownActive=true;
+    // A etiqueta alienígena proíbe combater sob a luz do sol.
+    // Nenhum projétil novo, dano ou animação de onda ocorre até a saída.
+    for(let i=this.enemyBullets.length-1;i>=0;i--)this.removeEnemyBullet(i);
+    this.sunriseOverlay?.setAlpha(0);
+    if(this.sunriseOverlay)this.tweens.add({
+      targets:this.sunriseOverlay,alpha:0.48,duration:1100,ease:'Sine.Out',
+    });
+    const label=this.add.text(W/2,153,'AMANHECEU! ETs RECUAM POR EDUCAÇÃO',{
+      fontFamily:'IBM Plex Sans, sans-serif',fontSize:'29px',fontStyle:'bold',
+      color:'#fff4d3',stroke:'#19372d',strokeThickness:5,
+      align:'center',
+    }).setOrigin(0.5).setDepth(140);
+    for(const enemy of this.enemies){
+      if(!enemy.sprite?.active)continue;
+      this.tweens.add({targets:enemy.sprite,y:-130,x:enemy.sprite.x+
+        (enemy.sprite.x<W/2?-40:40),alpha:0,duration:1450,ease:'Sine.In'});
+    }
+    this.time.delayedCall(1750,()=>{
+      label.destroy();
+      if(!this.scene.isActive('GameScene'))return;
+      this.countdownActive=false;
+      this.showWaveComplete('survived');
+    });
+  }
+
   showWaveComplete(outcome = 'cleared') {
     if (this.tutorialComplete) return;
     this.clearDiscoGlobes();
@@ -4593,10 +4631,8 @@ export class GameScene extends Phaser.Scene {
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += this.boss6IntroPaused?0:delta;
     this.updateDiscoGlobes();
-    if (this.sunriseOverlay) {
-      const sunrise = Math.max(0, 1 - (this.waveDurationMs - this.elapsed) / 5000);
-      this.sunriseOverlay.setAlpha(sunrise * 0.28);
-    }
+    // Nunca clarear o Rio antes de o cronômetro chegar a ZERO.
+    if(this.sunriseOverlay)this.sunriseOverlay.setAlpha(0);
     // À meia-noite de 30 segundos, sobreviver basta — mesmo com inimigos vivos.
     // A verificação vem ANTES das atualizações hostis do quadro final.
     if(this.mode==='wave10'||this.mode==='wave11'){
@@ -4608,7 +4644,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
     if (/^wave[0-9]$/.test(this.mode) && this.elapsed >= WAVE_DURATION_MS) {
-      this.showWaveComplete('survived');
+      this.beginDawnWithdrawal();
       return;
     }
     this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
