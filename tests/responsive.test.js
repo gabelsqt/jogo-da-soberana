@@ -205,9 +205,9 @@ test('composição fora do canvas mantém mundo 960×540 e acrescenta 44px de no
   assert.equal(menu.tickerHeight,0);
   const battle=fitBroadcastLayout({width:1920,height:1080,tickerVisible:true});
   assert.equal(battle.height,1080);
-  assert.equal(battle.gameHeight+battle.tickerHeight,battle.height);
-  assert.equal(battle.gameHeight/battle.width,540/960);
-  assert.equal(battle.tickerHeight/battle.width,44/960);
+  assert.ok(Math.abs(battle.gameHeight+battle.tickerHeight-battle.height)<1e-8);
+  assert.ok(Math.abs(battle.gameHeight/battle.width-540/960)<1e-8);
+  assert.ok(Math.abs(battle.tickerHeight/battle.width-44/960)<1e-8);
   assert.ok(battle.width<menu.width);
   const narrow=fitBroadcastLayout({width:960,height:800,tickerVisible:true});
   assert.equal(narrow.width,960);
@@ -233,10 +233,10 @@ test('layout do telejornal cresce e diminui sem deslocar as coordenadas Phaser',
   root.win.emit('resize');root.win.flush();
   assert.ok(Number.parseFloat(tickerRegion.style.height)>0);
   assert.ok(Number.parseFloat(gameRegion.style.height)<menuGameHeight);
-  assert.equal(
-    Number.parseFloat(gameRegion.style.height)+Number.parseFloat(tickerRegion.style.height),
+  assert.ok(Math.abs(
+    Number.parseFloat(gameRegion.style.height)+Number.parseFloat(tickerRegion.style.height)-
     Number.parseFloat(broadcast.style.height),
-  );
+  )<1e-8);
   broadcast.dataset.cuboNews='hidden';
   root.win.emit('resize');root.win.flush();
   assert.equal(Number.parseFloat(tickerRegion.style.height),0);
