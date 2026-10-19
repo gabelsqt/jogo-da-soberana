@@ -56,11 +56,14 @@ import { hostileBosses, pickBetrayer, continueResistanceAfterDefeat } from '../g
 import {
   spawnType6Encounter, updateType6Encounter, hitType6At, hitType6Segment,
   hitType6Bullet, defeatType6, type6NextDeadline, type6AimPosition,
+  detonateType6Bomb,
 } from '../gameplay/type6Encounter.js';
 import {
   type6AliveModules, type6PointTarget, type6AreaTargets, type6TargetRects,
 } from '../gameplay/type6Boss.js';
 import { finaleBossHp, finaleBossFirePattern, finaleCounterattack } from '../gameplay/finaleBalance.js';
+import {createCuboNewsState,tickCuboNews,queueCuboNews} from '../gameplay/cuboNews.js';
+import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import { applyRussianFreeze, spreadRussianFrost } from '../gameplay/russianFrost.js';
 import {
@@ -404,6 +407,12 @@ export class GameScene extends Phaser.Scene {
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
+    if(this.mode.startsWith('wave')){
+      this.cuboNewsState=createCuboNewsState(this.combatCampaign?.choices||this.campaign?.choices||[],
+        this.mode,this.mode==='wave11'?this.selectedBetrayer:null);
+      this.cuboNewsHud=createCuboNewsHud(this);
+      this.cuboNewsHud.update(0,this.waveDurationMs,null,{frozen:true});
+    }
     if (this.isV1Campaign && this.specialBuild?.primary) {
       this.specialLabel=this.add.text(CANNON.x-170,CANNON.y-63,'',{
         fontFamily:'monospace',fontSize:'11px',fontStyle:'bold',
@@ -415,6 +424,11 @@ export class GameScene extends Phaser.Scene {
         fontFamily: 'monospace', fontSize: '11px', fontStyle: 'bold',
         color: '#fff2b8', backgroundColor: '#132b39da', padding: {x:6,y:4},
       }).setDepth(105);
+    }
+    // Não existem indicadores persistentes fora do lower third da Cubo News.
+    if(this.mode.startsWith('wave')){
+      this.specialLabel?.setVisible(false);
+      this.ultimateLabel?.setVisible(false);
     }
     // A batalha é vista como transmissão de TV. O filtro é somente visual:
     // fica acima das naves, mas abaixo dos textos e controles do HUD.
@@ -1193,10 +1207,16 @@ export class GameScene extends Phaser.Scene {
     this.add.circle(x, y - 1, 12, 0x314f62).setStrokeStyle(2, 0xc4d7dc).setDepth(23);
   }
 
+  queueCuboNews(headline,subtitle){
+    if(this.cuboNewsState)queueCuboNews(this.cuboNewsState,headline,subtitle);
+  }
+
   createHud() {
     const font = { fontFamily: 'monospace', fontSize: '18px', color: '#f0f7ff' };
-    this.add.rectangle(W / 2, 20, W, 40, 0x081528, 0.93).setDepth(100);
-    this.add.text(14, 9, 'SOBERANIA | ' + MODES[this.mode].title, font).setDepth(101);
+    const topPanel=this.add.rectangle(W / 2, 20, W, 40, 0x081528, 0.93).setDepth(100);
+    if(this.mode.startsWith('wave'))topPanel.setVisible(false);
+    const oldTitle=this.add.text(14, 9, 'SOBERANIA | ' + MODES[this.mode].title, font).setDepth(101);
+    if(this.mode.startsWith('wave'))oldTitle.setVisible(false);
     this.statusText = this.add.text(W - 14, 9, '', font).setOrigin(1, 0).setDepth(101);
     this.tutorialText = this.add.text(W / 2, 55, '', {
       ...font, fontSize: '15px', backgroundColor: '#0b1a2bcc', padding: { x: 9, y: 6 },
@@ -1204,6 +1224,11 @@ export class GameScene extends Phaser.Scene {
     this.healthText = this.add.text(14, H - 28, '', {
       ...font, fontSize: '13px', color: '#e2ebfa',
     }).setDepth(101);
+    if(this.mode.startsWith('wave')){
+      this.statusText.setVisible(false);
+      this.tutorialText.setVisible(false);
+      this.healthText.setVisible(false);
+    }
 
     if (this.mode === 'upgradeLab' && !this.v1Playtest) {
       this.labUpgradeLabel = this.add.text(14, 98, '', {
@@ -2320,9 +2345,17 @@ export class GameScene extends Phaser.Scene {
         const reflected=this.reflectV1ShieldProjectile(shot);
         this.removeEnemyBullet(i);
         if(!reflected){
-          if(shot.frostMs)this.cannonFrozenUntil=Math.max(this.cannonFrozenUntil,
-            this.elapsed+shot.frostMs);
-          this.damageTarget(shot.target, shot.damage??ENEMY_BULLET_DAMAGE);
+          if(shot.cryoImpact){
+            this.shield=0; // Gelo russo rompe o escudo e impede disparos.
+            this.cannonFrozenUntil=Math.max(this.cannonFrozenUntil,this.elapsed+2000);
+          }else if(shot.frostMs){
+            this.cannonFrozenUntil=Math.max(this.cannonFrozenUntil,this.elapsed+shot.frostMs);
+          }
+          if(shot.instantUnshielded){
+            // Ogiva americana destrói imediatamente um canhão sem escudo.
+            if(this.shield<=0)this.damageTarget(shot.target,1000);
+            else {this.shield=0;this.damageTarget(shot.target,75);}
+          }else this.damageTarget(shot.target,shot.damage??ENEMY_BULLET_DAMAGE);
         }
         if (this.gameOver) return;
       } else if (shot.sprite.y > H + 30 || shot.sprite.x < -30 || shot.sprite.x > W + 30) {
@@ -2397,6 +2430,8 @@ export class GameScene extends Phaser.Scene {
     graphics.clear();
     for (const enemy of this.enemies) {
       if(enemy.type===6){
+        // Vida da fortaleza é comunicada por danos visuais, não barras.
+        continue;
         if(!enemy.type6.coreExposed)continue;
         const width=234,x=enemy.sprite.x-width/2,y=enemy.sprite.y+72;
         const fraction=Math.max(0,enemy.type6.coreHp/enemy.type6.coreMaxHp);
@@ -3941,7 +3976,10 @@ export class GameScene extends Phaser.Scene {
             bullet.sprite.x, bullet.sprite.y, hostile.sprite.x, hostile.sprite.y,
           ) >= 9+Math.max(7,bullet.usRadius)) continue;
           hostile.hp -= bullet.damage;
-          if (hostile.hp <= 0) this.removeEnemyBullet(j);
+          if (hostile.hp <= 0){
+            if(hostile.colossal)detonateType6Bomb(this,hostile);
+            else this.removeEnemyBullet(j);
+          }
           else hostile.sprite.setFillStyle(0xfff5d0);
           remove = true;
           break;
@@ -4166,7 +4204,7 @@ export class GameScene extends Phaser.Scene {
       // de detecção, sem alterar a resistência total (HP) do escudo.
       const drawRadius = radius + (this.combat.electricFence ? ELECTRIC_FENCE_RADIUS_BONUS : 0);
       const fraction = shield / max;
-      const color = fraction > 0.6 ? 0x70e6ec : fraction > 0.3 ? 0xf4c15e : 0xf06c77;
+      const color = fraction > 0.75 ? 0x388bff : fraction > 0.50 ? 0x35c86d : fraction > 0.25 ? 0xf1cb35 : 0xf04a52;
       graphics.lineStyle(3, color, Math.max(0.35, fraction));
       graphics.beginPath();
       graphics.arc(x, y + centerOffsetY, drawRadius,
@@ -4308,6 +4346,17 @@ export class GameScene extends Phaser.Scene {
       if (tower.health > 0) {
         dome(tower.x, tower.y, tower.shieldRadius, tower.shield, tower.shieldMax);
       }
+    }
+    // Congelamento russo: cristal gigante envolve o canhão por 2 segundos.
+    if(this.elapsed<this.cannonFrozenUntil){
+      const x=CANNON.x,y=CANNON.y-14;
+      graphics.fillStyle(0x9bdcff,0.40);
+      graphics.fillPoints([{x:x-66,y:y+27},{x:x-48,y:y-50},{x:x-6,y:y-98},
+        {x:x+38,y:y-68},{x:x+67,y:y+26},{x:x+22,y:y+46},{x:x-42,y:y+41}],true);
+      graphics.lineStyle(4,0xe5ffff,0.90);
+      graphics.strokePoints([{x:x-66,y:y+27},{x:x-48,y:y-50},{x:x-6,y:y-98},
+        {x:x+38,y:y-68},{x:x+67,y:y+26},{x:x+22,y:y+46},{x:x-42,y:y+41}],true);
+      graphics.lineStyle(2,0xffffff,0.7).lineBetween(x-45,y-45,x+22,y+36);
     }
   }
 
@@ -4548,6 +4597,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   updateHud() {
+    if(this.cuboNewsState){
+      const story=tickCuboNews(this.cuboNewsState,this.elapsed,this.waveDurationMs);
+      this.cuboNewsHud?.update(this.elapsed,this.waveDurationMs,story,{frozen:this.boss6IntroPaused});
+    }
     const remaining = Math.max(
       0, (this.lastSpecialFire + this.combat.specialCooldown - this.time.now) / 1000,
     );
@@ -4643,7 +4696,7 @@ export class GameScene extends Phaser.Scene {
     if (this.supremeCinematic) return;
     if (this.supremeTyping) delta *= 0.1;
     const dt = Math.min(delta / 1000, 0.05);
-    this.elapsed += delta;
+    this.elapsed += this.boss6IntroPaused?0:delta;
     this.updateDiscoGlobes();
     if (this.sunriseOverlay) {
       const sunrise = Math.max(0, 1 - (this.waveDurationMs - this.elapsed) / 5000);
