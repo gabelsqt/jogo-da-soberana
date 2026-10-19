@@ -657,3 +657,6 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 ### Implementação parcial v0.57 — primeira noite e boteco (19/10/2026)
 - Cena de diálogos avançáveis por clique/toque ao abrir o boteco após onda 0: vitória seguida de **destruição narrada** do canhão por nave superior, reação de Zeca e entrada conjunta dos cinco conselheiros. Em visitas posteriores, comentários breves de Zeca e conselheiro antes da seleção. A seleção fica temporariamente bloqueada durante a conversa.
 - **Não há destruição animada nem nave adicional nesta versão**; falta produzir e implementar cinematografia. Consultar docs/versao-0.57.md. Teste local pendente.
+
+### Implementação v0.58 — cinematográfica após onda 0
+- Uma nave inimiga de nível superior entra lentamente após a vitória inicial, carrega disparo no núcleo, atinge a posição do canhão com feixe, gera impacto e tremor e conduz o jogador ao boteco. Cena provisória construída com formas Phaser; não altera as regras de combate nem conta como derrota. O boteco deixa de narrar duas vezes a destruição. Documentação: docs/versao-0.58.md. Validação local pendente.
