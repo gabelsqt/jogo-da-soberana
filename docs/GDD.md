@@ -423,3 +423,10 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Criar ferramenta visual integrada ao laboratório para projetar e testar ondas sem editar código: origem/posição dos inimigos, tipo, quantidade, instante de entrada e sequência de eventos.
 - Proposta arquitetural em avaliação: editor com mapa de spawn, linha do tempo e prévia jogável, persistência local e exportação/importação JSON; definições separadas da lógica de execução para permitir reaproveitar o sistema de ondas.
 - Escopo, interface, parâmetros avançados e modo de publicação no jogo ainda precisam de decisão; não confundir este registro de intenção com funcionalidade implementada.
+
+### Decisão aprovada — Wave Maker integrado ao Laboratório (19/10/2026)
+- **Opção A aprovada:** o Soberania Wave Maker será uma ferramenta dentro do Laboratório Soberana, não um site independente.
+- Objetivo: criar, visualizar, ajustar e testar ondas por eventos (tempo, origem, tipo, quantidade e formação) com seleção visual e linha do tempo, reaproveitando o motor de eventos existente.
+- Plano de implementação em etapas: (1) schema independente e validação de eventos; (2) cena/aba do editor e controles de eventos; (3) prévia jogável via GameScene e retorno ao editor; (4) salvar/carregar e importar/exportar JSON; (5) mecanismo explícito de publicar uma onda aprovada na campanha.
+- Isolar rascunhos de mudanças oficiais: testar uma onda editada não pode sobrescrever a definição canônica da campanha. Não alterar as ondas existentes nesta fase de planejamento.
+- Parâmetros extras (rotas customizadas, IA de tiro e análises automáticas de dificuldade) ficam para fases posteriores. Continuar decisões antes de implementar; registrar implementações também por versão.
