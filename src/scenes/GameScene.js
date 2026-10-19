@@ -682,6 +682,8 @@ export class GameScene extends Phaser.Scene {
     this.waveEvents.forEach((event) => {
       this.time.delayedCall(event.at, () => {
         if (this.tutorialComplete || this.boss6Victory || this.boss6DoomFired) return;
+        // Nos 15 segundos finais das ondas comuns não entram novos inimigos.
+        if(/^wave[0-9]$/.test(this.mode)&&this.elapsed>=15000)return;
         this.eventsSpawned += 1;
         this.spawnWaveEvent(event);
       });
@@ -1381,23 +1383,22 @@ export class GameScene extends Phaser.Scene {
 
   spawnV035Group(type, level, count, centerX = null) {
     const kind = type === 1 ? 'swarm' : 'tactical';
+    const early=/^wave[012]$/.test(this.mode);
     const center = this.portalLane(type,centerX);
     const group = {
       kind, count, centerX: center, target: null, boundToScreen:true,
-      duration: kind === 'swarm'
-        ? Phaser.Math.FloatBetween(7.5, 9.5)
-        : Phaser.Math.FloatBetween(7.5, 9),
-      holdDuration: kind === 'tactical' ? 1.8 : Phaser.Math.FloatBetween(1.2, 1.8),
+      duration: early ? (kind==='swarm'?3.5:4.0) : (kind==='swarm'?5.0:5.3),
+      holdDuration:early?1.15:1.35,
       portalY: type===1?68:125,
-      finalFormation: Phaser.Math.Between(0,1)?'triangle':'square',
+      finalFormation: kind==='tactical'?'triangle':'square',
       pattern: kind === 'swarm'
-        ? SWARM_DANCES[Phaser.Math.Between(0, SWARM_DANCES.length - 1)] : 'tactical',
-      entry: kind === 'swarm'
-        ? SWARM_ENTRIES[Phaser.Math.Between(0, SWARM_ENTRIES.length - 1)] : 'together',
+        ? SWARM_DANCES[(this.eventsSpawned||0)%SWARM_DANCES.length] : 'tactical',
+      entry: 'together', // formação coesa, jamais naves dispersas
       direction: Phaser.Math.Between(0, 1) ? 1 : -1,
       attackStartAge: null,
       attackOrigin: null,
       attackDuration: null,
+      shotWarning:false,
     };
     // Uma abertura para a esquadrilha inteira; cada nave sai em sequência.
     // Tipo 1 usa portal mais alto, próximo ao topo do céu.
@@ -1546,7 +1547,11 @@ export class GameScene extends Phaser.Scene {
     const first=Math.max(this.time.now+120,entry.queueEnd,entry.born+500);
     for(let i=0;i<count;i++){
       const releaseAt=first+i*320;
-      this.time.delayedCall(releaseAt-this.time.now,()=>onRelease(i));
+      this.time.delayedCall(releaseAt-this.time.now,()=>{
+        if(this.tutorialComplete||this.boss6Victory)return;
+        if(/^wave[0-9]$/.test(this.mode)&&this.elapsed>=15000)return;
+        onRelease(i);
+      });
     }
     entry.lastRelease=first+(count-1)*320;
     entry.queueEnd=entry.lastRelease+320;
@@ -1554,6 +1559,7 @@ export class GameScene extends Phaser.Scene {
 
   spawnEnemy(type, options = {}) {
     if(type===6){
+      if(this.enemies.some(e=>e.type===6&&!e.type6?.defeated))return null;
       let hp;
       if(this.mode==='wave10')hp=finaleBossHp('wave10',this.combat);
       else {
@@ -1903,6 +1909,17 @@ export class GameScene extends Phaser.Scene {
       const previousY = enemy.sprite.y;
       enemy.age += dt;
       enemy.phaseAge += dt;
+      // Últimos 10 s: cancelar toda coreografia, escolher defesa e atacar.
+      if(/^wave[0-9]$/.test(this.mode)&&this.elapsed>=20000&&
+        ['swarmDance','swarmHold','tacticalManeuver','tacticalHold','orbit','stage','formation'].includes(enemy.phase)){
+        enemy.sprite.setVisible(true);
+        enemy.sprite.y=Math.max(48,enemy.sprite.y);
+        enemy.sprite.setRotation(0);
+        const target=this.chooseDefenseTarget();
+        enemy.target=target;
+        enemy.phase='dive';enemy.phaseAge=0;
+        this.assignInvaderTarget(enemy,target);
+      }
 
       // O grupo conserva um alvo coletivo: se uma torre cai, TODO o
       // enxame/esquadrilha escolhe outra defesa ativa e recalcula sua rota.
@@ -1957,9 +1974,13 @@ export class GameScene extends Phaser.Scene {
           }
         }
       } else if (enemy.phase === 'swarmHold') {
-        // Breve pausa em formação antes da investida coletiva.
+        // Naves Tipo 1 pairam antes do mergulho e disparam um tiro visível.
         const pos=swarmDancePosition(group,enemy.formationIndex,group.duration);
         enemy.sprite.setPosition(pos.x,pos.y);
+        if(!enemy.formationShotFired&&enemy.phaseAge>=0.40){
+          enemy.formationShotFired=true;
+          this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+        }
         if(enemy.phaseAge>=group.holdDuration){
             if (!group.target) {
               group.target = this.chooseV035GroupTarget(group,
@@ -1993,8 +2014,25 @@ export class GameScene extends Phaser.Scene {
             ) / Math.max(90, enemy.speed));
           }
           enemy.target = group.target;
-          enemy.phase = 'tacticalAttack';
+          enemy.phase = 'tacticalHold';
           enemy.phaseAge = 0;
+        }
+      } else if(enemy.phase==='tacticalHold'){
+        // Salva anunciada: esquadrilha Tipo 2 para no ar antes de atacar.
+        enemy.sprite.setRotation(0);
+        if(!group.shotWarning){
+          group.shotWarning=true;
+          this.showAttackWarning('SALVA TÁTICA! INTERCEPTE OS DISPAROS!');
+        }
+        if(!enemy.formationShotFired&&enemy.phaseAge>=0.65){
+          enemy.formationShotFired=true;
+          this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+          // Segunda ogiva da salva, em pequena defasagem.
+          this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+        }
+        if(enemy.phaseAge>=1.25){
+          enemy.phase='tacticalAttack';enemy.phaseAge=0;
+          group.attackStartAge=enemy.age;
         }
       } else if (enemy.phase === 'tacticalAttack') {
         enemy.sprite.setRotation(0);
@@ -2051,6 +2089,10 @@ export class GameScene extends Phaser.Scene {
         const blend = Math.min(1, dt * 1.5);
         enemy.sprite.x = Phaser.Math.Linear(enemy.sprite.x, enemy.formationX, blend);
         enemy.sprite.y = Phaser.Math.Linear(enemy.sprite.y, enemy.formationY, blend);
+        if(enemy.type===2 && !enemy.formationShotFired&&enemy.phaseAge>=1.1){
+          enemy.formationShotFired=true;
+          this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+        }
         if (enemy.phaseAge >= enemy.formationWait) {
           enemy.phase = 'dive';
           this.assignInvaderTarget(enemy, enemy.target);
@@ -2076,10 +2118,10 @@ export class GameScene extends Phaser.Scene {
         if (hover.retreat) {
           enemy.phase = 'retreat';
           enemy.phaseAge = 0;
-          this.setRoute(enemy, enemy.sprite.x, -78);
+          this.setRoute(enemy, enemy.sprite.x, 95);
         }
       } else if (enemy.phase === 'retreat') {
-        // Sai pela parte de cima e retorna à mesma noite para outra passada.
+        // Retorno limitado ao céu visível: não foge por cima durante a onda.
         if (this.moveAlongRoute(enemy, dt)) {
           enemy.target = this.chooseDefenseTarget();
           enemy.phase = 'approach';
