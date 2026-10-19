@@ -406,3 +406,9 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Após derrota na onda 11 e aceite de reforço brasileiro, foi observado um retângulo preto cobrindo parte inferior esquerda do cenário.
 - Evidências: capturas fornecidas pelo jogador no chat. Investigar logs do console, etapas de transição/reinício de `GameScene`, limpeza dos objetos de efeitos da build coreana, carregamento e desempenho. Não atribuir causa sem reprodução.
 - Critérios de aceite: onda 0 inicializa repetidamente sem travar; onda 11 coreana conclui várias tentativas; reinício com reforço brasileiro não deixa artefatos visuais; `npm test` e `npm run build` passam. Registrar correções na próxima versão quando confirmadas.
+
+### Proteção de inicialização de ondas — implementada v0.52 (19/10/2026)
+- A contagem 30/60 da Cubo News continua cinematográfica e não consome tempo de combate.
+- O início da onda deve ser idempotente: se o callback da animação visual não concluir, um limite de segurança de 5,3 segundos encerra a intro e inicia a onda exatamente uma vez.
+- O mecanismo cobre onda 0 e onda 11; esta é uma correção preventiva para o relato de tela estática sem inimigos e cronômetro. Causa real ainda depende de reprodução.
+- Quadrado preto depois do reforço brasileiro permanece em investigação; não marcar como resolvido.
