@@ -772,3 +772,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **T9 C:** encerrar o teste quando **todos os inimigos forem derrotados** ou o **tempo configurado terminar** (o evento que ocorrer primeiro); preservar encerramento manual.
 - **T10 C:** ao finalizar, oferecer **repetir, visualizar resultados ou retornar à edição**, mantendo o rascunho.
 - **Escopo:** essas funcionalidades descrevem o editor completo planejado; a primeira entrega permanece a versão incremental R10 B (atributos de combate + teste individual). **Não implementar nem versionar** agora.
+
+
+### Enemy Maker — dados e integração, decisões U1–U10 aprovadas (19/10/2026; somente planejamento)
+- **U1 C:** identificação técnica estável **tipo + nível**, com **nome descritivo opcional** que não substitui o identificador.
+- **U2 A:** Enemy Maker edita **somente tipos existentes**; não cria classes inéditas nem novos comportamentos.
+- **U3 C:** dados publicados em **arquivo JSON central versionado**, com opção de exportar **cada tipo** isoladamente.
+- **U4 A:** publicar valores globais de um inimigo faz com que **todas as ondas utilizem os novos valores**, exceto onde o Wave Maker definiu sobrescritas locais.
+- **U5 C:** quando a base publicada de inimigos mudar, Wave Maker **avisa sobre a atualização** e permite recarregar, protegendo alterações ainda não publicadas; distinguir versão carregada da versão disponível.
+- **U6 C:** publicação inclui **validação estrutural/técnica** e **testes básicos de comportamento**, com falhas impedindo confirmação até correção.
+- **U7 C:** antes de publicar, mostrar **lista das ondas afetadas**, com acesso a detalhes de variantes e sobrescritas.
+- **U8 C:** histórico de versões publicadas permite **comparar uma versão anterior com a atual** e então restaurá-la.
+- **U9 C:** importação de JSON apresenta **prévia das diferenças e validação** antes de incorporar dados ao rascunho.
+- **U10 B:** Enemy Maker e Wave Maker mantêm publicação independente, com **publicação conjunta opcional** quando existirem dependências entre alterações; documentar procedimento de consistência/rollback posteriormente.
+- **Estado:** registro no GDD apenas, sem implementar, alterar código, assets, configurações publicadas ou número de versão.
