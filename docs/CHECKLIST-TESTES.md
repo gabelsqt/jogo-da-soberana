@@ -93,3 +93,16 @@
 - [ ] Jukebox libera músicas conforme ouvidas e músicas de desfecho somente no final correspondente.
 - [ ] Jukebox mostra nomes de cenas, um título por vez, controles simples; música continua dentro do menu Extras e para ao retornar ao menu principal.
 - [ ] Menu Extras usa visual retrô pixel art 16-bit.
+
+
+## Critérios futuros de teste O1–O10 — não implementados nesta rodada
+- [ ] Verificar redução de tiros por **aumento dos intervalos** e **redução da quantidade por rajada**; comparar densidade antes/depois.
+- [ ] Wave Maker permite definir **limite de projéteis simultâneos individualmente por onda**; confirmar que o combate aplica os valores configurados.
+- [ ] Pausas de recuperação ocorrem **entre eventos**, sem alterar arbitrariamente os padrões individuais de tiro.
+- [ ] Cada projétil comum abatido com um acerto exibe **clarão branco e explosão colorida curta** (sem alterar necessariamente a cor em voo).
+- [ ] Bombas do Tipo 6 possuem **quatro estágios visuais de desgaste**, com rachaduras e fragmentos que não mudam a colisão.
+- [ ] Piscadas brancas de impacto duram aproximadamente **120 ms**; comparar percepção em disparos consecutivos.
+- [ ] Tremor das bombas escala com o dano recebido, sem mover a área de colisão.
+- [ ] **Cada** projétil interceptado produz sua explosão visível, inclusive em rajadas numerosas; observar desempenho.
+- [ ] Confirmar viabilidade das ondas com **build brasileira básica e margem para erros**, sem depender de execução perfeita.
+- [ ] Registrar métricas antes/depois do pacote prioritário de projéteis e dificuldade; priorização O10 não autoriza implementação sem novo pedido.
