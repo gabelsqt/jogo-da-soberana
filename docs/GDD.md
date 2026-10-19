@@ -446,3 +446,11 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **Opção A aprovada:** criar grupos de inimigos com distribuição automática por formação (por exemplo linha, V, coluna ou círculo) a partir de tipo, quantidade e posição do grupo; ajustes individuais são possíveis, sem perder a estrutura de grupo.
 - **Preferência de planejamento do usuário:** agrupar várias perguntas de múltipla escolha em uma rodada e oferecer um campo de comentário específico para cada pergunta. Evitar sequência de uma pergunta por turno quando decisões relacionadas puderem ser reunidas.
 - Apenas decisão de design: editor não implementado nesta etapa.
+
+### Wave Maker — decisões 5–9 aprovadas (19/10/2026; planejamento)
+- **Decisão 5 — B, somente padrões existentes:** movimentos disponíveis no Wave Maker devem reutilizar os padrões já implementados no jogo. Não desenhar rotas personalizadas nesta fase.
+- **Decisão 6 — B, perfis de agressividade:** controlar disparos dos grupos por perfis predefinidos (por exemplo pacífico, leve, moderado, intenso, extremo), em vez de exigir edição detalhada de cadência, quantidade, velocidade e primeiro disparo. Definições numéricas exatas dos perfis ainda precisam ser planejadas.
+- **Decisão 7 — A, simulação visual e teste jogável:** oferecer prévia da onda sem comandar o canhão e execução jogável com a build de teste selecionada.
+- **Decisão 8 — C, ambos (aprovação com dúvida expressa):** prever duplicação manual de eventos e repetição automática por quantidade/intervalo. **Comentário do usuário: "Não entendi essa pergunta."** Esclarecer com exemplos antes de especificar o funcionamento detalhado; não tomar a aprovação como definição dos detalhes.
+- **Decisão 9 — C, versões e histórico de alterações:** permitir salvar rascunhos, recuperar versões anteriores e importar/exportar JSON. Persistência técnica e política de retenção ainda a definir.
+- **Status:** somente planejamento. Não alterar código do editor, ondas da campanha nem lógica dos inimigos por estas decisões.
