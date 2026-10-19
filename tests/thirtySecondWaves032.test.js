@@ -13,15 +13,15 @@ const modes = Array.from({ length: 10 }, (_, i) => `wave${i}`);
 
 test('todas as noites de campanha duram 30 s e encerram aparições iniciais antes de 20 s', () => {
   assert.equal(WAVE_DURATION_MS, 30000);
-  assert.equal(WAVE_FIRST_SPAWN_WINDOW_MS, 20000);
-  assert.equal(WAVE_LAST_SPAWN_MS, 19500);
+  assert.equal(WAVE_FIRST_SPAWN_WINDOW_MS, 15000);
+  assert.equal(WAVE_LAST_SPAWN_MS, 13500);
   for (const mode of modes) {
     assert.equal(MODES[mode].minDuration, 30000, mode);
     const events = getWaveEvents(mode);
     assert.ok(events.length, mode);
     assert.equal(events.at(-1).at, WAVE_LAST_SPAWN_MS, mode);
     assert.ok(events.every((event, i) =>
-      event.at >= 0 && event.at < 20000 &&
+      event.at >= 0 && event.at < 15000 &&
       (i === 0 || events[i - 1].at <= event.at)), mode);
     assert.deepEqual(getWaveEvents(mode), events, `${mode} deve ser determinística`);
   }
@@ -34,7 +34,7 @@ test('normalização preserva ordem, tipos, dificuldades e padrões', () => {
     { at: 4100, type: 2, group: true, count: 4 },
   ];
   const scheduled = fitWaveEventsToWindow(raw);
-  assert.deepEqual(scheduled.map(e => e.at), [4756, 11890, 19500]);
+  assert.deepEqual(scheduled.map(e => e.at), [3293, 8232, 13500]);
   assert.deepEqual(scheduled.map(({at,...other}) => other),
     raw.map(({at,...other}) => other));
   assert.equal(raw.at(-1).at, 4100, 'não modifica os horários originais');
