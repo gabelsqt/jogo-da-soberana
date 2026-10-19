@@ -2,7 +2,7 @@
 // compartilhada por campanha e laboratório e testável de forma isolada.
 
 export const SWARM_DANCES = Object.freeze([
-  'serpentine', 'traverse', 'cross', 'spiral', 'scattered',
+  'serpentine', 'cross', 'spiral', 'circle',
 ]);
 export const SWARM_ENTRIES = Object.freeze(['together', 'staggered']);
 export const TACTICAL_FORMATIONS = Object.freeze(['triangle', 'square']);
@@ -45,7 +45,7 @@ export function getV035WaveEvents(mode, legacyEvents) {
       ...event,
       pattern: 'tactical',
       group: true,
-      count: progressiveGroupCount(wave, 2, event.at / 19500),
+      count: progressiveGroupCount(wave, 2, event.at / 19500)+(wave<=2?1:0),
     };
   });
   const basic = legacyEvents.filter(event => event.type === 1);
@@ -61,10 +61,10 @@ export function getV035WaveEvents(mode, legacyEvents) {
   const swarms = Array.from({ length: groupCount }, (_, i) => {
     const progress = groupCount === 1 ? 1 : i / (groupCount - 1);
     return {
-      at: Math.round(420 + 19080 * Math.pow(progress, 0.73)),
+      at: Math.round(320 + 12480 * Math.pow(progress, 0.75)),
       type: 1,
       pattern: 'swarm',
-      count: progressiveGroupCount(wave, 1, progress),
+      count: wave<=2?progressiveGroupCount(wave,1,progress)+2:progressiveGroupCount(wave,1,progress),
       level: progress >= 0.55 ? lastLevel : firstLevel,
       ...(i === groupCount - 1 && lastWarning ? { warning: lastWarning } : {}),
     };
@@ -78,7 +78,7 @@ export function swarmOffset(index, count, pattern = 'serpentine') {
   const col = index % columns, row = Math.floor(index / columns);
   const stepX = count >= 15 ? 36 : 43;
   const stepY = count >= 15 ? 28 : 34;
-  const stagger = pattern === 'scattered' ? (row % 2 ? 13 : -8) : 0;
+  const stagger = 0; // sem posições aleatórias: grupo sempre simétrico
   return {
     x: (col - (columns - 1) / 2) * stepX + stagger,
     y: (row - (rows - 1) / 2) * stepY,
@@ -104,9 +104,9 @@ export function swarmDanceCenter(group, elapsed) {
       return { x: x + Math.cos(angle) * radius - 125,
         y: mix(-28, 172, t) + Math.sin(angle) * 37 * t };
     }
-    case 'scattered':
-      return { x: x + Math.sin(t * Math.PI * 2.5) * 65,
-        y: mix(-28, 175, t) };
+    case 'circle':
+      return {x:x+Math.sin(t*Math.PI*2)*94,
+        y:mix(48,184,t)-Math.cos(t*Math.PI*2)*26};
     default:
       return { x: x + Math.sin(t * Math.PI * 3) * 115,
         y: mix(-28, 179, t) };
