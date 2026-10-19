@@ -11,6 +11,7 @@ import {
   chooseCampaignUpgrade, nextWaveAfterChoice,
 } from '../gameplay/progression.js';
 import { REPRESENTATIVES, representativeLine } from '../gameplay/representatives.js';
+import {addCuboBroadcastFrame,addCuboPixelText} from '../ui/cuboNewsTheme.js';
 
 const FONT = 'monospace';
 const SLOTS = [130, 305, 480, 655, 830];
@@ -67,10 +68,19 @@ export class UpgradeScene extends Phaser.Scene {
     // O cenário do Rio permanece carregado para o jogo; a cena de reunião
     // usa um ambiente próprio sem reutilizar o campo de batalha.
     drawMeetingRoom(this);
-    this.add.rectangle(W / 2, 49, W, 98, 0x090e1b, 0.94).setDepth(38);
-    text(this, W / 2, 27, 'MESA DE NEGOCIAÇÕES', 29, '#ffde93');
-    text(this, W / 2, 73,
-      'ONDA ' + this.completedWave + ' CONCLUÍDA  •  ESCOLHA UMA MELHORIA',
+    // A mesa do boteco é mantida; a emissora enquadra a negociação como
+    // um boletim de relações internacionais, sem substituir o cenário.
+    addCuboBroadcastFrame(this,{
+      section:'Mesa de negociações',
+      headline:'Especial: aliados disputam influência sobre a defesa brasileira',
+      footer:'Análise diplomática • Ao vivo na Cubo News',
+      depth:52,
+    });
+    this.add.rectangle(W / 2, 98, W, 76, 0x090e1b, 0.94).setDepth(38);
+    addCuboPixelText(this,{x:W/2,y:83,text:'Mesa de negociações',
+      size:3,color:'#ffe2a5',depth:43,maxWidth:630});
+    text(this, W / 2, 119,
+      'Onda ' + this.completedWave + ' concluída  •  Escolha uma melhoria',
       13, '#b6dcee');
 
     this.options = nextV1Options(this.campaign, FIRST_UPGRADES);
@@ -84,7 +94,7 @@ export class UpgradeScene extends Phaser.Scene {
         inactive ? '#7d8596' : '#fff6da');
       const name = text(this, x, 236, option.shortName ?? option.name, 12,
         inactive ? '#7d8596' : '#ffffff', 120);
-      const level = text(this, x, 264, 'NÍVEL ' + option.level, 12,
+      const level = text(this, x, 264, 'Nível ' + option.level, 12,
         inactive ? '#9d7b82' : '#f6d795');
       this.tiles.push({ tile, symbol, name, level, option, x });
       if (!inactive) {
@@ -98,14 +108,14 @@ export class UpgradeScene extends Phaser.Scene {
 
     this.dialoguePanel = this.add.rectangle(W / 2, 408, 790, 155, 0x0b1729, 0.96)
       .setStrokeStyle(3, 0xe6b45b).setDepth(39);
-    this.dialogueTitle = text(this, W / 2, 351, 'ESCOLHA UM REPRESENTANTE', 17, '#ffe0a0');
+    this.dialogueTitle = text(this, W / 2, 351, 'Escolha um representante', 17, '#ffe0a0');
     this.dialogueBody = text(this, W / 2, 395,
       'Clique em um dos cinco retratos para ouvir a proposta.', 15, '#f2f6ff', 740);
     this.dialogueUpgrade = text(this, W / 2, 441, '', 12, '#a3eaca', 720);
 
     this.confirmSurface = this.add.rectangle(W / 2, 496, 350, 37, 0x344451)
       .setStrokeStyle(2, 0x7f929f).setDepth(43).setInteractive({ useHandCursor: true });
-    this.confirmLabel = text(this, W / 2, 496, 'SELECIONE UM REPRESENTANTE', 14, '#f1f1f1');
+    this.confirmLabel = text(this, W / 2, 496, 'Selecione um representante', 14, '#f1f1f1');
     this.confirmSurface.on('pointerdown', (pointer, _x, _y, event) => {
       event?.stopPropagation();
       if (pointer.leftButtonDown() && this.focused) this.selectUpgrade(this.focused);
@@ -138,10 +148,10 @@ export class UpgradeScene extends Phaser.Scene {
     this.dialogueTitle.setText(REPRESENTATIVES[id].label + ' — REPRESENTANTE');
     this.dialogueBody.setText('“' + (representativeLine(id)) + '”');
     this.dialogueUpgrade.setText(
-      option.title.toUpperCase() + ' — ' + option.description,
+      option.title + ' — ' + option.description,
     );
     this.confirmSurface.setFillStyle(0x22644e).setStrokeStyle(3, 0xb1f1c9);
-    this.confirmLabel.setText('ACEITAR ' + REPRESENTATIVES[id].label + ' [ENTER]');
+    this.confirmLabel.setText('Aceitar ' + REPRESENTATIVES[id].label + ' [ENTER]');
   }
 
   selectUpgrade(id) {
@@ -153,7 +163,7 @@ export class UpgradeScene extends Phaser.Scene {
     this.chosen = true;
     this.dialogueBody.setText('“' + representativeLine(id, 'accepted') + '”');
     this.confirmSurface.disableInteractive();
-    this.confirmLabel.setText('PARCERIA CONFIRMADA!');
+    this.confirmLabel.setText('Parceria confirmada!');
     this.time.delayedCall(1200, () => {
       this.scene.start('GameScene', { mode, campaign: next });
     });
