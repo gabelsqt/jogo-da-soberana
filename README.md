@@ -2,7 +2,19 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.49.3
+## Versão atual — 0.50
+
+**Boteco diurno:** imagem enviada pelo criador integrada em 960×540 (WebP) ao menu de negociações, com cinco retratos provisórios nas cadeiras. Selecionar representante escurece o cenário, faz o retrato crescer no canto superior esquerdo e apresenta simultaneamente flavor, descrição real do upgrade e uma área reservada para futura prévia animada. Histórias de Brasil, EUA, Coreia, Rússia e China aparecem progressivamente como placeholders.
+
+**Correção Brasil nível 10 × Tipo 6:** tiros físicos que acertam o casco no vão entre módulos agora causam dano no módulo vivo mais próximo, mantendo barreira, escudos e núcleo corretamente protegidos. Há teste específico da Metralhadora da Soberania contra o Tipo 6.
+
+**Identidade da Cubo News:** paleta azul-noturno jornalístico `#0B1621`, azul-aço `#193043`, branco suave `#DCE8EE`, âmbar `#E2A45E` e vermelho discreto `#C45151`. IBM Plex Sans para interface e IBM Plex Mono para números; cronômetro ainda maior, sem caixa.
+
+**Visual novel do expediente:** após escolher iniciar, o protagonista faz login em um computador velho da repartição, abre manualmente o site da Cubo News e assiste a aproximadamente 24 segundos de notícias/diálogos alienígenas, com clique para avançar e opção de pular. As histórias e piadas continuam provisórias para a revisão de texto perto do lançamento.
+
+Veja [notas técnicas e de design da v0.50](docs/versao-0.50.md).
+
+## Versão anterior — 0.49.3
 
 **Novos portais da onda 0:** 48 inimigos distribuídos em **cinco portais realmente distintos**, com entradas em três etapas: um portal central sozinho (8 naves, 0,8 s); dois portais simultâneos à esquerda/direita (10 + 10 naves, 4,6 s); e outros dois simultâneos mais externos (10 + 10 naves, 9,6 s). Posições X: 480; 235 e 725; 125 e 835. O portal final conclui a entrada de todos antes dos 15 segundos regulamentares. Os disparos graduais e as pausas longas da onda 0 foram preservados.
 
