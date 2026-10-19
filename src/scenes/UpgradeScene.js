@@ -13,7 +13,7 @@ import {
 import { REPRESENTATIVES, representativeLine } from '../gameplay/representatives.js';
 import {addCuboBroadcastFrame,addCuboPixelText} from '../ui/cuboNewsTheme.js';
 
-const FONT = 'monospace';
+const FONT = 'IBM Plex Sans, system-ui, sans-serif';
 const SLOTS = [130, 305, 480, 655, 830];
 
 function text(scene, x, y, value, size = 14, color = '#f9f2e6', width) {
@@ -76,9 +76,9 @@ export class UpgradeScene extends Phaser.Scene {
       footer:'Análise diplomática • Ao vivo na Cubo News',
       depth:52,
     });
-    this.add.rectangle(W / 2, 98, W, 76, 0x090e1b, 0.94).setDepth(38);
+    this.add.rectangle(W / 2, 98, W, 76, 0x134b45, 0.94).setDepth(38);
     addCuboPixelText(this,{x:W/2,y:83,text:'Mesa de negociações',
-      size:3,color:'#ffe2a5',depth:43,maxWidth:630});
+      size:3,color:'#edc75a',depth:43,maxWidth:630});
     text(this, W / 2, 119,
       'Onda ' + this.completedWave + ' concluída  •  Escolha uma melhoria',
       13, '#b6dcee');
