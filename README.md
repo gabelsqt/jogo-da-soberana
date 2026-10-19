@@ -2,7 +2,17 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.47
+## Versão atual — 0.48
+
+**Cubo News assume os menus:** a tela inicial, pausa, negociação de upgrades, laboratório tático, configuração de testes, finais e telas de resultado passam a usar uma identidade compartilhada de telejornal: cabeçalho vermelho com **Cubo News**, indicação **AO VIVO**, molduras azul-marinho, botões retangulares de plantão e faixa editorial inferior. A mesa de negociações continua no cenário de boteco.
+
+**Fonte pixel com letras minúsculas:** o renderizador bitmap 5×7 ganhou **26 glifos minúsculos autênticos**, além dos maiúsculos, com acentuação do português preservada. Manchetes e subtítulos voltam à fonte em pixels, agora em **caixa mista**; chamadas originalmente em CAIXA ALTA são apresentadas em forma de frase, preservando nomes próprios e siglas como CBF, ETs, Brasil, Cristo, Flamengo e Cubo News. O **cronômetro grande volta a ser bitmap**, com apenas os segundos, sem a caixa.
+
+**A vinheta cinematográfica do amanhecer continua igual** (2,2 segundos de destaque, depois zoom-out de 1,75 segundo). O HUD da partida continua fora do canvas, imóvel durante screenshake. Toda a implementação está na branch `feat/brasil2-arraial-balístico`, sem modificar a `main`.
+
+Leia as [notas da versão 0.48](docs/versao-0.48.md).
+
+## Versão anterior — 0.47
 
 **Cubo News mais legível e abertura cinematográfica:** as letras 5×7 de baixa resolução foram substituídas na interface ativa por **tipografia retrô nítida**, com contornos duros, blocos de cor e molduras quadradas preservando a estética de pixel art. Manchetes e subtítulos ficam mais fáceis de acompanhar. O relógio segue mostrando **somente segundos**, enorme e sem caixa.
 
