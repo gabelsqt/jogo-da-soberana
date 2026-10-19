@@ -360,3 +360,7 @@ Refinamento solicitado após playtest: zoom gradual até **1,65×**, com foco no
 **Identidade Cubo News aprovada:** Emissora Oficial Brasileira, IBM Plex Sans (sem fonte bitmap para textos de UI), verde-petróleo #134B45, ouro #EDC75A, creme #F5F0DC, grafite #152926. Menus e faixa noticiosa unificados.
 
 **Bugs obrigatórios:** tiros comuns precisam atingir barreiras/módulos/núcleo Tipo 6; onda 11 China e Coreia não pode congelar/travar. Pré-requisitos de publicação: CI de regressão, Vite build, exportação itch.io e playtest GitHub Pages na branch de desenvolvimento; não alterar main. Para detalhes implementados, consulte `docs/versao-0.49.md`.
+
+
+## Ajuste v0.49.1 — Onda 0 mais acessível (19/10/2026)
+Feedback do playtest: os padrões sincronizados agradaram, mas havia **inimigos demais na onda 0**, tornando o começo desproporcionalmente difícil. Preservar todos os padrões (senoide, círculos, espiral, cruzamento); reduzir exclusivamente a programação da primeira noite para **quatro grupos de Tipo 1**, com 3, 4, 4 e 5 naves, total de 16. Chegadas programadas em 1,1 s, 4,6 s, 8,1 s e 11,6 s. Assim há mais tempo para aprender os controles e interceptar os disparos durante as pausas; encerramento de spawns antes dos últimos 15 s permanece. Ondas 1–11 não são alteradas por este hotfix. A v0.49.1 é um ajuste de dificuldade, não uma nova regra de formação ou de inimigo.
