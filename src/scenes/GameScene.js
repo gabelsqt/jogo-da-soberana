@@ -4559,6 +4559,12 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  // Evita regenerar texturas Phaser sem alteração visível (inclusive em textos ocultos).
+  updateHudText(label,value) {
+    if(!label?.active || !label.visible) return;
+    if(label.text!==value) label.setText(value);
+  }
+
   updateHud() {
     if(this.cuboNewsState){
       const story=tickCuboNews(this.cuboNewsState,this.elapsed,this.waveDurationMs);
@@ -4570,19 +4576,19 @@ export class GameScene extends Phaser.Scene {
     const clock = this.mode.startsWith('wave')
       ? 'NOITE ' + String(Math.ceil(Math.max(0, this.waveDurationMs - this.elapsed) / 1000))
         .padStart(2, '0') + 's | ' : '';
-    this.statusText.setText(clock + (remaining
+    this.updateHudText(this.statusText,clock + (remaining
       ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO'));
     if(this.specialLabel) {
       const titles={br:'ARRAIAL',us:'CHOQUE E PAVOR',ru:'MATRYOSHKA',
         cn:'ENTREGA',jp:'DISCOTECA'};
       const base=titles[this.specialBuild.primary] || 'ESPECIAL';
-      this.specialLabel.setText(`DIR. ${base} — ${remaining?remaining.toFixed(1)+'s':'PRONTO'}`);
+      this.updateHudText(this.specialLabel,`DIR. ${base} — ${remaining?remaining.toFixed(1)+'s':'PRONTO'}`);
     }
     if (this.ultimateLabel) {
       const title = V1_SUPREMES[this.combat.ultimate]?.title ?? 'SUPREMA';
-      this.ultimateLabel.setText(`${this.ultimateUsed ? 'SUPREMO USADO' : this.elapsed >= this.waveDurationMs-5000 ? '🔴 ESPAÇO — '+title : 'SUPREMO — AGUARDE'}`);
+      this.updateHudText(this.ultimateLabel,`${this.ultimateUsed ? 'SUPREMO USADO' : this.elapsed >= this.waveDurationMs-5000 ? '🔴 ESPAÇO — '+title : 'SUPREMO — AGUARDE'}`);
     }
-    this.healthText.setText(
+    this.updateHudText(this.healthText,
       'CANHÃO ' + Math.ceil(this.cannonHealth) +
       ' | ESCUDO ' + Math.ceil(this.shield) +
       ' | OVNIS ' + this.enemies.length,
