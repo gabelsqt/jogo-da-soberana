@@ -22,26 +22,13 @@ const block = (start, end) => {
   return source.slice(from, to);
 };
 
-test('BR: pulsos brilham em escudos ativos e cessam se a resistência acaba', () => {
-  assert.equal(fenceGlowAt(0, 0), 0);
-  assert.equal(fenceGlowAt(200, -1), 0);
-  assert.equal(fenceGlowAt(200, 2), fenceGlowAt(200, 1));
-  for (const t of [0, 100, 450, 1200, 2500]) {
-    const full = fenceGlowAt(t, 1);
-    assert.ok(full >= 0.42 && full <= 1);
-    assert.ok(Math.abs(fenceGlowAt(t, 0.5) - full / 2) < 1e-8);
-  }
-  assert.notEqual(fenceGlowAt(0), fenceGlowAt(150));
-
-  const drawShield = block('  drawShield() {', '  showFinaleDefeat(');
-  assert.match(drawShield, /if \(shield <= 0\) return/);
-  assert.match(drawShield, /if \(this\.combat\.electricFence\)/);
-  assert.match(drawShield, /fenceGlowAt\(this\.time\.now, fraction\)/);
-  assert.match(drawShield, /Reflexos correm ao longo dos cacos/);
-  assert.match(drawShield, /Pequenos arcos da cerca/);
-  assert.equal(ELECTRIC_FENCE_RADIUS_BONUS, 18);
-  assert.equal(ELECTRIC_FENCE_INTERVAL, 800);
-  assert.equal(ELECTRIC_FENCE_DAMAGE, 1);
+test('v0.49 retira a cerca elétrica defensiva da cúpula brasileira',()=>{
+  const drawShield=block('  drawShield() {','  showFinaleDefeat(');
+  assert.match(drawShield,/CANNON_DOME_RADIUS/);
+  assert.match(drawShield,/cannonShieldColor/);
+  assert.doesNotMatch(drawShield,/combat\.electricFence|fenceGlowAt|escudo pulsante/);
+  assert.equal(ELECTRIC_FENCE_RADIUS_BONUS,18,'constante legada arquivada para laboratório');
+  assert.equal(fenceGlowAt(0,0),0,'função de laboratório permanece isolada');
 });
 
 test('EUA: segunda detonação tem somente atraso visual, sem danos extras', () => {
