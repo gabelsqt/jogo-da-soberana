@@ -94,3 +94,10 @@ Antes das ondas 10/11 (e de qualquer onda comum), apresentar **“TEMPO ATÉ O A
 
 ## v0.47 — Refinamento de vinheta inicial
 A entrada de qualquer onda apresenta `TEMPO ATÉ O AMANHECER` com zoom real de 1,48× no palco, número ampliado e pausa de 2,2 segundos para leitura. A câmera recua até o padrão em 1,75 segundos, enquanto o número se recolhe com fade suave até o relógio externo. **Este efeito não consome o relógio de combate.** O Tipo 6 segue congelando a contagem até ficar alvejável. A faixa jornalística continua independente da câmera no restante da onda.
+
+
+## v0.49 — Tiros normais e proteção contra travamento
+- Corrigido tunneling dos projéteis comuns ao atravessar um módulo Tipo 6 em um único frame. A colisão agora examina o **segmento da trajetória** entre posição anterior e posição atual, e entrega dano à barreira frontal, escudo do módulo, estrutura ou núcleo exposto conforme estado; todos os países preservam o mesmo motor de encontro.
+- A barreira principal e os quatro escudos individuais **não foram removidos**: a simplificação de escudos da v0.49 se aplica somente aos upgrades defensivos do canhão brasileiro e aliados.
+- Travas de desempenho para megafábrica chinesa e fortaleza neon coreana: renderização do casco em até 30 fps com ataque atualizado em plena cadência, limite de 140 tiros hostis convencionais na tela, agregação dos traços visuais de reflexo, e prevenção de Type 6 duplicado. Danos e contadores continuam independentes do desenho, sem sacrificar o cálculo de projéteis disparados.
+- Testes automatizados incluem colisão contínua em cinco variantes (alien, EUA, Rússia, Coreia, China), integridade de barreira/módulos/núcleo e verificações contra regressão dos limites de desempenho. Necessário confirmar também em jogatina real.
