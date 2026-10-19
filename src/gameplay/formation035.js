@@ -22,9 +22,8 @@ export const WAVE0_PORTAL_SEQUENCE = Object.freeze([
 
 
 export const WAVE0_EASY_PACING=Object.freeze({
-  counts:Object.freeze([5,5,6,6]), // 22 naves em quatro desenhos, sem sobrecarregar o primeiro contato.
-  entryTimes:Object.freeze([900,4200,7800,11400]),
-  danceDuration:6.5,    // v0.49.1: 3,5 s; agora ~46% menos velocidade coreografada.
+  // A quantidade e a posição de cada portal ficam em WAVE0_PORTAL_SEQUENCE.
+  danceDuration:6.5,    // Movimentos iniciais mais suaves e previsíveis.
   holdDuration:3.1,     // Dar tempo de mirar antes do mergulho.
   firstShotDelay:1.5,   // v0.49.1: 0,4 s após terminar a dança.
   shotStagger:0.20,     // Tiros da mesma formação não caem todos de uma vez.
