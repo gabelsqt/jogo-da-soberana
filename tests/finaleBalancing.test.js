@@ -60,7 +60,7 @@ test('novas fases aumentam o ritmo das salvas e limitam os reforços da coalizã
 test('epílogo não lança a onda zero automaticamente e volta ao menu',()=>{
   const scene=readFileSync(new URL('../src/scenes/EndingScene.js',import.meta.url),'utf8');
   assert.match(scene,/this\.scene\.start\('MenuScene'\)/);
-  assert.match(scene,/VOLTAR AO MENU/);
+  assert.match(scene,/Voltar ao menu/);
   assert.doesNotMatch(scene,/this\.scene\.start\('GameScene'/);
 });
 
