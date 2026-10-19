@@ -545,3 +545,16 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **C9 A — escolhas permanentes:** não desfazer alianças e melhorias dentro da campanha.
 - **C10 C — revelação narrativa:** o líder apresenta a forma definitiva de seu país quando ela se torna acessível.
 - **Status:** somente decisões registradas. Não implementar, modificar código, balanceamento ou versão até aprovação posterior.
+
+### Inimigos e dificuldade — decisões D1–D10 aprovadas (19/10/2026; somente planejamento)
+- **D1 C com ressalva prioritária:** progressão futura de ataques espaçados para padrões mais densos, **mas por enquanto apenas reduzir a quantidade de tiros inimigos, sem adicionar mecânicas**. A ressalva prevalece sobre qualquer leitura da opção C que implique introdução imediata de novos padrões.
+- **D2 A:** projéteis inimigos comuns são destruídos por **um único acerto** de disparo do jogador.
+- **D3 B:** interceptação gera **explosão colorida conforme o tipo/categoria de tiro**; compatibilizar com D7, que mantém cor uniforme dos projéteis em voo.
+- **D4 B:** aumentar dificuldade sobretudo pela **coordenação de tipos de inimigo e padrões já existentes**, sem simplesmente multiplicar a quantidade de inimigos.
+- **D5 A:** inserir **pausas de recuperação planejadas**, permitindo eliminar sobreviventes e reorganizar a defesa.
+- **D6 B, restrição expressa:** ataques importantes recebem **mensagens curtas exclusivamente na barra de notícias inferior da Cubo News**; **não adicionar marcadores, avisos ou componentes extras à interface**.
+- **D7 C com ajuste:** identificar as ameaças pela **silhueta/forma** e por pistas acessíveis; **os projéteis podem permanecer sempre com a mesma cor**. Explosões de interceptação ainda podem variar de cor (D3). **Bombas do Tipo 6 devem mostrar claramente quando recebem dano**, sem poluir a HUD.
+- **D8 A com progressão:** aplicar **limite rígido de projéteis inimigos simultaneamente ativos**; inimigos aguardam oportunidade de disparar quando o limite é atingido; **limites podem crescer gradualmente ao longo das ondas**. Definir números no balanceamento posterior. Não interpretar essa regra como autorização para adicionar novas mecânicas agora.
+- **D9 A:** manter **fim da onda por tempo**, inclusive quando restarem inimigos, conforme regras existentes.
+- **D10 A:** critério de avaliação prioritário: todas as ondas regulares devem ser testáveis/viáveis usando **build brasileira básica**, sem depender de investimento em aliados.
+- **Status:** decisões documentadas exclusivamente; não implementar nem alterar o código, a versão ou o balanceamento neste momento.
