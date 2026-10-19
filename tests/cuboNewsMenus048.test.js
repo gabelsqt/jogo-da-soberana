@@ -29,9 +29,9 @@ test('menus e telas secundárias compartilham a moldura da Cubo News',()=>{
   const gameplay=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
   assert.match(gameplay,/addCuboBroadcastFrame\(this/, 'derrota/finais recebem cobertura Cubo News');
   const button=readFileSync(new URL('../src/ui/menuButton.js',import.meta.url),'utf8');
-  assert.match(button,/0xedc75a/);
-  assert.equal(CUBO_COLORS.green,0x134b45);
-  assert.equal(CUBO_COLORS.gold,0xedc75a);
+  assert.match(button,/0xe2a45e/);
+  assert.equal(CUBO_COLORS.green,0x193043);
+  assert.equal(CUBO_COLORS.gold,0xe2a45e);
 });
 test('HUD v0.49 volta às letras normais IBM Plex Sans e paleta aprovada',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
@@ -40,8 +40,9 @@ test('HUD v0.49 volta às letras normais IBM Plex Sans e paleta aprovada',()=>{
   }
   assert.doesNotMatch(html,/<canvas id="cubo-time-pixels"/);
   assert.match(html,/IBM\+Plex\+Sans/);
-  assert.match(html,/#134b45/i);
-  assert.match(html,/#edc75a/i);
+  assert.match(html,/IBM\+Plex\+Mono/);
+  assert.match(html,/#0b1621/i);
+  assert.match(html,/#e2a45e/i);
   const hud=readFileSync(new URL('../src/ui/cuboNewsHud.js',import.meta.url),'utf8');
   assert.match(hud,/formatCuboHeadline/);
   assert.doesNotMatch(hud,/drawPixelText/);
