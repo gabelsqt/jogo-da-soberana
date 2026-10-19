@@ -62,7 +62,7 @@ test('ondas 0–9: última entrada até 15 s e ataques diretos nos dez finais',(
   const source=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
   assert.match(source,/this\.elapsed>=15000/);
   assert.match(source,/this\.elapsed>=20000/);
-  assert.match(source,/enemy\.phase='tacticalHold'/);
+  assert.match(source,/enemy\.phase\s*=\s*'tacticalHold'/);
   assert.match(source,/enemy\.phase='dive'/);
   assert.match(source,/shot\.radius\?\?8/);
   assert.match(source,/beginDawnWithdrawal/);
