@@ -1,4 +1,4 @@
-name: Playtest v0.48 — GitHub Pages
+name: Playtest v0.49 — GitHub Pages
 
 on:
   push:
@@ -19,14 +19,14 @@ permissions:
   id-token: write
 
 concurrency:
-  group: soberana-v048-pages
+  group: soberana-v049-pages
   cancel-in-progress: true
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     environment:
-      name: soberana-v048-playtest
+      name: soberana-v049-playtest
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Baixar versão de teste (não publica outras branches)
