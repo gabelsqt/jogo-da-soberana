@@ -532,3 +532,16 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **B9 B — reação breve do líder:** após confirmação, uma fala e um efeito visual discretos antes da continuação.
 - **B10 B — Zeca participativo:** o protagonista comenta propostas e responde aos demais líderes.
 - **Estado:** decisões de design aprovadas e documentadas; **não implementar** nesta rodada. Preservar o fluxo jogável até uma etapa de implementação expressamente autorizada.
+
+### Upgrades, builds e progressão — decisões C1–C10 aprovadas (19/10/2026; somente planejamento)
+- **C1 A — uma proposta por líder:** cada país oferece uma melhoria específica a cada visita ao boteco.
+- **C2 A — sequência fixa:** ofertas de cada país seguem ordem predeterminada, respeitando a progressão já estabelecida.
+- **C3 A — novos aliados disponíveis normalmente:** o jogador pode começar a investir em outro país em qualquer visita, sujeito aos limites já aprovados.
+- **C4 B — efeito e caminho de evolução:** ao inspecionar a proposta, mostrar benefício imediato e prévia dos próximos níveis do país.
+- **C5 A — sinergias emergentes:** interações entre países decorrem dos efeitos reais dos upgrades; não introduzir bônus exclusivos de combinação.
+- **C6 A — limites preservados:** manter regras de progressão, composição e limite de torres já aprovadas.
+- **C7 C — números e barras:** comparação antes/depois apresenta valores concretos e indicadores visuais das mudanças.
+- **C8 A — demonstração animada:** a proposta apresenta pequena demonstração automática do funcionamento do upgrade; não exige minijogo de teste interativo.
+- **C9 A — escolhas permanentes:** não desfazer alianças e melhorias dentro da campanha.
+- **C10 C — revelação narrativa:** o líder apresenta a forma definitiva de seu país quando ela se torna acessível.
+- **Status:** somente decisões registradas. Não implementar, modificar código, balanceamento ou versão até aprovação posterior.
