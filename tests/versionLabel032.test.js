@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { GAME_VERSION, GAME_RELEASE_STAGE, GAME_VERSION_LABEL } from '../src/config/version.js';
 
-test('protótipo v0.43 tem rótulo legível e mantido em um só lugar', () => {
-  assert.equal(GAME_VERSION, '0.43');
+test('protótipo v0.44 tem rótulo legível e mantido em um só lugar', () => {
+  assert.equal(GAME_VERSION, '0.44');
   assert.equal(GAME_RELEASE_STAGE, 'PROTÓTIPO');
-  assert.equal(GAME_VERSION_LABEL, 'v0.43 • PROTÓTIPO');
+  assert.equal(GAME_VERSION_LABEL, 'v0.44 • PROTÓTIPO');
 });
 
 test('menu principal utiliza a versão centralizada e mostra-a no rodapé', () => {
