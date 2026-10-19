@@ -499,3 +499,11 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Registrada como **implementada inicialmente**: `WaveMakerScene` integrada ao Laboratório; lista de ondas 0–11, importação de eventos efetivos em rascunhos independentes, mapas e blocos temporais arrastáveis, edição numérica via diálogo, criação/duplicação/exclusão de grupos e salvamento local.
 - Os eventos existentes e campos extras ficam preservados no modelo. Ainda não se edita o comportamento da campanha nem se executam rascunhos em combate.
 - Limitações e pendências de interface/recursos planejados em `docs/versao-0.54.md`. Testes automatizados e playtest local pendentes.
+
+### Artes dos cinco líderes — decisões A1–A5 aprovadas (19/10/2026; planejamento)
+- **A1 — A, formato:** retratos em **busto / meio corpo** para os representantes de Brasil, Estados Unidos, Rússia, China e Coreia do Sul.
+- **A2 — A, estilo:** **pixel art detalhada**, coerente com a direção de arte do Game Soberana.
+- **A3 — A, tom:** **semi-realista com exagero leve**; silhuetas e expressões distinguíveis sem caricatura excessiva.
+- **A4 — A, fundo:** cenário **simples com cores e símbolos do país**, padronizado para os cinco.
+- **A5 — B, animação:** **retratos totalmente estáticos**. Comentário aprovado: haverá **vários retratos de cada personagem representando momentos diferentes**, mas **por enquanto produzir somente os retratos-base**; variantes de expressão/situação ficam para planejamento e produção posteriores.
+- **Processo de arte:** desenvolver um conceito consistente para cada personagem, com enquadramento, escala e linguagem de pixel art comuns; não gerar spritesheets ou implementar retratos no jogo sem autorização posterior.
