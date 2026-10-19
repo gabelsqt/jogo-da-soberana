@@ -71,11 +71,26 @@ export function drawPixelText(canvas,text,{
   paddingX=0,paddingY=0,minWidth=0,maxWidth=Infinity,
 }={}){
   if(!canvas?.getContext)return false;
+  // Mantém acentos visuais (Á, É, Í etc.) dentro da fonte 5×7 em vez
+  // de simplesmente apagar a acentuação do português.
+  const original=Array.from(String(text??'').toUpperCase());
   const value=normalizePixelText(text);
+  const accents=original.map(char=>{
+    const n=char.normalize('NFD');
+    return {
+      acute:n.includes('\u0301'),
+      grave:n.includes('\u0300'),
+      circumflex:n.includes('\u0302'),
+      tilde:n.includes('\u0303'),
+      cedilla:n.includes('\u0327'),
+    };
+  });
+  const offsetTop=accents.some(a=>a.acute||a.grave||a.circumflex||a.tilde)?2:0;
+  const offsetBottom=accents.some(a=>a.cedilla)?2:0;
   const step=(PIXEL_GLYPH_WIDTH+spacing)*pixel;
   const padded=Math.ceil(Math.max(minWidth,Math.min(maxWidth,pixelTextWidth(value,pixel,spacing)+paddingX*2)));
   canvas.width=Math.max(1,padded);
-  canvas.height=PIXEL_GLYPH_HEIGHT*pixel+paddingY*2;
+  canvas.height=(PIXEL_GLYPH_HEIGHT+offsetTop+offsetBottom)*pixel+paddingY*2;
   const ctx=canvas.getContext('2d');
   if(!ctx)return false;
   ctx.imageSmoothingEnabled=false;
@@ -85,9 +100,27 @@ export function drawPixelText(canvas,text,{
     const x=paddingX+i*step;
     if(x+5*pixel>canvas.width-paddingX)break;
     const bitmap=glyphs[value[i]]||glyphs['?'];
+    const top=paddingY+offsetTop*pixel;
+    const a=accents[i]||{};
+    if(a.acute||a.grave){
+      ctx.fillRect(x+(a.grave?1:3)*pixel,paddingY,pixel,pixel);
+      ctx.fillRect(x+2*pixel,paddingY+pixel,pixel,pixel);
+    }else if(a.circumflex){
+      ctx.fillRect(x+2*pixel,paddingY,pixel,pixel);
+      ctx.fillRect(x+pixel,paddingY+pixel,pixel,pixel);
+      ctx.fillRect(x+3*pixel,paddingY+pixel,pixel,pixel);
+    }else if(a.tilde){
+      ctx.fillRect(x+pixel,paddingY,pixel,pixel);
+      ctx.fillRect(x+3*pixel,paddingY,pixel,pixel);
+      ctx.fillRect(x+2*pixel,paddingY+pixel,pixel,pixel);
+    }
     for(let y=0;y<PIXEL_GLYPH_HEIGHT;y++){
       for(let col=0;col<5;col++)if(bitmap[y]&(1<<(4-col)))
-        ctx.fillRect(x+col*pixel,paddingY+y*pixel,pixel,pixel);
+        ctx.fillRect(x+col*pixel,top+y*pixel,pixel,pixel);
+    }
+    if(a.cedilla){
+      ctx.fillRect(x+2*pixel,top+7*pixel,pixel,pixel);
+      ctx.fillRect(x+pixel,top+8*pixel,pixel,pixel);
     }
   }
   return true;
