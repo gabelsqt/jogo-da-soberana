@@ -653,3 +653,7 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 
 ### Implementação parcial aprovada — v0.56 (19/10/2026)
 - Primeiro pacote incremental após autorização expressa: nomes Kátia Strófika/Ming Da no boteco, revelação alienígena pré-onda 10, rendição pré-onda 11, relógio de colonização e limite progressivo de tiros comuns em ondas 0–9. Demais decisões B–K continuam planejadas, com pendências detalhadas em docs/versao-0.56.md. Testes locais e build ainda pendentes.
+
+### Implementação parcial v0.57 — primeira noite e boteco (19/10/2026)
+- Cena de diálogos avançáveis por clique/toque ao abrir o boteco após onda 0: vitória seguida de **destruição narrada** do canhão por nave superior, reação de Zeca e entrada conjunta dos cinco conselheiros. Em visitas posteriores, comentários breves de Zeca e conselheiro antes da seleção. A seleção fica temporariamente bloqueada durante a conversa.
+- **Não há destruição animada nem nave adicional nesta versão**; falta produzir e implementar cinematografia. Consultar docs/versao-0.57.md. Teste local pendente.
