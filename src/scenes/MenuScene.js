@@ -25,14 +25,14 @@ export class MenuScene extends Phaser.Scene{
       depth:45,
     });
     addCuboPixelText(this,{x:W/2,y:119,text:'Soberana',size:7,
-      color:'#edc75a',depth:33,maxWidth:540});
+      color:'#e2a45e',depth:33,maxWidth:540});
     this.add.text(W/2,163,'O Rio não vai cair',{
       fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'21px',fontStyle:'bold',
-      color:'#f5f0dc',
+      color:'#dce8ee',
     }).setOrigin(0.5).setDepth(34);
-    this.add.rectangle(W/2,200,540,3,0xedc75a).setDepth(34);
+    this.add.rectangle(W/2,200,540,3,0xe2a45e).setDepth(34);
     this.add.text(W/2,219,'Defesa antiaérea  •  Playtest V1',{
-      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'15px',color:'#e1ece7',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'15px',color:'#bdcfdb',
     }).setOrigin(0.5).setDepth(34);
     // O nome não é um modal do menu: faz parte do expediente no PC velho.
     const startGame=()=>this.scene.start('IntroScene',{campaign:{choices:[]}});
@@ -42,14 +42,14 @@ export class MenuScene extends Phaser.Scene{
     addMenuButton(this,{x:W/2,y:350,text:'★  Testar upgrades V1',
       onClick:testUpgrades,depth:34,width:358});
     this.add.text(W/2,404,'5 países  •  50 upgrades  •  Uma só soberania',{
-      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'14px',color:'#edc75a',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'14px',color:'#e2a45e',
     }).setOrigin(0.5).setDepth(35);
     this.add.text(W/2,445,
       'Mouse: mirar  •  Esq.: tiro  •  Dir.: especial  •  Espaço: suprema',{
         fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'12px',color:'#dfeafb',
       }).setOrigin(0.5).setDepth(35);
     this.add.text(W/2,473,'ENTER: iniciar   •   U: laboratório de upgrades',{
-      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'12px',color:'#edc75a',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'12px',color:'#e2a45e',
     }).setOrigin(0.5).setDepth(35);
     // Rótulo da versão preservado e acima da tarja do telejornal.
     this.add.text(W-16,H-12,GAME_VERSION_LABEL+' • PLAYTEST V1',{
