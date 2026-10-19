@@ -1,35 +1,29 @@
-// Cubo News v0.46: interface HTML externa à câmera Phaser, fonte bitmap real.
-// HUD 960x44 sob o canvas 960x540. Timer apenas em segundos, sem dois-pontos.
-import {drawPixelText} from './pixelFont.js';
+// Cubo News v0.47 — retro legível, fora do canvas Phaser, imune a zoom e shake.
+// A abertura faz um pullback cinematográfico do cenário sincronizado ao relógio.
+export const DAWN_HOLD_MS=2200;
+export const DAWN_TRAVEL_MS=1750;
+export const DAWN_WORLD_ZOOM=1.48;
 
 export function formatCuboTime(milliseconds){
   return String(Math.ceil(Math.max(0,milliseconds)/1000));
 }
-
-const headlineOptions={pixel:2,color:'#101726',maxWidth:740,paddingX:2};
-const tickerOptions={pixel:2,color:'#fff5f3',minWidth:760,paddingX:15};
-const timerOptions={pixel:13,color:'#dfedff'};
+const clamp01=n=>Math.max(0,Math.min(1,n));
 
 export function createCuboNewsHud(scene){
-  if(typeof document==='undefined')return {update(){},beginDawnIntro(_ms,done){done?.();},destroy(){}};
+  if(typeof document==='undefined')
+    return {update(){},beginDawnIntro(_ms,done){done?.();},destroy(){}};
   const root=document.getElementById('cubo-news-overlay');
   const broadcast=document.getElementById('broadcast');
-  if(!root||!broadcast){
+  if(!root||!broadcast)
     return {update(){},beginDawnIntro(_ms,done){done?.();},destroy(){}};
-  }
   const headline=root.querySelector('#cubo-headline');
-  const headlinePixels=root.querySelector('#cubo-headline-pixels');
-  const labelPixels=root.querySelector('#cubo-label-pixels');
   const crawlOne=root.querySelector('#cubo-crawl-one');
   const crawlTwo=root.querySelector('#cubo-crawl-two');
-  const crawlOnePixels=root.querySelector('#cubo-crawl-one-pixels');
-  const crawlTwoPixels=root.querySelector('#cubo-crawl-two-pixels');
   const crawlTrack=root.querySelector('#cubo-crawl-track');
+  const crawlBar=root.querySelector('.cubo-crawl');
   const timer=root.querySelector('#cubo-time');
   const timerReader=root.querySelector('#cubo-time-reader');
-  const timerPixels=root.querySelector('#cubo-time-pixels');
   const intro=broadcast.querySelector('#cubo-dawn-intro');
-  const introLabel=broadcast.querySelector('#cubo-dawn-label');
   const introNumber=broadcast.querySelector('#cubo-dawn-number');
   const versionBadge=document.getElementById('build-version');
   const wasVersionHidden=versionBadge?.hidden??false;
@@ -38,28 +32,30 @@ export function createCuboNewsHud(scene){
   broadcast.dataset.cuboNews='visible';
   scene.game.events.emit('cubo-layout-change');
 
-  drawPixelText(labelPixels,'CUBO NEWS',{pixel:2,color:'#ffffff'});
-  drawPixelText(introLabel,'TEMPO ATÉ O AMANHECER',{
-    pixel:3,color:'#94f0ff',paddingX:3,
-  });
-
   let destroyed=false,introActive=false;
   let lastHeadline='',lastSubtitle='',lastSiren=-Infinity,lastSecond=null,lastCritical=null;
+  const camera=scene.cameras?.main;
+  const resetCamera=()=>camera?.setZoom?.(1);
 
   function finishIntro(done){
     if(destroyed)return;
     introActive=false;
+    resetCamera();
     if(intro){intro.hidden=true;intro.classList.remove('cubo-dawn-traveling');}
-    if(introNumber)introNumber.style.transform='';
+    if(introNumber){introNumber.style.transform='';introNumber.style.opacity='';}
+    if(timer)timer.style.opacity='';
     root.classList.remove('cubo-intro-running');
     done?.();
   }
   function destroy(){
     if(destroyed)return;
-    destroyed=true;introActive=false;
+    destroyed=true;
+    if(introActive)resetCamera();
+    introActive=false;
     if(intro){intro.hidden=true;intro.classList.remove('cubo-dawn-traveling');}
     root.hidden=true;
     if(versionBadge)versionBadge.hidden=wasVersionHidden;
+    if(timer)timer.style.opacity='';
     root.classList.remove('cubo-warning','cubo-intro-running');
     broadcast.dataset.cuboNews='hidden';
     scene.game.events.emit('cubo-layout-change');
@@ -81,16 +77,13 @@ export function createCuboNewsHud(scene){
       gain.gain.exponentialRampToValueAtTime(0.0001,now+0.32);
       osc.connect(gain);gain.connect(ctx.destination);
       osc.start(now);osc.stop(now+0.33);
-    }catch{/* O alerta visual permanece se o áudio não estiver liberado. */}
+    }catch{/* Sem áudio liberado, o alerta visual segue funcionando. */}
   }
 
   return {
-    // A tela abre com o tempo total da onda ao centro e anima O MESMO número
-    // até o destino real do relógio. Nada de 3–2–1 separado; combate liberado
-    // apenas quando esta animação chegar ao fim.
     beginDawnIntro(totalMs,onComplete){
       if(destroyed||introActive)return;
-      if(!intro||!introNumber||!timerPixels){
+      if(!intro||!introNumber||!timer){
         onComplete?.();return;
       }
       introActive=true;
@@ -98,23 +91,36 @@ export function createCuboNewsHud(scene){
       root.classList.add('cubo-intro-running');
       intro.classList.remove('cubo-dawn-traveling');
       intro.hidden=false;
+      introNumber.textContent=value;
       introNumber.style.transform='translate(-50%, -50%)';
-      drawPixelText(introNumber,value,{pixel:17,color:'#ffffff'});
-      // Exibir 30/60 imóveis para leitura antes do deslocamento.
-      scene.time.delayedCall(980,()=>{
+      introNumber.style.opacity='1';
+      timer.style.opacity='0';
+      // Close-up no cenário já carregado. O relógio pertence ao DOM
+      // externo e só se move nesta vinheta; nunca sofre shake posterior.
+      camera?.setZoom?.(DAWN_WORLD_ZOOM);
+      scene.time.delayedCall(DAWN_HOLD_MS,()=>{
         if(destroyed||!introActive)return;
         const from=introNumber.getBoundingClientRect();
-        const to=timerPixels.getBoundingClientRect();
+        const to=timerReader.getBoundingClientRect();
         const dx=to.left+to.width/2-(from.left+from.width/2);
         const dy=to.top+to.height/2-(from.top+from.height/2);
-        const scale=from.width>0?Math.max(0.25,to.width/from.width):0.8;
+        const scale=from.width>0?Math.max(0.18,Math.min(1,to.width/from.width)):0.4;
         intro.classList.add('cubo-dawn-traveling');
-        const motion={x:0,y:0,scale:1};
+        const motion={x:0,y:0,scale:1,progress:0};
+        // O palco inteiro "se afasta" em paralelo ao número central.
+        if(camera)scene.tweens.add({
+          targets:camera,zoom:1,duration:DAWN_TRAVEL_MS,ease:'Cubic.InOut',
+        });
         scene.tweens.add({
-          targets:motion,x:dx,y:dy,scale,duration:970,ease:'Cubic.InOut',
+          targets:motion,x:dx,y:dy,scale,progress:1,
+          duration:DAWN_TRAVEL_MS,ease:'Cubic.InOut',
           onUpdate:()=>{
             introNumber.style.transform=
               `translate(-50%, -50%) translate(${motion.x}px, ${motion.y}px) scale(${motion.scale})`;
+            // Crossfade gradual perto do canto; sem desaparecimento brusco.
+            const reveal=clamp01((motion.progress-0.67)/0.33);
+            introNumber.style.opacity=String(1-reveal);
+            timer.style.opacity=String(reveal);
           },
           onComplete:()=>finishIntro(onComplete),
         });
@@ -128,9 +134,7 @@ export function createCuboNewsHud(scene){
       if(lastSecond!==value||lastCritical!==critical){
         timerReader.textContent=value;
         timer.setAttribute('aria-label',`Tempo restante: ${value} segundos`);
-        drawPixelText(timerPixels,value,{
-          ...timerOptions,color:critical?'#ff4a5f':timerOptions.color,
-        });
+        timer.style.color=critical?'rgba(255, 63, 79, 0.96)':'';
         lastSecond=value;lastCritical=critical;
       }
       root.classList.toggle('cubo-warning',critical);
@@ -140,22 +144,15 @@ export function createCuboNewsHud(scene){
         if(newHeadline!==lastHeadline){
           headline.textContent=newHeadline;
           headline.title=newHeadline;
-          drawPixelText(headlinePixels,newHeadline,headlineOptions);
           lastHeadline=newHeadline;
         }
         if(newSubtitle!==lastSubtitle){
-          const text=newSubtitle+'       +       ';
+          const text=newSubtitle+'      ◆      ';
           crawlOne.textContent=text;
           crawlTwo.textContent=text;
-          root.querySelector('.cubo-crawl')?.setAttribute('aria-label',newSubtitle);
-          for(const canvas of [crawlOnePixels,crawlTwoPixels]){
-            drawPixelText(canvas,text,tickerOptions);
-            canvas.style.width=(canvas.width/960*100)+'cqw';
-            canvas.style.height=(canvas.height/960*100)+'cqw';
-          }
+          crawlBar?.setAttribute('aria-label',newSubtitle);
           const seconds=Math.max(8,Math.min(25,newSubtitle.length*0.16));
           crawlTrack.style.animation='none';
-          // Uma única recomposição a cada manchete, não em cada frame.
           void crawlTrack.offsetWidth;
           crawlTrack.style.animation=`cubo-scroll ${seconds}s linear infinite`;
           lastSubtitle=newSubtitle;
