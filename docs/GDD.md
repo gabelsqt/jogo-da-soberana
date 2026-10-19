@@ -283,3 +283,22 @@ Refinamento solicitado após playtest: zoom gradual até **1,65×**, com foco no
 - A perda de upgrades de países não sorteados ainda precisa ser definida; não aplicar automaticamente a antiga remoção de todos os empatados.
 
 **Ainda são propostas, não decisões aprovadas:** núcleo central, duas alas, quatro posições de armas, hangares inferiores, ocupação de 80–90% da largura e 20–25% da altura, módulos destrutíveis, janelas de vulnerabilidade e padrões específicos de cada país. Próxima decisão: interação entre núcleo e módulos durante a luta.
+
+
+## Cubo News — HUD e redação dinâmica (decisões 96, 102–146; v0.44)
+- Uma única interface persistente de campanha, na **faixa inferior** da tela: manchete + subtítulo à esquerda, **cronômetro grande e branco à direita**, moldura azul-escura/branca/vermelha de telejornal clássico.
+- Cronômetro da onda mostra a duração cheia antes do combate; nas entradas dos chefões só começa quando o Tipo 6 fica alvejável. Nos últimos cinco segundos, moldura pulsa em vermelho, sirene contínua, cobertura interrompida por **plantão desesperado**, notícias pendentes descartadas.
+- Manchetes a cada **5 segundos**; fila de no máximo **3** (descartar as mais antigas ao exceder), eventos semelhantes combinados, urgentes aguardam a manchete atual; nenhuma barra adicional de vida permanente.
+- Emissora satírica apresenta absurdos com absoluta seriedade: futebol carioca/CBF, cotidiano do Rio, transporte, comércio, burocracia. Manchete faz a piada e subtítulo explica o contexto factual.
+- Propaganda estrangeira a partir do primeiro upgrade: 1 elogio discreto, 2–3 elogios fortes, 4+ diplomacia descarada; vários aliados recebem elogios proporcionalmente. A escolha do traidor permanece **sorteio independente** da propaganda.
+- No Brasil, upgrades **1–4** recebem desconfiança comercial ("não é importado", concorrência e contratos dos patrocinadores); no **5º upgrade brasileiro em diante**, emissora se torna torcida patriótica e garante que **sempre acreditou** no Brasil.
+- Após a traição, Cubo News condena imediatamente o país e diz que **sempre desconfiou**, nega ter publicado elogios e alega falsificação de seus arquivos. Explicação alienígena é o pretexto editorial da emissora, não fato estabelecido.
+- Na Revanche Brasileira Full Brazil, arrogância patriótica está no máximo desde o início, com delírios de grandeza, até superioridade às leis da física.
+- Banco **compacto**, alvo de três manchetes por situação, **rodízio sem repetição**. Textos confirmados no primeiro lote: 142 A/B, 143 A/B/C (com espaço para PIX), 144 A/B/C, 145 A/B/C, 146 A/B. **142-C deve ser retrabalhada com CBF e clubes cariocas, sem FIFA**; 146-C necessita versão com Cubo News explicitamente 100% patriota, não tratando o traidor como "antigo aliado"; registrar esses textos como **pendentes de aprovação editorial**, não como aprovados.
+- Tom editorial das manchetes em docs e módulo `src/gameplay/cuboNews.js`; novas manchetes têm de ser aprovadas individualmente antes de se tornarem definitivas.
+- A arte final da faixa, a sonorização e legibilidade em telas menores devem ser avaliadas no playtest; nenhuma alteração de regra é inferida disso.
+
+## Implementação 0.44 — Fortaleza e Cubo News (19/10/2026)
+- Regras compartilhadas do Tipo 6 e cinco variantes atualizadas em `docs/GDD-TIPO-6.md`.
+- Motor de combate, efeitos de escudo, entrada cronometrada, novo lower-third e notícias dinâmicas integrados à branch de desenvolvimento.
+- O desenho de sprites e algumas cinematografias permanecem como **placeholders** até fase de arte.
