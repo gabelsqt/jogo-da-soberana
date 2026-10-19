@@ -2,7 +2,15 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.46
+## Versão atual — 0.47
+
+**Cubo News mais legível e abertura cinematográfica:** as letras 5×7 de baixa resolução foram substituídas na interface ativa por **tipografia retrô nítida**, com contornos duros, blocos de cor e molduras quadradas preservando a estética de pixel art. Manchetes e subtítulos ficam mais fáceis de acompanhar. O relógio segue mostrando **somente segundos**, enorme e sem caixa.
+
+A abertura **TEMPO ATÉ O AMANHECER** agora começa com **zoom real da câmera sobre o cenário**, enquanto o número central é significativamente maior. O jogador tem aproximadamente **2,2 segundos de leitura**, seguidos de **1,75 segundo de zoom-out sincronizado**: cenário se afasta, moldura e título desaparecem por transparência e o número se desloca e dissolve suavemente no relógio do canto direito. Somente então começa a batalha, sem consumir tempo. A camada do telejornal continua **fora da câmera** e não recebe zoom/screen shake durante as ondas.
+
+Veja [notas da versão 0.47](docs/versao-0.47.md).
+
+## Versão anterior — 0.46
 
 **Cubo News em pixel art + abertura do amanhecer:** o HUD inferior agora usa uma fonte bitmap 5×7 própria do jogo, cores chapadas e contornos retos. O cronômetro está ainda maior e exibe apenas os **segundos** (30, 29, 28...), sem `00:`. Antes de cada onda, o texto **TEMPO ATÉ O AMANHECER** e o número total (30 ou 60) aparecem centralizados; o número desliza até o relógio à direita, e **somente depois** os disparos, spawns e o cronômetro começam. Nos chefões, a contagem permanece parada até que a fortaleza esteja alvejável.
 
