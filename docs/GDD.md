@@ -325,3 +325,12 @@ Refinamento solicitado após playtest: zoom gradual até **1,65×**, com foco no
 - **Estética:** todos os textos visíveis da faixa — cabeçalho, marca, ticker e relógio — usam glifos bitmap desenhados em matriz **5×7** nativa, com pixels rígidos (`image-rendering:pixelated`), cores sólidas e bordas quadradas. Nenhuma fonte externa/download; a exportação single-file deve funcionar offline.
 - O ticker mantém movimento da direita para a esquerda e o HUD, incluindo a animação central da contagem, é **HTML independente da câmera Phaser**, imune a zoom e screenshake. A faixa permanece fora do canvas de combate, abaixo do cenário. Preservar canhão em (480,494), fundo do Rio e todas as hitboxes.
 - Testes automatizados para temporização, contagem por segundos, render bitmap, histórias otimistas 0–9 e ciclo de vida do DOM; validação visual e ajustes de duração e tamanho ainda dependem de playtest.
+
+
+## Refinamento Cubo News — v0.47 (19/10/2026)
+- A matriz de glifos 5×7 era pixelada demais e **prejudicava a leitura**. Na interface ativa, usar tipografia retrô legível nativa do navegador (fonte monoespaçada forte na manchete, ticker e título; algarismos grandes e claros no relógio), mantendo **blocos de cor sólidos, bordas retas e estética de jogo em pixel art**. Não depender de fontes externas ou CDN para exportar HTML offline.
+- O relógio continua mostrando **apenas os segundos** (`30`, `29`, `60` etc.) sem `00:`; permanece maior e semitransparente no canto inferior direito, fora do canvas e imune a zoom e screenshake durante combate.
+- Na abertura de **todas as ondas**, a câmera do cenário inicia aproximada (zoom 1,48×). O título `TEMPO ATÉ O AMANHECER` e o número, **maior que na v0.46**, ficam legíveis por **2,2 s**. Depois há um zoom-out do cenário até 1× de **1,75 s**, ao mesmo tempo que o número se reduz, desliza até a posição do relógio e faz **crossfade** gradual com o relógio final. Título e moldura somem por **fade** de 0,75–0,85 s, não por corte brusco.
+- A onda e os spawns só começam depois que ambas as transições terminam. Pausar a cena pausa a vinheta; encerrar a cena no meio restaura zoom=1 para não deixar câmera aproximada.
+- As regras do Tipo 6 continuam: após a abertura do contador, o tempo só começa quando o chefão está alvejável.
+- O HUD de notícias segue externo ao canvas (faixa de 44 px sob 960×540), sem cobrir o Rio nem o canhão; notícias/ritmo/editorial inalterados.
