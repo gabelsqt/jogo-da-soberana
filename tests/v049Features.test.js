@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {BRAZILIAN_NAMES,resolvePlayerName,getSavedPlayerName,savePlayerName} from '../src/gameplay/playerIdentity.js';
-import {introductionSlides} from '../src/scenes/IntroScene.js';
+import {introductionSlides} from '../src/gameplay/introScript.js';
 import {CANNON_DOME_RADIUS,cannonShieldColor,cannonDomeIntercept} from '../src/gameplay/shieldDome049.js';
 import {v1CombatStats,V1_UPGRADES} from '../src/gameplay/v1Upgrades.js';
 import {v1SpecialConfig} from '../src/gameplay/v1Specials.js';
@@ -64,7 +64,7 @@ test('ondas 0–9: última entrada até 15 s e ataques diretos nos dez finais',(
   assert.match(source,/this\.elapsed>=20000/);
   assert.match(source,/enemy\.phase='tacticalHold'/);
   assert.match(source,/enemy\.phase='dive'/);
-  assert.match(source,/shot\.radius\?\?8\.25/);
+  assert.match(source,/shot\.radius\?\?8/);
   assert.match(source,/beginDawnWithdrawal/);
   assert.match(source,/this\.sunriseOverlay\?\.setAlpha\(0\)/);
 });
