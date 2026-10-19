@@ -744,3 +744,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **R9 A:** **salvar rascunhos sem afetar o jogo** e **publicar explicitamente** para aplicar modificações ao conjunto ativo de inimigos, coerente com os rascunhos Wave Maker.
 - **R10 B:** primeira versão prioriza **atributos de combate e arena de teste individual**; interface de movimentação, variantes e testes de grupo permanecem metas aprovadas para fases seguintes.
 - **Status:** documentação apenas; não implementar nem alterar código, assets ou versão.
+
+
+### Enemy Maker — decisões S1–S10 aprovadas (19/10/2026; planejamento somente)
+- **S1 C:** editor com **modo básico e avançado**; atributos essenciais aparecem primeiro, detalhes sob demanda.
+- **S2 C:** propriedades principais à vista; demais parâmetros existentes em **área expansível avançada**, sem introdução automática de mecânicas.
+- **S3 A:** edição por **campos numéricos exatos**, com unidades visíveis, não por sliders.
+- **S4 C:** validação em dois níveis: **faixas seguras no básico** e **liberdade ampliada no avançado**, com proteção contra valores tecnicamente inválidos.
+- **S5 C:** **seletor de variante/nível para edição** e **tabela comparativa entre níveis**.
+- **S6 A:** cada nível **herda os valores-base** e armazena apenas diferenças/sobrescritas; evitar duplicação de valores.
+- **S7 C:** restaurar tanto **um atributo individual** quanto **a variante inteira** ao valor original, preservando rascunho até publicação.
+- **S8 C:** prévia **compacta de movimento** no painel e opção de abrir **arena em tamanho real**.
+- **S9 C:** comparação **numérica original × modificada** e opção de testes em separado para antes/depois.
+- **S10 C:** publicação protegida por **resumo de alterações, confirmação explícita e backup/snapshot automático** do estado anterior para reversão.
+- **Estado:** apenas documentar; não implementar nem modificar código, assets ou versão.
