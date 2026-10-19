@@ -44,8 +44,6 @@ export function v1SpecialConfig(state = {}) {
     ruShards:at(ru,[8,12,16,24]),
     ruBurstRadius:at(ru,[35,50,70,100]),
     ruFreezeMs:at(ru,[1600,2100,2700,3400]),
-    ruShieldFreezeMs:at(ru,[2000,3000,4000,5000]),
-    ruShieldRadius:at(ru,[40,60,90,120]),
     ruDamage:at(ru,[3,4,5,7]),
     // China: um único projétil/híbrido, com impactos internos em distribuição.
     cnDropScale:at(cn,[1,1.6,2.5,4]),
@@ -55,7 +53,6 @@ export function v1SpecialConfig(state = {}) {
     // Coreia: cada tiro recebido pelo globo de 4 s gera esta quantidade de raios.
     krReflections:at(jp,[3,6,12,24]),
     krReflectDamage:at(jp,[1.8,2.6,3.5,4.5]),
-    krShieldChance:at(jp,[0.22,0.3,0.4,0.5]),
   };
 }
 
