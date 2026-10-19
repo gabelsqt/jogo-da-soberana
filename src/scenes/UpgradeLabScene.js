@@ -26,10 +26,10 @@ export class UpgradeLabScene extends Phaser.Scene {
 
   create() {
     this.input.mouse?.disableContextMenu();
-    this.add.rectangle(W / 2, H / 2, W, H, 0x152926, 0.92)
+    this.add.rectangle(W / 2, H / 2, W, H, 0x0b1621, 0.92)
       .setDepth(1)
       .setInteractive();
-    this.add.rectangle(W / 2, H / 2, W - 24, H - 24, 0x134b45, 0.98)
+    this.add.rectangle(W / 2, H / 2, W - 24, H - 24, 0x193043, 0.98)
       .setStrokeStyle(2, 0x568cba).setDepth(2);
 
     addCuboBroadcastFrame(this,{
@@ -39,7 +39,7 @@ export class UpgradeLabScene extends Phaser.Scene {
       depth:50,
     });
     addCuboPixelText(this,{x:W/2,y:78,text:'Painel de upgrades',
-      size:3,color:'#edc75a',depth:5,maxWidth:700});
+      size:3,color:'#e2a45e',depth:5,maxWidth:700});
     this.add.text(W/2,99,'Ativar / desativar • Combinações livres • Não afeta a campanha',{
       fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'12px',color:'#bee0f4',
     }).setOrigin(0.5).setDepth(5);
