@@ -470,3 +470,11 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **Decisão 18 — A, armazenamento no navegador + JSON:** rascunhos e históricos locais persistem no navegador; exportar/importar JSON para backups e posterior integração deliberada ao código. Não pressupor sincronização entre dispositivos.
 - **Decisão 19 — A, pixels e milissegundos:** salvar posições X/Y em pixels do campo de jogo e os tempos dos eventos em milissegundos, seguindo a referência do motor atual. O editor pode apresentar segundos legíveis ao usuário, sem mudar o formato persistido.
 - **Status:** exclusivamente planejamento. Nenhum código, configuração de onda ou número de versão alterado por esta rodada.
+
+### Soberania Wave Maker — decisões 20–24 aprovadas (19/10/2026; somente planejamento)
+- **Decisão 20 — B, progressão ampla:** perfis fixos de agressividade de disparos: **Pacífico = 0%** (não atira); **Leve = 50%**, **Moderado = 100%** (cadência original do tipo), **Intenso = 150%**, **Extremo = 200%**. Percentuais aplicam-se à frequência de disparos, sem alterar tipo, dano, velocidade ou quantidade por disparo. Regras específicas para inimigos sem tiros ou padrões especiais ainda precisam de detalhamento técnico.
+- **Decisão 21 — A, reiniciar e reproduzir até o instante:** ao retroceder na simulação, recriar o estado inicial da onda e avançar internamente, com o motor real de jogo, até o instante escolhido. Determinismo e avanço rápido serão requisitos de implementação, não funcionalidades já disponíveis.
+- **Decisão 22 — A, após cada sessão de edição:** gravar um ponto de recuperação ao finalizar uma sequência de alterações; não criar snapshots a cada movimento do mouse durante o arraste. Manter o limite de dez versões automáticas por onda, além das versões nomeadas (decisão 17).
+- **Decisão 23 — A, indicadores objetivos:** exibir total de inimigos, grupos simultâneos e estimativa de disparos. **Sem** nota subjetiva de dificuldade nem alerta automático de saturação nesta etapa.
+- **Decisão 24 — A, escolher build antes do teste:** antes de executar a onda editada, selecionar a configuração de upgrades no laboratório e iniciar diretamente o teste jogável dessa onda; não presumir build brasileira fixa.
+- **Status:** decisões exclusivamente no GDD. Não modificar código, dados existentes de onda nem número de versão.
