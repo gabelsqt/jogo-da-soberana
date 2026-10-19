@@ -391,3 +391,11 @@ Todos os diálogos de humor e manchetes são **PLACEHOLDERS editáveis**; a revi
 **BUG OBRIGATÓRIO:** Brasil nível 10, `Metralhadora da Soberania`, deve atingir Tipo 6 corretamente mesmo se mirar no vão entre módulos, sem contornar barreira, escudos próprios ou núcleo vulnerável.
 
 Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir novos sistemas defensivos nem rebalancear efeitos ofensivos. `main` permanece intocada.
+
+## Fluxo de trabalho aprovado (19/10/2026)
+- Usar `origin/feat/brasil2-arraial-balístico` como branch de desenvolvimento; testar por `git pull` e laboratório local, sem exigir GitHub Actions ou Shift+0.
+- Registrar cada decisão aprovada no GDD. Registrar toda alteração implementada também no histórico da versão, sincronizando a versão exibida no jogo.
+- Etapa atual: jogabilidade e apresentação visual. Etapa posterior: revisão literária, piadas e diálogos. Preservar fatos canônicos dos cinco representantes; falas e humor provisórios, textos mecânicos precisos.
+- Próximas prioridades: boteco diurno com cinco retratos e seleção animada; Cubo News com HUD escuro e fontes aprovadas; abertura em visual novel no computador da repartição; diálogos provisórios; polimento textual ao final.
+- Reservar espaço para prévias animadas de upgrades, sem implementar os vídeos agora.
+- Feedback visual Tipo 6 implementado na v0.51: flashes localizados, microtremor exclusivamente gráfico e bursts reforçados.
