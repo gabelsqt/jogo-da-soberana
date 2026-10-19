@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {GAME_VERSION,GAME_RELEASE_STAGE,GAME_VERSION_LABEL} from '../src/config/version.js';
 
-test('protótipo v0.49 tem versão centralizada e rótulo legível',()=>{
-  assert.equal(GAME_VERSION,'0.49');
+test('protótipo v0.49.1 tem versão centralizada e rótulo legível',()=>{
+  assert.equal(GAME_VERSION,'0.49.1');
   assert.equal(GAME_RELEASE_STAGE,'PROTÓTIPO');
-  assert.equal(GAME_VERSION_LABEL,'v0.49 • PROTÓTIPO');
+  assert.equal(GAME_VERSION_LABEL,'v0.49.1 • PROTÓTIPO');
 });
 test('menu principal utiliza a versão centralizada no rodapé do telejornal',()=>{
   const scene=readFileSync(new URL('../src/scenes/MenuScene.js',import.meta.url),'utf8');
