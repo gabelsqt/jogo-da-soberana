@@ -55,16 +55,52 @@ const rows={
   '*':['00000','10101','01110','11111','01110','10101','00000'],
   '=':['00000','11111','00000','11111','00000','00000','00000'],
 };
+// Letras minúsculas desenhadas individualmente em 5×7 — não converter o texto inteiro para maiúsculas.
+const lowerRows={
+  a:['00000','00000','01110','00001','01111','10001','01111'],
+  b:['10000','10000','10110','11001','10001','10001','11110'],
+  c:['00000','00000','01111','10000','10000','10000','01111'],
+  d:['00001','00001','01101','10011','10001','10001','01111'],
+  e:['00000','00000','01110','10001','11111','10000','01111'],
+  f:['00110','01001','01000','11100','01000','01000','01000'],
+  g:['00000','01111','10001','10001','01111','00001','11110'],
+  h:['10000','10000','10110','11001','10001','10001','10001'],
+  i:['00100','00000','01100','00100','00100','00100','01110'],
+  j:['00010','00000','00110','00010','00010','10010','01100'],
+  k:['10000','10000','10010','10100','11000','10100','10010'],
+  l:['01100','00100','00100','00100','00100','00100','01110'],
+  m:['00000','00000','11010','10101','10101','10101','10101'],
+  n:['00000','00000','10110','11001','10001','10001','10001'],
+  o:['00000','00000','01110','10001','10001','10001','01110'],
+  p:['00000','11110','10001','10001','11110','10000','10000'],
+  q:['00000','01111','10001','10001','01111','00001','00001'],
+  r:['00000','00000','10110','11001','10000','10000','10000'],
+  s:['00000','00000','01111','10000','01110','00001','11110'],
+  t:['01000','01000','11110','01000','01000','01001','00110'],
+  u:['00000','00000','10001','10001','10001','10011','01101'],
+  v:['00000','00000','10001','10001','10001','01010','00100'],
+  w:['00000','00000','10001','10001','10101','10101','01010'],
+  x:['00000','00000','10001','01010','00100','01010','10001'],
+  y:['00000','10001','10001','10001','01111','00001','01110'],
+  z:['00000','00000','11111','00010','00100','01000','11111'],
+};
+Object.assign(rows,lowerRows);
 const glyphs=Object.fromEntries(Object.entries(rows).map(([char,bits])=>
   [char,bits.map(row=>Number.parseInt(row,2))]));
 export const PIXEL_GLYPH_WIDTH=5;
 export const PIXEL_GLYPH_HEIGHT=7;
+// Legado: normalização em caixa alta continua disponível para ferramentas antigas.
 export function normalizePixelText(text){
   return String(text??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .toUpperCase().replace(/[^A-Z0-9 !?.,:;\-\/+'"%()*=]/g,'?');
 }
+// Renderizador novo, mantendo o caso original e os acentos brasileiros.
+export function normalizePixelMixedCase(text){
+  return String(text??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^A-Za-z0-9 !?.,:;\-\/+'"%()*=]/g,'?');
+}
 export function pixelTextWidth(text,pixel=2,spacing=1){
-  return Math.max(1,(normalizePixelText(text).length*(PIXEL_GLYPH_WIDTH+spacing)-spacing)*pixel);
+  return Math.max(1,(normalizePixelMixedCase(text).length*(PIXEL_GLYPH_WIDTH+spacing)-spacing)*pixel);
 }
 export function drawPixelText(canvas,text,{
   pixel=2,spacing=1,color='#ffffff',background=null,
@@ -73,8 +109,8 @@ export function drawPixelText(canvas,text,{
   if(!canvas?.getContext)return false;
   // Mantém acentos visuais (Á, É, Í etc.) dentro da fonte 5×7 em vez
   // de simplesmente apagar a acentuação do português.
-  const original=Array.from(String(text??'').toUpperCase());
-  const value=normalizePixelText(text);
+  const original=Array.from(String(text??''));
+  const value=normalizePixelMixedCase(text);
   const accents=original.map(char=>{
     const n=char.normalize('NFD');
     return {
