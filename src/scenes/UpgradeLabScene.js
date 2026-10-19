@@ -26,10 +26,10 @@ export class UpgradeLabScene extends Phaser.Scene {
 
   create() {
     this.input.mouse?.disableContextMenu();
-    this.add.rectangle(W / 2, H / 2, W, H, 0x020817, 0.92)
+    this.add.rectangle(W / 2, H / 2, W, H, 0x152926, 0.92)
       .setDepth(1)
       .setInteractive();
-    this.add.rectangle(W / 2, H / 2, W - 24, H - 24, 0x071a30, 0.98)
+    this.add.rectangle(W / 2, H / 2, W - 24, H - 24, 0x134b45, 0.98)
       .setStrokeStyle(2, 0x568cba).setDepth(2);
 
     addCuboBroadcastFrame(this,{
@@ -39,13 +39,13 @@ export class UpgradeLabScene extends Phaser.Scene {
       depth:50,
     });
     addCuboPixelText(this,{x:W/2,y:78,text:'Painel de upgrades',
-      size:3,color:'#ffe6a2',depth:5,maxWidth:700});
+      size:3,color:'#edc75a',depth:5,maxWidth:700});
     this.add.text(W/2,99,'Ativar / desativar • Combinações livres • Não afeta a campanha',{
-      fontFamily:'monospace',fontSize:'12px',color:'#bee0f4',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'12px',color:'#bee0f4',
     }).setOrigin(0.5).setDepth(5);
 
     this.levelSwitch = this.add.text(W / 2, 108, '', {
-      fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif', fontSize: '13px', fontStyle: 'bold',
       color: '#96ffce', backgroundColor: '#16364add',
       padding: { x: 11, y: 4 },
     }).setOrigin(0.5).setDepth(5).setInteractive({ useHandCursor: true });
@@ -62,7 +62,7 @@ export class UpgradeLabScene extends Phaser.Scene {
         .setInteractive({ useHandCursor: true });
 
       const label = (y, value, size, color, extra = {}) => this.add.text(x, y, value, {
-        fontFamily: 'monospace', fontSize: size, color,
+        fontFamily:'IBM Plex Sans, system-ui, sans-serif', fontSize: size, color,
         align: 'center',
         wordWrap: { width: 155, useAdvancedWrap: true },
         ...extra,
@@ -89,7 +89,7 @@ export class UpgradeLabScene extends Phaser.Scene {
     });
 
     this.statsPreview = this.add.text(W / 2, 433, '', {
-      fontFamily: 'monospace', fontSize: '13px',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif', fontSize: '13px',
       color: '#fce4b4', backgroundColor: '#10243dde',
       padding: { x: 10, y: 6 },
     }).setOrigin(0.5).setDepth(4);
