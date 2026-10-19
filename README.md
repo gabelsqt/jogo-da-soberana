@@ -2,7 +2,13 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.44
+## Versão atual — 0.45
+
+**Cubo News compacta e independente da câmera:** a faixa agora ocupa apenas **44 pixels lógicos** de altura, renderizada em HTML **ABAIXO** do canvas do jogo, como uma transmissão televisiva. O canhão e os prédios ficam inteiramente acima da faixa, sem trocar a imagem do Rio e sem alterar a posição ou a física das armas. Manchete preta sobre prata, selo vermelho `CUBO NEWS` e **subtítulo rolando da direita para a esquerda** sobre uma tira vermelha, conforme a referência aprovada. À direita, um relógio **maior, sem caixa e semitransparente**, piscando em vermelho nos últimos cinco segundos. Como o HUD não é parte da cena Phaser, nem tremores de câmera nem zooms de destruição o movem.
+
+Em menus, o jogo volta a usar toda a área normal de 960×540. Durante ondas, a composição ajusta automaticamente o canvas + faixa ao espaço disponível, inclusive no celular e em iframes. O selo de versão antigo fica oculto durante a transmissão. [Notas da versão 0.45](docs/versao-0.45.md).
+
+## Versão anterior — 0.44
 
 **Fortaleza de Cerco + Cubo News:** a versão 0.44 atualiza os chefões Tipo 6 com quatro módulos de função fixa, barreira frontal e escudos individuais, ataques alternados, projéteis interceptáveis, laser de 10 s de carga e 3 s de emissão, hangares de invasores Tipo 3 e diferenças entre os países traidores. A entrada do chefão pausa o cronômetro até que fique alvejável. O HUD único da Cubo News ocupa a faixa inferior, com cronômetro grande à direita e manchetes e subtítulos rotativos, além de alerta nos cinco segundos finais.
 
