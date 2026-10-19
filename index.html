@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#081426" />
     <title>Soberania — Protótipo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
     <style>
       :root { color-scheme: dark; }
       html, body {
@@ -15,7 +18,7 @@
         overscroll-behavior: none;
         background: #080f20;
       }
-      body { font-family: system-ui, sans-serif; }
+      body { font-family: 'IBM Plex Sans', system-ui, sans-serif; }
       /*
        * O Phaser recebe APENAS o #game sem padding. A moldura externa cuida
        * da safe area (notch, Dynamic Island e bordas) em iOS/Android.
@@ -320,41 +323,78 @@
       @media (prefers-reduced-motion: reduce) {
         #cubo-dawn-number { will-change: auto; }
       }
-      /* Canvas 5×7 com minúsculas legíveis e escala nearest-neighbour. */
-      .cubo-accessible {
-        position: absolute; width: 1px; height: 1px; margin: -1px;
-        padding: 0; overflow: hidden; clip: rect(0,0,0,0);
-        white-space: nowrap;
+      /* v0.49 — Telejornal oficial brasileiro, sem texto pixelado. */
+      #cubo-news-overlay{
+        font-family:'IBM Plex Sans',system-ui,sans-serif;
+        color:#152926;
       }
-      #cubo-label-pixels, #cubo-headline-pixels, .cubo-crawl-pixels,
-      #cubo-time-pixels, #cubo-dawn-label, #cubo-dawn-number {
-        display: block;
-        image-rendering: pixelated;
-        image-rendering: crisp-edges;
+      .cubo-story{
+        background:#f5f0dc;border-top:0.22cqw solid #edc75a;
+        border-bottom:0.2cqw solid #134b45;
+        border-left:0.4cqw solid #edc75a;
       }
-      #cubo-label-pixels {
-        width: 10.9cqw; height: 1.65cqw;
+      .cubo-label{
+        top:0.08cqw;left:0.24cqw;
+        background:#edc75a;color:#152926;
+        min-width:12.8cqw;height:2.02cqw;
+        padding:0 1.0cqw;
+        clip-path:none;
+        text-shadow:none;
+        display:flex;align-items:center;justify-content:center;
       }
-      #cubo-headline-pixels {
-        position: absolute;
-        left: 13.0cqw; top: 50%; transform: translateY(-50%);
-        max-width: calc(100% - 13.5cqw);
-        height: 2.0cqw;
+      .cubo-label-text{
+        font-family:'IBM Plex Sans',system-ui,sans-serif;
+        font-size:1.46cqw;font-weight:700;
+        letter-spacing:-0.02em;color:#152926;text-shadow:none;
       }
-      .cubo-crawl-track {height: 100%;font-size: 0;}
-      .cubo-crawl-pixels {height: 1.55cqw;align-self: center;flex-shrink: 0;}
-      #cubo-time-pixels {width: 17.8cqw;height: 11.1cqw;opacity: 0.78;}
-      #cubo-dawn-label {
-        position: absolute;left: 50%;top: 38%;
-        width: 43cqw;height: 3.35cqw;transform: translate(-50%,-50%);
+      .cubo-headline{
+        position:absolute;left:13.5cqw;top:50%;
+        transform:translateY(-50%);
+        max-width:calc(100% - 14cqw);
+        font-family:'IBM Plex Sans',system-ui,sans-serif;
+        font-size:1.54cqw;font-weight:700;letter-spacing:-.012em;
+        color:#152926;line-height:1.1;white-space:nowrap;
+        overflow:hidden;text-overflow:ellipsis;padding:0;
       }
-      #cubo-dawn-number {
-        position: absolute;left: 50%;top: 55%;
-        width: 32cqw;height: 20.1cqw;
-        transform: translate(-50%,-50%);transform-origin: center center;
-        filter: drop-shadow(0.6cqw 0.6cqw 0 #051122);
-        opacity: 1;will-change: transform,opacity;
+      .cubo-crawl{
+        background:#134b45;border-top:0.16cqw solid #edc75a;
       }
+      .cubo-crawl-track{font-size:1.26cqw;line-height:1;height:100%;}
+      .cubo-crawl-text{
+        display:inline-flex;align-items:center;flex:none;height:100%;
+        font-family:'IBM Plex Sans',system-ui,sans-serif;
+        font-size:1.26cqw;font-weight:500;color:#f5f0dc;
+        padding:0 6cqw 0 0.6cqw;white-space:nowrap;
+      }
+      .cubo-time{
+        font-family:'IBM Plex Sans',system-ui,sans-serif;
+        color:rgba(245,240,220,.82);
+        font-size:9.7cqw;font-weight:700;
+        font-variant-numeric:tabular-nums;
+        letter-spacing:-0.065em;line-height:1;
+        text-shadow:0.16cqw 0.16cqw #152926;
+        filter:none;
+      }
+      #cubo-time-reader{display:inline-block;min-width:1.22em;text-align:right;}
+      .cubo-dawn-frame{
+        background:rgba(19,75,69,.91);
+        border:0.36cqw solid #edc75a;box-shadow:0.9cqw 0.9cqw #152926;
+      }
+      #cubo-dawn-label{
+        font-family:'IBM Plex Sans',system-ui,sans-serif;
+        font-weight:700;font-size:3.1cqw;
+        letter-spacing:0.01em;color:#edc75a;
+        text-shadow:0.24cqw 0.24cqw #152926;
+      }
+      #cubo-dawn-number{
+        font-family:'IBM Plex Sans',system-ui,sans-serif;
+        font-weight:700;font-size:25cqw;
+        color:#f5f0dc;text-shadow:0.6cqw 0.6cqw #152926;
+        width:auto;min-width:28cqw;height:auto;filter:none;
+      }
+      #cubo-news-overlay.cubo-warning .cubo-crawl{background:#7f3d25;}
+      #cubo-news-overlay.cubo-warning .cubo-label{background:#e9ad54;}
+      #cubo-news-overlay.cubo-intro-running #cubo-time-reader{opacity:0;}
       /* v0.49: introdução do protagonista acessível antes da campanha. */
       #player-name-panel {
         position:absolute;inset:0 0 auto 0;width:100%;height:92.46%;
@@ -461,30 +501,25 @@
         <div id="game" aria-label="Jogo Soberania"></div>
         <section id="cubo-news-overlay" aria-label="Noticiário da Cubo News" hidden>
           <div class="cubo-story">
-            <span id="cubo-headline" class="cubo-accessible">Invasão alienígena — plantão Cubo News</span>
-            <canvas id="cubo-headline-pixels" aria-hidden="true"></canvas>
+            <span id="cubo-headline" class="cubo-headline">Invasão alienígena — plantão Cubo News</span>
           </div>
           <div class="cubo-label">
-            <span class="cubo-accessible">Cubo News</span>
-            <canvas id="cubo-label-pixels" aria-hidden="true"></canvas>
+            <span class="cubo-label-text">CUBO NEWS</span>
           </div>
           <div class="cubo-crawl" aria-label="Subtítulo em movimento">
             <div id="cubo-crawl-track" class="cubo-crawl-track">
-              <span id="cubo-crawl-one" class="cubo-accessible">Cubo News acompanha a defesa nacional ao vivo.</span>
-              <canvas id="cubo-crawl-one-pixels" class="cubo-crawl-pixels" aria-hidden="true"></canvas>
-              <span id="cubo-crawl-two" class="cubo-accessible" aria-hidden="true">Cubo News acompanha a defesa nacional ao vivo.</span>
-              <canvas id="cubo-crawl-two-pixels" class="cubo-crawl-pixels" aria-hidden="true"></canvas>
+              <span id="cubo-crawl-one" class="cubo-crawl-text">Cubo News acompanha a defesa nacional ao vivo.</span>
+              <span id="cubo-crawl-two" class="cubo-crawl-text" aria-hidden="true">Cubo News acompanha a defesa nacional ao vivo.</span>
             </div>
           </div>
           <div id="cubo-time" class="cubo-time" role="timer" aria-label="Tempo restante: 30 segundos">
-            <span id="cubo-time-reader" class="cubo-accessible">30</span>
-            <canvas id="cubo-time-pixels" aria-hidden="true"></canvas>
+            <span id="cubo-time-reader">30</span>
           </div>
         </section>
         <div id="cubo-dawn-intro" aria-hidden="true" hidden>
           <div class="cubo-dawn-frame"></div>
-          <canvas id="cubo-dawn-label" aria-hidden="true"></canvas>
-          <canvas id="cubo-dawn-number" aria-hidden="true"></canvas>
+          <div id="cubo-dawn-label">Tempo até o amanhecer</div>
+          <div id="cubo-dawn-number">30</div>
         </div>
         <form id="player-name-panel" hidden autocomplete="off">
           <div class="player-name-dialog">
