@@ -92,7 +92,7 @@ test('HUD bitmap e vinheta de zoom não criam GameObjects de UI dentro do Phaser
     let started=0;
     hud.beginDawnIntro(30000,()=>started++);
     assert.equal(intro.hidden,false);
-    assert.equal(introNumber.paint.length>20);
+    assert.ok(introNumber.paint.length>20);
     assert.equal(camera.zoom,DAWN_WORLD_ZOOM);
     assert.equal(timer.style.opacity,'0');
     assert.equal(later.length,1);
