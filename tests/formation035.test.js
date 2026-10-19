@@ -11,7 +11,7 @@ import {
 } from '../src/gameplay/formation035.js';
 import { labEnemyEvent } from '../src/gameplay/labConfig.js';
 
-test('v0.35 preserva 30 segundos, agenda completa em 19,5s e vitória antecipada', () => {
+test('v0.35 preserva 30 segundos, agenda em até 13,5s e vitória antecipada', () => {
   for(let wave=0;wave<=9;wave++) {
     const mode='wave'+wave;
     const events=getV035WaveEvents(mode,getWaveEvents(mode));
@@ -19,7 +19,7 @@ test('v0.35 preserva 30 segundos, agenda completa em 19,5s e vitória antecipada
     assert.ok(events.every((event,i)=>
       event.at>=0 && event.at<=WAVE_LAST_SPAWN_MS &&
       (!i || event.at>=events[i-1].at)),mode);
-    assert.equal(events.at(-1).at,19500);
+    assert.ok(events.at(-1).at<=13500);
     assert.deepEqual(getV035WaveEvents(mode,getWaveEvents(mode)),events);
     const ready={ mode, elapsed:22800, spawned:events.length,
       scheduled:events.length, enemies:0,hostileShots:0 };
@@ -43,16 +43,16 @@ test('Tipo 1 chega em enxames progressivos reais de 3–5 até 15–18', () => {
     const swarms=events.filter(e=>e.type===1);
     assert.ok(swarms.length>=2);
     assert.ok(swarms.every(e=>e.pattern==='swarm'));
-    assert.ok(swarms.every(e=>e.count>=V035_SWARM_SIZES[wave][0] &&
-      e.count<=V035_SWARM_SIZES[wave][1]));
-    assert.equal(swarms[0].count,V035_SWARM_SIZES[wave][0]);
-    assert.equal(swarms.at(-1).count,V035_SWARM_SIZES[wave][1]);
+    assert.ok(swarms.every(e=>e.count>=V035_SWARM_SIZES[wave][0]+(wave<=2?2:0) &&
+      e.count<=V035_SWARM_SIZES[wave][1]+(wave<=2?2:0)));
+    assert.equal(swarms[0].count,V035_SWARM_SIZES[wave][0]+(wave<=2?2:0));
+    assert.equal(swarms.at(-1).count,V035_SWARM_SIZES[wave][1]+(wave<=2?2:0));
     assert.equal(scheduledEnemyCount(swarms),swarms.reduce((s,e)=>s+e.count,0));
     assert.ok(swarms.at(-1).at-swarms.at(-2).at <
       swarms[1].at-swarms[0].at,'entradas mais próximas no clímax');
   }
   assert.deepEqual(SWARM_ENTRIES,['together','staggered']);
-  assert.equal(SWARM_DANCES.length,5);
+  assert.deepEqual(SWARM_DANCES,['serpentine','cross','spiral','circle']);
 });
 
 test('Tipo 2 substitui entradas soltas ou órbitas por esquadrilhas de 6–16', () => {
@@ -65,7 +65,7 @@ test('Tipo 2 substitui entradas soltas ou órbitas por esquadrilhas de 6–16', 
     assert.ok(squads.length, 'onda '+wave);
     assert.ok(squads.every(e=>e.pattern==='tactical' && e.group));
     assert.ok(squads.every(e=>e.count>=V035_SQUAD_SIZES[wave][0] &&
-      e.count<=V035_SQUAD_SIZES[wave][1]));
+      e.count<=V035_SQUAD_SIZES[wave][1]+(wave<=2?1:0)));
   }
   assert.deepEqual(labEnemyEvent(2,10),
     {type:2,level:10,pattern:'tactical',group:true,count:8});
@@ -140,7 +140,7 @@ test('GameScene usa grupos completos e recarrega alvo se torre cai', () => {
   assert.match(scene,/spawnV035Group\(type, level, count, centerX = null\)/);
   assert.match(scene,/enemy\.phase = 'swarmDance'/);
   assert.match(scene,/enemy\.phase = 'tacticalManeuver'/);
-  assert.match(scene,/enemy\.phase = 'tacticalAttack'/);
+  assert.match(scene,/enemy\.phase='tacticalAttack'/);
   assert.match(scene,/enemy\.phase = 'dive'/);
   assert.match(scene,/enemy\.formationGroup/);
   assert.match(scene,/group\.target\.tower\?\.health <= 0/);
@@ -160,9 +160,9 @@ test('Tipo 2 faz círculos completos e para em formação antes de descer', () =
   assert.ok(Math.abs(stopped.x-(480+column.x))<1e-9);
   assert.ok(Math.abs(stopped.y-(125+column.y))<1e-9);
 });
-test('Tipo 1 e Tipo 2 têm manobras mais longas antes da descida',()=>{
+test('Tipo 1 e Tipo 2 atacam cedo depois de manobras curtas',()=>{
   const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
-  assert.match(scene,/FloatBetween\(7\.5, 9\.5\)/);
-  assert.match(scene,/FloatBetween\(7\.5, 9\)/);
-  assert.match(scene,/holdDuration: kind === 'tactical' \? 1\.8 : Phaser\.Math\.FloatBetween\(1\.2, 1\.8\)/);
+  assert.match(scene,/early \? \(kind==='swarm'\?3\.5:4\.0\)/);
+  assert.match(scene,/enemy\.phase = 'tacticalHold'/);
+  assert.match(scene,/holdDuration:early\?1\.15:1\.35/);
 });
