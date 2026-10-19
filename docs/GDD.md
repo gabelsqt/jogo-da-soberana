@@ -660,3 +660,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 
 ### Implementação v0.58 — cinematográfica após onda 0
 - Uma nave inimiga de nível superior entra lentamente após a vitória inicial, carrega disparo no núcleo, atinge a posição do canhão com feixe, gera impacto e tremor e conduz o jogador ao boteco. Cena provisória construída com formas Phaser; não altera as regras de combate nem conta como derrota. O boteco deixa de narrar duas vezes a destruição. Documentação: docs/versao-0.58.md. Validação local pendente.
+
+### Revelação alienígena e epílogo — decisões L1–L10 aprovadas (19/10/2026; somente planejamento)
+- **L1 A:** desde cedo, a Cubo News noticia que naves parecem **observar especificamente o Cristo Redentor**, sem explicar o motivo.
+- **L2 B:** alienígenas humanoides **pequenos, arrogantes, expressões de superioridade, braços permanentemente cruzados**.
+- **L3 A com correção:** os alienígenas transmitem ultimato exigindo que o suposto Imperador da Terra feche os braços, **mas usam a própria língua; ninguém entende a mensagem inicialmente**. A tradução inteligível só ocorre com o trabalho dos linguistas perto da onda 10. **Não mostrar tradução ou falas alienígenas compreensíveis antes disso.**
+- **L4 C:** tradução **progressiva**: surgem primeiro termos ameaçadores; a exigência referente aos braços só é decodificada depois.
+- **L5 B substituída pelo comentário autoral:** **Zeca não negocia nem fala com os alienígenas.** Ele é o operador do canhão, conhece pessoas capazes de melhorá-lo e **suas interações são com o jogador**. A tentativa de explicar o significado acolhedor da estátua ficará para **linguistas brasileiros**, posteriormente.
+- **L6 C substituída pelo comentário autoral:** **não há burocracia imperial nem razão adicional** para a guerra prosseguir: os alienígenas simplesmente **continuam o ataque sem dar tempo para explicações**. Só **depois**, os linguistas conseguem explicar aos alienígenas **o conceito de estátuas** e o sentido do gesto.
+- **L7 A:** a Cubo News pode mostrar, **ao longo da campanha**, flagrantes de alienígenas **tomando sol e bebendo água de coco na praia**, sem entregar imediatamente a razão dos ataques noturnos.
+- **L8 B:** o comandante insiste que o Cristo **feche os braços imediatamente**, de maneira absurda, após a tradução.
+- **L9 B:** epílogo Full Brazil começa com **celebração no boteco**; Zeca recebe notícias/ligações internacionais pedindo assistência.
+- **L10 C:** última notícia apresenta **outra estátua de braços abertos**, provocando nova confusão diplomática intergaláctica.
+- **Observação de continuidade importante:** versões 0.56–0.58 têm textos provisórios potencialmente incompatíveis (especialmente Zeca respondendo diretamente à transmissão ou tradução demasiadamente explícita). **Corrigir somente quando houver autorização para implementação; não alterar código agora.**
+- **Status:** apenas GDD e checklist atualizados.
