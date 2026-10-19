@@ -730,3 +730,17 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **Q9 B:** indicador estimado de dificuldade combina quantidade de inimigos, projéteis, velocidade e intervalos; não apresentar essa estimativa como chance de vitória real comprovada.
 - **Q10 A:** primeira prioridade de implementação do Wave Maker: **limites de projéteis por onda, cadência e tamanho das rajadas**. Isto não autoriza implementar ainda.
 - **Status:** somente planejamento no GDD; nenhuma alteração de código, assets ou versão.
+
+
+### Enemy Maker — decisões R1–R10 aprovadas (19/10/2026; somente planejamento)
+- **R1 A:** Wave Maker e Enemy Maker aparecem como **opções separadas no menu do Laboratório**.
+- **R2 A:** selecionar tipos de inimigos por **galeria visual com nomes e miniaturas**.
+- **R3 C:** editor reúne **atributos de combate e movimentação** no mesmo ambiente.
+- **R4 C:** permitir **valores gerais do tipo** e **ajustes específicos por nível/variante**, com precedência bem definida.
+- **R5 A:** editar **apenas os ataques já existentes**, incluindo cadência, velocidade e quantidade de projéteis; **não adicionar novos ataques** como parte desta ferramenta.
+- **R6 C:** prévia do **sprite animado** e botão para **testar seus ataques**.
+- **R7 C:** arena de testes com **um inimigo ou grupo configurável** do tipo selecionado.
+- **R8 A:** Enemy Maker define os valores-base globais; **Wave Maker pode sobrescrever atributos localmente apenas na onda editada**. Não alterar configuração global quando salvar rascunho de onda.
+- **R9 A:** **salvar rascunhos sem afetar o jogo** e **publicar explicitamente** para aplicar modificações ao conjunto ativo de inimigos, coerente com os rascunhos Wave Maker.
+- **R10 B:** primeira versão prioriza **atributos de combate e arena de teste individual**; interface de movimentação, variantes e testes de grupo permanecem metas aprovadas para fases seguintes.
+- **Status:** documentação apenas; não implementar nem alterar código, assets ou versão.
