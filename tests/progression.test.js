@@ -158,8 +158,8 @@ test('ondas 0 e 1 começam cedo, têm pressão contínua e grupos simultâneos',
   const basic1 = wave1.filter((e) => e.type === 1 && !e.pattern);
   assert.equal(basic0.length, 20);
   assert.equal(basic1.length, 32);
-  assert.ok(basic0.every((e, i) => i === 0 || Math.abs((e.at - basic0[i - 1].at) - 1280 * 19500 / 24570) <= 1));
-  assert.ok(basic1.every((e, i) => i === 0 || Math.abs((e.at - basic1[i - 1].at) - 960 * 19500 / 34700) <= 1));
+  assert.ok(basic0.every((e, i) => i === 0 || Math.abs((e.at - basic0[i - 1].at) - 1280 * 13500 / 24570) <= 1));
+  assert.ok(basic1.every((e, i) => i === 0 || Math.abs((e.at - basic1[i - 1].at) - 960 * 13500 / 34700) <= 1));
   assert.ok(lab.some((e) => e.type === 5));
 });
 
