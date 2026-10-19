@@ -125,3 +125,6 @@ Exemplo **ilustrativo, não definitivo**:
 
 ## 11. Pendências de engenharia
 Antes da primeira implementação: definir schema exato dos offsets individuais e das repetições, lista de campos editáveis por tipo, limites da duração/quantidade, estratégia de persistência local e ponto de entrada das cenas. Antes da simulação: determinismo de timers e efeitos, física e ciclo de vida da cena. **Nenhuma dessas pendências autoriza mudança de gameplay neste documento.**
+
+## 12. Estado de implementação — v0.54 (19/10/2026)
+MVP da Etapa 1 criado para validação local. Acesso via Laboratório Soberana > WAVE MAKER. Usa arquivos `src/scenes/WaveMakerScene.js`, `src/gameplay/waveMakerModel.js`, registro em `src/main.js` e testes em `tests/waveMakerModel.test.js`. O MVP usa diálogos nativos para edição numérica, 45 marcadores visíveis por vez, e rascunhos locais por onda. A implementação de formações visualmente editáveis avançadas, histórico automático de dez snapshots, JSON único de exportação, simulação e teste jogável continuam em etapas posteriores. A estrutura de dados conserva atributos importados. Consulte `docs/versao-0.54.md`.
