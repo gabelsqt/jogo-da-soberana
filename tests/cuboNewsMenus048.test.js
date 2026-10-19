@@ -30,7 +30,8 @@ test('menus e telas secundárias compartilham a moldura da Cubo News',()=>{
   assert.match(gameplay,/addCuboBroadcastFrame\(this/, 'derrota/finais recebem cobertura Cubo News');
   const button=readFileSync(new URL('../src/ui/menuButton.js',import.meta.url),'utf8');
   assert.match(button,/0xedc75a/);
-  assert.equal(CUBO_COLORS.green,0x134b45);\n  assert.equal(CUBO_COLORS.gold,0xedc75a);
+  assert.equal(CUBO_COLORS.green,0x134b45);
+  assert.equal(CUBO_COLORS.gold,0xedc75a);
 });
 test('HUD v0.49 volta às letras normais IBM Plex Sans e paleta aprovada',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
