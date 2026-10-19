@@ -92,6 +92,8 @@ export class UpgradeScene extends Phaser.Scene {
 
     this.options=nextV1Options(this.campaign,FIRST_UPGRADES);
     this.portraits=this.options.map((option,index)=>portrait(this,option,index));
+    // Comentários curtos após a noite; na onda zero há a derrota roteirizada.
+    this.introDialogueActive=true;
     // Esta sobreposição escurece TODO o boteco, inclusive os retratos
     // não selecionados. O escolhido sobe acima dela por animação.
     this.focusDim=this.add.rectangle(W/2,H/2,W,H,0x030b15,0.83)
@@ -129,20 +131,61 @@ export class UpgradeScene extends Phaser.Scene {
       tile.node.on('pointerout',()=>{if(!this.focused)tile.node.setScale(1);});
       tile.node.on('pointerdown',(pointer,_x,_y,event)=>{
         event?.stopPropagation();
-        if(pointer.leftButtonDown()&&!this.chosen)this.focusCountry(tile.option.id);
+        if(pointer.leftButtonDown()&&!this.chosen&&!this.introDialogueActive)this.focusCountry(tile.option.id);
       });
     }
     this.input.keyboard.on('keydown',(event)=>{
       const hit=/^[1-5]$/.exec(event.key);
-      if(hit){
+      if(hit&&!this.introDialogueActive){
         const option=this.options[Number(hit[0])-1];
         if(option&&!option.locked)this.focusCountry(option.id);
       }
     });
     this.input.keyboard.on('keydown-ESC',()=>{if(!this.chosen)this.unfocus();});
     this.input.keyboard.on('keydown-ENTER',()=>{
+      if(this.introDialogueActive){this.advanceBotecoDialogue();return;}
       if(this.focused&&!this.chosen)this.selectUpgrade(this.focused);
     });
+    this.showBotecoDialogue();
+  }
+  showBotecoDialogue(){
+    const first=this.completedWave===0;
+    this.botecoPages=first?[
+      ['CUBO NEWS','RIO RESISTE À PRIMEIRA ONDA! O AMANHECER PARECIA GARANTIDO.'],
+      ['CUBO NEWS','ÚLTIMA HORA! UMA NAVE DE NÍVEL SUPERIOR SURGE NO HORIZONTE E DESTRÓI O CANHÃO BRASILEIRO!'],
+      ['ZECA CARRARA','A gente venceu a noite inteira pra perder o canhão na prorrogação?'],
+      ['CUBO NEWS','CINCO CONSELHEIROS ESTRANGEIROS CHEGAM JUNTOS AO BOTECO OFERECENDO AJUDA.'],
+      ['ZECA CARRARA','Sejam bem-vindos. Mas alguém aqui sabe consertar um canhão?'],
+    ]:[
+      ['ZECA CARRARA','Mais uma noite sobrevivida. Se isso continuar, vou cobrar adicional noturno.'],
+      ['CONSELHEIRO','O Brasil continua de pé. Podemos melhorar ainda mais sua defesa.'],
+    ];
+    this.botecoPage=0;
+    this.botecoOverlay=this.add.container(0,0).setDepth(190);
+    const shade=this.add.rectangle(W/2,H/2,W,H,0x07101c,0.90).setInteractive();
+    const frame=this.add.rectangle(W/2,260,810,255,0x16283a,0.99).setStrokeStyle(3,COLOR.amber);
+    this.botecoSpeaker=makeText(this,W/2,174,'',22,'#ffe0a6').setOrigin(0.5);
+    this.botecoLine=makeText(this,W/2,256,'',18,'#f4f5ff',740,{align:'center'}).setOrigin(0.5);
+    this.botecoHint=makeText(this,W/2,354,'CLIQUE OU TOQUE PARA CONTINUAR  ▶',14,'#9bded9').setOrigin(0.5);
+    this.botecoOverlay.add([shade,frame,this.botecoSpeaker,this.botecoLine,this.botecoHint]);
+    shade.on('pointerdown',()=>this.advanceBotecoDialogue());
+    frame.setInteractive().on('pointerdown',()=>this.advanceBotecoDialogue());
+    this.renderBotecoDialogue();
+  }
+  renderBotecoDialogue(){
+    const [speaker,line]=this.botecoPages[this.botecoPage];
+    this.botecoSpeaker.setText(speaker);
+    this.botecoLine.setText(line);
+  }
+  advanceBotecoDialogue(){
+    if(!this.introDialogueActive)return;
+    this.botecoPage++;
+    if(this.botecoPage>=this.botecoPages.length){
+      this.introDialogueActive=false;
+      this.botecoOverlay.destroy(true);this.botecoOverlay=null;
+      return;
+    }
+    this.renderBotecoDialogue();
   }
   createButton(x,y,width,label,primary,callback){
     const fill=primary?COLOR.amber:COLOR.panel;
@@ -161,7 +204,7 @@ export class UpgradeScene extends Phaser.Scene {
     return node;
   }
   focusCountry(id){
-    if(this.chosen)return;
+    if(this.chosen||this.introDialogueActive)return;
     const current=this.portraits.find(x=>x.option.id===id);
     if(!current||current.option.locked)return;
     this.focused=id;
@@ -197,7 +240,7 @@ export class UpgradeScene extends Phaser.Scene {
     }
   }
   selectUpgrade(id){
-    if(this.chosen||!this.focused)return;
+    if(this.chosen||this.introDialogueActive||!this.focused)return;
     const next=chooseV1Upgrade(this.campaign,id);
     if(!next)return;
     this.chosen=true;
