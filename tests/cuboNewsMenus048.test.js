@@ -29,18 +29,20 @@ test('menus e telas secundárias compartilham a moldura da Cubo News',()=>{
   const gameplay=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
   assert.match(gameplay,/addCuboBroadcastFrame\(this/, 'derrota/finais recebem cobertura Cubo News');
   const button=readFileSync(new URL('../src/ui/menuButton.js',import.meta.url),'utf8');
-  assert.match(button,/0xb91e32/);
-  assert.equal(CUBO_COLORS.red,0xc71e33);
+  assert.match(button,/0xedc75a/);
+  assert.equal(CUBO_COLORS.green,0x134b45);\n  assert.equal(CUBO_COLORS.gold,0xedc75a);
 });
-test('HUD usa canvas pixelado no relógio e no ticker e não depende de fonte externa',()=>{
+test('HUD v0.49 volta às letras normais IBM Plex Sans e paleta aprovada',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-  for(const id of ['cubo-headline-pixels','cubo-label-pixels','cubo-time-pixels',
-    'cubo-crawl-one-pixels','cubo-dawn-number']){
-    assert.match(html,new RegExp('<canvas id="'+id+'"'));
+  for(const id of ['cubo-headline','cubo-time-reader','cubo-crawl-one','cubo-dawn-number']){
+    assert.match(html,new RegExp('id="'+id+'"'));
   }
+  assert.doesNotMatch(html,/<canvas id="cubo-time-pixels"/);
+  assert.match(html,/IBM\+Plex\+Sans/);
+  assert.match(html,/#134b45/i);
+  assert.match(html,/#edc75a/i);
   const hud=readFileSync(new URL('../src/ui/cuboNewsHud.js',import.meta.url),'utf8');
   assert.match(hud,/formatCuboHeadline/);
-  assert.match(hud,/drawPixelText/);
+  assert.doesNotMatch(hud,/drawPixelText/);
   assert.match(hud,/DAWN_WORLD_ZOOM/);
-  assert.doesNotMatch(hud,/@font-face|https?:\/\//);
 });
