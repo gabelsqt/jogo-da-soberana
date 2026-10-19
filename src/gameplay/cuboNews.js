@@ -12,6 +12,32 @@ export const CUBO_NEWS_BANK=Object.freeze({
     {headline:'ETs NÃO INFORMAM TIME DO CORAÇÃO; CBF COBRA RESPOSTA',
       subtitle:'Entidade busca esclarecer possíveis impactos da invasão sobre o futebol nacional.'},
   ],
+  // Ondas 0–9: promessas dos ETs sempre consideradas confiáveis.
+  // "Líder Supremo" é o Cristo Redentor, que nunca fecha os braços.
+  dawnPromise:[
+    {headline:'ETs PROMETEM PARTIR AO AMANHECER; CUBO NEWS TRANQUILIZA O BRASIL',
+      subtitle:'Retirada depende apenas de o Líder Supremo cruzar os braços. O Cristo Redentor ainda não confirmou o gesto.'},
+    {headline:'CRISTO SEGUE DE BRAÇOS ABERTOS; ALIENÍGENAS ESTENDEM ESTADIA',
+      subtitle:'Acordo prevê fim dos ataques assim que o Líder Supremo cruzar os braços. Monumento permanece imóvel.'},
+    {headline:'MAIS UMA NOITE DE ATAQUES? CUBO NEWS VÊ SINAL DE BOA VONTADE',
+      subtitle:'Invasores reafirmam que sairão ao amanhecer, desde que o Cristo Redentor finalmente cruze os braços.'},
+  ],
+  dawnRoutine:[
+    {headline:'RIO DORME TRANQUILO: ETs JURAM QUE PARTEM QUANDO O CRISTO QUISER',
+      subtitle:'O compromisso extraterrestre segue em vigor; o Líder Supremo ainda não alterou a posição dos braços.'},
+    {headline:'VASCO, FLAMENGO, FLUMINENSE E BOTAFOGO AGUARDAM FIM DO IMPASSE',
+      subtitle:'CBF acompanha as promessas de retirada dos invasores e mantém o calendário carioca sob observação.'},
+    {headline:'CUBO NEWS DESCARTA CRISE: FALTA APENAS UM ABRAÇO AO CONTRÁRIO',
+      subtitle:'Especialistas consultados dizem que o Cristo Redentor não possui articulações para cruzar os braços.'},
+  ],
+  dawnEmergency:[
+    {headline:'AMANHECER CHEGANDO! ETs PODEM PARTIR A QUALQUER MOMENTO',
+      subtitle:'Acordo exige que o Líder Supremo cruze os braços; a emissora mantém o otimismo.'},
+    {headline:'CUBO NEWS APOSTA EM DESPEDIDA AMIGÁVEL DOS INVASORES',
+      subtitle:'Últimos segundos da noite são acompanhados com confiança na promessa extraterrestre.'},
+    {headline:'CONTAGEM FINAL: CRISTO AINDA NÃO CRUZOU OS BRAÇOS',
+      subtitle:'Apesar do atraso no gesto combinado, emissora considera a retirada alienígena iminente.'},
+  ],
   brazilEarly:[
     {headline:'CANHÃO BRASILEIRO FUNCIONA; PATROCINADORES PEDEM QUE PARE',
       subtitle:'Fornecedores estrangeiros alegam que o sucesso do equipamento nacional ameaça contratos internacionais.'},
@@ -117,10 +143,14 @@ export function nextCuboNewsStory(state){
   }
   if(state.mode==='wave11'&&state.choices.every(id=>id==='br'))
     return withoutRepeats(state,'brazilVictory',CUBO_NEWS_BANK.brazilVictory);
-  if(state.mode==='wave0')return withoutRepeats(state,'invasion',CUBO_NEWS_BANK.invasion);
+  const earlyWave=/^wave(?:[0-9])$/.test(state.mode);
   const brStage=cuboNewsBrazilStage(state.choices);
   const foreign=Object.keys(CUBO_NEWS_COUNTRIES).filter(id=>state.choices.includes(id)&&id!==state.betrayer);
-  const sources=['routine'];
+  // Antes da onda 10, o jornal tem total confiança no acordo do
+  // "Líder Supremo". As piadas de patrocinadores continuam possíveis.
+  const sources=earlyWave
+    ? ['dawnPromise','dawnPromise','dawnRoutine']
+    : ['routine'];
   if(brStage==='critic')sources.push('brazilEarly','pix');
   if(brStage==='praise')sources.push('brazilFifth');
   for(const country of foreign)for(let i=0;i<Math.max(1,cuboNewsSponsorStage(state.choices,country));i++)
@@ -137,7 +167,9 @@ export function tickCuboNews(state,elapsedMs,totalDurationMs){
   if(elapsedMs>=totalDurationMs-5000){
     if(!state.emergency){
       state.emergency=true;state.queue.length=0;
-      state.current=withoutRepeats(state,'emergency',CUBO_NEWS_BANK.emergency);
+      const earlyWave=/^wave(?:[0-9])$/.test(state.mode);
+      const pool=earlyWave?'dawnEmergency':'emergency';
+      state.current=withoutRepeats(state,pool,CUBO_NEWS_BANK[pool]);
     }
     return state.current;
   }
