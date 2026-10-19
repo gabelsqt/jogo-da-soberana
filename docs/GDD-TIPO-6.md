@@ -90,3 +90,7 @@ A faixa da Cubo News **não cobre mais** os 960×540 pixels da cena. É uma cama
 
 ## Apresentação de ondas v0.46
 Antes das ondas 10/11 (e de qualquer onda comum), apresentar **“TEMPO ATÉ O AMANHECER”** com `30` ou `60` em fonte pixel bitmap gigante no centro da tela. O número desliza até a posição grande do cronômetro externo da Cubo News e **só então a onda começa**. A lógica já aprovada permanece: no encontro Tipo 6 o relógio congela durante a entrada cinematográfica do chefão e só conta quando ele fica alvejável. Nas ondas 0–9, o noticiário mantém tom aliviado e confiante devido à falsa promessa de retirada dos invasores ao amanhecer, condicionada ao Cristo Redentor (“Líder Supremo”) cruzar os braços; o impasse é permanente.
+
+
+## v0.47 — Refinamento de vinheta inicial
+A entrada de qualquer onda apresenta `TEMPO ATÉ O AMANHECER` com zoom real de 1,48× no palco, número ampliado e pausa de 2,2 segundos para leitura. A câmera recua até o padrão em 1,75 segundos, enquanto o número se recolhe com fade suave até o relógio externo. **Este efeito não consome o relógio de combate.** O Tipo 6 segue congelando a contagem até ficar alvejável. A faixa jornalística continua independente da câmera no restante da onda.
