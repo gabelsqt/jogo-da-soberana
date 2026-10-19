@@ -19,7 +19,7 @@ export class V1PlaytestScene extends Phaser.Scene {
   create() {
     bindSceneMusic(this, 'setup');
     drawRioBackdrop(this);
-    this.add.rectangle(W / 2, H / 2, W, H, 0x152926, 0.93).setDepth(30);
+    this.add.rectangle(W / 2, H / 2, W, H, 0x0b1621, 0.93).setDepth(30);
     addCuboBroadcastFrame(this,{
       section:'Laboratório de armamentos',
       headline:'Boletim técnico • Simulações da defesa nacional',
@@ -27,7 +27,7 @@ export class V1PlaytestScene extends Phaser.Scene {
       depth:50,
     });
     addCuboPixelText(this,{x:W/2,y:86,text:'Laboratório de upgrades',
-      size:3,color:'#edc75a',depth:36,maxWidth:700});
+      size:3,color:'#e2a45e',depth:36,maxWidth:700});
     this.add.text(W/2,120,'Selecione país, nível e onda para testar',{
       fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'14px',color:'#9ce9db',
     }).setOrigin(0.5).setDepth(36);
