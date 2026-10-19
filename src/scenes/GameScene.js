@@ -49,6 +49,7 @@ import {
 } from '../gameplay/waves.js';
 import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import {addCuboBroadcastFrame} from '../ui/cuboNewsTheme.js';
 import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
 import { resolveFinalOpponent, finalePrelude, FINALE_COUNTRIES } from '../gameplay/campaignFinale.js';
@@ -692,6 +693,12 @@ export class GameScene extends Phaser.Scene {
     const info=finalePrelude(this.finaleCampaign);
     const panel=this.add.rectangle(W/2,H/2,W,H,0x071021,0.96)
       .setInteractive().setDepth(210);
+    addCuboBroadcastFrame(this,{
+      section:'Plantão • Momento decisivo',
+      headline:'Boletim extraordinário: destino do Brasil em jogo',
+      footer:'A cobertura segue após o início da próxima onda',
+      depth:228,
+    });
     const title=this.add.text(W/2,87,info.title,{
       fontFamily:'monospace',fontSize:'30px',fontStyle:'bold',
       color:'#ffe0a6',align:'center',
@@ -4365,6 +4372,12 @@ export class GameScene extends Phaser.Scene {
     const canRetry=!this.finale.fullBrazil&&next.outcome==='retry';
     this.add.rectangle(W/2,H/2,W,H,0x070c1c,0.90)
       .setInteractive().setDepth(220);
+    addCuboBroadcastFrame(this,{
+      section:'Plantão da resistência',
+      headline:canRetry?'Brasil mantém defesa ativa':'Soberania em risco',
+      footer:'Cubo News • Cobertura ao vivo do confronto final',
+      depth:232,
+    });
     this.add.text(W/2,118,
       canRetry?'O BRASIL AINDA RESISTE':'SOBERANIA PERDIDA',{
         fontFamily:'monospace',fontSize:'34px',fontStyle:'bold',
@@ -4443,6 +4456,12 @@ export class GameScene extends Phaser.Scene {
       .setDepth(120).setInteractive();
     this.add.rectangle(W / 2, H / 2, 470, 320, 0x0a1930, 0.98)
       .setStrokeStyle(2, 0xe16c66).setDepth(121);
+    addCuboBroadcastFrame(this,{
+      section:'Sinal de emergência',
+      headline:'Defesa nacional interrompida • Aguarde novo boletim',
+      footer:'Plantão Cubo News • A transmissão será retomada',
+      depth:132,
+    });
     this.add.text(W / 2, 174, 'DERROTA', {
       fontFamily: 'monospace', fontSize: '42px',
       color: '#ff9c8f', fontStyle: 'bold',
@@ -4562,6 +4581,12 @@ export class GameScene extends Phaser.Scene {
       .setDepth(120).setInteractive();
     this.add.rectangle(W / 2, H / 2, 530, 332, 0x0b1c33, 0.98)
       .setStrokeStyle(2, 0x71e2b9).setDepth(121);
+    addCuboBroadcastFrame(this,{
+      section:'Plantão de vitória',
+      headline:'Rio de Janeiro resiste a mais uma noite',
+      footer:'Transmissão especial • Edição da manhã',
+      depth:132,
+    });
     this.add.text(W / 2, 166, this.mode === 'lab' ? 'TESTE CONCLUÍDO' : 'ONDA 9 CONCLUÍDA!', {
       fontFamily: 'monospace', fontSize: '32px',
       color: '#f4e3a3', fontStyle: 'bold',
