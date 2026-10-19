@@ -26,14 +26,14 @@ export class MenuScene extends Phaser.Scene{
       depth:45,
     });
     addCuboPixelText(this,{x:W/2,y:119,text:'Soberana',size:7,
-      color:'#ffe4a3',depth:33,maxWidth:540});
+      color:'#edc75a',depth:33,maxWidth:540});
     this.add.text(W/2,163,'O Rio não vai cair',{
-      fontFamily:'monospace',fontSize:'21px',fontStyle:'bold',
-      color:'#a4f0f1',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'21px',fontStyle:'bold',
+      color:'#f5f0dc',
     }).setOrigin(0.5).setDepth(34);
-    this.add.rectangle(W/2,200,540,3,0xc71e33).setDepth(34);
+    this.add.rectangle(W/2,200,540,3,0xedc75a).setDepth(34);
     this.add.text(W/2,219,'Defesa antiaérea  •  Playtest V1',{
-      fontFamily:'monospace',fontSize:'15px',color:'#d3e4f4',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'15px',color:'#e1ece7',
     }).setOrigin(0.5).setDepth(34);
     const startGame=()=>{
       if(!this.registry.get('playerName')){
@@ -50,18 +50,18 @@ export class MenuScene extends Phaser.Scene{
     addMenuButton(this,{x:W/2,y:350,text:'★  Testar upgrades V1',
       onClick:testUpgrades,depth:34,width:358});
     this.add.text(W/2,404,'5 países  •  50 upgrades  •  Uma só soberania',{
-      fontFamily:'monospace',fontSize:'14px',color:'#a9e9e0',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'14px',color:'#edc75a',
     }).setOrigin(0.5).setDepth(35);
     this.add.text(W/2,445,
       'Mouse: mirar  •  Esq.: tiro  •  Dir.: especial  •  Espaço: suprema',{
-        fontFamily:'monospace',fontSize:'12px',color:'#dfeafb',
+        fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'12px',color:'#dfeafb',
       }).setOrigin(0.5).setDepth(35);
     this.add.text(W/2,473,'ENTER: iniciar   •   U: laboratório de upgrades',{
-      fontFamily:'monospace',fontSize:'12px',color:'#f5e8ae',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'12px',color:'#edc75a',
     }).setOrigin(0.5).setDepth(35);
     // Rótulo da versão preservado e acima da tarja do telejornal.
     this.add.text(W-16,H-12,GAME_VERSION_LABEL+' • PLAYTEST V1',{
-      fontFamily:'monospace',fontSize:'12px',color:'#bfd2e9',
+      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'12px',color:'#bfd2e9',
       stroke:'#061124',strokeThickness:2,
     }).setOrigin(1,1).setDepth(52);
     this.input.keyboard.on('keydown-ENTER',startGame);
