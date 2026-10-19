@@ -11,7 +11,7 @@ import { preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import { assetUrl } from '../config/assetUrl.js';
 import { preloadMechSprites, createMechSprites } from '../gameplay/mechSpriteMounts.js';
 import {
-  SWARM_DANCES, SWARM_ENTRIES,
+  SWARM_DANCES, SWARM_ENTRIES, WAVE0_EASY_PACING,
   getV035WaveEvents, swarmDanceCenter, swarmDancePosition,
   tacticalFormationOffset, tacticalManeuverPosition, tacticalAttackPosition,
   chooseGroupDefenseTarget,
@@ -1384,11 +1384,13 @@ export class GameScene extends Phaser.Scene {
   spawnV035Group(type, level, count, centerX = null) {
     const kind = type === 1 ? 'swarm' : 'tactical';
     const early=/^wave[012]$/.test(this.mode);
+    const wave0=this.mode==='wave0';
     const center = this.portalLane(type,centerX);
     const group = {
       kind, count, centerX: center, target: null, boundToScreen:true,
-      duration: early ? (kind==='swarm'?3.5:4.0) : (kind==='swarm'?5.0:5.3),
-      holdDuration:early?1.15:1.35,
+      duration:wave0?WAVE0_EASY_PACING.danceDuration:
+        early ? (kind==='swarm'?3.5:4.0) : (kind==='swarm'?5.0:5.3),
+      holdDuration:wave0?WAVE0_EASY_PACING.holdDuration:early?1.15:1.35,
       portalY: type===1?68:125,
       finalFormation: kind==='tactical'?'triangle':'square',
       pattern: kind === 'swarm'
@@ -1606,7 +1608,9 @@ export class GameScene extends Phaser.Scene {
       baseScaleY: visual.sprite.scaleY,
       hp: definition.hp,
       maxHp: definition.hp,
-      speed: definition.speed,
+      // Na onda de apresentação, o mergulho é deliberadamente mais lento.
+      speed:definition.speed*(this.mode==='wave0'&&type===1
+        ?WAVE0_EASY_PACING.diveSpeedMultiplier:1),
       recoilSpeed: 0,
       electricSlowUntil: -1,
       frozenUntil: -1,
@@ -1977,7 +1981,13 @@ export class GameScene extends Phaser.Scene {
         // Naves Tipo 1 pairam antes do mergulho e disparam um tiro visível.
         const pos=swarmDancePosition(group,enemy.formationIndex,group.duration);
         enemy.sprite.setPosition(pos.x,pos.y);
-        if(!enemy.formationShotFired&&enemy.phaseAge>=0.40){
+        // Onda 0: demora antes do primeiro disparo e tiros defasados por nave.
+        // Outras ondas preservam integralmente a cadência original.
+        const shotDelay=this.mode==='wave0'
+          ? WAVE0_EASY_PACING.firstShotDelay+
+            enemy.formationIndex*WAVE0_EASY_PACING.shotStagger
+          : 0.40;
+        if(!enemy.formationShotFired&&enemy.phaseAge>=shotDelay){
           enemy.formationShotFired=true;
           this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
         }
@@ -2361,14 +2371,16 @@ export class GameScene extends Phaser.Scene {
       const distance = Math.max(1, Math.hypot(dx, dy));
       const projectile = this.add.rectangle(x,y,16.5,16.5,ENEMY_SHOT_COLOR)
         .setStrokeStyle(2,0xfff5bc).setDepth(28);
+      const projectilePace=this.mode==='wave0'&&enemy.type===1
+        ?WAVE0_EASY_PACING.bulletSpeedMultiplier:1;
       this.enemyBullets.push({
         sprite: projectile,
         hp: enemy.definition.shotHp ?? 1,
         target,
         damage:profile?.damage??(enemy.type<=2?14:ENEMY_BULLET_DAMAGE),
         radius:8.25,
-        vx: dx / distance * 160*(profile?.speedMultiplier??1),
-        vy: dy / distance * 160*(profile?.speedMultiplier??1),
+        vx: dx / distance * 160*(profile?.speedMultiplier??1)*projectilePace,
+        vy: dy / distance * 160*(profile?.speedMultiplier??1)*projectilePace,
       });
     }
   }
