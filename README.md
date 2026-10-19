@@ -2,7 +2,17 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.43
+## Versão atual — 0.44
+
+**Fortaleza de Cerco + Cubo News:** a versão 0.44 atualiza os chefões Tipo 6 com quatro módulos de função fixa, barreira frontal e escudos individuais, ataques alternados, projéteis interceptáveis, laser de 10 s de carga e 3 s de emissão, hangares de invasores Tipo 3 e diferenças entre os países traidores. A entrada do chefão pausa o cronômetro até que fique alvejável. O HUD único da Cubo News ocupa a faixa inferior, com cronômetro grande à direita e manchetes e subtítulos rotativos, além de alerta nos cinco segundos finais.
+
+**Atenção:** os sprites definitivos e as cinematografias nacionais continuam em produção. O banco de notícias inclui somente textos aprovados e algumas notícias iniciais provisórias; duas variantes seguem pendentes de revisão. Os testes automatizados não substituem o playtest visual e de balanceamento. Veja [notas da versão 0.44](docs/versao-0.44.md) e [GDD atualizado do Tipo 6](docs/GDD-TIPO-6.md).
+
+### Testar a v0.44
+
+No GitHub Actions, abra **Verificação do protótipo** na branch `feat/brasil2-arraial-balístico` e baixe o artefato `soberana-v1-playtest` (HTML único para executar no navegador). Alternativamente, rode `npm install && npm run dev` no checkout dessa branch; use **Shift+0** para a onda 10 ou **Shift+1** para a onda 11 durante desenvolvimento. A publicação GitHub Pages depende de liberação do ambiente de deployment.
+
+## Versão anterior — 0.43
 
 **Rússia reformulada:** os tiros comuns passam a parecer sopros de névoa gelada branca-azulada, com volutas e partículas de gelo. O congelamento mantém a atração e agora **contagia** até quatro alvos próximos, com um único salto e duração menor nos alvos contagiados. O especial Matryoshka ganha **25% de redução no cooldown** (8 s → 6 s como base), preservando bônus de builds híbridas. [Notas da versão 0.43](docs/versao-0.43.md).
 
