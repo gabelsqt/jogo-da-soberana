@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {BRAZILIAN_NAMES,resolvePlayerName,getSavedPlayerName,savePlayerName} from '../src/gameplay/playerIdentity.js';
-import {introductionSlides} from '../src/gameplay/introScript.js';
+import {introductionSlides,INTRO_PAGE_MS} from '../src/gameplay/introScript.js';
 import {CANNON_DOME_RADIUS,cannonShieldColor,cannonDomeIntercept} from '../src/gameplay/shieldDome049.js';
 import {v1CombatStats,V1_UPGRADES} from '../src/gameplay/v1Upgrades.js';
 import {v1SpecialConfig} from '../src/gameplay/v1Specials.js';
@@ -23,16 +23,20 @@ test('nome: 40 opções brasileiras, gênero não requerido e persistência segu
   assert.equal(getSavedPlayerName(store),'Rafa');
   assert.equal(getSavedPlayerName(null),'');
 });
-test('vinheta 22,5 s: ataques noturnos, etiqueta Cristo e biscoito/bolacha',()=>{
+test('visual novel 24 s: expediente, diálogo direto alienígena, etiqueta e mesários',()=>{
   const slides=introductionSlides('Rafa');
-  assert.equal(slides.length,5);
+  assert.equal(slides.length,6);
+  assert.equal(INTRO_PAGE_MS*slides.length,24000);
+  assert.equal(slides[1].speaker,'COMANDANTE ALIENÍGENA');
   assert.match(slides[1].body,/braços cruzados/);
   assert.match(slides[2].body,/dia/);
-  assert.match(slides[3].body,/bolacha de biscoito/);
-  assert.match(slides[4].title,/Rafa/);
-  assert.match(slides[4].body,/mesários/);
+  assert.match(slides[4].body,/bolacha de biscoito/);
+  assert.match(slides[5].title,/Rafa/);
+  assert.match(slides[5].body,/mesários/);
   const intro=readFileSync(new URL('../src/scenes/IntroScene.js',import.meta.url),'utf8');
-  assert.match(intro,/PAGE_MS=4500/);
+  assert.match(intro,/INTRO_PAGE_MS/);
+  assert.match(intro,/installComputerLogin/);
+  assert.match(intro,/openNewsButton/);
   assert.match(intro,/this\.finish\(\)/);
   assert.match(intro,/this\.scene\.start\('GameScene'/);
 });
