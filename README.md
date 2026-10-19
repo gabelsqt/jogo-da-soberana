@@ -2,7 +2,19 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.48
+## Versão atual — 0.49
+
+**Cubo News — Emissora Oficial Brasileira:** abandona tipografia em pixels na interface e passa para **IBM Plex Sans**, fundo verde-petróleo, ouro, creme e grafite, mantendo todos os menus na mesma linguagem visual. A imprensa elogia gastronomia, música e cinema dos países que ajudam o Brasil e muda imediatamente de discurso quando ocorre uma traição.
+
+**Nova introdução (22,5 s):** jogador identifica seu nome (lembrado pelo navegador, sorteio entre 40 nomes comuns se deixar em branco). Um plantão explica que os ETs consideram o Cristo Redentor de braços abertos uma afronta e só atacam à noite, por etiqueta. Um ex de São Paulo se vingou do jogador carioca depois de ouvir “biscoito” em vez de “bolacha”, inscrevendo-o como mesário; após baixas na cadeia de comando, a lista de mesários vira a lista de generais. Intro ilustrada e com opção de pular. Kim Lin Doo, representante sul-coreano, usa BTS como “Batalhão Tático de Seul”.
+
+**Correções e simplificação:** projéteis comuns fazem colisão contínua contra o Tipo 6; limites de render e projéteis protegem a onda 11 com China e Coreia; todos os benefícios de escudo das melhorias da campanha foram removidos **sem reduzir os 50 upgrades ou mudar os efeitos ofensivos existentes**. O escudo básico se torna uma cúpula 180% maior (inclusive colisão), azul → verde → amarelo → vermelho.
+
+**Ondas mais agressivas:** Tipos 1 e 2 disparam ao pairar; formam senoides, círculos e espirais coordenados. Inimigos não entram mais após 15 s decorridos nas ondas comuns; nos dez finais, atacam diretamente. Tiros inimigos 50% maiores e interceptáveis. O Lightstick exige o dobro do acúmulo. Amanhecer cinematográfico começa **somente no zero** (imagem definitiva do Rio amanhecendo ainda pendente).
+
+Leia [notas da versão 0.49](docs/versao-0.49.md).
+
+## Versão anterior — 0.48
 
 **Cubo News assume os menus:** a tela inicial, pausa, negociação de upgrades, laboratório tático, configuração de testes, finais e telas de resultado passam a usar uma identidade compartilhada de telejornal: cabeçalho vermelho com **Cubo News**, indicação **AO VIVO**, molduras azul-marinho, botões retangulares de plantão e faixa editorial inferior. A mesa de negociações continua no cenário de boteco.
 
