@@ -597,3 +597,16 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **G9 C — módulo Tipo 6 destruído:** explosão localizada, efeitos elétricos e módulo permanentemente apagado/inativo.
 - **G10 C — acessibilidade:** opções independentes para reduzir/desligar tremores de tela e reduzir flashes/partículas.
 - **Status:** somente GDD atualizado; nada implementado nem alterado em código, assets ou versão nesta rodada.
+
+### História e finais — decisões H1–H10 aprovadas (19/10/2026; somente planejamento)
+- **H1 B — dia comum vira caos:** Zeca está resolvendo problemas cotidianos quando a invasão começa. **Não revelar por que os alienígenas atacam à noite até as noites finais**; sustentar mistério.
+- **H2 A — defesa insuficiente com acontecimento roteirizado:** o canhão brasileiro **vence a primeira onda**, mas **pouco antes de amanhecer** surge um inimigo de nível superior que **destrói o canhão** em sequência narrativa. **Depois aparecem os cinco conselheiros/líderes oferecendo ajuda** ao protagonista. Tratar essa destruição como evento da história, não derrota arbitrária do jogador; detalhar transição e coerência com encerramento por tempo antes de implementar.
+- **H3 A — Zeca improvisador carismático:** enfrenta problemas com criatividade, humor e gambiarra.
+- **H4 B — relação crescente e falsidade:** quanto mais propostas o Brasil aceita de um líder, **mais sorridente e aparentemente bem-intencionado ele fica**; suas falas deixam escapar gradativamente intenções suspeitas, sem denunciar antecipadamente o traidor sorteado.
+- **H5 B — presságios ambíguos:** comentários diplomáticos suspeitos, sem identificar claramente o traidor.
+- **H6 B — proposta real de submissão:** antes da luta contra o país traidor, ele oferece a rendição. O jogador pode **aceitar**, o que leva **imediatamente ao final de colonização daquele país**, sem combate; recusar inicia o confronto. **Na onda da traição, substituir o rótulo do relógio “Tempo até amanhecer” por “Tempo até o Brasil virar colônia”.** Não alterar a barra de notícias inferior nem adicionar HUD extra.
+- **H7 A — finais ilustrados curtos:** alguns quadros estáticos com narração e falas, preservando 10 desfechos já aprovados.
+- **H8 C — humor amargo nas derrotas:** início satírico e desfecho de consequências políticas mais duras.
+- **H9 A — vitória contra traidor como festa:** festa popular da soberania, com música e humor brasileiro (sem necessidade de epílogo diplomático).
+- **H10 A — Full Brazil: vitória pela gambiarra:** tecnologia improvisada, criatividade nacional; **Brasil passa a ser reconhecido como potência mundial de referência, com as melhores tecnologia e cultura**. Derrota na rota Full Brazil permanece como final distinto já previsto.
+- **Status:** decisões documentadas **sem implementação**; verificar compatibilidade da primeira onda, destruição roteirizada, nova opção de rendição e rótulo do relógio antes de programar.
