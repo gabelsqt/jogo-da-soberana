@@ -7,6 +7,17 @@ export const SWARM_DANCES = Object.freeze([
 export const SWARM_ENTRIES = Object.freeze(['together', 'staggered']);
 export const TACTICAL_FORMATIONS = Object.freeze(['triangle', 'square']);
 
+export const WAVE0_EASY_PACING=Object.freeze({
+  counts:Object.freeze([5,5,6,6]), // 22 naves em quatro desenhos, sem sobrecarregar o primeiro contato.
+  entryTimes:Object.freeze([900,4200,7800,11400]),
+  danceDuration:6.5,    // v0.49.1: 3,5 s; agora ~46% menos velocidade coreografada.
+  holdDuration:3.1,     // Dar tempo de mirar antes do mergulho.
+  firstShotDelay:1.5,   // v0.49.1: 0,4 s após terminar a dança.
+  shotStagger:0.20,     // Tiros da mesma formação não caem todos de uma vez.
+  diveSpeedMultiplier:0.70,
+  bulletSpeedMultiplier:0.85,
+});
+
 export const V035_SWARM_SIZES = Object.freeze([
   [3, 5], [3, 5], [3, 5],
   [6, 10], [6, 10], [6, 10],
@@ -39,14 +50,12 @@ export function progressiveGroupCount(wave, type, progress) {
 export function getV035WaveEvents(mode, legacyEvents) {
   const wave = campaignWaveIndex(mode);
   if (wave === null) return legacyEvents.map(event => ({ ...event }));
-  // v0.49 hotfix: a onda 0 é o primeiro contato do jogador com as danças.
-  // Antes, 32 naves legadas viravam oito enxames de 5–7 (quase 48 naves).
-  // Quatro grupos pequenos mantêm os padrões bonitos sem saturar a tela.
+  // v0.49.2: primeira noite com mais alvos, mas muito mais tempo para
+  // observar a formação, mirar e interceptar antes de qualquer ofensiva.
   if (wave === 0) {
-    const counts = [3, 4, 4, 5];
-    const entryTimes = [1100, 4600, 8100, 11600];
-    return counts.map((count, index) => ({
-      at: entryTimes[index], type: 1, pattern: 'swarm', count, level: 1,
+    return WAVE0_EASY_PACING.counts.map((count,index)=>({
+      at:WAVE0_EASY_PACING.entryTimes[index],
+      type:1,pattern:'swarm',count,level:1,
     }));
   }
   const regular = legacyEvents.filter(event => event.type !== 1).map(event => {
