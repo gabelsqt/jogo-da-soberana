@@ -8,7 +8,7 @@ import {
   REPRESENTATIVES,representativeLine,representativeStoryFor,
 } from '../gameplay/representatives.js';
 import {addCuboBroadcastFrame,CUBO_FONT} from '../ui/cuboNewsTheme.js';
-import {BOTECO_DIA_IMAGE} from '../assets/botecoDiaEmbedded.js';
+import {assetUrl} from '../config/assetUrl.js';
 
 export const BOTECO_CHAIR_X=Object.freeze([116,298,480,662,844]);
 export const BOTECO_PORTRAIT_Y=241;
@@ -66,7 +66,7 @@ export class UpgradeScene extends Phaser.Scene {
       this.campaign.choices.length;
     this.chosen=false;this.focused=null;
   }
-  preload(){this.load.image('boteco-dia',BOTECO_DIA_IMAGE);}
+  preload(){this.load.image('boteco-dia',assetUrl('assets/cenario/boteco_dia.webp'));}
   create(){
     bindSceneMusic(this,'upgrades');
     this.add.image(W/2,H/2,'boteco-dia').setDisplaySize(W,H).setDepth(1);
