@@ -486,3 +486,11 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **Decisão 28 — C, perguntar ao alterar duração:** oferecer escolha explícita entre manter instantes originais dos eventos ou redistribuí-los proporcionalmente à nova duração.
 - **Decisão 29 — A, grupos expansíveis:** cada grupo é um bloco na linha do tempo, expansível para visualizar e ajustar as naves individualmente; preservar identificação/pertencimento ao grupo e seus padrões.
 - **Status:** apenas documentação de decisões. Não implementar o Wave Maker nem modificar ondas, código ou versão nesta etapa.
+
+### Soberania Wave Maker — decisões 30–34 aprovadas (19/10/2026; somente planejamento)
+- **Decisão 30 — A, painel de propriedades avançadas:** exibir e permitir editar atributos técnicos dos eventos com validação e preservação de propriedades importadas, inclusive as que não possuem widget próprio.
+- **Decisão 31 — A, lista lateral de ondas:** navegação rápida entre ondas 0–11 em uma lista lateral, utilizando o JSON único de campanha.
+- **Decisão 32 — C, relatório antes de retornar:** ao concluir ou encerrar o teste jogável, apresentar um relatório de resultados e, em seguida, voltar ao Wave Maker preservando onda, rascunho, seleção e contexto de edição. Métricas exatas ainda dependem de instrumentação.
+- **Decisão 33 — C, importar ou substituir:** ao importar JSON, oferecer criar um novo projeto ou substituir o projeto selecionado, com confirmação explícita ao substituir. Importar nunca publica automaticamente na campanha.
+- **Decisão 34 — A, primeira entrega funcional:** implementar primeiro editor de eventos básicos com criar, mover, duplicar e excluir grupos; editar tempos e posições; salvar rascunho. Não exigir simulação, relatório ou publicação nessa primeira entrega.
+- **Especificação técnica consolidada:** ver `docs/GDD-WAVE-MAKER.md`. Ainda depende de revisão/aprovação final; nenhuma implementação autorizada nesta etapa.
