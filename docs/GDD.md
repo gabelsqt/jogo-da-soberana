@@ -610,3 +610,16 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **H9 A — vitória contra traidor como festa:** festa popular da soberania, com música e humor brasileiro (sem necessidade de epílogo diplomático).
 - **H10 A — Full Brazil: vitória pela gambiarra:** tecnologia improvisada, criatividade nacional; **Brasil passa a ser reconhecido como potência mundial de referência, com as melhores tecnologia e cultura**. Derrota na rota Full Brazil permanece como final distinto já previsto.
 - **Status:** decisões documentadas **sem implementação**; verificar compatibilidade da primeira onda, destruição roteirizada, nova opção de rendição e rótulo do relógio antes de programar.
+
+### Personagens e diálogos — decisões I1–I10 aprovadas (19/10/2026; somente planejamento)
+- **I1 B:** **Zeca Carrara é operador experiente do canhão**, militar ou técnico; assume o comando da defesa. Seu carisma improvisador (H3) continua valendo.
+- **I2 A:** após a destruição roteirizada do canhão, os **cinco conselheiros chegam juntos ao boteco** e oferecem ajuda numa conversa que apresenta suas personalidades.
+- **I3 C:** humor de Zeca mistura ironia sobre cotidiano e burocracia com absurdos ocasionais.
+- **I4 C:** Victor McDollar (EUA) é empresário diplomático, mistura charme e marketing a ameaças econômicas discretas.
+- **I5 C:** Kim Lin Doo (Coreia do Sul) mantém imagem pública de ídolo cuidadosamente construída, sorriso ensaiado e ambições ocultas.
+- **I6 A e correção nominal:** a representante russa chama-se **Kátia Strófika** (**substitui Tatiana Tanquova** em textos, identificações e futuras artes); humor seco, comentários curtos, ironia severa e confiança militar. O conceito visual já aprovado permanece salvo até revisão expressa.
+- **I7 C e correção nominal:** a representante chinesa chama-se **Ming Da** (**substitui Mei Taxaram** em textos, identificações e futuras artes); gentileza estratégica e condições veladas. Preservar conceito visual aprovado.
+- **I8 C:** depois de cada onda, Zeca faz comentário breve sobre o combate e **um dos conselheiros responde** antes da escolha.
+- **I9 A:** diálogos de visual novel avançam **por clique ou toque**, no ritmo escolhido pelo jogador.
+- **I10 C:** suspeitas são comunicadas com falas ambíguas e futuras variações de retrato/expressão situacional, sem entregar antecipadamente o traidor sorteado.
+- **Status e consistência:** somente planejamento. **Nenhum código ou asset alterado nesta rodada**; arquivos e falas existentes que contenham os nomes antigos serão atualizados numa etapa de implementação autorizada. Todas as regras anteriores compatíveis permanecem válidas.
