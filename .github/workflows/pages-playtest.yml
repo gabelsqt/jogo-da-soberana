@@ -1,4 +1,4 @@
-name: Playtest v0.44 — GitHub Pages
+name: Playtest v0.45 — GitHub Pages
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment:
-      name: soberana-v044-playtest
+      name: soberana-v045-playtest
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Baixar versão de teste (não publica outras branches)
