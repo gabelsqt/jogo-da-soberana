@@ -200,3 +200,17 @@
 - [ ] Importação permite selecionar inimigos, ondas ou ambos, com prévia e validação de dependências antes de afetar rascunhos.
 - [ ] Publicação valida esquema e executa testes básicos automaticamente; dados inválidos não entram em vigor.
 - [ ] Nenhum item marcado como concluído antes de implementação e teste real.
+
+
+## UX do Laboratório / Wave Maker / Enemy Maker — testes futuros W1–W10
+- [ ] Laboratório mostra cartões claros com descrições e entradas distintas para Wave Maker e Enemy Maker.
+- [ ] Atalho entre editores e botão de retorno funcionam e não descartam rascunhos.
+- [ ] Barra horizontal exibe ondas numeradas 0–11, permite selecionar cada onda e comunica a seleção atual.
+- [ ] Seleção de inimigo mostra atributos essenciais e expande detalhes sem ocultar indevidamente dados.
+- [ ] Eventos podem ser movidos por arraste e tempo exato via campo numérico; valores permanecem sincronizados.
+- [ ] Seleção múltipla de eventos por clique modificador e por área, inclusive para copiar/mover.
+- [ ] Ctrl+Z/Ctrl+Y e botões de desfazer/refazer refletem mesmo histórico e lidam com operações múltiplas.
+- [ ] Painel de propriedades recolhível amplia área da linha do tempo; reabertura não perde edição.
+- [ ] Marcador de rascunho não publicado aparece nos objetos modificados e apresenta detalhes sob demanda, desaparecendo somente após publicação efetiva.
+- [ ] Interface desktop funciona com teclado e mouse; em celular há consulta legível, sem exigir ferramentas completas.
+- [ ] Manter testes desmarcados até implementação e validação reais.
