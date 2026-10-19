@@ -186,3 +186,17 @@
 - [ ] Importar JSON com prévia de diferenças e validação, sem modificar dados ativos antes da publicação.
 - [ ] Publicação separada e publicação conjunta opcional preservam consistência; testar falha parcial e recuperação.
 - [ ] **Não marcar como testado** antes de implementar e validar em ambiente real.
+
+
+## Publicação e recuperação — testes futuros V1–V10 (não implementados)
+- [ ] Sobrescrita local no Wave Maker prevalece sobre valor publicado global; outras ondas herdam normalmente.
+- [ ] Ícones distinguem valores herdados e locais; explicação ao selecionar identifica origem e valor efetivo.
+- [ ] Antes de publicar Enemy Maker, resumo mostra impacto e lista expansível detalha ondas e propriedades afetadas.
+- [ ] Falha proposital em qualquer etapa de publicação conjunta faz rollback completo; nem Enemy Maker nem Wave Maker fica parcialmente ativo.
+- [ ] Rascunhos possuem autosave local e botão Salvar; fechar/abrir editor recupera dados, sem publicá-los.
+- [ ] Histórico identifica data, hora e notas opcionais de versões publicadas.
+- [ ] Restaurar versão publicada preserva rascunhos e histórico de recuperação.
+- [ ] Exportação de backup completo e exportações separadas produzem arquivos válidos e reimportáveis.
+- [ ] Importação permite selecionar inimigos, ondas ou ambos, com prévia e validação de dependências antes de afetar rascunhos.
+- [ ] Publicação valida esquema e executa testes básicos automaticamente; dados inválidos não entram em vigor.
+- [ ] Nenhum item marcado como concluído antes de implementação e teste real.
