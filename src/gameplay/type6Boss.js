@@ -21,7 +21,7 @@ export function createType6State(country='alien',hp=600){
   const base=Math.max(160,Number(hp)||600),moduleHp=base*0.16;
   const modules=TYPE6_ROLES.map((role,i)=>({
     id:i,role,offsetX:TYPE6_OFFSETS[i],offsetY:0,halfWidth:57,halfHeight:42,
-    hp:moduleHp,maxHp:moduleHp,shield:0,maxShield:0,
+    hp:moduleHp,maxHp:moduleHp,shield:moduleHp*0.20,maxShield:moduleHp*0.20,
     broken:false,hitAt:-Infinity,deadAt:-Infinity,
   }));
   const barrierMaxHp=moduleHp*0.30;
@@ -108,14 +108,15 @@ export function type6SegmentTargets(s,cx,cy,x1,y1,x2,y2,radius=0){
     segmentIntersectsRect(r,x1,y1,x2,y2,radius)).map(r=>r.id);
 }
 export function type6Damage(s,targetId,damage){
-  const result={shieldBroken:false,moduleDestroyed:false,coreExposed:false,
+  const result={shieldBroken:false,barrierBroken:false,moduleShieldBroken:false,
+    moduleDamage:0,moduleDestroyed:false,coreExposed:false,
     defeated:false,damage:0,targetId};
   if(s.defeated||!Number.isFinite(damage)||damage<=0)return result;
   // Nenhum dano, inclusive especial e explosão, atravessa a barreira.
   if(type6BarrierActive(s)){
     const dealt=Math.min(s.barrier.hp,damage);
     s.barrier.hp-=dealt;result.damage=dealt;result.targetId='barrier';
-    if(s.barrier.hp<=0){s.barrier.active=false;result.shieldBroken=true;}
+    if(s.barrier.hp<=0){s.barrier.active=false;result.shieldBroken=true;result.barrierBroken=true;}
     return result;
   }
   if(targetId==='barrier')return result;
@@ -128,7 +129,14 @@ export function type6Damage(s,targetId,damage){
   }
   const m=s.modules[targetId];
   if(!m||m.broken)return result;
+  if(m.shield>0){
+    result.damage=Math.min(m.shield,damage);
+    m.shield=Math.max(0,m.shield-damage);
+    if(m.shield===0){result.shieldBroken=true;result.moduleShieldBroken=true;}
+    return result;
+  }
   result.damage=Math.min(m.hp,damage);
+  result.moduleDamage=result.damage;
   m.hp=Math.max(0,m.hp-damage);
   if(m.hp===0){
     m.broken=true;result.moduleDestroyed=true;
@@ -143,6 +151,7 @@ export function type6Damage(s,targetId,damage){
 }
 export function type6ModuleVisualState(module){
   if(module.broken)return 3;
+  if(module.shield>0)return 0;
   const fraction=module.hp/module.maxHp;
   return fraction>0.65?0:fraction>0.3?1:2;
 }
