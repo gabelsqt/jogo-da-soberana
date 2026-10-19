@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { getWaveEvents, WAVE_LAST_SPAWN_MS, scheduledEnemyCount, waveOutcome } from '../src/gameplay/waves.js';
 import {
   SWARM_DANCES, SWARM_ENTRIES, TACTICAL_FORMATIONS, WAVE0_EASY_PACING,
+  WAVE0_PORTAL_SEQUENCE, STANDARD_INVADER_FLIGHT_FACTOR,
   V035_SWARM_SIZES, V035_SQUAD_SIZES, getV035WaveEvents,
   progressiveGroupCount, swarmDanceCenter, swarmDancePosition, swarmOffset,
   tacticalFormationOffset, tacticalManeuverPosition, tacticalAttackPosition,
@@ -30,11 +31,22 @@ test('v0.35 preserva 30 segundos, agenda em até 13,5s e vitória antecipada', (
   }
 });
 
-test('onda 0 tem 22 alvos em quatro grupos lentos, preservando as coreografias',()=>{
+test('onda 0 usa cinco portais (um e depois dois pares) para 48 naves',()=>{
   const events=getV035WaveEvents('wave0',getWaveEvents('wave0'));
-  assert.deepEqual(events.map(e=>e.count),[5,5,6,6]);
-  assert.deepEqual(events.map(e=>e.at),[900,4200,7800,11400]);
-  assert.equal(scheduledEnemyCount(events),22);
+  assert.deepEqual(events.map(e=>e.count),[8,10,10,10,10]);
+  assert.deepEqual(events.map(e=>e.at),[800,4600,4600,9600,9600]);
+  assert.deepEqual(events.map(e=>e.portalX),[480,235,725,125,835]);
+  assert.deepEqual(WAVE0_PORTAL_SEQUENCE.map(({at,portalX,count})=>({at,portalX,count})),
+    events.map(({at,portalX,count})=>({at,portalX,count})));
+  assert.equal(new Set(events.map(e=>e.portalX)).size,5);
+  assert.equal(events.filter(e=>e.at===800).length,1);
+  assert.equal(events.filter(e=>e.at===4600).length,2);
+  assert.equal(events.filter(e=>e.at===9600).length,2);
+  assert.equal(scheduledEnemyCount(events),48);
+  // Último dos dez invasores sai do portal ~3,4 s após ele abrir.
+  // Com os últimos dois abrindo aos 9,6 s, todos entram antes dos 15 s.
+  assert.ok(Math.max(...events.map(e=>e.at+(e.count-1)*320+500))<15000);
+  assert.equal(STANDARD_INVADER_FLIGHT_FACTOR,0.78);
   assert.equal(WAVE0_EASY_PACING.danceDuration,6.5);
   assert.equal(WAVE0_EASY_PACING.holdDuration,3.1);
   assert.equal(WAVE0_EASY_PACING.firstShotDelay,1.5);
@@ -177,6 +189,8 @@ test('Tipo 2 faz círculos completos e para em formação antes de descer', () =
 test('Tipo 1 e Tipo 2 atacam cedo depois de manobras curtas',()=>{
   const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
   assert.match(scene,/early \? \(kind==='swarm'\?3\.5:4\.0\)/);
+  assert.match(scene,/STANDARD_INVADER_FLIGHT_FACTOR/);
+  assert.match(scene,/event\.portalX\?\?null/);
   assert.match(scene,/enemy\.phase = 'tacticalHold'/);
   assert.match(scene,/holdDuration:early\?1\.15:1\.35/);
 });
