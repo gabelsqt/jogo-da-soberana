@@ -2,6 +2,7 @@ import { bindSceneMusic } from '../audio/music.js';
 import Phaser from 'phaser';
 import { finaleEnding } from '../gameplay/campaignFinale.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import {addCuboBroadcastFrame} from '../ui/cuboNewsTheme.js';
 
 const W=960,H=540;
 const FONT='monospace';
@@ -27,12 +28,18 @@ export class EndingScene extends Phaser.Scene {
       g.lineStyle(1,ending.color,0.06+i*0.001);
       g.lineBetween(0,i*32,W,i*32);
     }
-    this.add.rectangle(W/2,38,W,76,0x0c1427,0.96)
+    addCuboBroadcastFrame(this,{
+      section:'Edição especial • Arquivo histórico',
+      headline:ending.won?'Brasil celebra o resultado da guerra':'Emissora confirma fim da defesa nacional',
+      footer:'Retrospectiva dos acontecimentos • Arquivo Cubo News',
+      depth:32,
+    });
+    this.add.rectangle(W/2,97,W,74,0x0c1427,0.92)
       .setStrokeStyle(2,ending.color).setDepth(10);
-    this.add.text(W/2,26,ending.subtitle,{
+    this.add.text(W/2,79,ending.subtitle,{
       fontFamily:FONT,fontSize:'15px',color:'#fff0bf',fontStyle:'bold',
     }).setOrigin(0.5).setDepth(11);
-    this.title=this.add.text(W/2,56,ending.title,{
+    this.title=this.add.text(W/2,116,ending.title,{
       fontFamily:FONT,fontSize:'23px',color:'#ffffff',fontStyle:'bold',
       align:'center',wordWrap:{width:900},
     }).setOrigin(0.5).setDepth(11);
@@ -53,16 +60,16 @@ export class EndingScene extends Phaser.Scene {
       fontFamily:FONT,fontSize:'17px',color:'#e3eeff',
       align:'center',wordWrap:{width:790,useAdvancedWrap:true},lineSpacing:6,
     }).setOrigin(0.5).setDepth(15);
-    this.number=this.add.text(96,123,'',{
+    this.number=this.add.text(96,153,'',{
       fontFamily:FONT,fontSize:'12px',color:'#c4d4e6',
     }).setDepth(14);
 
     this.next=addMenuButton(this,{
-      x:680,y:501,width:280,height:40,text:'PRÓXIMO QUADRO ▶',
+      x:680,y:480,width:280,height:39,text:'Próximo quadro ▶',
       primary:true,depth:20,onClick:()=>this.advance(),
     });
     addMenuButton(this,{
-      x:232,y:501,width:190,height:40,text:'⌂  MENU',
+      x:232,y:480,width:190,height:39,text:'⌂  Menu',
       depth:20,onClick:()=>this.scene.start('MenuScene'),
     });
     this.input.keyboard.on('keydown-ENTER',()=>this.advance());
@@ -81,7 +88,7 @@ export class EndingScene extends Phaser.Scene {
     // Último quadro não fecha sozinho: deixa o jogador ler o final.
     // A área clicável muda de função no último painel.
     if(this.next?.label?.setText)this.next.label.setText(
-      this.frame===this.ending.slides.length-1?'⌂  VOLTAR AO MENU':'PRÓXIMO QUADRO ▶');
+      this.frame===this.ending.slides.length-1?'⌂  Voltar ao menu':'Próximo quadro ▶');
   }
 
   advance() {
