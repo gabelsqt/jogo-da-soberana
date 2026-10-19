@@ -57,7 +57,7 @@ test('GameScene retorna à parte superior e volta a atacar uma defesa', () => {
   assert.match(ai, /advanceBomberHover\(/);
   assert.match(ai, /this\.fireEnemyProjectile\(enemy, enemy\.target\)/);
   assert.match(ai, /enemy\.phase = 'retreat'/);
-  assert.match(ai, /this\.setRoute\(enemy, enemy\.sprite\.x, -78\)/);
+  assert.match(ai, /this\.setRoute\(enemy, enemy\.sprite\.x, 95\)/);
   assert.match(ai, /enemy\.phase = 'approach'/);
   const retreat = ai.slice(ai.indexOf("enemy.phase === 'retreat'"),
     ai.indexOf("enemy.phase === 'flyby'"));
