@@ -238,3 +238,12 @@
 - [ ] Selecionar onda, mover eventos, salvar rascunho e reiniciar editor não causa erros gráficos.
 - [ ] Rodar testes com `npm test`, build com `npm run build` e inspecionar layout 960×540 no navegador.
 - [ ] Simulação real, métricas de dano, sobrevivência, lote de testes e campanha completa continuam pendentes (X1–X10).
+
+## Wave Maker v0.61 — teste real de rascunho (validar no navegador)
+- [ ] Em Laboratório > Wave Maker, editar evento e clicar TESTAR; confirmar spawn do evento do rascunho no jogo, sem afetar a campanha.
+- [ ] Resultado de vitória no teste mostra VOLTAR AO WAVE MAKER, sem avançar campanha.
+- [ ] Derrota no teste mostra retorno ao Wave Maker e botão de tentar novamente mantém o snapshot.
+- [ ] Eventos oficiais e estado de campanha não mudam após salvar/testar um rascunho.
+- [ ] Testar ondas 0, 1, 9, 10 e 11; verificar principalmente chefes, timers e cenas especiais.
+- [ ] Rodar `npm test` e `npm run build` no clone; corrigir regressões antes de considerar estável.
+- [ ] Relatórios com HP/dano/interceptações, IA e lotes de simulação **ainda pendentes**.
