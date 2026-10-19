@@ -513,3 +513,9 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Preservar os **nomes, aparências, paletas, acessórios, gestos e ambientações** vistos na referência. Não reabrir decisões conceituais A6–A10; tratá-las como substituídas pela aprovação direta da referência.
 - Mantêm-se as decisões A1–A5: bustos de meio corpo em pixel art detalhada semi-realista, fundos nacionais, retratos-base **estáticos**; outras expressões/situações futuramente. Próximo planejamento: dimensões, enquadramento, recorte, transparência, organização de assets e exportação.
 - Somente planejamento: não gerar nem implementar artes até solicitação posterior.
+
+### Artes dos cinco líderes — v0.55 (19/10/2026)
+- Aprovadas as decisões **A11 B** (384×384), **A12 A** (cabeça e ombros, rosto em evidência), **A13 C** (versão retrato completo + personagem isolado), **A14 A** (alta fidelidade à referência aprovada), **A15 A** (começar pelo Zeca Carrara).
+- **Zeca Carrara:** usuário aprovou trocar camisa floral multicolorida por **camisa floral retrô em tons marrons/bege com flores claras**, mantendo bigode, cabelo, blazer claro, colar, copo de cerveja e gesto positivo. Versões com Rio de Janeiro e personagem isolado geradas.
+- Produzidos também os retratos-base de **Victor McDollar** (EUA), **Kim Lin Doo** (Coreia do Sul), **Tatiana Tanquova** (Rússia) e **Mei Taxaram** (China), cada qual nas versões com cenário e recorte transparente. Futuros retratos de expressões diversas permanecem planejados.
+- Integração inicial dos retratos ao **boteco / UpgradeScene**, sem alterar escolhas ou upgrades. **PNG binários fornecidos via ZIP da conversa, ainda não commitados no GitHub**; a interface depende da extração para `public/assets/lideres/`. Referência: `docs/versao-0.55.md`.
