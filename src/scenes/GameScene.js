@@ -4534,12 +4534,62 @@ export class GameScene extends Phaser.Scene {
     this.advanceAfterWave();
   }
 
+  playFirstNightCinematic() {
+    // Evento narrativo: uma nave superior aparece depois da primeira vitória.
+    // Não altera o resultado da onda nem conta como derrota do jogador.
+    this.countdownActive = true;
+    const depth=220;
+    const veil=this.add.rectangle(W/2,H/2,W,H,0x030913,0.72)
+      .setDepth(depth).setInteractive();
+    const ship=this.add.container(W/2,-115).setDepth(depth+2);
+    const hull=this.add.ellipse(0,0,560,126,0x182534)
+      .setStrokeStyle(6,0xa0acb5);
+    const dome=this.add.ellipse(0,-38,240,92,0x344757)
+      .setStrokeStyle(4,0xee4d65);
+    const core=this.add.circle(0,18,37,0xf5485b).setStrokeStyle(8,0x721d33);
+    const wings=[-235,-160,160,235].map(x=>this.add.rectangle(x,28,58,32,0x334454)
+      .setStrokeStyle(3,0xc9485f));
+    ship.add([hull,dome,core,...wings]);
+    const notice=this.add.text(W/2,96,'CUBO NEWS • ALERTA DE ÚLTIMA HORA',{
+      fontFamily:'monospace',fontSize:'21px',fontStyle:'bold',
+      color:'#ffdfaa',backgroundColor:'#081426dd',padding:{x:15,y:9},
+    }).setOrigin(0.5).setDepth(depth+3);
+    const beam=this.add.rectangle(CANNON.x,320,14,0,0xff5b6f,0.95)
+      .setOrigin(0.5,0).setDepth(depth+1).setVisible(false);
+    const impact=this.add.circle(CANNON.x,CANNON.y,12,0xffefbc,0.95)
+      .setDepth(depth+4).setVisible(false);
+    const finish=()=>{
+      [veil,ship,notice,beam,impact].forEach(item=>item.destroy());
+      this.scene.start('UpgradeScene',{campaign:this.campaign,completedWave:0});
+    };
+    this.tweens.add({targets:ship,y:154,duration:1600,ease:'Cubic.Out',
+      onComplete:()=>{
+        notice.setText('AMEAÇA DE NÍVEL SUPERIOR • CANHÃO NA MIRA');
+        this.tweens.add({targets:core,scale:1.7,alpha:0.6,duration:230,yoyo:true,repeat:3,
+          onComplete:()=>{
+            beam.setVisible(true);beam.height=Math.max(0,CANNON.y-172);
+            this.cameras.main.shake(450,0.013);
+            impact.setVisible(true);
+            this.tweens.add({targets:impact,scale:12,alpha:0,duration:620,
+              onComplete:()=>{
+                beam.setVisible(false);
+                notice.setText('CANHÃO BRASILEIRO DESTRUÍDO • DEFESA EM REORGANIZAÇÃO');
+                this.time.delayedCall(1400,finish);
+              }});
+          }});
+      }});
+  }
+
   advanceAfterWave() {
     if(this.mode==='wave10') {
       this.scene.start('GameScene',{
         mode:'wave11',campaign:this.campaign,brazilResistanceLevels:[],
         v1Playtest:this.v1Playtest,
       });
+      return;
+    }
+    if (!this.unifiedLab && this.mode==='wave0' && !this.v1Playtest) {
+      this.playFirstNightCinematic();
       return;
     }
     if (!this.unifiedLab && /^wave[0-9]$/.test(this.mode)) {
