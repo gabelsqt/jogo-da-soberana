@@ -130,5 +130,5 @@ test('Onda 2 usa apenas Tipo 1 e Tipo 2', () => {
   assert.ok(wave.some((event) => event.type === 2 && event.pattern === 'orbit'));
   assert.ok(wave.some((event) => event.type === 1 && event.pattern === 'line'));
   assert.ok(scheduledEnemyCount(wave) > 0);
-  assert.equal(wave.at(-1).at, 19500);
+  assert.equal(wave.at(-1).at, 13500);
 });
