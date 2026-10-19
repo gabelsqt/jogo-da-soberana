@@ -571,3 +571,16 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **E9 A — explosão em cadeia:** destruição do núcleo deflagra colapso em módulos e uma **explosão final deliberadamente exagerada**, sem queda da nave como etapa obrigatória.
 - **E10 A — desafio equivalente:** chefões traidores precisam oferecer chances de vitória semelhantes, apesar da identidade de ataques de cada país.
 - **Status:** somente planejamento destas decisões; nenhuma implementação, modificação de gameplay ou versionamento nesta rodada. As decisões E4 e E5 reafirmam regras já existentes.
+
+### Ataques dos quatro traidores — decisões F1–F10 aprovadas (19/10/2026; planejamento)
+- **F1 A, EUA:** poder de fogo concentrado, rajadas frontais fortes. **Já definido e implementado**, conforme confirmação do usuário; preservar.
+- **F2 B, Coreia do Sul:** ataques coreografados, rajadas rítmicas e efeitos sincronizados. **Já definido e implementado**; preservar.
+- **F3 A, Rússia:** artilharia pesada, bombas grandes e lentas de alto dano. **Já definido e implementado**; preservar.
+- **F4 B, China:** precisão e coordenação entre módulos. **Já definido e implementado**; preservar.
+- **F5 B:** planejar **dois ataques exclusivos por traidor** no repertório do Tipo 6; ao desenvolver, conferir o que já existe para não duplicar sistemas ou golpes.
+- **F6 C:** progressão por fases: um ataque exclusivo desde o começo, outro liberado ao avançar a batalha. Respeitar fases existentes.
+- **F7 A:** cada ataque exclusivo se vincula a um módulo destrutível; destruí-lo desativa o ataque correspondente. **Lasers finais nacionais:** EUA **azul-claro**, Coreia do Sul **roxo**, China **vermelho**, Rússia **amarelo**. O laser final pertence à sequência de superarma/núcleo; a relação com módulos deve preservar as regras da superarma já aprovadas, sem assumir que destruir módulo cancela o disparo central.
+- **F8 A:** projéteis exclusivos distinguíveis sobretudo pela **silhueta**, mantendo paleta inimiga coerente. Exceção explícita: cores específicas dos lasers finais F7.
+- **F9 A:** enquanto o núcleo carrega a superarma, os módulos **param de atacar**; combate se concentra no núcleo e na animação de sucção progressiva.
+- **F10 A:** o jogador aprende os ataques durante a luta por meio de animações das próprias armas. Não incluir HUD/alertas adicionais.
+- **Status:** somente documentação desta rodada; não implementar, modificar balanceamento, código ou versão. F1–F4 são reafirmações de comportamentos já presentes no jogo.
