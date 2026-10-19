@@ -21,7 +21,7 @@ Branch: `feat/brasil2-arraial-balístico`. Escopo: integrar decisões aprovadas 
 - Os testes automáticos validam regras e compilação, mas **não substituem teste visual em navegador**.
 
 ## Como testar
-A branch publica o playtest pelo workflow GitHub Pages (se as permissões de Pages estiverem configuradas). Para testar localmente: `npm install && npm test && npm run dev`; para gerar HTML único: `npm run build:itch`.
+A branch publica o playtest pelo workflow GitHub Pages, validado em 19/10/2026. Endereço: https://gabelsqt.github.io/jogo-da-soberana/ (deploy concluído no workflow). Para testar localmente: `npm install && npm test && npm run dev`; para gerar HTML único: `npm run build:itch`.
 
 ## Testes
 Em 19/10/2026, GitHub Actions executou **272 testes com 272 aprovações**, além de build Vite e geração de HTML único para itch.io. Commit anterior à configuração atualizada de publicação Pages.
