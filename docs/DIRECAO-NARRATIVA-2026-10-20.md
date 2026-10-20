@@ -9,6 +9,8 @@
 - Antes da onda 10, os alienígenas **não se comunicam com os humanos** em português ou em outro idioma. Não mostrar mensagens, ultimatos, diálogos, legendas de tradução, comunicação telepática ou transcrições alienígenas na introdução ou ondas 0–9.
 - Na onda 10 ocorre **a primeira comunicação inteligível**, em português, feita pelos próprios alienígenas.
 - A origem do português alienígena é a convivência com **vendedores de chá mate e Biscoito Globo nas praias do Rio de Janeiro**. Eles aprenderam a falar português conversando com esses vendedores, e seu modo de falar reflete essa influência.
+- **Revelação na onda 10 — contato por meio de lanche:** linguistas brasileiros encontram alienígenas nas praias cariocas e **usam Biscoito Globo e chá mate para convencê-los a conversar**. Os visitantes já haviam aprendido expressões e português de praia **conversando com vendedores ambulantes**, mas só aceitam conversar com a equipe de linguistas quando são atraídos pelo lanche. Assim, os linguistas fazem a primeira aproximação e obtêm a conversa; **não decifram uma transmissão cifrada nem ensinam o idioma aos ETs**.
+- **Timing:** a conversa, seu conteúdo e o fato de que eles falam português só são revelados **no prólogo/começo da onda 10**, nunca antes. As notícias podem mencionar boatos/avistamentos de alienígenas curtindo a praia antes disso, sem atribuir-lhes falas, acordos ou intenções confirmadas.
 - Preservar como revelação cômica tardia: eles interpretam os braços abertos do Cristo Redentor como uma afronta diplomática; a associação com o Cristo e a presença das naves pode ser observada pelos humanos, mas **o motivo não deve ser explicado antes da onda 10**.
 - Preservar a outra premissa já aprovada compatível: alienígenas aproveitam as praias de dia e atacam à noite.
 - A Cubo News e personagens humanos podem especular livremente, porém **não podem afirmar ter recebido promessas, tratados ou explicações alienígenas** antes da onda 10.
@@ -96,6 +98,11 @@ Os textos acima são um **rascunho sugerido**, não frases autoralmente aprovada
 - **Exibir as contradições pelas manchetes sucessivas**, não por subtítulos que explicam ao jogador “apesar dos elogios de ontem”. O público infere sozinho a fraude e a cara de pau.
 - **Compatibilidade com o mistério alienígena:** nas ondas 0–9 ninguém recebeu promessa ou comunicação dos ETs; remover todas as manchetes e subtítulos que falem de acordos, ultimatos, garantias e mensagens extraterrestres antes da onda 10. A emissora pode **inventar unilateralmente** explicações para os acontecimentos, se o texto deixar claro que é uma afirmação humana, não uma comunicação real.
 - **Revisão separada e sem aplicação automática:** a rodada de revisão jornalística deve apresentar **todas as notícias**, em grupos de 10, com manchete e subtítulo juntos e possibilidade de substituição/comentário. As mudanças só serão consolidadas no código após avaliação editorial do usuário.
+
+**Rascunho de manchete para a onda 10 (não aprovado literalmente):**
+- **Manchete:** “LINGUISTAS CONSEGUEM PRIMEIRO CONTATO COM MATE E BISCOITO GLOBO”.
+- **Subtítulo:** “Equipe encontrou extraterrestres na praia e os convenceu a conversar oferecendo o tradicional lanche carioca. Visitantes já falavam português aprendido com vendedores ambulantes.”
+- A emissora não deve pedir desculpas por ter passado nove ondas sem entender os invasores e não deve citar seu nome dentro da notícia.
 
 **Exemplo de contraste editorial (rascunho, não aprovado como fala final):**
 - Primeiro: “ARMAMENTO BRASILEIRO LEVANTA DÚVIDAS; ANALISTAS RECOMENDAM CAUTELA”.
