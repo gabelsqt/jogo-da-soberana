@@ -193,7 +193,7 @@ export const V1_UPGRADES = {
     {
       "level": 1,
       "title": "Geada Siberiana",
-      "description": "Tiros congelam o alvo. Se morrer congelado, estilhaça e causa dano nos inimigos ao redor.",
+      "description": "Tiros gelados mais rápidos e frequentes congelam o alvo. Mortes congeladas espalham estilhaços que causam dano em área.",
       "kind": "primary"
     },
     {
@@ -205,7 +205,7 @@ export const V1_UPGRADES = {
     {
       "level": 3,
       "title": "Inverno Russo",
-      "description": "Congelamento mais longo e explosões de gelo maiores e mais fortes.",
+      "description": "Mais velocidade e cadência dos tiros, congelamento prolongado e explosões de gelo maiores e mais fortes.",
       "kind": "primary"
     },
     {
@@ -217,7 +217,7 @@ export const V1_UPGRADES = {
     {
       "level": 5,
       "title": "Estilhaço Siberiano",
-      "description": "Fragmentos de inimigos congelados atingem uma área maior com dano elevado.",
+      "description": "Rajadas congelantes mais rápidas e frequentes; estilhaços de inimigos congelados atingem uma área maior com dano elevado.",
       "kind": "primary"
     },
     {
@@ -229,7 +229,7 @@ export const V1_UPGRADES = {
     {
       "level": 7,
       "title": "Zero Absoluto",
-      "description": "Gelo mais persistente e explosão de fragmentos ainda mais ampla.",
+      "description": "Velocidade e cadência máximas dos tiros de gelo, congelamento mais persistente e explosões de fragmentos ainda mais amplas.",
       "kind": "primary"
     },
     {
@@ -398,10 +398,25 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.jp>=6){stats.specialCooldown*=0.86;}
   if(n.jp>=7){stats.plasmaEvery=1;stats.laserDamage+=1;}
   if(n.jp>=8){stats.specialAmplifier+=0.45;}
-  if(n.ru>=1){stats.basicDamage*=1.75;stats.knockback=0.12;stats.russianFreezeMs=1000;}
-  if(n.ru>=3){stats.russianFreezeMs=1500;}
-  if(n.ru>=5){stats.russianFreezeMs=2000;}
-  if(n.ru>=7){stats.russianFreezeMs=2500;}
+  // Melhorias primárias russas (1/3/5/7): tiro normal progride em
+  // cadência E velocidade de viagem. Níveis pares continuam dedicados ao especial.
+  // Multiplicadores combinam com outros países, sem sobrescrever seus bônus.
+  if(n.ru>=1){
+    stats.basicDamage*=1.75;stats.knockback=0.12;stats.russianFreezeMs=1000;
+    stats.basicInterval*=0.84;stats.basicSpeed*=1.10;
+  }
+  if(n.ru>=3){
+    stats.russianFreezeMs=1500;
+    stats.basicInterval*=0.82;stats.basicSpeed*=1.12;
+  }
+  if(n.ru>=5){
+    stats.russianFreezeMs=2000;
+    stats.basicInterval*=0.81;stats.basicSpeed*=1.12;
+  }
+  if(n.ru>=7){
+    stats.russianFreezeMs=2500;
+    stats.basicInterval*=0.82;stats.basicSpeed*=1.12;
+  }
   if(n.ru>=2){
     // Matryoshka recarrega 25% mais depressa; acumulável com bônus coreanos.
     stats.specialCooldown*=0.75;
