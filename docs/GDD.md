@@ -1045,3 +1045,9 @@ O **Tipo 5 — Cruzador-Colmeia**, usado como miniboss e invocador de escoltas, 
 
 ### v0.851 — Correção de cor do Tipo 5
 O PNG do Cruzador-Colmeia agora é RGBA verdadeiro em 896×512. O feedback de dano não usa mais tint branco sólido, que estava ocultando a textura original; aplica um flash discreto por opacidade e limpa quaisquer tints residuais. As animações 0–15 e a lógica do inimigo permanecem inalteradas.
+
+
+### v0.852 — Casco alienígena Tipo 6 em quatro estados (20/10/2026)
+- Atlas 4×1, PNG RGBA 3360×280, com quadros de 840×280 do casco original enviado pelo usuário (inteiro, avariado, núcleo exposto e destruído).
+- Transições: inicial até 1 módulo destruído; avariado após 2 módulos; núcleo aberto depois de destruídos os 4 módulos; ruínas durante a sequência de vitória.
+- Arte é camada de fundo independente: escudo do tipo 6, módulos, núcleo e energia continuam por cima, sem mudança de colisões. Chefes das nações traidoras continuam provisoriamente com cascos vetoriais exclusivos.
