@@ -16,8 +16,8 @@ const FILES=Object.freeze({
 // Configuração reutilizável: novos efeitos podem definir suas faixas aqui.
 // [mínimo,máximo] em multiplicadores; 1 representa o áudio original.
 export const SFX_VARIATIONS=Object.freeze({
-  cannon:Object.freeze({pitch:Object.freeze([0.95,1.05]),volume:Object.freeze([0.96,1.04])}),
-  explosion:Object.freeze({pitch:Object.freeze([0.93,1.07]),volume:Object.freeze([0.94,1.06])}),
+  cannon:Object.freeze({pitch:Object.freeze([0.88,1.12]),volume:Object.freeze([0.90,1.10])}),
+  explosion:Object.freeze({pitch:Object.freeze([0.85,1.15]),volume:Object.freeze([0.94,1.06])}),
   boss:Object.freeze({pitch:Object.freeze([0.96,1.04]),volume:Object.freeze([0.97,1.03])}),
 });
 export const SFX_PITCH_RANGES=Object.freeze(Object.fromEntries(
