@@ -283,3 +283,9 @@
 - [ ] Rota Full Brazil não oferece submissão.
 - [ ] Testar retorno/derrota/repetição da onda 11 e verificar ausência de botões residuais.
 - [ ] Rodar `npm test` e `npm run build` e verificar visualmente no navegador; pendente.
+
+## v0.66 — reforço do Tipo 6
+- [ ] Confirmar HP de módulos em 36% da vida-base e HP do núcleo em 16%, para todas as variantes (alien/países).
+- [ ] Comparar tempo de sobrevivência dos quatro módulos com versões anteriores usando build brasileira forte e build básica.
+- [ ] Confirmar que módulos ainda podem ser destruídos, o núcleo é exposto e pode ser derrotado; verificar escudos/barreira.
+- [ ] Rodar `npm test` e `npm run build`; verificar navegador e estabilidade das ondas 10/11.
