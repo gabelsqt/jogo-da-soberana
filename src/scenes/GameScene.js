@@ -79,7 +79,7 @@ import { finaleBossHp, finaleBossFirePattern, finaleCounterattack } from '../gam
 import {createCuboNewsState,tickCuboNews,queueCuboNews} from '../gameplay/cuboNews.js';
 import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
-import { applyRussianFreeze, russianShatterTargets } from '../gameplay/russianFrost.js';
+import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
@@ -2490,19 +2490,36 @@ export class GameScene extends Phaser.Scene {
     enemy.russianShattered=true;
     const x=enemy.sprite.x,y=enemy.sprite.y;
     const victims=russianShatterTargets(enemy,this.enemies,this.elapsed,radius);
-    // Animação breve de fragmentos congelados, sem novos objetos permanentes.
-    const fx=this.add.graphics().setDepth(57);
-    fx.lineStyle(3,0xc3f5ff,0.95).strokeCircle(x,y,radius*0.68);
-    fx.lineStyle(1,0x83dfff,0.75).strokeCircle(x,y,radius);
-    for(let k=0;k<10;k++){
-      const angle=k*Math.PI/5;
-      const x1=x+Math.cos(angle)*11,y1=y+Math.sin(angle)*11;
-      const x2=x+Math.cos(angle)*radius*0.72,y2=y+Math.sin(angle)*radius*0.72;
-      fx.lineStyle(k%2?2:4,k%3?0xffffff:0x9be9ff,0.9);
-      fx.lineBetween(x1,y1,x2,y2);
+    // Estilhaçamento visual: pequenos cristais são lançados em todas as
+    // direções. A área de dano continua independente da quantidade de efeitos
+    // exibidos para que ondas cheias não prejudiquem o desempenho.
+    const fx=this.add.graphics({x,y}).setDepth(57);
+    fx.lineStyle(2,0xc7f7ff,0.92).strokeCircle(0,0,radius*0.28);
+    fx.lineStyle(1,0x70dfff,0.72).strokeCircle(0,0,radius*0.9);
+    this.tweens.add({targets:fx,alpha:0,scale:1.28,duration:270,
+      ease:'Cubic.Out',onComplete:()=>fx.destroy()});
+    this.russianShardVisualCount??=0;
+    const budget=Math.max(0,64-this.russianShardVisualCount);
+    const shards=russianShardVisuals(radius,Math.min(10,budget));
+    for(const [i,crystal] of shards.entries()){
+      const shard=this.add.graphics({x,y}).setDepth(58);
+      const w=crystal.width,h=crystal.length;
+      shard.fillStyle(i%3===0?0xffffff:i%2===0?0x80dbff:0xc3f7ff,0.98);
+      shard.fillTriangle(-w,2, w,2, 0,-h);
+      shard.lineStyle(1,0x2e92c5,0.95).strokeTriangle(-w,2,w,2,0,-h);
+      shard.setRotation(crystal.angle+Math.PI/2);
+      this.russianShardVisualCount++;
+      this.tweens.add({
+        targets:shard,
+        x:x+crystal.dx,y:y+crystal.dy,
+        alpha:0,scale:0.65,rotation:crystal.angle+Math.PI/2+0.25,
+        duration:crystal.duration,ease:'Cubic.Out',
+        onComplete:()=>{
+          shard.destroy();
+          this.russianShardVisualCount=Math.max(0,this.russianShardVisualCount-1);
+        },
+      });
     }
-    this.tweens.add({targets:fx,alpha:0,scale:1.2,duration:320,
-      onComplete:()=>fx.destroy()});
     // IDs estáveis: a própria reação pode eliminar outros alvos congelados.
     for(const uid of victims){
       const index=this.enemies.findIndex(e=>e.uid===uid);
