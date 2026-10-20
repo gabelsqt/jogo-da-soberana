@@ -48,20 +48,18 @@ test('cinco biografias provisórias aparecem em etapas e não substituem upgrade
   assert.match(scene,/option\.description/);
   assert.match(scene,/representativeStoryFor\(id,option\.level\)/);
 });
-test('expediente no computador: login e clique no site antes da visual novel',()=>{
-  const html=source('index.html'),menu=source('src/scenes/MenuScene.js'),scene=source('src/scenes/IntroScene.js');
-  assert.match(html,/id="work-login"/);
-  assert.match(html,/id="work-desktop"/);
-  assert.match(html,/id="work-news-shortcut"/);
-  assert.match(html,/id="player-name-input"/);
+test('nova abertura substitui login, preserva notícias e apresenta Zeca',()=>{
+  const menu=source('src/scenes/MenuScene.js'),scene=source('src/scenes/IntroScene.js');
   assert.match(menu,/this\.scene\.start\('IntroScene'/);
   assert.doesNotMatch(menu,/installNameGate/);
-  assert.match(scene,/installComputerLogin\(\)/);
-  assert.match(scene,/launch\.addEventListener\('click',this\.openNews\)/);
-  assert.match(scene,/login\.hidden=true;desktop\.hidden=false/);
-  assert.equal(introductionSlides('Duda').length*INTRO_PAGE_MS,24000);
-  assert.equal(introductionSlides('Duda')[1].speaker,'COMANDANTE ALIENÍGENA');
-  assert.match(introductionSlides('Duda')[5].title,/Duda/);
+  assert.doesNotMatch(scene,/installComputerLogin|openNewsButton/);
+  assert.match(scene,/assetUrl\('assets\/lideres\/br_retrato\.png'\)/);
+  assert.match(scene,/this\.music\.play\('news'\)/);
+  assert.match(scene,/playSfx\('introKey'/);
+  assert.equal(introductionSlides().length,5);
+  assert.ok(INTRO_PAGE_MS>0);
+  assert.equal(introductionSlides()[1].kind,'news');
+  assert.equal(introductionSlides().at(-1).id,'zeca');
 });
 test('telejornal sóbrio: paleta azul-noturno e cronômetro IBM Plex Mono',()=>{
   assert.equal(CUBO_COLORS.navy,0x0b1621);

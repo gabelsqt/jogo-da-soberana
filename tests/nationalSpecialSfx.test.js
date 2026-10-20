@@ -7,12 +7,12 @@ import {NATIONAL_SPECIAL_FILES,generateNationalSpecialSfx}
   from '../scripts/generate-national-special-sfx.mjs';
 import {SFX_FILES} from '../src/audio/sfx.js';
 
-test('onze sons nacionais retrô gerados em PCM mono 22.050 Hz, sem silêncio',()=>{
+test('quatorze sons retrô, incluindo teclas da introdução, em PCM mono 22.050 Hz',()=>{
  const dir=mkdtempSync(join(tmpdir(),'soberania-nacional-sfx-'));
  try{
    const sounds=generateNationalSpecialSfx(dir);
-   assert.equal(sounds.length,11);
-   assert.equal(readdirSync(dir).length,11);
+   assert.equal(sounds.length,14);
+   assert.equal(readdirSync(dir).length,14);
    const durations=[];
    for(const [key,name] of Object.entries(NATIONAL_SPECIAL_FILES)){
      assert.equal(SFX_FILES[key],name);
@@ -24,7 +24,7 @@ test('onze sons nacionais retrô gerados em PCM mono 22.050 Hz, sem silêncio',(
      assert.equal(wav.readUInt32LE(24),22050);
      assert.equal(wav.readUInt16LE(34),16,'16-bit container');
      assert.equal(wav.readUInt32LE(40),wav.length-44);
-     assert.ok(wav.length>6000,key);
+     assert.ok(wav.length>(key==='introKey'?1200:6000),key);
      let energy=0;
      for(let off=44;off<wav.length;off+=2){
        const v=wav.readInt16LE(off);energy+=v*v;
@@ -33,6 +33,9 @@ test('onze sons nacionais retrô gerados em PCM mono 22.050 Hz, sem silêncio',(
      durations.push(wav.length);
    }
    assert.ok(new Set(durations).size>4,'diferentes eventos têm durações distintas');
+   assert.ok(sounds.find(s=>s.id==='introKey').duration<0.08);
+   assert.ok(sounds.find(s=>s.id==='introAlert').duration>0.30);
+   assert.ok(sounds.find(s=>s.id==='introNotice').duration>0.20);
    const shot=sounds.find(s=>s.id==='krBasicShot');
    assert.ok(shot,'laser principal coreano sintetizado');
    assert.ok(shot.duration>=0.24&&shot.duration<=0.26,

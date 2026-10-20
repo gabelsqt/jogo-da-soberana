@@ -71,6 +71,9 @@ export const NATIONAL_SPECIAL_FILES=Object.freeze({
  krDiscoSpin:'28_kr_discoteca_giro_loop.wav',
  krLaserRicochet:'29_kr_ricochete_laser.wav',
  krBasicShot:'30_kr_tiro_laser_v2.wav',
+ introKey:'31_intro_tecla_retro.wav',
+ introAlert:'32_intro_plantao.wav',
+ introNotice:'33_intro_confirmacao.wav',
 });
 export function generateNationalSpecialSfx(outDir){
  mkdirSync(outDir,{recursive:true});
@@ -170,6 +173,28 @@ export function generateNationalSpecialSfx(outDir){
    const tail=.13*Math.sin(TAU*143*t)*Math.exp(-t*10);
    return laser+body+edge+attack+tail;
  },{seed:504,bit:12,echo:.04});
+ // Abertura — cada letra tem um clique tátil seco, sem melodia nem apito.
+ // O render é curto (~48ms) e o motor limita as vozes simultâneas a três.
+ put('introKey',.048,({t,noise,lp})=>{
+   const switchNoise=(noise*.11+lp*.47)*Math.exp(-t*110);
+   const mechanical=.29*wave(162,t,'triangle')*Math.exp(-t*125);
+   const plastic=.22*wave(280,t,'sine')*Math.exp(-t*95);
+   return switchNoise+mechanical+plastic;
+ },{seed:601,bit:11});
+ // Invasão noticiada: vinheta de alerta dramática, não infantil.
+ put('introAlert',.37,({t,d,noise,lp})=>{
+   const signal=.25*sweepWave(460,180,t,d,'triangle')*Math.exp(-t*2);
+   const urgency=.21*wave(137,t,'square')*Math.exp(-t*7);
+   const scan=(noise*.035+lp*.08)*Math.exp(-t*11);
+   return signal+urgency+scan;
+ },{seed:602,bit:12,echo:.10});
+ // Carimbo eletrônico da promoção; pulso grave, seco e com pequeno eco.
+ put('introNotice',.32,({t,d,noise,lp})=>{
+   const stamp=.42*sweepWave(270,86,t,d,'triangle')*Math.exp(-t*8);
+   const body=.30*wave(112,t,'sine')*Math.exp(-t*10);
+   const click=(noise*.08+lp*.20)*Math.exp(-t*35);
+   return stamp+body+click;
+ },{seed:603,bit:12,echo:.07});
  return results;
 }
 const script=fileURLToPath(import.meta.url);

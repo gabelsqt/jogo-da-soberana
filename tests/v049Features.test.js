@@ -23,22 +23,24 @@ test('nome: 40 opções brasileiras, gênero não requerido e persistência segu
   assert.equal(getSavedPlayerName(store),'Rafa');
   assert.equal(getSavedPlayerName(null),'');
 });
-test('intro legada mantém seis quadros até a revisão narrativa planejada',()=>{
-  const slides=introductionSlides('Rafa');
-  assert.equal(slides.length,6);
-  assert.equal(INTRO_PAGE_MS*slides.length,24000);
-  assert.equal(slides[1].speaker,'COMANDANTE ALIENÍGENA');
-  assert.match(slides[1].body,/braços abertos/);
-  assert.match(slides[2].body,/dia/);
-  assert.match(slides[4].body,/bolacha de biscoito/);
-  assert.match(slides[5].title,/Rafa/);
-  assert.match(slides[5].body,/mesários/);
+test('intro nova revela cláusula só depois da promoção e apresenta Zeca',()=>{
+  const slides=introductionSlides();
+  assert.equal(slides.length,5);
+  assert.ok(INTRO_PAGE_MS>=1400);
+  assert.equal(slides[0].kind,'email');
+  assert.match(slides[0].body,/MESÁRIO\*/);
+  assert.doesNotMatch(slides[0].body,/situações excepcionais/);
+  assert.match(slides[1].headline,/INVASÃO ALIENÍGENA/);
+  assert.match(slides[2].headline,/ELEIÇÕES SÃO CANCELADAS/);
+  assert.equal(slides[3].promotion,'GENERAL DE GUERRA');
+  assert.match(slides[3].footnote,/^\*/);
+  assert.match(slides[4].body,/Obuseiro é esse canhão/);
   const intro=readFileSync(new URL('../src/scenes/IntroScene.js',import.meta.url),'utf8');
-  assert.match(intro,/INTRO_PAGE_MS/);
-  assert.match(intro,/installComputerLogin/);
-  assert.match(intro,/openNewsButton/);
+  assert.match(intro,/this\.beginTyping/);
+  assert.match(intro,/this\.revealPromotion\(\)/);
   assert.match(intro,/this\.finish\(\)/);
   assert.match(intro,/this\.scene\.start\('GameScene'/);
+  assert.doesNotMatch(intro,/installComputerLogin|openNewsButton/);
 });
 test('escudo v0.49: raio 180%, visual e intercepção consistentes',()=>{
   assert.equal(CANNON_DOME_RADIUS,62*1.8);

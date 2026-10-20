@@ -32,6 +32,9 @@ const FILES=Object.freeze({
   krDiscoSpin:'28_kr_discoteca_giro_loop.wav',
   krLaserRicochet:'29_kr_ricochete_laser.wav',
   krBasicShot:'30_kr_tiro_laser_v2.wav',
+  introKey:'31_intro_tecla_retro.wav',
+  introAlert:'32_intro_plantao.wav',
+  introNotice:'33_intro_confirmacao.wav',
 });
 // Configuração reutilizável: novos efeitos podem definir suas faixas aqui.
 // [mínimo,máximo] em multiplicadores; 1 representa o áudio original.
@@ -40,6 +43,7 @@ export const SFX_VARIATIONS=Object.freeze({
   ruBasicShot:Object.freeze({pitch:Object.freeze([0.96,1.04]),volume:Object.freeze([0.95,1.05])}),
   // Laser coreano: variação audível de tom, com viés grave e volume controlado.
   krBasicShot:Object.freeze({pitch:Object.freeze([0.86,1.10]),volume:Object.freeze([0.94,1.06])}),
+  introKey:Object.freeze({pitch:Object.freeze([0.88,1.14]),volume:Object.freeze([0.89,1.05])}),
   explosion:Object.freeze({pitch:Object.freeze([0.75,1.25]),volume:Object.freeze([0.94,1.06])}),
   boss:Object.freeze({pitch:Object.freeze([0.85,1.15]),volume:Object.freeze([0.97,1.03])}),
 });
@@ -61,6 +65,8 @@ export function randomSfxVolumeScale(id,random=Math.random){
 }
 const clips=new Map(), lastPlayed=new Map();
 const activeCannonVoices=[];
+const activeTypingVoices=[];
+const MAX_TYPING_VOICES=3;
 const MAX_CANNON_VOICES=5;
 const activeLoops=new Map();
 let enabled=true,volume=0.24;
@@ -95,6 +101,20 @@ export function playSfx(id,{throttle=0,volumeScale=1}={}){
     sound.addEventListener('ended',()=>{
       const i=activeCannonVoices.indexOf(sound);
       if(i>=0)activeCannonVoices.splice(i,1);
+    },{once:true});
+  }
+  if(id==='introKey'){
+    // Digitador curto e musicalmente neutro: evita pilha de cliques.
+    for(let i=activeTypingVoices.length-1;i>=0;i--)
+      if(activeTypingVoices[i].ended||activeTypingVoices[i].paused)
+        activeTypingVoices.splice(i,1);
+    if(activeTypingVoices.length>=MAX_TYPING_VOICES){
+      const oldest=activeTypingVoices.shift();oldest.pause();oldest.currentTime=0;
+    }
+    activeTypingVoices.push(sound);
+    sound.addEventListener('ended',()=>{
+      const i=activeTypingVoices.indexOf(sound);
+      if(i>=0)activeTypingVoices.splice(i,1);
     },{once:true});
   }
   sound.volume=Math.max(0,Math.min(1,volume*volumeScale*randomSfxVolumeScale(id)));
