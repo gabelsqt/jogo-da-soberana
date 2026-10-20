@@ -80,6 +80,7 @@ import {createCuboNewsState,tickCuboNews,queueCuboNews} from '../gameplay/cuboNe
 import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
+import {MAX_ACTIVE_SPUTNIKS,sputnikTouchesEnemy,crystallizeSputnikEnemy,isSputnikCrystalized,sputnikShatterStats,sputnikPrimaryDamage} from '../gameplay/russianSputnik.js';
 import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Target} from '../gameplay/iceBreath.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
@@ -273,6 +274,7 @@ export class GameScene extends Phaser.Scene {
   clearDiscoGlobes() {
     for (const globe of this.discoGlobes ?? []) { globe.graphics.destroy(); globe.label.destroy(); }
     this.discoGlobes = [];
+    this.russianSputniks=[];
   }
 
   clearTestEnemies() {
@@ -2486,8 +2488,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   shatterRussianEnemy(enemy) {
-    const radius=this.combat.russianShatterRadius||0;
-    const damage=this.combat.russianShatterDamage||0;
+    const shatter=sputnikShatterStats(enemy,this.elapsed,
+      this.combat.russianShatterRadius||0,this.combat.russianShatterDamage||0,
+      this.specialBuild);
+    const {radius,damage}=shatter;
     if(!enemy||enemy.type===6||enemy.frozenUntil<=this.elapsed||
       !radius||!damage||enemy.russianShattered)return;
     enemy.russianShattered=true;
@@ -3040,7 +3044,9 @@ export class GameScene extends Phaser.Scene {
       if(!insideIceBreathCone(x,y,angle,enemy.sprite.x,enemy.sprite.y,
         enemyContactRadius(enemy.type)))continue;
       this.freezeRussianEnemy(enemy,this.combat.russianFreezeMs);
-      this.impactInvader(i,regularDamage,0,'#b9eeff',false);
+      this.impactInvader(i,
+        sputnikPrimaryDamage(enemy,this.elapsed,regularDamage,this.specialBuild),
+        0,'#b9eeff',false);
     }
   }
 
@@ -3586,7 +3592,7 @@ export class GameScene extends Phaser.Scene {
       const color=specialPalette(build.primary);
       if(shot.visual) {
         // Silhuetas simplificadas enquanto as sprites finais não existem.
-        const markers={br:'🎈',us:'🚀',ru:'❄',cn:'▣',jp:'✦'};
+        const markers={br:'🎈',us:'🚀',ru:'✧',cn:'▣',jp:'✦'};
         shot.specialMarker=this.add.text(shot.sprite.x,shot.sprite.y,
           markers[build.primary]||'✦',{
           fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',
@@ -3612,14 +3618,9 @@ export class GameScene extends Phaser.Scene {
   // Cada ativação resolve um único projétil híbrido, em fases finitas.
   detonateV1HybridSpecial(x,y,build) {
     const {br,us,ru,cn,jp}=build.stages;
-    // 1. Rússia congela primeiro e cria centros de atração para a detonação.
-    if(ru) {
-      const radius=Math.max(build.ruBurstRadius,build.cnDropRadius,build.usBlastRadius,65);
-      for(const enemy of this.enemies) {
-        if(Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y)<=radius+enemyContactRadius(enemy.type))
-          this.freezeRussianEnemy(enemy,build.ruFreezeMs);
-      }
-    }
+    // A Rússia instala um Sputnik persistente: congela por contato, sem
+    // explosão de dano própria. Outros países híbridos mantêm seus efeitos.
+    if(ru)this.createRussianSputnik(x,y,build);
     // 2. China distribui a CARGA do mesmo projétil, sem lançar drones auxiliares.
     if(cn) {
       const count=build.cnPayloads;
@@ -3632,7 +3633,7 @@ export class GameScene extends Phaser.Scene {
     }
     // 3. Explosão-base, fogos e estilhaços — cada país mantém seu dano próprio.
     if(br)this.createArraial(x,y);
-    if(ru)this.detonateRussianMatryoshka(x,y,build);
+    // Os combos russos dependem do tiro principal, não de detonação imediata.
     if(us) {
       const blastRadius=build.usBlastRadius,shockRadius=build.usShockRadius;
       for(let i=this.enemies.length-1;i>=0;i--){
@@ -3657,55 +3658,6 @@ export class GameScene extends Phaser.Scene {
       .setStrokeStyle(3,color,0.85).setDepth(55).setScale(0.25);
     this.tweens.add({targets:ring,scale:1.15,alpha:0,duration:360,
       onComplete:()=>ring.destroy()});
-  }
-
-  // Matryoshka: estilhaços atingem outros congelados e iniciam uma nova detonação,
-  // mas cada inimigo congelado pode explodir uma única vez por ativação.
-  detonateRussianMatryoshka(x,y,build) {
-    const alreadyBurst=new Set();
-    const queue=this.enemies.filter(enemy=>enemy.frozenUntil>this.elapsed &&
-      Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y)<build.ruBurstRadius+enemyContactRadius(enemy.type))
-      .map(enemy=>({uid:enemy.uid,x:enemy.sprite.x,y:enemy.sprite.y}));
-    if(!queue.length)this.pulseV1Area(x,y,build.ruBurstRadius,build.ruDamage,0x8ce6ff);
-    const visuals=this.add.graphics().setDepth(57);
-    let drawn=0;
-    while(queue.length) {
-      const pending=queue.shift(),uid=pending.uid;
-      if(alreadyBurst.has(uid))continue;
-      // Preserva a detonação mesmo se um estilhaço já matou o alvo congelado.
-      const frozen=this.enemies.find(enemy=>enemy.uid===uid);
-      alreadyBurst.add(uid);
-      const bx=frozen?.sprite.x ?? pending.x,by=frozen?.sprite.y ?? pending.y;
-      if(drawn++<16) {
-        visuals.lineStyle(2,0x9eeeff,0.8);
-        visuals.strokeCircle(bx,by,Math.min(28,build.ruBurstRadius*0.5));
-      }
-      const damaged=new Set();
-      for(let ray=0;ray<build.ruShards;ray++) {
-        const angle=Math.PI*2*ray/build.ruShards;
-        const length=build.ruBurstRadius*1.4;
-        const tx=bx+Math.cos(angle)*length,ty=by+Math.sin(angle)*length;
-        if(drawn<=16) {
-          visuals.lineStyle(1.5,0xd7faff,0.68);
-          visuals.lineBetween(bx,by,tx,ty);
-        }
-        for(const enemy of [...this.enemies]){
-          if(enemy.uid===uid||damaged.has(enemy.uid))continue;
-          if(!segmentHitsCircle(bx,by,tx,ty,enemy.sprite.x,enemy.sprite.y,
-            enemyContactRadius(enemy.type)+5))continue;
-          damaged.add(enemy.uid);
-          const stillFrozen=enemy.frozenUntil>this.elapsed;
-          const index=this.enemies.findIndex(e=>e.uid===enemy.uid);
-          if(index>=0)this.impactInvader(index,build.ruDamage,0,'#b4f1ff',false);
-          if(stillFrozen&&!alreadyBurst.has(enemy.uid))
-            queue.push({uid:enemy.uid,x:enemy.sprite.x,y:enemy.sprite.y});
-        }
-      }
-      const selfIndex=this.enemies.findIndex(enemy=>enemy.uid===uid);
-      if(selfIndex>=0)this.impactInvader(selfIndex,build.ruDamage,0,'#b4f1ff',false);
-    }
-    this.tweens.add({targets:visuals,alpha:0,duration:380,
-      onComplete:()=>visuals.destroy()});
   }
 
   createDiscoGlobe(x,y,build) {
@@ -4409,8 +4361,11 @@ export class GameScene extends Phaser.Scene {
             this.freezeRussianEnemy(enemy,this.combat.russianFreezeMs);
 
           }
+          const hitDamage=this.combat.russianFreezeMs>0
+            ?sputnikPrimaryDamage(enemy,this.elapsed,bullet.damage,this.specialBuild)
+            :bullet.damage;
           const destroyed = this.impactInvader(
-            j, bullet.damage, knockback, bullet.impactColor,
+            j, hitDamage, knockback, bullet.impactColor,
             true, this.combat.strategicRecoil ? 720 : 400,
           );
           if(bullet.usGrowthMax>1)
@@ -5032,7 +4987,7 @@ export class GameScene extends Phaser.Scene {
     this.updateHudText(this.statusText,clock + (remaining
       ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO'));
     if(this.specialLabel) {
-      const titles={br:'ARRAIAL',us:'CHOQUE E PAVOR',ru:'MATRYOSHKA',
+      const titles={br:'ARRAIAL',us:'CHOQUE E PAVOR',ru:'SPUTNIK',
         cn:'ENTREGA',jp:'DISCOTECA'};
       const base=titles[this.specialBuild.primary] || 'ESPECIAL';
       this.updateHudText(this.specialLabel,`DIR. ${base} — ${remaining?remaining.toFixed(1)+'s':'PRONTO'}`);
@@ -5128,6 +5083,7 @@ export class GameScene extends Phaser.Scene {
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += this.boss6IntroPaused?0:delta;
     this.updateDiscoGlobes();
+    this.updateRussianSputniks();
     // Amanhecer nos dez segundos finais; o Supremo congela o relógio e a imagem.
     if(this.dawnLayers?.length===4&&this.dawnLayers.every(Boolean)){
       const alphas=dawnLayerAlphas(this.waveDurationMs-this.elapsed);
