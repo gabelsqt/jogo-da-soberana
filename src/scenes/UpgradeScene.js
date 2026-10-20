@@ -260,8 +260,12 @@ export class UpgradeScene extends Phaser.Scene {
     const show=Boolean(key&&this.textures.exists(key));
     this.botecoPortraitFrame.setVisible(show);
     this.botecoPortrait.setVisible(show);
-    if(show)this.botecoPortrait.setTexture(id==='br'&&this.textures.exists('leader-br-dialogue')
-      ?'leader-br-dialogue':key);
+    if(show)this.botecoPortrait
+      .setTexture(id==='br'&&this.textures.exists('leader-br-dialogue')
+        ?'leader-br-dialogue':key)
+      // setTexture preserva a escala do placeholder (boteco-dia, 960×540):
+      // SEM setDisplaySize o retrato 128×128 aparece minúsculo.
+      .setDisplaySize(174,174);
     this.botecoLine.setX(show?620:W/2).setWordWrapWidth(show?530:740);
   }
   advanceBotecoDialogue(){
