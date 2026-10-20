@@ -34,7 +34,7 @@ export const WAVE0_EASY_PACING=Object.freeze({
 // Onda 1: primeiro combate após a introdução. Grupos menores, menos salvas
 // e voo progressivamente mais baixo. Não modifica as outras ondas/laboratórios.
 export const WAVE1_PACING = Object.freeze({
-  swarmTimes: Object.freeze([400,2300,4300,6400,8600,10800,13000]),
+  swarmTimes: Object.freeze([400,2300,4300,6400,8600,10800,12700]),
   swarmCounts: Object.freeze([4,5,5,5,5,6,6]),
   squadCounts: Object.freeze([3,4,4]),
   swarmPortalY: 120,
