@@ -35,3 +35,27 @@ export function iceBreathMotes(angle,elapsed,count=44){
   }
   return particles;
 }
+
+/**
+ * Base fixa do sopro, independente do dano das balas e dos estilhaços.
+ * Contra o Tipo 6 existe uma parcela adicional de perfuração para compensar
+ * os quatro módulos protegidos e o HP escalado pela build.
+ */
+export const ICE_BREATH_BASE_DAMAGE=4;
+export const ICE_BREATH_BOSS_BASE_DAMAGE=24;
+export function iceBreathTickDamage(basicDamage=1,isType6=false){
+  const scaled=Math.max(0,Number(basicDamage)||0)*0.45;
+  return ICE_BREATH_BASE_DAMAGE+scaled+
+    (isType6?ICE_BREATH_BOSS_BASE_DAMAGE:0);
+}
+
+/**
+ * O Tipo 6 ocupa uma barra larga: testar apenas o centro da nave perde os
+ * quatro módulos. Cada retângulo colidível é testado individualmente; a
+ * barreira continua absorvendo apenas UM hit por ciclo de sopro.
+ * `rects` vem de type6TargetRects (só módulos vivos/núcleo aberto).
+ */
+export function iceBreathType6Targets(ox,oy,angle,rects){
+  return rects.filter(rect=>insideIceBreathCone(ox,oy,angle,
+    rect.x,rect.y,Math.min(rect.halfWidth,rect.halfHeight)));
+}
