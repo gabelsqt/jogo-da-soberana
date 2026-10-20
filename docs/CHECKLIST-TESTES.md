@@ -334,3 +334,14 @@
 - [ ] Rússia: destruir um inimigo ainda congelado provoca explosão de gelo que causa dano próximo (níveis 1/3/5/7/10: 44/60/76/96/120 px, dano 2/3/4,5/6/9). Não estilhaçar depois de descongelar.
 - [ ] Estilhaçamentos em cadeia não travam nem afetam indevidamente o boss Tipo 6; Matryoshka, Supremo e builds híbridas com Coreia/China continuam funcionando.
 - [ ] Executar `npm test` (russianFrost, type6Boss, balance069Plus e regressão completa), `npm run build`, `npm run dev`. **Ainda pendentes** neste ambiente.
+
+
+## v0.71 — tela inicial limpa e música recolhível
+- [ ] Menu inicial apresenta panorama do Rio **sem faixas Cubo News nem painel central opaco**; não há escurecimento geral cobrindo a pixel art.
+- [ ] Título, subtítulo e dois botões de navegação legíveis sobre o céu, sem cobrir o Cristo Redentor ou elementos importantes. Conferir aspecto em desktop, tela pequena e proporção responsiva.
+- [ ] **COMEÇAR CAMPANHA** abre a introdução/campanha; **TESTAR UPGRADES** abre o laboratório V1; teclas **ENTER** e **U** continuam funcionando.
+- [ ] Botão discreto **♫ MÚSICA** no canto inferior esquerdo; painel de volume começa **fechado**.
+- [ ] Clique em MÚSICA revela slider, porcentagem e mudo; clique e arraste mudam volume e persistem ao trocar de cena/recarregar navegador.
+- [ ] Controle de silenciar/ligar funciona sem alterar o volume selecionado; botão MÚSICA recolhe o painel novamente.
+- [ ] Versão **v0.71** no canto inferior direito, sem tarja jornalística, e controles de música da pausa não foram afetados.
+- [ ] Rodar `npm test` (inclui `tests/menuClean071.test.js`), `npm run build` e playtest visual em desktop/mobile. **Ainda pendentes no ambiente de edição.**
