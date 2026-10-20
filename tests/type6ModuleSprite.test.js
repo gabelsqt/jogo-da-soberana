@@ -7,6 +7,15 @@ import {TYPE6_MODULE_SHEET,type6ModuleFrame,type6ModuleUsesSheet,type6ModuleDama
 const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
 const encounter=readFileSync(new URL('../src/gameplay/type6Encounter.js',import.meta.url),'utf8');
 const visual=readFileSync(new URL('../src/gameplay/type6Visual.js',import.meta.url),'utf8');
+const atlas=readFileSync(new URL('../public/assets/inimigos/tipo6/modulos-alien.png',import.meta.url));
+test('atlas carregado pelo jogo tem PNG RGBA e 28 células de 212×260',()=>{
+ assert.equal(atlas.toString('hex',0,8),'89504e470d0a1a0a');
+ assert.equal(atlas.readUInt32BE(16),TYPE6_MODULE_SHEET.frameWidth*TYPE6_MODULE_SHEET.columns);
+ assert.equal(atlas.readUInt32BE(20),TYPE6_MODULE_SHEET.frameHeight*TYPE6_MODULE_SHEET.rows);
+ assert.equal(atlas[24],8,'atlas usa 8 bits por canal');
+ assert.equal(atlas[25],6,'atlas é RGBA, preservando transparência');
+ assert.match(scene,/assets\/inimigos\/tipo6\/modulos-alien\.png/);
+});
 test('tipo 6: atlas possui quatro linhas por sete quadros, com âncora estável',()=>{
  assert.equal(TYPE6_MODULE_SHEET.frameWidth*7,1484);
  assert.equal(TYPE6_MODULE_SHEET.frameHeight*4,1040);
