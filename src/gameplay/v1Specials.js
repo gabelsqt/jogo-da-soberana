@@ -1,5 +1,6 @@
 // Mecânicas puras dos especiais híbridos — sem dependências do Phaser.
 // 'jp' é o ID técnico legado da Coreia do Sul neste projeto.
+import {countryColor} from '../config/countryIdentity.js';
 export const SPECIAL_COUNTRIES = Object.freeze(['br','us','ru','cn','jp']);
 
 export function specialStage(level) {
@@ -57,5 +58,5 @@ export function v1SpecialConfig(state = {}) {
 }
 
 export function specialPalette(id) {
-  return {br:0xffc652,us:0xffad69,ru:0x8ae7ff,cn:0xffd665,jp:0xe68aff}[id] || 0x7be8ff;
+  return countryColor(id);
 }
