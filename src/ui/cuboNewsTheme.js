@@ -25,7 +25,13 @@ export function addCuboBroadcastFrame(scene,{
   footer='Cobertura especial da defesa brasileira',
   depth=40,shade=0,
 }={}){
-  const W=960,H=540,a=scene.add;
+  const W=960,H=540,objects=[];
+  // Rastrear cada parte da moldura para cutscenes poderem descartá-la
+  // completamente sem afetar a faixa Cubo News permanente do combate.
+  const a={
+    rectangle:(...args)=>{const item=scene.add.rectangle(...args);objects.push(item);return item;},
+    text:(...args)=>{const item=scene.add.text(...args);objects.push(item);return item;},
+  };
   if(shade>0)a.rectangle(W/2,H/2,W,H,CUBO_COLORS.graphite,shade).setDepth(depth-3);
   a.rectangle(W/2,27,W,54,CUBO_COLORS.navy,0.98)
     .setStrokeStyle(2,0x30495b).setDepth(depth);
@@ -54,6 +60,7 @@ export function addCuboBroadcastFrame(scene,{
   a.text(169,H-15,footer,{
     fontFamily:CUBO_FONT,fontSize:'12px',color:'#dce8ee',
   }).setOrigin(0,0.5).setDepth(depth+2);
+  return objects;
 }
 export function addCuboPanel(scene,{
   x=480,y=269,width=750,height=360,depth=41,
