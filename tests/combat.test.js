@@ -10,15 +10,15 @@ import {
 
 const rad = (deg) => deg * Math.PI / 180;
 
-test('mira só permite a metade superior, com 15 graus de margem', () => {
+test('mira só permite a metade superior, com 2 graus de margem', () => {
   assert.ok(Math.abs(restrictedAimAngle(480, 494, 480, 0) - rad(-90)) < 1e-9);
-  assert.ok(Math.abs(restrictedAimAngle(480, 494, 960, 494) - rad(-15)) < 1e-9);
-  assert.ok(Math.abs(restrictedAimAngle(480, 494, 0, 494) - rad(-165)) < 1e-9);
+  assert.ok(Math.abs(restrictedAimAngle(480, 494, 960, 494) - rad(-2)) < 1e-9);
+  assert.ok(Math.abs(restrictedAimAngle(480, 494, 0, 494) - rad(-178)) < 1e-9);
   const angles = [
     [800, 520], [0, 600], [960, 0], [480, 1000], [0, 0], [480, 100],
   ].map(([x, y]) => restrictedAimAngle(480, 494, x, y));
   for (const angle of angles) {
-    assert.ok(angle >= rad(-165) && angle <= rad(-15), `fora do arco: ${angle}`);
+    assert.ok(angle >= rad(-178) && angle <= rad(-2), `fora do arco: ${angle}`);
   }
 });
 
