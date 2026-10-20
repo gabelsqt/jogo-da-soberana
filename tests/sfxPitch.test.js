@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {randomSfxPlaybackRate,SFX_PITCH_RANGES} from '../src/audio/sfx.js';
+import {randomSfxPlaybackRate,randomSfxVolumeScale,randomSfxRange,SFX_PITCH_RANGES,SFX_VARIATIONS} from '../src/audio/sfx.js';
 test('pitch variation stays subtly near original',()=>{
   for(const [id,[low,high]] of Object.entries(SFX_PITCH_RANGES)){
     assert.equal(randomSfxPlaybackRate(id,()=>0),low);
@@ -10,4 +10,16 @@ test('pitch variation stays subtly near original',()=>{
   }
   assert.equal(randomSfxPlaybackRate('upgrade',()=>0),1);
   assert.equal(randomSfxPlaybackRate('shieldHit',()=>1),1);
+});
+
+test('generic per-effect volume profiles and default behavior',()=>{
+  for(const [id,variation] of Object.entries(SFX_VARIATIONS)){
+    const [low,high]=variation.volume;
+    assert.equal(randomSfxVolumeScale(id,()=>0),low);
+    assert.equal(randomSfxVolumeScale(id,()=>1),high);
+    assert.ok(low<=1&&high>=1);
+  }
+  assert.equal(randomSfxVolumeScale('upgrade',()=>0.4),1);
+  assert.equal(randomSfxRange([0.7,1.3],()=>0.5),1);
+  assert.throws(()=>randomSfxRange([2,1]),RangeError);
 });
