@@ -10,6 +10,8 @@ import {
 } from '../gameplay/representatives.js';
 import {addCuboBroadcastFrame,CUBO_FONT} from '../ui/cuboNewsTheme.js';
 import {assetUrl} from '../config/assetUrl.js';
+import {INTRO_CHAR_DELAY_MS} from '../gameplay/introScript.js';
+import {createDialogueTypewriter} from '../ui/dialogueTypewriter.js';
 
 export const BOTECO_CHAIR_X=Object.freeze([116,298,480,662,844]);
 export const BOTECO_PORTRAIT_Y=263;
@@ -138,6 +140,7 @@ export class UpgradeScene extends Phaser.Scene {
     this.completedWave=Number.isInteger(data.completedWave)?data.completedWave:
       this.campaign.choices.length;
     this.chosen=false;this.focused=null;
+    this.dialogueTyper=null;
   }
   preload(){
     this.load.image('boteco-dia',assetUrl('assets/cenario/boteco_dia.webp'));
@@ -152,6 +155,9 @@ export class UpgradeScene extends Phaser.Scene {
     preparePortraitTextures(this);
     prepareZecaDialoguePortrait(this);
     bindSceneMusic(this,'upgrades');
+    // Um controlador para todas as falas: Zeca, convidados e negociações.
+    this.dialogueTyper=createDialogueTypewriter(this,{delay:INTRO_CHAR_DELAY_MS});
+    this.events.once('shutdown',()=>this.dialogueTyper?.cancel());
     this.add.image(W/2,H/2,'boteco-dia').setDisplaySize(W,H).setDepth(1);
     // A arte diurna é central: cabeçalho discreto, sem cobrir a janela do Rio.
     addCuboBroadcastFrame(this,{
@@ -173,7 +179,13 @@ export class UpgradeScene extends Phaser.Scene {
     // não selecionados. O escolhido sobe acima dela por animação.
     this.focusDim=this.add.rectangle(W/2,H/2,W,H,0x030b15,0.83)
       .setDepth(33).setVisible(false).setInteractive();
-    this.focusDim.on('pointerdown',()=>{}); // Fundo não aceita o upgrade.
+    // Toque fora dos botões completa a frase, mas nunca aceita o upgrade.
+    this.focusDim.on('pointerdown',pointer=>{
+      if(pointer.leftButtonDown())this.dialogueTyper?.complete();
+    });
+    this.focusPanel.setInteractive().on('pointerdown',pointer=>{
+      if(pointer.leftButtonDown())this.dialogueTyper?.complete();
+    });
     this.focusPanel=this.add.rectangle(632,164,612,202,COLOR.panel,0.97)
       .setStrokeStyle(2,COLOR.amber).setDepth(43).setVisible(false);
     this.countryTag=makeText(this,348,74,'',13,'#e2a45e',555,
@@ -217,6 +229,12 @@ export class UpgradeScene extends Phaser.Scene {
       }
     });
     this.input.keyboard.on('keydown-ESC',()=>{if(!this.chosen)this.unfocus();});
+    this.input.keyboard.on('keydown-SPACE',event=>{
+      if(!this.introDialogueActive&&!this.focused)return;
+      event.preventDefault();
+      if(this.introDialogueActive)this.advanceBotecoDialogue();
+      else if(!this.chosen)this.dialogueTyper?.complete();
+    });
     this.input.keyboard.on('keydown-ENTER',()=>{
       if(this.introDialogueActive){this.advanceBotecoDialogue();return;}
       if(this.focused&&!this.chosen)this.selectUpgrade(this.focused);
@@ -256,7 +274,7 @@ export class UpgradeScene extends Phaser.Scene {
   renderBotecoDialogue(){
     const [speaker,line]=this.botecoPages[this.botecoPage];
     this.botecoSpeaker.setText(speaker);
-    this.botecoLine.setText(line);
+    this.botecoLine.setText('');
     const leaders={...Object.fromEntries(Object.entries(REPRESENTATIVES).map(
       ([id,representative])=>[representative.name.toUpperCase(),id])),
       'ZECA CARRARA':'br'};
@@ -273,12 +291,21 @@ export class UpgradeScene extends Phaser.Scene {
       // SEM setDisplaySize o retrato 128×128 aparece minúsculo.
       .setDisplaySize(174,174);
     this.botecoLine.setX(show?620:W/2).setWordWrapWidth(show?530:740);
+    this.botecoHint.setText('CLIQUE, ESPAÇO OU ENTER PARA COMPLETAR  ▶');
+    this.dialogueTyper.start(this.botecoLine,line,{
+      onComplete:()=>{
+        this.botecoHint?.setText('CLIQUE, ESPAÇO OU ENTER PARA CONTINUAR  ▶');
+      },
+    });
   }
   advanceBotecoDialogue(){
     if(!this.introDialogueActive)return;
+    // Na primeira interação, revelar o restante, sem pular a fala atual.
+    if(this.dialogueTyper?.complete())return;
     this.botecoPage++;
     if(this.botecoPage>=this.botecoPages.length){
       this.introDialogueActive=false;
+      this.dialogueTyper?.cancel();
       this.botecoOverlay.destroy(true);this.botecoOverlay=null;
       return;
     }
@@ -320,13 +347,15 @@ export class UpgradeScene extends Phaser.Scene {
     const option=current.option;
     this.countryTag.setText(REPRESENTATIVES[id].label+' • NÍVEL '+option.level);
     this.characterName.setText(REPRESENTATIVES[id].name??'Representante');
-    this.flavorText.setText('“'+representativeStoryFor(id,option.level)+'”');
+    this.dialogueTyper.start(this.flavorText,
+      '“'+representativeStoryFor(id,option.level)+'”');
     this.upgradeTitle.setText(option.title);
     this.upgradeDescription.setText(option.description);
     this.acceptButton.label.setText('Aceitar '+REPRESENTATIVES[id].label+' [ENTER]');
   }
   unfocus(){
     if(this.chosen||!this.focused)return;
+    this.dialogueTyper?.cancel();
     this.focused=null;this.focusDim.setVisible(false);
     this.overlayItems.forEach(item=>item.setVisible(false));
     for(const tile of this.portraits){
@@ -342,13 +371,18 @@ export class UpgradeScene extends Phaser.Scene {
     if(!next)return;
     this.chosen=true;
     playSfx('upgrade',{throttle:500});
-    this.flavorText.setText('“'+representativeLine(id,'accepted')+'”');
     this.acceptButton.disableInteractive();this.backButton.disableInteractive();
     this.acceptButton.label.setText('Parceria confirmada!');
-    this.time.delayedCall(1100,()=>{
-      if(this.scene.isActive())this.scene.start('GameScene',{
-        mode:`wave${next.choices.length}`,campaign:next,
-      });
+    // Não mudar de cena antes de o último diálogo estar totalmente legível.
+    this.dialogueTyper.start(this.flavorText,'“'+representativeLine(id,'accepted')+'”',{
+      delay:22,
+      onComplete:()=>{
+        this.time.delayedCall(850,()=>{
+          if(this.scene.isActive())this.scene.start('GameScene',{
+            mode:`wave${next.choices.length}`,campaign:next,
+          });
+        });
+      },
     });
   }
 }
