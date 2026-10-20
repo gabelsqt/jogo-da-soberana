@@ -48,7 +48,7 @@ export class LabSetupScene extends Phaser.Scene {
         const updated = changeLabLevel(this.config, country.id, 1);
         if (updated.levels[country.id] === this.config.levels[country.id] &&
           [4, 6].includes(this.config.levels[country.id])) {
-          this.infoText.setText('LIMITE DE DUAS TORRES. REDUZA OUTRO PAÍS ABAIXO DO NÍVEL 5.');
+          this.infoText.setText('LIMITE DE DOIS APOIOS. REDUZA OUTRO PAÍS ABAIXO DO NÍVEL 5.');
         } else this.setConfig(updated);
       }, 49);
     });
@@ -94,7 +94,7 @@ export class LabSetupScene extends Phaser.Scene {
       this.levelTexts[country.id].setText('' + this.config.levels[country.id]);
     }
     const towers = configuredTowerLoadout(this.config);
-    this.infoText.setText('TORRES: ' + towers.length + '/2  •  ESPECIAIS NÍVEL 4 ATIVOS AUTOMATICAMENTE' +
+    this.infoText.setText('APOIOS: ' + towers.length + '/2  •  ESPECIAIS NÍVEL 4 ATIVOS AUTOMATICAMENTE' +
       '  •  ARENA LIVRE: GERAR INIMIGOS MANUALMENTE  •  NÍVEIS 9–10 EM BREVE');
   }
 }
