@@ -1,3 +1,4 @@
+import {steerType2Rotation} from '../gameplay/type2Facing.js';
 import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
 import {playSfx} from '../audio/sfx.js';
 import { appendWaveResult } from '../gameplay/waveTestResults.js';
@@ -2024,6 +2025,7 @@ export class GameScene extends Phaser.Scene {
         this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type)+8);
         this.frostGraphics.lineStyle(1,0xe2ffff,0.72);
         this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type)+13);
+        if(enemy.type===2)enemy.sprite.rotation=steerType2Rotation(enemy.sprite.rotation,0,0,dt);
         // Congelar não dá imunidade às explosões que já estejam ativas.
         this.hitEnemyWithBlast(i);
         continue;
@@ -2421,6 +2423,12 @@ export class GameScene extends Phaser.Scene {
             enemy.sprite.play('tipo3_voo');
           }
         }
+      }
+      if(enemy.type===2){
+        // A ponta acompanha a velocidade enquanto manobra e volta para cima ao parar.
+        const vx=(enemy.sprite.x-previousX)/Math.max(dt,0.001);
+        const vy=(enemy.sprite.y-previousY)/Math.max(dt,0.001);
+        enemy.sprite.rotation=steerType2Rotation(enemy.sprite.rotation,vx,vy,dt);
       }
       this.updateType4Appearance(enemy,previousX,previousY,dt);
       this.updateEnemyHitVisual(enemy);
