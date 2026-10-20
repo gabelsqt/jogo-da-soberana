@@ -6,7 +6,7 @@ import {TYPE6_MODULE_SHEET} from '../gameplay/type6ModuleSprite.js';
 import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
 import {playSfx,setSfxLoopActive,stopRussianSfxLoops,stopNationalSpecialSfxLoops} from '../audio/sfx.js';
 import { appendWaveResult } from '../gameplay/waveTestResults.js';
-import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS } from '../gameplay/discoGlobe.js';
+import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS, DISCO_REFLECTION_COOLDOWN_MS } from '../gameplay/discoGlobe.js';
 import { animateDiscoReflectionArcs, DISCO_REFLECTION_MAX_VISUAL_RAYS } from '../gameplay/discoReflectionVfx.js';
 import { destroyMenuButton } from '../ui/menuButton.js';
 import { mountPauseHudButton } from '../ui/pauseHudButton.js';
@@ -4001,7 +4001,8 @@ export class GameScene extends Phaser.Scene {
       stroke:'#160d28',strokeThickness:3,
     }).setOrigin(0.5).setDepth(57);
     this.discoGlobes.push({x,y,build,graphics,label,
-      expiresAt:this.elapsed+DISCO_DURATION_MS,lastVisualAt:-Infinity});
+      expiresAt:this.elapsed+DISCO_DURATION_MS,
+      lastVisualAt:-Infinity,lastReflectAt:-Infinity});
     playSfx('krDiscoDeploy',{throttle:210,volumeScale:0.70});
     this.updateDiscoGlobes();
   }
@@ -4033,8 +4034,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   fireV1DiscoReflections(x,y,build,globe) {
-    // Limite visual apenas: cada reflexo causa o dano previsto mesmo com
-    // rajadas de 24 e independentemente de quantos arcos forem renderizados.
+    // Salvas limitadas pela cadência; raios compartilham um total fixo de dano.
+    if(globe && this.elapsed-(globe.lastReflectAt??-Infinity)<DISCO_REFLECTION_COOLDOWN_MS)return;
+    if(!this.enemies.length)return;
     const show=!globe||this.elapsed-globe.lastVisualAt>=80;
     if(globe&&show)globe.lastVisualAt=this.elapsed;
     const visualTargets=[];
@@ -4055,6 +4057,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
     if(visualTargets.length){
+      if(globe)globe.lastReflectAt=this.elapsed;
       // Os testes de dano executam o método isoladamente, sem módulo de áudio.
       if(typeof playSfx==='function')
         playSfx('krLaserRicochet',{throttle:105,volumeScale:0.55});
