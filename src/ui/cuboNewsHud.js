@@ -47,7 +47,7 @@ export function createCuboNewsHud(scene){
   if(versionBadge)versionBadge.hidden=true;
   // Esconde o relógio antes de exibir o HUD; evita um quadro visível
   // no destino enquanto o número ainda está no centro da abertura.
-  if(timer)timer.style.opacity='0';
+  if(timer){timer.style.visibility='hidden';timer.style.opacity='0';}
   root.hidden=false;
   broadcast.dataset.cuboNews='visible';
   scene.game.events.emit('cubo-layout-change');
@@ -62,7 +62,7 @@ export function createCuboNewsHud(scene){
     introActive=false;resetCamera();
     if(intro){intro.hidden=true;intro.classList.remove('cubo-dawn-traveling');}
     if(introNumber){introNumber.style.transform='';introNumber.style.opacity='';}
-    if(timer)timer.style.opacity='1';
+    if(timer){timer.style.opacity='1';timer.style.visibility='visible';}
     root.classList.remove('cubo-intro-running');
     done?.();
   }
@@ -74,7 +74,7 @@ export function createCuboNewsHud(scene){
     if(intro){intro.hidden=true;intro.classList.remove('cubo-dawn-traveling');}
     root.hidden=true;
     if(versionBadge)versionBadge.hidden=wasVersionHidden;
-    if(timer)timer.style.opacity='';
+    if(timer){timer.style.opacity='0';timer.style.visibility='hidden';}
     root.classList.remove('cubo-warning','cubo-intro-running');
     broadcast.dataset.cuboNews='hidden';
     scene.game.events.emit('cubo-layout-change');
@@ -104,7 +104,7 @@ export function createCuboNewsHud(scene){
     },
     beginDawnIntro(totalMs,onComplete){
       if(destroyed||introActive){onComplete?.();return;}
-      if(!intro||!introNumber||!timerReader){if(timer)timer.style.opacity='1';onComplete?.();return;}
+      if(!intro||!introNumber||!timerReader){if(timer){timer.style.opacity='1';timer.style.visibility='visible';}onComplete?.();return;}
       introActive=true;
       const value=formatCuboTime(totalMs);
       root.classList.add('cubo-intro-running');
@@ -112,7 +112,7 @@ export function createCuboNewsHud(scene){
       intro.hidden=false;
       introNumber.style.transform='translate(-50%, -50%)';
       introNumber.style.opacity='1';
-      timer.style.opacity='0';
+      timer.style.opacity='0';timer.style.visibility='hidden';
       introNumber.textContent=value;
       camera?.setZoom?.(DAWN_WORLD_ZOOM);
       scene.time.delayedCall(DAWN_HOLD_MS,()=>{
@@ -133,9 +133,10 @@ export function createCuboNewsHud(scene){
           onUpdate:()=>{
             introNumber.style.transform=
               `translate(-50%, -50%) translate(${motion.x}px, ${motion.y}px) scale(${motion.scale})`;
-            const reveal=clamp01((motion.progress-0.67)/0.33);
-            introNumber.style.opacity=String(1-reveal);
-            timer.style.opacity=String(reveal);
+            // Não revelar o relógio durante o deslocamento: a faixa HTML
+            // ainda pode reposicionar-se. A troca final é atômica, sem piscar.
+            introNumber.style.opacity='1';
+            timer.style.visibility='hidden';
           },
           onComplete:()=>finishIntro(onComplete),
         });
