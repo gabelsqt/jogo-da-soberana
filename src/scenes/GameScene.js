@@ -1,3 +1,4 @@
+import {playSfx} from '../audio/sfx.js';
 import { appendWaveResult } from '../gameplay/waveTestResults.js';
 import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS } from '../gameplay/discoGlobe.js';
 import { animateDiscoReflectionArcs, DISCO_REFLECTION_MAX_VISUAL_RAYS } from '../gameplay/discoReflectionVfx.js';
@@ -2521,7 +2522,7 @@ export class GameScene extends Phaser.Scene {
         this.removeEnemyBullet(i);
         if(!reflected){
           if(shot.cryoImpact){
-            if(this.shield>0)shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
+            if(this.shield>0)shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);playSfx('shieldBreak',{throttle:450});
             this.shield=0; // Gelo russo rompe o escudo e impede disparos.
             this.cannonFrozenUntil=Math.max(this.cannonFrozenUntil,this.elapsed+2000);
           }else if(shot.frostMs){
@@ -2888,6 +2889,7 @@ export class GameScene extends Phaser.Scene {
     const turbo = this.time.now < (this.brazilTurboUntil || 0) ? this.combat.brazilTurboMultiplier : 1;
     if (this.time.now - this.lastBasicFire < this.combat.basicInterval / ((1 + heat) * turbo)) return;
     this.lastBasicFire = this.time.now;
+    playSfx('cannon',{throttle:95,volumeScale:0.48});
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     const nextShot = this.basicShotCount + 1;
     if (this.isV1Campaign && this.combat.koreaContinuous) {
@@ -3309,6 +3311,7 @@ export class GameScene extends Phaser.Scene {
     if(!expected)return false;
     globalThis.document?.activeElement?.blur?.();
     this.supremeTyping=true;
+    playSfx('supreme',{throttle:1000});
     this.supremeCode='';
     this.supremeReadyHint?.setVisible(false);
     // A batalha e o cronômetro param por completo enquanto a palavra é
@@ -3743,6 +3746,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   explode(x, y) {
+    playSfx('explosion',{throttle:130});
     if (this.isV1Campaign && v1CountryLevels(this.combatCampaign).br >= 2) {
       this.createArraial(x, y);
       return;
