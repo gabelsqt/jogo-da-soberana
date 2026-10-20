@@ -73,6 +73,9 @@ export function mountPauseHudButton(scene, onPause, {
   const onClick=(event)=>{
     event.stopPropagation();
     event.preventDefault();
+    // Não deixar o botão focado: Espaço deve abrir o Supremo, não clicar
+    // novamente em PAUSAR após o jogador retomar a partida.
+    button.blur?.();
     if(scene.scene.isActive('GameScene')&&!scene.scene.isPaused('GameScene'))
       onPause();
   };
