@@ -18,7 +18,10 @@ export const TYPE6_LASER_CHARGE_SECONDS=10,TYPE6_LASER_FIRE_SECONDS=3;
 export const TYPE6_TURN_GAP_SECONDS=1;
 export function createType6State(country='alien',hp=600){
   const id=Object.hasOwn(TYPE6_PALETTES,country)?country:'alien';
-  const base=Math.max(160,Number(hp)||600),moduleHp=base*0.16;
+  const base=Math.max(160,Number(hp)||600);
+  // v0.66: módulos precisam resistir às builds com alta cadência/múltiplos tiros.
+  // Núcleo conserva HP original para não alongar o encerramento após os quatro módulos.
+  const moduleHp=base*0.36,coreHp=base*0.16;
   const modules=TYPE6_ROLES.map((role,i)=>({
     id:i,role,offsetX:TYPE6_OFFSETS[i],offsetY:0,halfWidth:57,halfHeight:42,
     hp:moduleHp,maxHp:moduleHp,shield:moduleHp*0.20,maxShield:moduleHp*0.20,
@@ -26,7 +29,7 @@ export function createType6State(country='alien',hp=600){
   }));
   const barrierMaxHp=moduleHp*0.30;
   return {
-    country:id,modules,coreHp:moduleHp,coreMaxHp:moduleHp,coreExposed:false,
+    country:id,modules,coreHp,coreMaxHp:coreHp,coreExposed:false,
     coreReveal:0,defeated:false,charging:false,chargeStarted:false,
     barrier:{hp:0,maxHp:barrierMaxHp,active:false,charging:false,progress:0,shatterAt:-Infinity},
     shift:0,dir:1,speed:38,edgeHold:0,attackClock:0,attackCycle:0,phaseAge:0,
