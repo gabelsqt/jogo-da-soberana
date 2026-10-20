@@ -3729,7 +3729,9 @@ export class GameScene extends Phaser.Scene {
     const progress=Math.max(0,Math.min(1,(sat.expiresAt-age)/1000));
     g.lineStyle(2,0xffda79,0.5).strokeCircle(0,0,R+7+Math.sin(phase*4)*2);
     // Anel fino de duração evita HUD extra sobre os inimigos.
-    g.lineStyle(2,0xd3faff,0.42).strokeArc(0,0,R+6,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(1,progress/5),false);
+    g.lineStyle(2,0xd3faff,0.42);
+    g.beginPath();g.arc(0,0,R+6,-Math.PI/2,
+      -Math.PI/2+Math.PI*2*Math.min(1,progress/5),false);g.strokePath();
   }
 
   updateRussianSputniks(){
