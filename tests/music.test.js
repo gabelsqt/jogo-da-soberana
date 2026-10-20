@@ -9,7 +9,17 @@ test('todas as trilhas existem; ondas e adversários escolhem a música correta'
   assert.deepEqual(Array.from({ length: 11 }, (_, i) => waveMusic('wave' + i)),
     ['early','early','early','early2','early3','middle','middle','middle','middle','middle','boss']);
   for (const id of ['us','ru','cn','jp']) assert.equal(waveMusic('wave11', { choices: [id] }), id);
-  assert.equal(waveMusic('wave11', { choices: ['br'] }), 'boss');
+  assert.equal(waveMusic('wave11', { choices: ['br'] }), 'brazilFinal');
+  assert.equal(waveMusic('wave11', { choices: Array(10).fill('br') }), 'brazilFinal');
+  assert.equal(waveMusic('wave11', {}), 'brazilFinal');
+  assert.equal(waveMusic('wave10', { choices: Array(10).fill('br') }), 'boss');
+  assert.equal(MUSIC.brazilFinal, 'Funk da vitória Brasileira.mp3');
+  // Quando um traidor foi sorteado, o funk não deve substituir o tema nacional.
+  for (const id of ['us', 'ru', 'cn', 'jp']) {
+    assert.equal(waveMusic('wave11', {
+      choices: ['br','br',id], selectedBetrayer: id,
+    }), id);
+  }
 });
 
 function fixture() {

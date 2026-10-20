@@ -10,6 +10,7 @@ export const MUSIC = Object.freeze({
   early3: 'Ondas Iniciais 3.mp3',
   middle: 'Ondas Intermediárias.mp3',
   boss: 'Chefão Alien - onda 10.mp3',
+  brazilFinal: 'Funk da vitória Brasileira.mp3',
   news: 'plantão cubo news Brasil.mp3',
   ru: 'traição Russa.mp3',
   us: 'traição americana.mp3',
@@ -26,7 +27,7 @@ export function waveMusic(mode, campaign = {}) {
   if (wave === undefined) return 'early';
   if (+wave === 11) {
     const { country } = resolveFinalOpponent(campaign);
-    return country === 'br' ? 'boss' : country;
+    return country === 'br' ? 'brazilFinal' : country;
   }
   if (+wave >= 10) return 'boss';
   if (+wave >= 5) return 'middle';

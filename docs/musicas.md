@@ -12,7 +12,8 @@ Arquivos originais em `public/assets/musicas/`; mapeamento em `src/audio/music.j
 | Onda 3 | Ondas Iniciais 2.mp3 |
 | Onda 4 | Ondas Iniciais 3.mp3 |
 | Ondas 5–9 | Ondas Intermediárias.mp3 |
-| Onda 10 / última ofensiva Full Brazil | Chefão Alien - onda 10.mp3 |
+| Onda 10 / chefe alienígena | Chefão Alien - onda 10.mp3 |
+| Onda 11 — caminho 100% brasileiro (invasão alienígena) | Funk da vitória Brasileira.mp3 |
 | Onda 11 contra EUA / Rússia / China / Coreia | traição americana / Russa / china / coreana.mp3 |
 | Tela de Game Over (derrotas comuns ou no chefe final) | Game Over.mp3 (uma vez, sem loop) |
 | Epílogo: colonização EUA | Colonização Americana.mp3 |
@@ -21,7 +22,7 @@ Arquivos originais em `public/assets/musicas/`; mapeamento em `src/audio/music.j
 | Epílogo: colonização Coreia | **Pendente**; usa temporariamente traição coreana.mp3 |
 | Epílogo: derrota Full Brazil | Game Over.mp3 (uma vez, sem loop) |
 
-Na onda 11 há um único traidor sorteado; usa sua faixa específica. A Coreia mantém o identificador interno legado `jp`.
+Na onda 11, o caminho integralmente brasileiro toca o funk durante toda a batalha; se houver um traidor sorteado, prevalece a faixa do país. A Coreia mantém o identificador interno legado `jp`. O funk não toca automaticamente nos epílogos.
 
 As trilhas de batalha e menus repetem em loop. A vinheta de notícias e Game Over
 não repetem. O Game Over entra quando a tela de derrota surge (após a animação
