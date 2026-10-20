@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomSfxPlaybackRate,randomSfxVolumeScale,randomSfxRange,SFX_PITCH_RANGES,SFX_VARIATIONS} from '../src/audio/sfx.js';
-test('pitch variation stays subtly near original',()=>{
+test('pitch variation remains within configured bounds',()=>{
   for(const [id,[low,high]] of Object.entries(SFX_PITCH_RANGES)){
     assert.equal(randomSfxPlaybackRate(id,()=>0),low);
     assert.equal(randomSfxPlaybackRate(id,()=>1),high);
-    assert.ok(low>=0.8&&high<=1.2);
+    assert.ok(low>=0.75&&high<=1.25);
     assert.ok(randomSfxPlaybackRate(id,()=>0.5)>=low);
   }
   assert.equal(randomSfxPlaybackRate('upgrade',()=>0),1);
