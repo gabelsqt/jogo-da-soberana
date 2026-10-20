@@ -3707,9 +3707,14 @@ export class GameScene extends Phaser.Scene {
     const vx = Math.cos(angle);
     const vy = Math.sin(angle);
     // Projéteis nascem mais perto da boca do novo canhão em sprites.
-    const muzzleDistance = 40;
-    const x = (origin?.x ?? CANNON.x + vx * muzzleDistance) + offsetX;
-    const y = origin?.y ?? CANNON.y + vy * muzzleDistance;
+    // O cano longo em sprites vai além do centro lógico antigo.
+    // Nasce na ponta visual (ângulo quantizado dos nove quadros), mas a
+    // direção/velocidade física do projétil continua seguindo a mira real.
+    const muzzleDistance = this.cannonBarrelArt ? 76 : 40;
+    const frame=Math.max(0,Math.min(8,Math.round((angle+Math.PI)/Math.PI*8)));
+    const visualAngle=this.cannonBarrelArt ? -Math.PI+frame*Math.PI/8 : angle;
+    const x = (origin?.x ?? CANNON.x + Math.cos(visualAngle)*muzzleDistance) + offsetX;
+    const y = origin?.y ?? CANNON.y + Math.sin(visualAngle)*muzzleDistance;
     const style = shotVisualFor(this.activeUpgradeIds());
     if (this.isV1Campaign && this.combat.transformed === 'br') style.color = 0x55e99e;
     if (this.isV1Campaign && this.combat.transformed === 'cn') style.color = centerGlow ? 0xffe56a : 0xff5651;
