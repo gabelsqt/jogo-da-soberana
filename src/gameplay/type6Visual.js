@@ -24,11 +24,17 @@ function drawEnergyIntake(g,x,y,time,radius,color,count=9,strength=1){
 }
 
 // Visual vetorial provisório desenhado em blocos, pronto para futura sprite sheet.
-export function drawType6Ship(g,state,ageMs=0) {
+export function drawType6Ship(g,state,ageMs=0,useHullSprite=false) {
   const p=TYPE6_PALETTES[state.country];
   const pulse=0.5+0.5*Math.sin(ageMs*0.008);
   const flashFor=t=>Number.isFinite(t)&&ageMs>=t?Math.max(0,1-(ageMs-t)/150):0;
   g.clear();
+  // O último frame do atlas já contém os destroços; a camada de módulos
+  // desaparece durante a sequência final, sem alterar o estado de combate.
+  if(useHullSprite&&state.defeated)return;
+  // Com um casco ilustrado, não desenhar placas procedurais por cima do PNG.
+  // Os módulos, o núcleo, a barreira e os efeitos ficam em uma camada acima.
+  if(!useHullSprite){
   // Silhueta blindada, construída em camadas industriais.
   g.fillStyle(0x080c14,0.92);
   g.fillRoundedRect(-TYPE6_WIDTH/2,-TYPE6_HEIGHT/2,TYPE6_WIDTH,TYPE6_HEIGHT,14);
@@ -84,6 +90,7 @@ export function drawType6Ship(g,state,ageMs=0) {
       g.fillStyle(0x1b2735).fillRect(x-13,-64,26,20);
       g.fillStyle(p.light,0.55+0.3*pulse).fillRect(x-5,-65,10,6);
     }
+  }
   }
   // Núcleo lacrado até os quatro módulos serem abatidos.
   g.fillStyle(0x060912,1).fillRoundedRect(-63,-54,126,106,14);
