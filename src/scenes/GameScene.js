@@ -302,6 +302,7 @@ export class GameScene extends Phaser.Scene {
     this.load.image('cannon-base',assetUrl('assets/canhao/base.png'));
     for(let i=0;i<9;i++){
       this.load.image('cannon-head-'+i,assetUrl('assets/canhao/head_'+i+'.png'));
+      this.load.image('cannon-barrel-'+i,assetUrl('assets/canhao/barrel_'+i+'.png'));
     }
     for(let i=0;i<DAWN_KEYS.length;i++){
       this.load.image(DAWN_KEYS[i],assetUrl('assets/cenario/amanhecer/'+DAWN_FILES[i]));
@@ -1308,7 +1309,8 @@ export class GameScene extends Phaser.Scene {
   createTurret() {
     const x=CANNON.x,y=CANNON.y;
     const spriteReady=this.textures.exists('cannon-base')&&
-      Array.from({length:9},(_,i)=>this.textures.exists('cannon-head-'+i)).every(Boolean);
+      Array.from({length:9},(_,i)=>this.textures.exists('cannon-head-'+i)&&
+        this.textures.exists('cannon-barrel-'+i)).every(Boolean);
     // Mantém o canhão vetorial como fallback até os recortes serem publicados.
     const base=this.add.rectangle(x,y+10,65,22,0x354958).setStrokeStyle(2,0xa9d0df).setDepth(21);
     const middle=this.add.rectangle(x,y+1,42,25,0x637b88).setStrokeStyle(2,0xc1d4db).setDepth(22);
@@ -1319,7 +1321,24 @@ export class GameScene extends Phaser.Scene {
       for(const part of [base,middle,this.barrel,pivot])part.setVisible(false);
       this.cannonBaseArt=this.add.image(x,y+7,'cannon-base')
         .setDisplaySize(104,48).setDepth(21);
-      this.cannonArtwork=this.add.image(x,y-19,'cannon-head-4')
+      // Extrai apenas o mecanismo inferior de cada head. O cano curto da
+      // imagem original não deve duplicar o barrel longo.
+      for(let i=0;i<9;i++){
+        const key='cannon-pivot-'+i;
+        if(this.textures.exists(key))continue;
+        const source=this.textures.get('cannon-head-'+i).getSourceImage();
+        const canvas=document.createElement('canvas');
+        canvas.width=source.width;canvas.height=source.height;
+        const ctx=canvas.getContext('2d');
+        // O aro circular começa no terço inferior do sprite 150×145.
+        const startY=Math.round(source.height*0.43);
+        ctx.drawImage(source,0,startY,source.width,source.height-startY,
+          0,startY,source.width,source.height-startY);
+        this.textures.addCanvas(key,canvas);
+      }
+      this.cannonBarrelArt=this.add.image(x,y-44,'cannon-barrel-4')
+        .setDisplaySize(82,87).setDepth(22);
+      this.cannonArtwork=this.add.image(x,y-19,'cannon-pivot-4')
         .setDisplaySize(70,68).setDepth(24);
     }
   }
@@ -5005,7 +5024,8 @@ export class GameScene extends Phaser.Scene {
     if(this.cannonArtwork){
       // A folha usa ângulos discretos; nada de girar e distorcer os pixels.
       const facing=Phaser.Math.Clamp(Math.round((this.aimAngle+Math.PI)/Math.PI*8),0,8);
-      this.cannonArtwork.setTexture('cannon-head-'+facing);
+      this.cannonArtwork.setTexture('cannon-pivot-'+facing);
+      this.cannonBarrelArt?.setTexture('cannon-barrel-'+facing);
     }
     if(this.isV1Campaign && this.combat.koreaContinuous)
       this.drawEncoreContinuousBeam(this.aimAngle,
@@ -5020,6 +5040,10 @@ export class GameScene extends Phaser.Scene {
       CANNON.x - Math.cos(this.aimAngle) * this.cannonRecoil,
       CANNON.y - 20 - Math.sin(this.aimAngle) * this.cannonRecoil,
     );
+    if(this.cannonBarrelArt)this.cannonBarrelArt.setPosition(
+      CANNON.x-Math.cos(this.aimAngle)*this.cannonRecoil,
+      CANNON.y-44-Math.sin(this.aimAngle)*this.cannonRecoil);
+
 
     this.updateEnemies(dt);
     if (this.gameOver) return;
