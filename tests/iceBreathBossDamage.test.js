@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ICE_BREATH_TICK_MS,iceBreathTickDamage,iceBreathType6Targets,
+  iceBreathType6Target,
 } from '../src/gameplay/iceBreath.js';
 import {v1CombatStats} from '../src/gameplay/v1Upgrades.js';
 import {finaleBossHp} from '../src/gameplay/finaleBalance.js';
@@ -30,6 +31,32 @@ test('o cone encontra módulos laterais do Tipo 6 mesmo sem acertar o centro',()
   assert.ok(!hit.some(rect=>rect.id===3),'o cone não atinge o lado oposto');
 });
 
+test('sopro concentra dano em somente um módulo mesmo se o cone cobrir vários',()=>{
+  const boss=createType6State('alien',600);
+  const ox=480,oy=455,cx=480,cy=125;
+  const rects=type6TargetRects(boss,cx,cy);
+  const angle=-Math.PI/2;
+  const inside=iceBreathType6Targets(ox,oy,angle,rects);
+  assert.ok(inside.length>=2,'cone de frente cobre módulos próximos');
+  const target=iceBreathType6Target(ox,oy,angle,rects);
+  assert.ok(target,'existe alvo de frente');
+  const before=rects.map(rect=>boss.modules[rect.id].shield);
+  type6Damage(boss,target.id,iceBreathTickDamage(russian.basicDamage,true));
+  const changed=boss.modules.filter((module,i)=>module.shield!==before[i]);
+  assert.equal(changed.length,1,'a névoa não dá vários hits diretos por tick');
+});
+
+test('mira escolhe o módulo mais alinhado, e não o primeiro listado',()=>{
+  const boss=createType6State('alien',600);
+  const rects=type6TargetRects(boss,480,125);
+  for(const module of [rects[0],rects[1],rects[2],rects[3]]){
+    const ox=480,oy=455;
+    const angle=Math.atan2(module.y-oy,module.x-ox);
+    const hit=iceBreathType6Target(ox,oy,angle,rects);
+    assert.equal(hit?.id,module.id);
+  }
+});
+
 for(const mode of ['wave10','wave11']){
   test('Rússia nível 10 pode destruir barreira, módulos e núcleo Tipo 6 em 30 s ('+mode+')',()=>{
     const baseHp=finaleBossHp(mode,russian,1);
@@ -51,20 +78,16 @@ for(const mode of ['wave10','wave11']){
       // módulos e, por último, no núcleo exposto.
       const objective=rects.find(rect=>rect.id===3)??rects[0];
       const angle=Math.atan2(objective.y-oy,objective.x-ox);
-      const targets=iceBreathType6Targets(ox,oy,angle,rects);
-      if(!targets.length)continue;
-      if(boss.barrier.active&&boss.barrier.hp>0){
-        type6Damage(boss,targets[0].id,d);
-      }else{
-        for(const rect of targets){
-          type6Damage(boss,rect.id,d);
-          if(boss.defeated)break;
-        }
-      }
+      const target=iceBreathType6Target(ox,oy,angle,rects);
+      if(!target)continue;
+      // Um único dano por tick, inclusive quando mais de um módulo está no
+      // cone. Não multiplicar dano da névoa conforme a largura do chefão.
+      type6Damage(boss,target.id,d);
       if(boss.defeated){defeatedAt=(tick+1)*ICE_BREATH_TICK_MS;break;}
     }
     assert.ok(boss.defeated,
       'não derrotou Tipo 6 em 30 s; HP do chefe '+baseHp);
+    assert.ok(defeatedAt>20000,'o chefão não deve cair em segundos');
     assert.ok(defeatedAt<=30000);
     assert.ok(boss.modules.every(module=>module.broken));
     assert.equal(boss.coreHp,0);
