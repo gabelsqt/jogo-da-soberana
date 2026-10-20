@@ -14,8 +14,8 @@ import { preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import { assetUrl } from '../config/assetUrl.js';
 import { preloadMechSprites, createMechSprites } from '../gameplay/mechSpriteMounts.js';
 import {
-  SWARM_DANCES, SWARM_ENTRIES, WAVE0_EASY_PACING,
-  STANDARD_INVADER_FLIGHT_FACTOR,
+  SWARM_DANCES, SWARM_ENTRIES, WAVE0_EASY_PACING, WAVE1_PACING,
+  wave1FormationShooter, STANDARD_INVADER_FLIGHT_FACTOR,
   getV035WaveEvents, swarmDanceCenter, swarmDancePosition,
   tacticalFormationOffset, tacticalManeuverPosition, tacticalAttackPosition,
   chooseGroupDefenseTarget,
@@ -1459,6 +1459,7 @@ export class GameScene extends Phaser.Scene {
     const kind = type === 1 ? 'swarm' : 'tactical';
     const early=/^wave[012]$/.test(this.mode);
     const wave0=this.mode==='wave0';
+    const wave1=this.mode==='wave1';
     // Onda 0 possui cinco posições específicas; o encaixe nos três
     // corredores históricos impediria que aparecessem cinco portais.
     const center=wave0&&Number.isFinite(centerX)
@@ -1471,10 +1472,13 @@ export class GameScene extends Phaser.Scene {
         (early ? (kind==='swarm'?3.5:4.0) : (kind==='swarm'?5.0:5.3))
         /STANDARD_INVADER_FLIGHT_FACTOR,
       holdDuration:wave0?WAVE0_EASY_PACING.holdDuration:early?1.15:1.35,
-      portalY: type===1?68:125,
+      portalY:wave1?(type===1?WAVE1_PACING.swarmPortalY:WAVE1_PACING.tacticalPortalY)
+        :type===1?68:125,
+      lowFlight:wave1,
       finalFormation: kind==='tactical'?'triangle':'square',
       pattern: kind === 'swarm'
-        ? SWARM_DANCES[(this.eventsSpawned||0)%SWARM_DANCES.length] : 'tactical',
+        ? (wave1?(this.eventsSpawned%2?'lowSweep':'lowZigzag')
+          :SWARM_DANCES[(this.eventsSpawned||0)%SWARM_DANCES.length]) : 'tactical',
       entry: 'together', // formação coesa, jamais naves dispersas
       direction: Phaser.Math.Between(0, 1) ? 1 : -1,
       attackStartAge: null,
@@ -2069,10 +2073,12 @@ export class GameScene extends Phaser.Scene {
         const shotDelay=this.mode==='wave0'
           ? WAVE0_EASY_PACING.firstShotDelay+
             enemy.formationIndex*WAVE0_EASY_PACING.shotStagger
-          : 0.40;
+          : this.mode==='wave1'?0.7:0.40;
         if(!enemy.formationShotFired&&enemy.phaseAge>=shotDelay){
           enemy.formationShotFired=true;
-          this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+          if(this.mode!=='wave1'||
+            wave1FormationShooter('swarm',enemy.formationIndex,group.count))
+            this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
         }
         if(enemy.phaseAge>=group.holdDuration){
             if (!group.target) {
@@ -2119,9 +2125,13 @@ export class GameScene extends Phaser.Scene {
         }
         if(!enemy.formationShotFired&&enemy.phaseAge>=0.65){
           enemy.formationShotFired=true;
-          this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
-          // Segunda ogiva da salva, em pequena defasagem.
-          this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+          if(this.mode!=='wave1'||
+            wave1FormationShooter('tactical',enemy.formationIndex,group.count)){
+            this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+            // Só as ondas 2+ recebem a segunda ogiva por nave.
+            if(this.mode!=='wave1')
+              this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+          }
         }
         if(enemy.phaseAge>=1.25){
           enemy.phase='tacticalAttack';enemy.phaseAge=0;
@@ -2136,7 +2146,9 @@ export class GameScene extends Phaser.Scene {
         enemy.sprite.setPosition(position.x, position.y);
         if (attackAge >= group.attackDuration) {
           this.removeEnemy(i);
-          this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE * (enemy.level > 1 ? 1.12 : 1));
+          this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE *
+            (this.mode==='wave1'?WAVE1_PACING.impactDamageMultiplier:1) *
+            (enemy.level>1?1.12:1));
           if (this.gameOver) return;
           continue;
         }
@@ -2334,7 +2346,9 @@ export class GameScene extends Phaser.Scene {
       } else if (enemy.phase === 'dive') {
         if (this.moveAlongRoute(enemy, dt)) {
           this.removeEnemy(i);
-          this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE * (enemy.level > 1 ? 1.12 : 1));
+          this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE *
+            (this.mode==='wave1'?WAVE1_PACING.impactDamageMultiplier:1) *
+            (enemy.level>1?1.12:1));
           if (this.gameOver) return;
           continue;
         }
@@ -2447,12 +2461,14 @@ export class GameScene extends Phaser.Scene {
       const projectile = this.add.rectangle(x,y,16.5,16.5,ENEMY_SHOT_COLOR)
         .setStrokeStyle(2,0xfff5bc).setDepth(28);
       const projectilePace=this.mode==='wave0'&&enemy.type===1
-        ?WAVE0_EASY_PACING.bulletSpeedMultiplier:1;
+        ?WAVE0_EASY_PACING.bulletSpeedMultiplier
+        :this.mode==='wave1'&&enemy.type<=2?WAVE1_PACING.bulletSpeedMultiplier:1;
       this.enemyBullets.push({
         sprite: projectile,
         hp: 1,
         target,
-        damage:profile?.damage??(enemy.type<=2?14:ENEMY_BULLET_DAMAGE),
+        damage:profile?.damage??(this.mode==='wave1'&&enemy.type<=2
+          ?WAVE1_PACING.bulletDamage:enemy.type<=2?14:ENEMY_BULLET_DAMAGE),
         radius:8.25,
         vx: dx / distance * 160*(profile?.speedMultiplier??1)*projectilePace,
         vy: dy / distance * 160*(profile?.speedMultiplier??1)*projectilePace,
