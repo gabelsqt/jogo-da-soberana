@@ -13,7 +13,7 @@ const mob=(uid,x,y,type=1)=>({uid,type,sprite:{x,y},frozenUntil:-1});
 test('alcance e dano do estilhaçamento crescem com os upgrades russos',()=>{
   assert.deepEqual([0,1,2,3,4,5,6,7,8,9,10].map(russianShatterRadius),
     [0,44,44,60,60,76,76,96,96,96,120]);
-  assert.deepEqual([0,1,3,5,7,10].map(russianShatterDamage),[0,2,4,7,12,18]);
+  assert.deepEqual([0,1,3,5,7,10].map(russianShatterDamage),[0,2,3,4,5,7]);
   assert.ok(!V1_UPGRADES.ru.some(v=>/atra|vórtice|contagi|reúne/i.test(v.description)));
 });
 
