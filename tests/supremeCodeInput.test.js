@@ -10,8 +10,8 @@ const gameSource=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.u
 const a=gameSource.indexOf('  supremeExpectedCode() {');
 const z=gameSource.indexOf('  // Storyboards temporários',a);
 assert.ok(a>=0&&z>a,'métodos do protocolo disponíveis');
-const methods=new Function('supremeCodeFor','advanceSupremeCode','W','H',
-  'return ({'+gameSource.slice(a,z)+'});')(
+const SupremeMethods=new Function('supremeCodeFor','advanceSupremeCode','W','H',
+  'return class SupremeMethods {'+gameSource.slice(a,z)+'}')(
     supremeCodeFor,advanceSupremeCode,960,540);
 
 function scene(country='br',elapsed=26000){
@@ -38,7 +38,7 @@ function scene(country='br',elapsed=26000){
       return prompt;
     }},
   };
-  Object.assign(s,methods);
+  Object.setPrototypeOf(s,SupremeMethods.prototype);
   return {s,prompts,activated};
 }
 const event=(key,opts={})=>({
