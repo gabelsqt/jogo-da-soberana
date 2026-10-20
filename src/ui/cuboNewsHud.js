@@ -45,6 +45,9 @@ export function createCuboNewsHud(scene){
   const versionBadge=document.getElementById('build-version');
   const wasVersionHidden=versionBadge?.hidden??false;
   if(versionBadge)versionBadge.hidden=true;
+  // Esconde o relógio antes de exibir o HUD; evita um quadro visível
+  // no destino enquanto o número ainda está no centro da abertura.
+  if(timer)timer.style.opacity='0';
   root.hidden=false;
   broadcast.dataset.cuboNews='visible';
   scene.game.events.emit('cubo-layout-change');
@@ -59,7 +62,7 @@ export function createCuboNewsHud(scene){
     introActive=false;resetCamera();
     if(intro){intro.hidden=true;intro.classList.remove('cubo-dawn-traveling');}
     if(introNumber){introNumber.style.transform='';introNumber.style.opacity='';}
-    if(timer)timer.style.opacity='';
+    if(timer)timer.style.opacity='1';
     root.classList.remove('cubo-intro-running');
     done?.();
   }
@@ -101,7 +104,7 @@ export function createCuboNewsHud(scene){
     },
     beginDawnIntro(totalMs,onComplete){
       if(destroyed||introActive){onComplete?.();return;}
-      if(!intro||!introNumber||!timerReader){onComplete?.();return;}
+      if(!intro||!introNumber||!timerReader){if(timer)timer.style.opacity='1';onComplete?.();return;}
       introActive=true;
       const value=formatCuboTime(totalMs);
       root.classList.add('cubo-intro-running');
