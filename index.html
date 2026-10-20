@@ -249,7 +249,7 @@
         color: rgba(234, 246, 255, 0.77);
         text-shadow: 0.2cqw 0.2cqw #020916;
         filter: none;
-        transition: opacity 180ms ease-out;
+        transition: none;
       }
       #cubo-time-reader {
         display: inline-block;
@@ -359,7 +359,7 @@
         font-size:11.4cqw;font-weight:700;letter-spacing:-0.085em;
         font-variant-numeric:tabular-nums;color:rgba(220,232,238,.83);
         line-height:1;text-shadow:.14cqw .14cqw #020912;
-        filter:none;transition:opacity 180ms ease-out;
+        filter:none;transition:none;
       }
       #cubo-time-reader{display:inline-block;min-width:1.24em;text-align:right}
       .cubo-dawn-frame {
@@ -377,6 +377,7 @@
       }
       #cubo-news-overlay.cubo-warning .cubo-crawl{background:#442b32}
       #cubo-news-overlay.cubo-warning .cubo-label{background:#7c3440}
+      #cubo-news-overlay .cubo-time {visibility:hidden;transition:none!important;}
       /* A opacidade do relógio durante a entrada é controlada no próprio #cubo-time.
          Esconder também o reader causava um salto/piscar no fim da transição. */
       /* Computador velho do expediente: login e clique no navegador fictício. */
