@@ -247,3 +247,12 @@
 - [ ] Testar ondas 0, 1, 9, 10 e 11; verificar principalmente chefes, timers e cenas especiais.
 - [ ] Rodar `npm test` e `npm run build` no clone; corrigir regressões antes de considerar estável.
 - [ ] Relatórios com HP/dano/interceptações, IA e lotes de simulação **ainda pendentes**.
+
+## v0.62 — telemetria de teste no Wave Maker (pendente de validação)
+- [ ] Teste jogável de onda registra relatório ao vencer e ao perder, sem publicar rascunhos.
+- [ ] RESULTADOS exibe os cinco testes mais recentes da onda atual e mensagem adequada se vazio.
+- [ ] Persistência de até 30 testes em localStorage; a lista permanece após recarregar o site.
+- [ ] Dano bruto, HP, escudo, tiros básicos, tiros inimigos, abates e interceptações instrumentadas têm valores coerentes.
+- [ ] Interceptações por outros mecanismos e abates de chefes requerem instrumentação adicional; não divulgar como contagens completas.
+- [ ] Confirmar estabilidade de testes nas ondas 0, 1, 9, 10 e 11, incluindo derrota por destruição, tempo e vitória.
+- [ ] Executar `npm test` e `npm run build` e verificar no navegador; não validados nesta sessão.
