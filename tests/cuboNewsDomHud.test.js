@@ -73,6 +73,7 @@ test('HUD de televisão IBM Plex Sans e zoom não criam GameObjects de interface
     const hud=createCuboNewsHud(scene);
     assert.equal(root.hidden,false);
     assert.equal(timer.style.opacity,'0','relógio começa oculto até a transição');
+    assert.equal(timer.style.visibility,'hidden');
     assert.equal(version.hidden,true);
     assert.equal(broadcast.dataset.cuboNews,'visible');
     assert.equal(introLabel.textContent,'Tempo até o amanhecer');
@@ -107,6 +108,7 @@ test('HUD de televisão IBM Plex Sans e zoom não criam GameObjects de interface
     assert.equal(camera.zoom,1);
     assert.equal(intro.hidden,true);
     assert.equal(timer.style.opacity,'1','relógio não pisca na chegada');
+    assert.equal(timer.style.visibility,'visible');
     hud.update(26000,30000,{headline:'AMANHECER!',subtitle:'O acordo segue válido.'});
     assert.equal(timerReader.textContent,'4');
     assert.equal(root.classList.contains('cubo-warning'),true);
