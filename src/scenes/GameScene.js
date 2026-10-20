@@ -54,7 +54,8 @@ import {
 import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import {addCuboBroadcastFrame} from '../ui/cuboNewsTheme.js';
-import {CANNON_DOME_RADIUS,cannonShieldColor,cannonDomeIntercept} from '../gameplay/shieldDome049.js';
+import {CANNON_DOME_RADIUS,cannonDomeIntercept} from '../gameplay/shieldDome049.js';
+import { installShieldSprites, updateShieldSprites, shatterShieldSprite } from '../gameplay/shieldSprites.js';
 import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
 import { resolveFinalOpponent, finalePrelude, FINALE_COUNTRIES } from '../gameplay/campaignFinale.js';
@@ -419,6 +420,7 @@ export class GameScene extends Phaser.Scene {
 
     this.createTurret();
     this.shieldGraphics = this.add.graphics().setDepth(23);
+    installShieldSprites(this);
     this.enemyHealthGraphics = this.add.graphics().setDepth(27);
     this.frostGraphics = this.add.graphics().setDepth(46);
     this.towerStatusGraphics = this.add.graphics().setDepth(35);
@@ -4186,14 +4188,19 @@ export class GameScene extends Phaser.Scene {
   damageCannon(amount) {
     if (this.tutorialComplete) return;
     this.lastDamageAt = this.time.now;
+    const oldShield=this.shield;
     if (this.mode === 'upgradeLab' || this.mode === 'lab') {
       // Laboratórios: escudo ainda pode sofrer dano, mas o teste não termina.
       this.shield = Math.max(0, this.shield - amount);
+      if(oldShield>0&&this.shield<=0)
+        shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
       this.cannonHealth = 100;
       return;
     }
     const result = applyShieldedHit(this.shield, this.cannonHealth, amount);
     this.shield = result.shield;
+    if(oldShield>0&&this.shield<=0)
+      shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
     this.cannonHealth = result.health;
     if (this.cannonHealth === 0) this.showDefeat();
   }
@@ -4202,8 +4209,11 @@ export class GameScene extends Phaser.Scene {
     if (target.kind === 'tower') {
       const tower = target.tower;
       if (!tower || tower.health <= 0) return;
-      const result = applyShieldedHit(tower.shield ?? 0, tower.health, amount);
+      const oldShield=tower.shield??0;
+      const result = applyShieldedHit(oldShield, tower.health, amount);
       tower.shield = result.shield;
+      if(oldShield>0&&tower.shield<=0)
+        shatterShieldSprite(this,tower.x,tower.y+10,tower.shieldRadius);
       tower.health = result.health;
       tower.lastDamageAt = this.time.now;
       if (tower.health === 0 && tower.sprite) tower.sprite.setAlpha(0.32);
@@ -4303,33 +4313,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   drawShield() {
-    const graphics = this.shieldGraphics;
+    const graphics=this.shieldGraphics;
     graphics.clear();
-    // Escudo universal — cúpula 180% maior e com colisão idêntica.
-    // Não aplicar quaisquer acessórios ou mecânicas de defesa por upgrade.
-    if(this.shield>0){
-      const fraction=this.shield/this.shieldMax;
-      const color=cannonShieldColor(this.shield,this.shieldMax);
-      graphics.lineStyle(5,color,0.47+0.43*fraction);
-      graphics.beginPath();
-      graphics.arc(CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS,Math.PI,Math.PI*2,false);
-      graphics.strokePath();
-      graphics.lineStyle(2,color,0.14+0.20*fraction);
-      graphics.beginPath();
-      graphics.arc(CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS+6,Math.PI,Math.PI*2,false);
-      graphics.strokePath();
-    }
-    const dome=(x,y,radius,shield,max)=>{
-      if(shield<=0)return;
-      graphics.lineStyle(3,cannonShieldColor(shield,max),0.8);
-      graphics.beginPath();graphics.arc(x,y,radius,Math.PI,Math.PI*2,false);
-      graphics.strokePath();
-    };
-    for (const tower of this.supportTowers) {
-      if (tower.health > 0) {
-        dome(tower.x, tower.y, tower.shieldRadius, tower.shield, tower.shieldMax);
-      }
-    }
+    // Cúpulas desenhadas por sprites de pixel art; colisões inalteradas.
+    updateShieldSprites(this,CANNON.x,CANNON.y+10,this.supportTowers);
     // Congelamento russo: cristal gigante envolve o canhão por 2 segundos.
     if(this.elapsed<this.cannonFrozenUntil){
       const x=CANNON.x,y=CANNON.y-14;
