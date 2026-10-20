@@ -1,6 +1,7 @@
 import {cannonSpritePose,CANNON_BARREL_DISPLAY_SIZE} from '../gameplay/cannonSpriteAim.js';
 import {steerType2Rotation} from '../gameplay/type2Facing.js';
 import {TYPE5_SPRITE,type5DamageFrame} from '../gameplay/type5Sprite.js';
+import {TYPE6_HULL_SHEET} from '../gameplay/type6HullSprite.js';
 import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
 import {playSfx} from '../audio/sfx.js';
 import { appendWaveResult } from '../gameplay/waveTestResults.js';
@@ -329,6 +330,13 @@ export class GameScene extends Phaser.Scene {
     this.load.spritesheet('tipo5_sheet',
       assetUrl('assets/inimigos/tipo5/spritesheet.png'),{
         frameWidth:TYPE5_SPRITE.frameWidth,frameHeight:TYPE5_SPRITE.frameHeight,
+      });
+    // Tipo 6 alienígena: casco em quatro estados, independente dos módulos.
+    // As quatro células possuem o mesmo alinhamento e não alteram hitboxes.
+    this.load.spritesheet(TYPE6_HULL_SHEET.key,
+      assetUrl('assets/inimigos/tipo6/casco-alien.png'),{
+        frameWidth:TYPE6_HULL_SHEET.frameWidth,
+        frameHeight:TYPE6_HULL_SHEET.frameHeight,
       });
     // Tipo 3: spritesheet 16-bit 4 x 3 (12 quadros de 128 px).
     // O PNG será colocado pelo desenvolvedor em public/assets/inimigos/tipo3/.
