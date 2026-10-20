@@ -2068,6 +2068,20 @@ export class GameScene extends Phaser.Scene {
         this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type)+8);
         this.frostGraphics.lineStyle(1,0xe2ffff,0.72);
         this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type)+13);
+        if(isSputnikCrystalized(enemy,this.elapsed)){
+          // Cristalizado é legível e diferente do congelamento comum:
+          // quatro pequenos diamantes dourados/cianos orbitam a nave.
+          const r=enemyContactRadius(enemy.type)+19;
+          for(let facet=0;facet<4;facet++){
+            const a=facet*Math.PI/2+this.elapsed*.001;
+            const px=enemy.sprite.x+Math.cos(a)*r;
+            const py=enemy.sprite.y+Math.sin(a)*r;
+            const color=facet%2?0xe8b84c:0xb4f5ff;
+            this.frostGraphics.fillStyle(color,.83);
+            this.frostGraphics.fillTriangle(px,py-5,px-3,py,px+3,py);
+            this.frostGraphics.fillTriangle(px-3,py,px+3,py,px,py+5);
+          }
+        }
         if(enemy.type===2)enemy.sprite.rotation=steerType2Rotation(enemy.sprite.rotation,0,0,dt);
         // Congelar não dá imunidade às explosões que já estejam ativas.
         this.hitEnemyWithBlast(i);
