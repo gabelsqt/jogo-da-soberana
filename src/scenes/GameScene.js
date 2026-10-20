@@ -723,16 +723,21 @@ export class GameScene extends Phaser.Scene {
       fontFamily:'monospace',fontSize:'17px',fontStyle:'bold',
       color:'#e3f1ff',align:'center',wordWrap:{width:810},lineSpacing:8,
     }).setOrigin(0.5).setDepth(212);
-    let button;
-    button=addMenuButton(this,{x:W/2,y:393,width:370,height:48,
-      text:'▶  ENFRENTAR ONDA 11',primary:true,depth:215,onClick:()=>{
-        [panel,title,lines,button,button.label].forEach(item=>item?.destroy());
+    let fightButton;
+    let surrenderButton;
+    const dismissPrelude = () => {
+      [panel,title,lines,fightButton,fightButton?.label,surrenderButton,surrenderButton?.label]
+        .forEach(item=>item?.destroy());
+    };
+    fightButton=addMenuButton(this,{x:W/2,y:393,width:370,height:48,
+      text:'▶  RESISTIR À TRAIÇÃO',primary:true,depth:215,onClick:()=>{
+        dismissPrelude();
         this.startWaveCountdown();
       }});
     if (!info.fullBrazil) {
-      const surrender=addMenuButton(this,{x:W/2,y:464,width:370,height:41,
+      surrenderButton=addMenuButton(this,{x:W/2,y:464,width:370,height:41,
         text:'ACEITAR SUBMISSÃO',depth:215,onClick:()=>{
-          [panel,title,lines,button,button.label,surrender,surrender.label].forEach(item=>item?.destroy());
+          dismissPrelude();
           this.scene.start('EndingScene',{campaign:this.finaleCampaign,won:false});
         }});
     }
