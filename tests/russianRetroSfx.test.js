@@ -34,7 +34,7 @@ test('sintetizador gera sete WAVs retro 16-bit, mono e não silenciosos',()=>{
 test('loops russos têm voz única e são interrompidos na pausa e troca de cena',()=>{
  const game=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
  const sfx=readFileSync(new URL('../src/audio/sfx.js',import.meta.url),'utf8');
- assert.match(game,/setSfxLoopActive\('ruSputnikHum',this\.russianSputniks\.length>0/);
+ assert.match(game,/setSfxLoopActive\('ruSputnikHum',\(this\.russianSputniks\?\.length\?\?0\)>0/);
  assert.match(game,/setSfxLoopActive\('ruIceBreath',breathActive/);
  assert.match(game,/this\.events\.once\('shutdown'/);
  assert.match(game,/this\.events\.on\('pause',stopRussianSfxLoops\)/);
@@ -54,4 +54,22 @@ test('todos os gatilhos russos têm efeitos e antirrepique',()=>{
  const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
  assert.match(pkg.scripts.predev,/generate-russian-sfx/);
  assert.match(pkg.scripts.prebuild,/generate-russian-sfx/);
+});
+
+test('regressão: ausência de Sputnik nunca interrompe partida de outros países',()=>{
+ const code=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
+ const createStart=code.indexOf('  create() {');
+ assert.ok(createStart>=0,'GameScene.create foi encontrado');
+ const sceneInit=code.slice(createStart,code.indexOf('  createRussianSputnik(',createStart));
+ assert.match(sceneInit,/this\.discoGlobes = \[\];/);
+ assert.match(sceneInit,/this\.russianSputniks = \[\];/);
+ assert.ok(sceneInit.indexOf('this.discoGlobes = [];') <
+   sceneInit.indexOf('this.russianSputniks = [];'));
+ assert.match(code,/this\.russianSputniks\?\?=\[\];/);
+ // Array ausente é tratada como vazia na linha de ativação do som.
+ assert.match(code,/\(this\.russianSputniks\?\.length\?\?0\)>0/);
+ assert.equal((undefined?.length??0)>0,false);
+ assert.equal((null?.length??0)>0,false);
+ assert.equal(([]?.length??0)>0,false);
+ assert.equal(([{}]?.length??0)>0,true);
 });

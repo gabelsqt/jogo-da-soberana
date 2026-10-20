@@ -448,6 +448,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.discoGlobes = [];
+    // Inicializar em TODAS as partidas, mesmo sem upgrades russos.
+    // O Phaser reutiliza a cena ao reiniciar: nunca herdar Sputniks anteriores.
+    this.russianSputniks = [];
     this.enemies = [];
     this.projectiles = [];
     this.visibleProjectileCount = 0;
@@ -3816,6 +3819,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   createRussianSputnik(x,y,build){
+    this.russianSputniks??=[];
     // Até três unidades ativas: sem crescimento infinito de objetos gráficos.
     while(this.russianSputniks.length>=MAX_ACTIVE_SPUTNIKS){
       const old=this.russianSputniks.shift();
@@ -5360,7 +5364,7 @@ export class GameScene extends Phaser.Scene {
     this.elapsed += this.boss6IntroPaused?0:delta;
     this.updateDiscoGlobes();
     this.updateRussianSputniks();
-    setSfxLoopActive('ruSputnikHum',this.russianSputniks.length>0,{volumeScale:0.30});
+    setSfxLoopActive('ruSputnikHum',(this.russianSputniks?.length??0)>0,{volumeScale:0.30});
     // Amanhecer nos dez segundos finais; o Supremo congela o relógio e a imagem.
     if(this.dawnLayers?.length===4&&this.dawnLayers.every(Boolean)){
       const alphas=dawnLayerAlphas(this.waveDurationMs-this.elapsed);
