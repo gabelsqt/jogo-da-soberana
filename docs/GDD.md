@@ -876,3 +876,12 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - A vida de **cada um dos quatro módulos** passa de 16% para **36% da vida-base do chefe** (2,25×). Escudos individuais e barreira seguem proporções existentes e, portanto, também ficam mais resistentes.
 - A vida do **núcleo** permanece em 16% da vida-base, para preservar um encerramento mais rápido após a destruição de todos os módulos.
 - Mantêm-se os papéis, sequência de ataques, hitboxes e mecânica do núcleo. Sujeito a playtest, especialmente com builds brasileiras avançadas.
+
+### v0.67 — reflexos curvos do globo coreano
+- **Apenas efeito visual:** raios refletidos pelo globo deixam de aparecer como linhas retas estáticas e passam a seguir **trajetórias quadráticas curvas**, com controle de arco e leves diferenças entre raios de uma salva.
+- Três camadas de luz: aura violeta ampla e translúcida, brilho lilás intermediário e núcleo estreito quase branco. Flash curto no globo, ponto luminoso em movimento e faíscas/anel de impacto ao chegar aos alvos.
+- Animação de aproximadamente **200 ms**, desenhada em poucos segmentos inteiros para preservar a leitura pixel art.
+- **O dano e a seleção de alvos são imediatos e permanecem inalterados.** O globo segue ativo por quatro segundos e o número de reflexos por tiro não muda.
+- Para desempenho, manter o limite visual de **até 8 trajetórias por pulso** e intervalo de 80 ms entre salvas visuais; reflexos adicionais **continuam causando todo o dano**.
+- Implementação: `src/gameplay/discoReflectionVfx.js` e integração em `fireV1DiscoReflections`.
+- Testes automatizados preparados mas **não executados neste ambiente**; validar comportamento e desempenho no navegador.
