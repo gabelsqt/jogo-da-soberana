@@ -2,7 +2,7 @@
 // Falhas de download não impedem o jogo de funcionar.
 import {assetUrl} from '../config/assetUrl.js';
 const FILES=Object.freeze({
-  cannon:'01_canhao_principal.wav',
+  cannon:'01_canhao_metralhadora_v3.wav',
   laser:'02_laser_alienigena.wav',
   shieldOn:'03_escudo_ativar.wav',
   shieldBreak:'04_escudo_estilhacar.wav',
@@ -38,6 +38,8 @@ export function randomSfxVolumeScale(id,random=Math.random){
   return randomSfxRange(SFX_VARIATIONS[id]?.volume,random);
 }
 const clips=new Map(), lastPlayed=new Map();
+const activeCannonVoices=[];
+const MAX_CANNON_VOICES=5;
 let enabled=true,volume=0.24;
 export function prepareSfx(){
   if(typeof Audio==='undefined')return;
@@ -57,6 +59,21 @@ export function playSfx(id,{throttle=0,volumeScale=1}={}){
   if(throttle&&now-(lastPlayed.get(id)??-Infinity)<throttle)return;
   lastPlayed.set(id,now);
   const sound=source.cloneNode();
+  if(id==='cannon'){
+    // Limita vozes simultâneas em builds de cadência extrema.
+    for(let i=activeCannonVoices.length-1;i>=0;i--){
+      if(activeCannonVoices[i].ended||activeCannonVoices[i].paused)activeCannonVoices.splice(i,1);
+    }
+    if(activeCannonVoices.length>=MAX_CANNON_VOICES){
+      const oldest=activeCannonVoices.shift();
+      oldest.pause();oldest.currentTime=0;
+    }
+    activeCannonVoices.push(sound);
+    sound.addEventListener('ended',()=>{
+      const i=activeCannonVoices.indexOf(sound);
+      if(i>=0)activeCannonVoices.splice(i,1);
+    },{once:true});
+  }
   sound.volume=Math.max(0,Math.min(1,volume*volumeScale*randomSfxVolumeScale(id)));
   sound.playbackRate=randomSfxPlaybackRate(id);
   sound.play()?.catch?.(()=>{});
