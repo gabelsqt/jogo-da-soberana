@@ -892,3 +892,13 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - `addMenuButton` produz quatro GameObjects independentes; limpar o botão implica destruir todos. `addCuboBroadcastFrame` agora devolve todos os objetos criados para permitir limpeza integral nas telas temporárias.
 - Limpeza equivalente do botão de continuar na cutscene anterior à onda 10.
 - Testes de regressão em `tests/finalePreludeCleanup.test.js` verificam resistência, submissão e Full Brazil. Não executar mudanças na campanha/arte.
+
+
+### Planejamento — Operação Desvio de Carga de Zeca, D1–D4 (19/10/2026; NÃO implementar)
+- **Direção geral aprovada (A):** substituir a progressão de resistência brasileira automática após derrota por uma mecânica narrativa na qual **Zeca recupera tecnologias confiscadas pelo país traidor** graças aos contatos de mecânico de táxis. A recuperação alimenta as novas tentativas contra **o mesmo traidor**.
+- **D1 A:** o estoque recuperável é composto **somente por melhorias adquiridas daquele país traidor que foram roubadas**; não criar novas melhorias aleatórias nem recuperar equipamentos de outros países.
+- **D2 C:** recuperação **cumulativa e crescente por derrota**: 1 melhoria na primeira derrota, 2 na segunda, 3 na terceira e assim sucessivamente, até esgotar o estoque. **Todas as melhorias roubadas elegíveis podem retornar progressivamente; o Supremo fica permanentemente excluído da recuperação**. Confirmar em rodada posterior os detalhes da ordem/progressão e como tratar a melhoria transformadora se houver diferença mecânica relevante; não interpretar como devolução de todo o estoque já na primeira derrota.
+- **D3 B:** Zeca recupera as melhorias **na mesma ordem em que foram adquiridas originalmente**, sem escolha do jogador ou sorteio.
+- **D4 B:** após recuperar todas as melhorias elegíveis, o jogador tem **uma última tentativa** contra o traidor, em vez de tentativas infinitas. Resultado da última derrota e comportamento após esgotar estoque serão detalhados em rodadas futuras.
+- **Proposta narrativa do usuário, ainda a detalhar:** perto da ação **ACEITAR DERROTA / VER FINAL** na tela após derrota, surge **um pequeno retrato do Zeca com expressão séria**, sugerindo discretamente que ele tem uma proposta. **Ao clicar no retrato**, Zeca apresenta a Operação Desvio de Carga. **Momento exato de aparição e interação ainda não confirmados**; não colocar a escolha de aceitar submissão em combate. Preservar a regra anterior: submissão oferecida inicialmente apenas na cutscene da traição, antes da luta.
+- **Status:** decisões e proposta narrativa registradas no GDD apenas. **Nenhum arquivo de código, versão, assets ou configuração de jogo deve ser alterado** nesta etapa.
