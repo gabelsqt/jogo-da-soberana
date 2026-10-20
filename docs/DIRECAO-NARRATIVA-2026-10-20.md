@@ -1,7 +1,7 @@
 # Direção narrativa — revisão de 20/10/2026
 
 **Projeto:** Soberania  
-**Estado:** decisões autorais registradas para futura revisão/implementação. **Nenhum código, arte, áudio ou duração foi alterado nesta etapa.**  
+**Estado:** decisões autorais registradas. Abertura/Zeca/alienígenas permanecem em planejamento; **apenas os textos do personagem Victor McDollar foram atualizados no código**, sem mudança de mecânicas, arte, áudio ou duração.  
 **Precedência:** estas decisões mais recentes substituem o material anterior que lhes for incompatível em `docs/GDD.md`, `src/gameplay/introScript.js`, `src/scenes/IntroScene.js` e demais diálogos/cenas.
 
 ## 1. Silêncio alienígena até a onda 10 — decisão aprovada
@@ -73,14 +73,17 @@ Os textos acima são um **rascunho sugerido**, não frases autoralmente aprovada
 - **A maioria de suas interações deve remeter ao tamanho/grandeza**, com variações criativas, em vez de repetir exatamente a mesma frase toda vez. Quando recebe uma proposta modesta, tende a ampliá-la.
 - **Voz:** confiante, otimista, ligeiramente espalhafatosa, nostálgica e cheia de entusiasmo comercial/diplomático. Humor na insistência em aumentar a escala e na comparação com os bons tempos.
 - **Traição sorteada continua independente:** Victor não é automaticamente traidor nem se torna suspeito de saída. Se for escolhido como traidor numa campanha, sua motivação e a mudança de tom serão reveladas apenas no momento narrativo adequado. Sua aparente boa intenção anterior deve funcionar tanto em campanhas em que ajuda como naquelas em que trai.
-- **Aplicação futura:** revisar falas de apresentação, ofertas de upgrades, respostas após ondas, histórias, conselhos, notícias e eventual confrontação final. As antigas piadas de sala VIP, milhas e assinatura premium podem ser reavaliadas, pois não expressam tão bem esse eixo da grandeza.
+- **Aplicação editorial:** apresentar Victor como uma caricatura de personalidade **à la Donald Trump**: política de espetáculo, autoconfiança enorme, superlativos, nostalgia da grandeza americana, disposição para construir **muros enormes como resposta recorrente a problemas**, desejo de ser maior e melhor que os concorrentes, e ofertas entusiasmadas que pareçam sinceramente prestativas. **Victor representa oficialmente os Estados Unidos e buscou o cargo por vontade e ambição próprias; não caiu ali por acidente, promoção errada, confusão ou milhas.**
+- **Eliminar definitivamente da biografia, do texto e das histórias de Victor** as piadas de sala VIP, aeroporto, passagens, milhas, pontos, bagagem e assinatura premium. Nada disso explica sua carreira. O humor vem de sua ideologia de grandeza, sua proposta de construir muros até contra naves voadoras e sua necessidade de declarar tudo 'o melhor'.
+- **Consistência:** o traidor continua sorteado, portanto nenhuma fala deve antecipar que Victor trairá; ele pode ser um aliado voluntariamente generoso mesmo sendo ambicioso. Não prometer um muro como mecânica efetiva de jogo antes de planejá-la.
+- **Textos implementados:** as cinco histórias de Victor, suas falas de oferta/aceitação e suas dez falas de upgrade foram reescritas em `src/gameplay/representatives.js` e `src/gameplay/upgradeDialogue.js`. Outras aparições (notícias, cutscenes e finais) permanecem para revisão editorial futura.
 - **Exemplos provisórios para o revisor (não são falas finais aprovadas):**
-  - Apresentação: “Victor McDollar, dos Estados Unidos! Eu vim oferecer ajuda. Ajuda grande! Como a gente fazia antigamente!”
-  - Oferta de armamento: “Esse canhão é ótimo. Sabe o que seria melhor? Um MUITO maior! Pode deixar comigo.”
-  - Upgrade: “Mais potência, mais alcance, mais explosão! Ah, isso me lembra os velhos tempos!”
+  - Apresentação: “Victor McDollar, representante dos Estados Unidos! Eu vim porque quis. E vou ajudar vocês a vencer. Grande! A maior vitória que já viram!”
+  - Oferta de armamento: “Esse canhão é ótimo. Sabe o que seria melhor? Um MUITO maior! E um muro enorme. Confie em mim: eu faço os melhores projetos!”
+  - Upgrade: “Mais potência! Mais alcance! Os melhores mísseis! É assim que a gente fazia nos tempos de grandeza!”
   - Após combate: “Excelente trabalho, general! Agora imagine tudo isso... só que dez vezes maior!”
-  - Comentário nostálgico: “Antigamente a gente fazia coisas enormes. Até os problemas eram maiores. Que saudade!”
-- **Estado:** registrado como direcionamento de escrita; nenhuma fala de código, mecânica ou asset alterado aqui.
+  - Comentário nostálgico: “Nos velhos tempos, nós éramos os melhores em tudo. Eu quero aquela grandeza de volta. E ninguém vai pensar pequeno comigo!”
+- **Estado:** história, apresentação e falas de upgrades alteradas na branch de trabalho, **sem modificações em mecânicas, assets ou outros personagens**.
 
 ## Fonte da decisão
 
