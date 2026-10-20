@@ -8,10 +8,12 @@ export function createDialogueTypewriter(scene,{
   onCharacter=()=>playSfx('introKey',{throttle:24,volumeScale:0.27}),
 }={}){
   let timer=null,target=null,chars=[],index=0,done=null,typing=false;
+  let generation=0;
   const stop=()=>{
     timer?.remove();
     timer=null;
     typing=false;
+    generation++;
   };
   const finish=()=>{
     stop();
@@ -28,10 +30,11 @@ export function createDialogueTypewriter(scene,{
       target.setText('');
       if(chars.length===0){finish();return;}
       typing=true;
+      const activeGeneration=generation;
       timer=scene.time.addEvent({
         delay:charDelay,loop:true,
         callback:()=>{
-          if(!typing)return;
+          if(!typing||activeGeneration!==generation)return;
           const char=chars[index++];
           target.setText(chars.slice(0,index).join(''));
           if(/\S/u.test(char))onCharacter(char);
