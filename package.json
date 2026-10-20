@@ -1,6 +1,6 @@
 {
   "name": "jogo-da-soberana",
-  "version": "0.64.0",
+  "version": "0.65.0",
   "private": true,
   "type": "module",
   "description": "Jogo arcade brasileiro de defesa antiaérea para a Soberana Game Jam.",
