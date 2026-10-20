@@ -1,3 +1,4 @@
+import {playSfx} from '../audio/sfx.js';
 import Phaser from 'phaser';
 import {bindSceneMusic} from '../audio/music.js';
 import {GAME_WIDTH as W,GAME_HEIGHT as H} from '../config/scenery.js';
@@ -291,6 +292,7 @@ export class UpgradeScene extends Phaser.Scene {
     const next=chooseV1Upgrade(this.campaign,id);
     if(!next)return;
     this.chosen=true;
+    playSfx('upgrade',{throttle:500});
     this.flavorText.setText('“'+representativeLine(id,'accepted')+'”');
     this.acceptButton.disableInteractive();this.backButton.disableInteractive();
     this.acceptButton.label.setText('Parceria confirmada!');
