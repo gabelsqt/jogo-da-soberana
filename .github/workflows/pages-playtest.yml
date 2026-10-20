@@ -60,6 +60,7 @@ jobs:
           tests/russianRetroSfx.test.js
           tests/nationalSpecialSfx.test.js
           tests/enemyBulletVisuals.test.js
+          tests/discoGlobe.test.js
       - name: Gerar HTML único do jogo
         run: npm run build:itch
       - name: Preparar página
