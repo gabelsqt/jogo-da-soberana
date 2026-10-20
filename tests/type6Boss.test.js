@@ -17,7 +17,9 @@ test('quatro módulos compartilhados e vida igual; núcleo permanece fechado',()
     assert.deepEqual(s.modules.map(m=>m.offsetX),TYPE6_OFFSETS);
     assert.equal(s.modules.length,4);
     assert.ok(s.modules.every(m=>m.hp===s.modules[0].hp));
-    assert.equal(s.coreMaxHp,s.modules[0].maxHp);
+    assert.equal(s.modules[0].maxHp,360);
+    assert.equal(s.coreMaxHp,160);
+    assert.ok(s.modules[0].maxHp>s.coreMaxHp);
     assert.equal(s.barrier.maxHp,s.modules[0].maxHp*0.30);
     assert.equal(s.barrier.active,false);
     assert.ok(s.modules.every(m=>m.shield>0));
