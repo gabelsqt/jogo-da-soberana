@@ -111,3 +111,9 @@ Acertos com dano efetivo produzem flash localizado no módulo/núcleo, tremor cu
 - Escudo principal: meio domo **invertido (∪)** desenhado sob a fortaleza. A colisão da barreira permanece a anterior para preservar o gameplay.
 - Efeito de partículas **puramente decorativo**: energia converge para cada módulo, inclusive os que não estão disparando, e para o núcleo central. Laser de cerco (99 px) e núcleo (116 px) exibem raio maior que os demais módulos (58 px).
 - A animação não rouba projéteis, não causa dano e não modifica regras de barreira, módulo ou núcleo.
+
+
+### Arte do casco v0.852 (20/10/2026)
+- A versão alienígena utiliza atlas RGBA de 4 quadros (`public/assets/inimigos/tipo6/casco-alien.png`): íntegro (0), avariado após dois módulos quebrados (1), núcleo exposto após quatro módulos destruídos (2), explosão final (3).
+- Casco em uma camada inferior ao núcleo e aos quatro módulos. Escudo do tipo 6 e absorção de energia permanecem independentes; visual não muda HP, hitboxes, ataques ou o cronômetro.
+- Versões traidoras continuam com cascos vetoriais até terem artes próprias.
