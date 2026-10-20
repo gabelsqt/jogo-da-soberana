@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   russianShatterRadius,russianShatterDamage,applyRussianFreeze,
-  russianShatterTargets,
+  russianShatterTargets,russianShardVisuals,
 } from '../src/gameplay/russianFrost.js';
 import { v1CombatStats, V1_UPGRADES } from '../src/gameplay/v1Upgrades.js';
 import { shotVisualFor, shotVfxFor } from '../src/gameplay/upgrades.js';
@@ -59,4 +59,29 @@ test('sopro gelado continua compatível com efeitos brasileiros e laser coreano'
  assert.match(scene,/shatterRussianEnemy\(enemy\)/);
  assert.doesNotMatch(scene,/spreadRussianCold\(/);
  assert.doesNotMatch(scene,/russianAttractRadius/);
+});
+
+test('cristais de gelo se espalham sem exceder o limite visual',()=>{
+  const values=[0,0.5,1,0.2,0.8,0.4];
+  let pointer=0;
+  const random=()=>values[(pointer++)%values.length];
+  const shards=russianShardVisuals(60,10,random);
+  assert.equal(shards.length,10);
+  for(const shard of shards){
+    assert.ok(Math.hypot(shard.dx,shard.dy)<=60);
+    assert.ok(Math.hypot(shard.dx,shard.dy)>=39);
+    assert.ok(shard.width>=3&&shard.width<=6);
+    assert.ok(shard.length>=9&&shard.length<=17);
+    assert.ok(shard.duration>=230&&shard.duration<=340);
+  }
+  assert.equal(russianShardVisuals(0,10).length,0);
+  assert.equal(russianShardVisuals(60,0).length,0);
+  assert.equal(russianShardVisuals(60,200).length,12);
+});
+test('dano radial russo permanece independente dos cristais visuais',()=>{
+ const source=mob(1,0,0),close=mob(2,20,0),far=mob(3,80,0);
+ applyRussianFreeze(source,0,1000);
+ assert.deepEqual(russianShatterTargets(source,[source,close,far],100,44),[2]);
+ // Mesmo sem partículas visuais em uma onda congestionada, o alvo é acertado.
+ assert.equal(russianShardVisuals(44,0).length,0);
 });
