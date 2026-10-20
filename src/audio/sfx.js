@@ -21,6 +21,16 @@ const FILES=Object.freeze({
   ruSputnikCollapse:'17_ru_pulso_colapso_v2.wav',
   ruIceBreath:'18_ru_sopro_congelante_loop_v2.wav',
   ruBasicShot:'19_ru_tiro_criogenico_v2.wav',
+  brBonfire:'20_br_fogueira_loop.wav',
+  brFireworkLaunch:'21_br_fogos_subida.wav',
+  brFireworkBurst:'22_br_fogos_estouro.wav',
+  usMissileLaunch:'23_us_missil_propulsao.wav',
+  usShockwave:'24_us_onda_choque.wav',
+  cnCargoDeploy:'25_cn_drones_carga.wav',
+  cnContainerImpact:'26_cn_container_impacto.wav',
+  krDiscoDeploy:'27_kr_bola_discoteca_ativar.wav',
+  krDiscoSpin:'28_kr_discoteca_giro_loop.wav',
+  krLaserRicochet:'29_kr_ricochete_laser.wav',
 });
 // Configuração reutilizável: novos efeitos podem definir suas faixas aqui.
 // [mínimo,máximo] em multiplicadores; 1 representa o áudio original.
@@ -112,6 +122,10 @@ export function setSfxLoopActive(id,active,{volumeScale=1}={}){
 export function stopRussianSfxLoops(){
   setSfxLoopActive('ruSputnikHum',false);
   setSfxLoopActive('ruIceBreath',false);
+}
+export function stopNationalSpecialSfxLoops(){
+  setSfxLoopActive('brBonfire',false);
+  setSfxLoopActive('krDiscoSpin',false);
 }
 export function setSfxVolume(value){
   volume=Math.max(0,Math.min(1,Number(value)||0));

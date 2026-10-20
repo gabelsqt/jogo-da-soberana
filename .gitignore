@@ -10,3 +10,6 @@ Thumbs.db
 
 # Arquivos WAV gerados antes de dev/build. O sintetizador é versionado.
 public/assets/sons/1[2-9]_ru_*.wav
+
+# Efeitos nacionais sintetizados automaticamente no predev/prebuild.
+public/assets/sons/2[0-9]_*.wav

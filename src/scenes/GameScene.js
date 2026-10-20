@@ -4,7 +4,7 @@ import {TYPE5_SPRITE,type5DamageFrame} from '../gameplay/type5Sprite.js';
 import {TYPE6_HULL_SHEET} from '../gameplay/type6HullSprite.js';
 import {TYPE6_MODULE_SHEET} from '../gameplay/type6ModuleSprite.js';
 import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
-import {playSfx,setSfxLoopActive,stopRussianSfxLoops} from '../audio/sfx.js';
+import {playSfx,setSfxLoopActive,stopRussianSfxLoops,stopNationalSpecialSfxLoops} from '../audio/sfx.js';
 import { appendWaveResult } from '../gameplay/waveTestResults.js';
 import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS } from '../gameplay/discoGlobe.js';
 import { animateDiscoReflectionArcs, DISCO_REFLECTION_MAX_VISUAL_RAYS } from '../gameplay/discoReflectionVfx.js';
@@ -280,6 +280,7 @@ export class GameScene extends Phaser.Scene {
     for(const sat of this.russianSputniks??[])sat.graphics?.destroy();
     this.russianSputniks=[];
     stopRussianSfxLoops();
+    stopNationalSpecialSfxLoops();
   }
 
   clearTestEnemies() {
@@ -371,9 +372,12 @@ export class GameScene extends Phaser.Scene {
     this.music = bindSceneMusic(this, waveMusic(this.mode, this.campaign));
     // Nunca deixar loops de sons russos tocando na pausa ou após trocar de cena.
     this.events.on('pause',stopRussianSfxLoops);
+    this.events.on('pause',stopNationalSpecialSfxLoops);
     this.events.once('shutdown',()=>{
       this.events.off('pause',stopRussianSfxLoops);
+      this.events.off('pause',stopNationalSpecialSfxLoops);
       stopRussianSfxLoops();
+      stopNationalSpecialSfxLoops();
     });
     this.input.mouse?.disableContextMenu();
 
@@ -3749,8 +3753,16 @@ export class GameScene extends Phaser.Scene {
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
     const target=specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
     this.lastSpecialFire=this.time.now;
-    // Não misturar o bip do especial genérico ao lançamento do Sputnik.
-    if(!this.isV1Campaign||this.specialBuild?.primary!=='ru')
+    // Som de lançamento por país. Som genérico apenas nos especiais legados.
+    // O impacto/suporte híbrido de outros países ocorre em detonateV1HybridSpecial.
+    const specialCountry=this.isV1Campaign?this.specialBuild?.primary:null;
+    if(specialCountry==='br')
+      playSfx('brFireworkLaunch',{throttle:190,volumeScale:0.70});
+    else if(specialCountry==='us')
+      playSfx('usMissileLaunch',{throttle:220,volumeScale:0.83});
+    else if(specialCountry==='cn')
+      playSfx('cnCargoDeploy',{throttle:200,volumeScale:0.68});
+    else if(!['ru','jp'].includes(specialCountry))
       playSfx('specialShot',{throttle:180,volumeScale:0.85});
     if (this.isV1Campaign && this.combat.brazilTurboMultiplier>1)
       this.brazilTurboUntil=this.time.now+5000;
@@ -3793,6 +3805,8 @@ export class GameScene extends Phaser.Scene {
     if(ru)this.createRussianSputnik(x,y,build);
     // 2. China distribui a CARGA do mesmo projétil, sem lançar drones auxiliares.
     if(cn) {
+      if(build.primary!=='cn')
+        playSfx('cnCargoDeploy',{throttle:230,volumeScale:0.55});
       const count=build.cnPayloads;
       for(let i=0;i<count;i++){
         const angle=-Math.PI/2+(i-1)*Math.PI*2/Math.max(3,count-1);
@@ -3800,6 +3814,8 @@ export class GameScene extends Phaser.Scene {
         const cx=x+Math.cos(angle)*offset,cy=y+Math.sin(angle)*offset;
         this.pulseV1Area(cx,cy,build.cnDropRadius,build.cnDamage,0xffd562);
       }
+      // Uma pancada por conjunto: não uma por subcarga.
+      playSfx('cnContainerImpact',{throttle:240,volumeScale:0.77});
     }
     // 3. Explosão-base, fogos e estilhaços — cada país mantém seu dano próprio.
     if(br)this.createArraial(x,y);
@@ -3814,6 +3830,8 @@ export class GameScene extends Phaser.Scene {
         else if(d<=shockRadius)this.impactInvader(i,build.usDamage*0.5,0,'#ffca83');
       }
       this.drawV1SpecialPulse(x,y,blastRadius,0xffa54d);
+      // O impacto principal e a onda secundária formam um único evento sonoro.
+      playSfx('usShockwave',{throttle:210,volumeScale:0.90});
     }
     // Sem componentes estrangeiros nem Arraial, preserva dano-base do especial.
     if(!br&&!us&&!ru&&!cn&&!jp)this.pulseV1Area(x,y,70,3,0x80e8ff);
@@ -3953,6 +3971,7 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(57);
     this.discoGlobes.push({x,y,build,graphics,label,
       expiresAt:this.elapsed+DISCO_DURATION_MS,lastVisualAt:-Infinity});
+    playSfx('krDiscoDeploy',{throttle:210,volumeScale:0.70});
     this.updateDiscoGlobes();
   }
 
@@ -4004,7 +4023,10 @@ export class GameScene extends Phaser.Scene {
         this.impactInvader(index,build.krReflectDamage,0,'#f1baff',false);
       }
     }
-    if(visualTargets.length)this.drawV1DiscoReflectionArcs(x,y,visualTargets);
+    if(visualTargets.length){
+      playSfx('krLaserRicochet',{throttle:105,volumeScale:0.55});
+      this.drawV1DiscoReflectionArcs(x,y,visualTargets);
+    }
   }
 
   pushV1EnemiesUp(x,y,radius,strength) {
@@ -4232,6 +4254,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   arraialFirework(x, y, hue, damaging = true) {
+    // Um estouro para a salva, limitado em cenas com 32 fogos simultâneos.
+    playSfx('brFireworkBurst',{throttle:95,volumeScale:0.50});
     if(damaging) this.arraialDamage(x,y,ARRAIAL.fireworkRadius,ARRAIAL.fireworkDamage,'#ffe8b7');
     // Uma única Graphics em posição fixa; desenhamos o crescimento local a cada frame.
     // Não usar scale/tweens nem coordenadas mundiais dentro da Graphics:
@@ -5349,6 +5373,7 @@ export class GameScene extends Phaser.Scene {
     if(this.deathSequence||this.tutorialComplete||this.boss6Victory){
       this.iceBreathGraphics?.clear();
       stopRussianSfxLoops();
+      stopNationalSpecialSfxLoops();
     }
     if (this.deathSequence) {
       this.deathSequence.update(delta, this.input.activePointer);
@@ -5367,8 +5392,10 @@ export class GameScene extends Phaser.Scene {
     // Se a onda for interrompida, o cone não permanece desenhado no céu.
     this.iceBreathGraphics?.clear();
     // Sem disparos, movimentação ou cronômetro de onda antes do "1".
-    if (this.countdownActive||this.supremeCinematic||this.supremeTyping)
+    if (this.countdownActive||this.supremeCinematic||this.supremeTyping){
       stopRussianSfxLoops();
+      stopNationalSpecialSfxLoops();
+    }
     if (this.countdownActive) return;
     if (this.supremeCinematic) return;
     if (this.supremeTyping) return;
@@ -5377,6 +5404,9 @@ export class GameScene extends Phaser.Scene {
     this.updateDiscoGlobes();
     this.updateRussianSputniks();
     setSfxLoopActive('ruSputnikHum',(this.russianSputniks?.length??0)>0,{volumeScale:0.30});
+    // Loops nacionais ativos somente enquanto existem objetos correspondentes.
+    setSfxLoopActive('brBonfire',(this.arraialNuclei?.length??0)>0,{volumeScale:0.27});
+    setSfxLoopActive('krDiscoSpin',(this.discoGlobes?.length??0)>0,{volumeScale:0.34});
     // Amanhecer nos dez segundos finais; o Supremo congela o relógio e a imagem.
     if(this.dawnLayers?.length===4&&this.dawnLayers.every(Boolean)){
       const alphas=dawnLayerAlphas(this.waveDurationMs-this.elapsed);
