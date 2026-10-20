@@ -21,13 +21,42 @@ const makeText=(scene,x,y,str,size=16,color='#dce8ee',width=null,opts={})=>
     lineSpacing:3,...opts,
   });
 
+// Pré-reduz os PNGs densos antes de entregá-los ao Phaser.
+// Evita amostragem direta de 384 detalhes em apenas ~106 pixels.
+function preparePortraitTextures(scene){
+  if(typeof document==='undefined')return;
+  for(const id of ['br','us','jp','ru','cn']){
+    for(const kind of ['full','cutout']){
+      const original='leader-'+id+'-'+kind;
+      const optimized=original+'-screen';
+      if(!scene.textures.exists(original)||scene.textures.exists(optimized))continue;
+      const source=scene.textures.get(original).getSourceImage();
+      if(!source?.width||!source?.height)continue;
+      const stage=document.createElement('canvas');
+      stage.width=192;stage.height=192;
+      const a=stage.getContext('2d',{willReadFrequently:false});
+      a.imageSmoothingEnabled=true;a.imageSmoothingQuality='high';
+      a.drawImage(source,0,0,192,192);
+      const result=document.createElement('canvas');
+      result.width=128;result.height=128;
+      const b=result.getContext('2d',{willReadFrequently:false});
+      b.imageSmoothingEnabled=true;b.imageSmoothingQuality='high';
+      b.drawImage(stage,0,0,128,128);
+      scene.textures.addCanvas(optimized,result);
+      // A redução é suave, mas a ampliação final não precisa inventar pixels.
+      scene.textures.get(optimized).setFilter(Phaser.Textures.FilterMode.LINEAR);
+    }
+  }
+}
+
 function portrait(scene,option,index){
   const color=option.locked?0x68737d:(option.color??0x668eac);
   const id=option.id;
   const frame=scene.add.graphics();
   frame.fillStyle(0x101d2b,0.98).fillRoundedRect(-56,-67,112,133,8);
   frame.lineStyle(3,color,1).strokeRoundedRect(-56,-67,112,133,8);
-  const portraitKey='leader-'+id+'-full';
+  const portraitKey=scene.textures.exists('leader-'+id+'-full-screen')?
+    'leader-'+id+'-full-screen':'leader-'+id+'-full';
   const loaded=scene.textures.exists(portraitKey);
   const image=loaded?scene.add.image(0,-10,portraitKey).setDisplaySize(106,106):null;
   if(!image){
@@ -76,14 +105,7 @@ export class UpgradeScene extends Phaser.Scene {
     }
   }
   create(){
-    // As ilustrações são 384×384, com detalhes menores que um pixel de tela.
-    // Filtragem linear apenas nestas texturas evita aliasing/granulação no downscale.
-    for(const id of ['br','us','jp','ru','cn']){
-      for(const kind of ['full','cutout']){
-        const key='leader-'+id+'-'+kind;
-        if(this.textures.exists(key))this.textures.get(key).setFilter(Phaser.Textures.FilterMode.LINEAR);
-      }
-    }
+    preparePortraitTextures(this);
     bindSceneMusic(this,'upgrades');
     this.add.image(W/2,H/2,'boteco-dia').setDisplaySize(W,H).setDepth(1);
     // A arte diurna é central: cabeçalho discreto, sem cobrir a janela do Rio.
@@ -194,7 +216,8 @@ export class UpgradeScene extends Phaser.Scene {
       ([id,representative])=>[representative.name.toUpperCase(),id])),
       'ZECA CARRARA':'br'};
     const id=leaders[speaker.toUpperCase()];
-    const key=id?'leader-'+id+'-full':null;
+    const key=id?(this.textures.exists('leader-'+id+'-full-screen')?
+      'leader-'+id+'-full-screen':'leader-'+id+'-full'):null;
     const show=Boolean(key&&this.textures.exists(key));
     this.botecoPortraitFrame.setVisible(show);
     this.botecoPortrait.setVisible(show);
