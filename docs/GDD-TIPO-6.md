@@ -104,3 +104,10 @@ A entrada de qualquer onda apresenta `TEMPO ATÉ O AMANHECER` com zoom real de 1
 
 ## Decisão implementada: feedback de dano no Tipo 6 (v0.51)
 Acertos com dano efetivo produzem flash localizado no módulo/núcleo, tremor curto apenas no desenho, e efeitos de impacto maiores. Preservar hitboxes, HP, dano e cadência. Testar localmente no laboratório após git pull.
+
+---
+
+### Atualização visual v0.848 (20/10/2026)
+- Escudo principal: meio domo **invertido (∪)** desenhado sob a fortaleza. A colisão da barreira permanece a anterior para preservar o gameplay.
+- Efeito de partículas **puramente decorativo**: energia converge para cada módulo, inclusive os que não estão disparando, e para o núcleo central. Laser de cerco (99 px) e núcleo (116 px) exibem raio maior que os demais módulos (58 px).
+- A animação não rouba projéteis, não causa dano e não modifica regras de barreira, módulo ou núcleo.
