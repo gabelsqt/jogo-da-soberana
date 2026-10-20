@@ -13,7 +13,7 @@
 
 ## Rússia nível 10 — Inverno Eterno
 - Segurando o disparo normal, o canhão emite um cone contínuo de névoa azul-esbranquiçada e cristais flutuantes, acompanhando a mira.
-- O cone substitui os projéteis convencionais nessa transformação, com alcance de 265 px, abertura de 0,32 radianos para cada lado e aplicação de dano/congelamento a cada 110 ms.
+- O cone substitui os projéteis convencionais nessa transformação, com alcance de 530 px, abertura de 0,32 radianos para cada lado e aplicação de dano/congelamento a cada 110 ms.
 - O dano é calculado por inimigo (aproximadamente 45% do dano básico russo por tick), independente de quantas partículas desenhamos.
 - O congelamento dura 3 s, sendo renovado durante a exposição; inimigos que morrem congelados continuam provocando explosão de estilhaços.
 - O Tipo 6 pode receber dano do cone sem ser congelado; disparo especial russo e Supremo não mudam.
