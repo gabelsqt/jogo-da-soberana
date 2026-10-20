@@ -849,3 +849,11 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Gravar últimos 30 relatórios de testes finalizados no `localStorage` sob chave `soberana-wave-maker-results-v1`; Wave Maker oferece botão RESULTADOS que lista os cinco resultados mais recentes da onda corrente.
 - Estes números são contagens instrumentadas parciais: interceptações feitas por outras mecânicas e abates de chefes via lógica especial podem não estar incluídos; não anunciar métricas como totais completos até instrumentação centralizada. Sem execução automática, taxa de vitórias estatisticamente confiável ou exportação nesta versão.
 - Resultado registrado em vitória ou derrota de teste; sem publicação da onda nem interferência nas campanhas oficiais.
+
+### Implementação incremental v0.63 — resultados comparáveis
+- Wave Maker: botão RESULTADOS mostra últimos cinco testes da onda e oferece **comparar os dois testes mais recentes** lado a lado (resultados e delta das métricas numéricas medidas).
+- Novo botão EXPORTAR salva arquivo JSON com até 30 resultados de testes do navegador e metadata de versão/esquema.
+- Histórico de teste centralizado em `src/gameplay/waveTestResults.js`; GameScene usa o mesmo módulo para salvar.
+- Testes de unidade documentam histórico, comparação, limite e exportação.
+- Métricas de abates/interceptações seguem **parciais**; testes não são automáticos. Sem alterar dados de campanha ou publicar rascunhos.
+- Funcionalidade ainda **não validada visualmente/no build** nesta sessão.
