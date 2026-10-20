@@ -16,35 +16,35 @@ export const THIRD_UPGRADES = {
   cn: { title: 'Pacote Integrado I', description: 'Especial e escudo compartilham tecnologia de minidrones.', tower: false },
 };
 export const FIFTH_UPGRADES = {
-  br: { title: 'Projeto Caramelo', description: 'Instala o vira-lata mecanizado antienxame.', tower: true },
-  us: { title: 'Águia da Liberdade I', description: 'Instala a águia mecanizada antienxame.', tower: true },
-  jp: { title: 'Projeto Kkachi I', description: 'Instala a pega coreana mecanizada antienxame.', tower: true },
-  ru: { title: 'Lobo Siberiano', description: 'Instala o lobo mecanizado antienxame com rajadas coordenadas.', tower: true },
-  cn: { title: 'PandaPrime I', description: 'Instala o panda mecanizado antienxame.', tower: true },
+  br: { title: 'Bateria Antienxame I', description: 'Instala um sistema automático de rajadas contra enxames.', tower: true },
+  us: { title: 'Defesa de Fragmentação I', description: 'Instala mísseis automáticos de fragmentação contra enxames.', tower: true },
+  jp: { title: 'Sistema Encore I', description: 'Instala feixes automáticos de energia contra enxames.', tower: true },
+  ru: { title: 'Rajada Siberiana I', description: 'Instala rajadas automáticas e coordenadas contra enxames.', tower: true },
+  cn: { title: 'Enxame Expresso I', description: 'Instala minidrones ofensivos contra enxames.', tower: true },
 };
 
 
 // Evoluções dos animais. Parâmetros de combate provisórios para playtest.
 export const SIXTH_UPGRADES = {
-  br: { title: 'Caramelo II — Matilha Veloz', description: 'Rajadas mais rápidas e novos alvos contra enxames.', tower: false },
-  us: { title: 'Águia II — Fragmentação Dupla', description: 'Aumenta o alcance e o dano dos mísseis de fragmentação.', tower: false },
-  jp: { title: 'Kkachi II — Encore Duplo', description: 'Dois feixes atravessam formações inimigas.', tower: false },
-  ru: { title: 'Lobo II — Caçada Coordenada', description: 'Amplia as rajadas contra múltiplos alvos.', tower: false },
-  cn: { title: 'PandaPrime II — Enxame Expresso', description: 'Envia mais minidrones por ataque.', tower: false },
+  br: { title: 'Bateria Antienxame II — Ritmo Acelerado', description: 'Rajadas mais rápidas e novos alvos contra enxames.', tower: false },
+  us: { title: 'Fragmentação Dupla II', description: 'Aumenta o alcance e o dano dos mísseis de fragmentação.', tower: false },
+  jp: { title: 'Encore Duplo II', description: 'Dois feixes atravessam formações inimigas.', tower: false },
+  ru: { title: 'Rajada Siberiana II — Disparo Coordenado', description: 'Amplia as rajadas contra múltiplos alvos.', tower: false },
+  cn: { title: 'Enxame Expresso II', description: 'Envia mais minidrones por ataque.', tower: false },
 };
 export const SEVENTH_UPGRADES = {
-  br: { title: 'Capivara Blindada', description: 'Instala a capivara Destruidora, com projétil pesado.', tower: true },
-  us: { title: 'Bisão de Ferro', description: 'Instala o bisão Destruidor, com míssil perfurante.', tower: true },
-  jp: { title: 'Projeto Haechi', description: 'Instala o Haechi lendário mecanizado, com raio concentrado.', tower: true },
-  ru: { title: 'Urso de Ferro', description: 'Instala o urso Destruidor, com artilharia pesada.', tower: true },
-  cn: { title: 'Dragão Imperial', description: 'Instala o dragão Destruidor, com energia carregada.', tower: true },
+  br: { title: 'Artilharia Pesada I', description: 'Instala reforço de projétil pesado contra blindados.', tower: true },
+  us: { title: 'Perfuração de Ferro I', description: 'Instala reforço de míssil perfurante contra blindados.', tower: true },
+  jp: { title: 'Justiça Radiante I', description: 'Instala reforço de raio concentrado contra blindados.', tower: true },
+  ru: { title: 'Impacto Siberiano I', description: 'Instala reforço de artilharia pesada contra blindados.', tower: true },
+  cn: { title: 'Sobrecarga Imperial I', description: 'Instala reforço de energia carregada contra blindados.', tower: true },
 };
 export const EIGHTH_UPGRADES = {
-  br: { title: 'Capivara II — Calibre Máximo', description: 'Aumenta o dano do projétil pesado.', tower: false },
-  us: { title: 'Bisão II — Penetração Máxima', description: 'Aumenta o dano perfurante concentrado.', tower: false },
-  jp: { title: 'Haechi II — Justiça Radiante', description: 'Aumenta a potência do raio concentrado.', tower: false },
-  ru: { title: 'Urso II — Impacto Terminal', description: 'Aumenta o impacto da artilharia pesada.', tower: false },
-  cn: { title: 'Dragão II — Sobrecarga Imperial', description: 'Aumenta o dano da energia carregada.', tower: false },
+  br: { title: 'Calibre Máximo II', description: 'Aumenta o dano do projétil pesado.', tower: false },
+  us: { title: 'Penetração Máxima II', description: 'Aumenta o dano perfurante concentrado.', tower: false },
+  jp: { title: 'Justiça Radiante II', description: 'Aumenta a potência do raio concentrado.', tower: false },
+  ru: { title: 'Impacto Terminal II', description: 'Aumenta o impacto da artilharia pesada.', tower: false },
+  cn: { title: 'Sobrecarga Imperial II', description: 'Aumenta o dano da energia carregada.', tower: false },
 };
 export function normalizeCampaignState(state = {}) {
   const choices = Array.isArray(state?.choices)
@@ -105,12 +105,12 @@ export function nextUpgradeOptions(state) {
     if (level === 7) return {
       ...first, ...SEVENTH_UPGRADES[first.id], level,
       locked: installed >= MAX_SUPPORT_TOWERS,
-      reason: installed >= MAX_SUPPORT_TOWERS ? 'DUAS TORRES JÁ INSTALADAS' : '',
+      reason: installed >= MAX_SUPPORT_TOWERS ? 'DOIS APOIOS JÁ INSTALADOS' : '',
     };
     if (level === 5) return {
       ...first, ...FIFTH_UPGRADES[first.id], level,
       locked: installed >= MAX_SUPPORT_TOWERS,
-      reason: installed >= MAX_SUPPORT_TOWERS ? 'DUAS TORRES JÁ INSTALADAS' : '',
+      reason: installed >= MAX_SUPPORT_TOWERS ? 'DOIS APOIOS JÁ INSTALADOS' : '',
     };
     return {
       ...first, level, title: 'EM DESENVOLVIMENTO',
