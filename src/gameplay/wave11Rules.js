@@ -2,9 +2,6 @@
 // 'jp' continua sendo a chave legada de gameplay da Coreia do Sul.
 const FOREIGN_COUNTRIES = ['us', 'jp', 'ru', 'cn'];
 const ALL_COUNTRIES = ['br', ...FOREIGN_COUNTRIES];
-export const BRAZIL_MAX_LEVEL = 10;
-export const SUPPORT_TOWER_LIMIT = 2;
-const TOWER_LEVELS = [3, 7];
 
 function validatedChoices(choices = []) {
   return Array.isArray(choices)
@@ -68,35 +65,5 @@ export function installedSupportTowers(choices = [], brazilResistanceLevels = []
   return installed;
 }
 
-export function nextBrazilianResistanceUpgrade(choices = [], awardedLevels = [], selectedCountry = null) {
-  const history = validatedChoices(choices);
-  const already = history.filter((id) => id === 'br').length;
-  const awarded = new Set(awardedLevels.filter((level) => Number.isInteger(level) && level >= 1 && level <= BRAZIL_MAX_LEVEL));
-  const installed = installedSupportTowers(history, [...awarded],selectedCountry);
-  const freeSlots = SUPPORT_TOWER_LIMIT - installed.length;
-  const carameloInstalled = already >= 3 || awarded.has(3);
-  for (let level = 1; level <= BRAZIL_MAX_LEVEL; level += 1) {
-    if (level <= already || awarded.has(level)) continue;
-    // Upgrade brasileiro 5 melhora o Caramelo; não faz sentido sem a torre.
-    if (level === 5 && !carameloInstalled) continue;
-    // Instalar terceira torre não é permitido; pular sem gastar tentativa.
-    if (TOWER_LEVELS.includes(level) && freeSlots <= 0) continue;
-    return level;
-  }
-  return null;
-}
-
-// Chamar somente após a derrota na Onda 11, quando jogador escolhe
-// "Continuar lutando". Reinício físico dos chefes é responsabilidade da cena.
-export function continueResistanceAfterDefeat(choices = [], awardedLevels = [], selectedCountry = null) {
-  const award = nextBrazilianResistanceUpgrade(choices, awardedLevels, selectedCountry);
-  if (award === null) {
-    return { outcome: 'colonized', awardedLevels: [...awardedLevels], awardedLevel: null };
-  }
-  return {
-    outcome: 'retry',
-    awardedLevels: [...awardedLevels, award],
-    awardedLevel: award,
-    restartEntireBattle: true,
-  };
-}
+// A antiga progressão brasileira após derrota foi removida na v0.69.
+// A recuperação única de Zeca agora vive em zecaRecovery.js.
