@@ -2,13 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { russianShatterTargets,russianShardVisuals,applyRussianFreeze } from '../src/gameplay/russianFrost.js';
+import {sputnikShatterStats} from '../src/gameplay/russianSputnik.js';
 const source=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
 const start=source.indexOf('  shatterRussianEnemy(enemy) {');
 const end=source.indexOf('\n  fireEnemyProjectile(',start);
 assert.ok(start>0&&end>start);
-const shatter=new Function('russianShatterTargets','russianShardVisuals','hitType6At',
+const shatter=new Function('russianShatterTargets','russianShardVisuals','sputnikShatterStats','hitType6At',
   'return ({'+source.slice(start,end)+'}).shatterRussianEnemy')(
-   russianShatterTargets,russianShardVisuals,()=>({hit:false}));
+   russianShatterTargets,russianShardVisuals,sputnikShatterStats,()=>({hit:false}));
 
 function enemy(uid,x,y,until=1000,type=1){return {uid,type,sprite:{x,y},frozenUntil:until};}
 function testScene(){
