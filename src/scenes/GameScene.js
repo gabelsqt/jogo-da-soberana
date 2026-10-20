@@ -73,7 +73,7 @@ import { finaleBossHp, finaleBossFirePattern, finaleCounterattack } from '../gam
 import {createCuboNewsState,tickCuboNews,queueCuboNews} from '../gameplay/cuboNews.js';
 import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
-import { applyRussianFreeze, spreadRussianFrost } from '../gameplay/russianFrost.js';
+import { applyRussianFreeze, russianShatterTargets } from '../gameplay/russianFrost.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
@@ -2353,28 +2353,8 @@ export class GameScene extends Phaser.Scene {
       enemy.shockOffset = advanceShockOffset(previousShock, dt);
       enemy.sprite.x += enemy.shockOffset.x;
       enemy.sprite.y += enemy.shockOffset.y;
-      // Vórtices congelados somam atração, com limite de velocidade e alcance.
-      const radius = this.combat.russianAttractRadius || 0;
-      let ax=0, ay=0;
-      if (radius > 0) for (const frozen of this.enemies) {
-        if (frozen === enemy || frozen.frozenUntil <= this.elapsed) continue;
-        const dx=frozen.sprite.x-enemy.sprite.x;
-        const dy=frozen.sprite.y-enemy.sprite.y;
-        const d=Math.hypot(dx,dy);
-        if(d>12 && d<radius) {
-          const force=120*(1-d/radius);
-          ax+=dx/d*force; ay+=dy/d*force;
-        }
-      }
-      const pullSpeed=Math.hypot(ax,ay);
-      const limit=pullSpeed>140?140/pullSpeed:1;
-      const fade=pullSpeed?1:Math.exp(-dt*3);
-      enemy.russianPullOffset={
-        x:Phaser.Math.Clamp((previousPull.x+ax*limit*dt)*fade,-radius*0.8,radius*0.8),
-        y:Phaser.Math.Clamp((previousPull.y+ay*limit*dt)*fade,-radius*0.8,radius*0.8),
-      };
-      enemy.sprite.x += enemy.russianPullOffset.x;
-      enemy.sprite.y += enemy.russianPullOffset.y;
+      // Gelo russo não aplica forças de atração: só congela e estilhaça no abate.
+      enemy.russianPullOffset={x:0,y:0};
       // Tipo 3 usa os quadros 4–7 para fazer curvas e 0–3 para voar reto.
       if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
         const anim = enemy.sprite.anims;
@@ -2403,33 +2383,42 @@ export class GameScene extends Phaser.Scene {
       // Bombas de pulso são barreiras: inimigos entram nelas durante o movimento.
       this.hitEnemyWithBlast(i);
     }
-    // O gelo se espalha uma única vez por origem primária; alvos secundários
-    // continuam congelados e atraindo, mas não infectam novas gerações.
-    if(this.combat.russianSpreadRadius>0)
-      for(const enemy of [...this.enemies])this.spreadRussianCold(enemy);
+    // Não há contágio, pulso ou atração de congelados.
   }
 
-  freezeRussianEnemy(enemy,durationMs,secondary=false) {
-    return applyRussianFreeze(enemy,this.elapsed,durationMs,secondary);
+  freezeRussianEnemy(enemy,durationMs) {
+    return applyRussianFreeze(enemy,this.elapsed,durationMs);
   }
 
-  spreadRussianCold(enemy,multiplier=1) {
-    if(!this.combat.russianSpreadRadius || !enemy?.russianFrostPrimary)return;
-    const radius=this.combat.russianSpreadRadius*multiplier;
-    const targets=spreadRussianFrost(enemy,this.enemies,this.elapsed,
-      enemy.russianFrostDurationMs||this.combat.russianFreezeMs,
-      this.combat.russianSpreadRadius,multiplier);
-    if(!targets.length)return;
-    // Pulso de cristalização local e ligações rápidas aos contagiados.
-    const g=this.add.graphics().setDepth(47);
-    g.fillStyle(0x90ddf4,0.10).fillCircle(enemy.sprite.x,enemy.sprite.y,radius);
-    g.lineStyle(2,0xbaf5ff,0.78).strokeCircle(enemy.sprite.x,enemy.sprite.y,radius);
-    for(const target of targets){
-      g.lineStyle(2,0xe9ffff,0.80).lineBetween(enemy.sprite.x,enemy.sprite.y,
-        target.sprite.x,target.sprite.y);
-      g.fillStyle(0xc4f5ff,0.35).fillCircle(target.sprite.x,target.sprite.y,12);
+  shatterRussianEnemy(enemy) {
+    const radius=this.combat.russianShatterRadius||0;
+    const damage=this.combat.russianShatterDamage||0;
+    if(!enemy||enemy.type===6||enemy.frozenUntil<=this.elapsed||
+      !radius||!damage||enemy.russianShattered)return;
+    enemy.russianShattered=true;
+    const x=enemy.sprite.x,y=enemy.sprite.y;
+    const victims=russianShatterTargets(enemy,this.enemies,this.elapsed,radius);
+    // Animação breve de fragmentos congelados, sem novos objetos permanentes.
+    const fx=this.add.graphics().setDepth(57);
+    fx.lineStyle(3,0xc3f5ff,0.95).strokeCircle(x,y,radius*0.68);
+    fx.lineStyle(1,0x83dfff,0.75).strokeCircle(x,y,radius);
+    for(let k=0;k<10;k++){
+      const angle=k*Math.PI/5;
+      const x1=x+Math.cos(angle)*11,y1=y+Math.sin(angle)*11;
+      const x2=x+Math.cos(angle)*radius*0.72,y2=y+Math.sin(angle)*radius*0.72;
+      fx.lineStyle(k%2?2:4,k%3?0xffffff:0x9be9ff,0.9);
+      fx.lineBetween(x1,y1,x2,y2);
     }
-    this.tweens.add({targets:g,alpha:0,duration:310,onComplete:()=>g.destroy()});
+    this.tweens.add({targets:fx,alpha:0,scale:1.2,duration:320,
+      onComplete:()=>fx.destroy()});
+    // IDs estáveis: a própria reação pode eliminar outros alvos congelados.
+    for(const uid of victims){
+      const index=this.enemies.findIndex(e=>e.uid===uid);
+      if(index>=0)this.impactInvader(index,damage,0,'#a8efff',false);
+    }
+    // O Tipo 6 não congela, mas sua barreira/módulos podem sofrer a onda.
+    for(const boss of this.enemies.filter(e=>e.type===6))
+      hitType6At(this,boss,x,y,damage,radius);
   }
 
   fireEnemyProjectile(enemy, target = this.chooseDefenseTarget()) {
@@ -2728,10 +2717,11 @@ export class GameScene extends Phaser.Scene {
     }
     const killed = enemy.hp <= 0;
     if (killed) {
-      // O gelo primário também estoura ao morrer, antes de remover a nave.
-      if(enemy.russianFrostPrimary)this.spreadRussianCold(enemy,1.35);
+      const frozenShatter=enemy.frozenUntil>this.elapsed;
       this.showEnemyDeath(enemy);
       this.removeEnemy(index);
+      // Remover primeiro evita atingir o mesmo alvo duas vezes em reações.
+      if(frozenShatter)this.shatterRussianEnemy(enemy);
       if (enemy.finalBoss && this.mode==='wave11')this.finaleBossesKilled++;
       if (!this.supremeFinishing && (
         (this.mode === 'wave10' && enemy.finalBoss) ||
@@ -4137,8 +4127,7 @@ export class GameScene extends Phaser.Scene {
             : bullet.knockback;
           if(this.combat.russianFreezeMs && bullet.damage<1000000){
             this.freezeRussianEnemy(enemy,this.combat.russianFreezeMs);
-            // Acertos repetidos espalham um pouco além do raio passivo.
-            if(enemy.russianFrostHits>=2)this.spreadRussianCold(enemy,1.18);
+
           }
           const destroyed = this.impactInvader(
             j, bullet.damage, knockback, bullet.impactColor,
