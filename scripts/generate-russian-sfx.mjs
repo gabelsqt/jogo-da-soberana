@@ -49,14 +49,17 @@ function synth(id,d,recipe,{seed=1471,repeat=false,bit=12,echo=0}={}){
   }
   return {id,wav,duration:samples.length/RATE,rate:RATE};
 }
+// V2: design sci-fi militar mais grave e texturizado. Sem arpejos de
+// escala musical, bipes de interface ou melodias ascendentes.
 export const RUSSIAN_RETRO_FILES=Object.freeze({
-  ruSputnikLaunch:'12_ru_sputnik_lancamento.wav',
-  ruSputnikHum:'13_ru_sputnik_zumbido_loop.wav',
-  ruSputnikFreeze:'14_ru_sputnik_contato.wav',
-  ruCrystalDeep:'15_ru_cristalizacao_profunda.wav',
-  ruFrozenShatter:'16_ru_estilhacamento_congelado.wav',
-  ruSputnikCollapse:'17_ru_pulso_colapso.wav',
-  ruIceBreath:'18_ru_sopro_congelante_loop.wav',
+  ruSputnikLaunch:'12_ru_sputnik_lancamento_v2.wav',
+  ruSputnikHum:'13_ru_sputnik_zumbido_loop_v2.wav',
+  ruSputnikFreeze:'14_ru_sputnik_contato_v2.wav',
+  ruCrystalDeep:'15_ru_cristalizacao_profunda_v2.wav',
+  ruFrozenShatter:'16_ru_estilhacamento_congelado_v2.wav',
+  ruSputnikCollapse:'17_ru_pulso_colapso_v2.wav',
+  ruIceBreath:'18_ru_sopro_congelante_loop_v2.wav',
+  ruBasicShot:'19_ru_tiro_criogenico_v2.wav',
 });
 export function generateRussianRetroSfx(outputDir){
   mkdirSync(outputDir,{recursive:true});
@@ -65,58 +68,73 @@ export function generateRussianRetroSfx(outputDir){
     writeFileSync(join(outputDir,RUSSIAN_RETRO_FILES[id]),result.wav);
     sounds.push({id,file:RUSSIAN_RETRO_FILES[id],duration:result.duration,bytes:result.wav.length});
   };
-  push('ruSputnikLaunch',.48,({t,d,n})=>{
-    const k=t/d,freq=k<.7?sweep(155,1040,k/.7,1):sweep(1040,660,(k-.7)/.3,1);
-    const whistle=oscillator(155,870,t,d*.7,'square');
-    const arp=t<.23?oscillator(330,900,t,.23,'triangle'):
-      oscillator(1000,470,t-.23,d-.23,'triangle');
-    return (whistle*.25+tone(freq,t,'triangle')*.23+arp*.19+n*(1-k)**3*.22)
-      *(.85+.15*Math.sin(PI2*28*t));
-  },{seed:27,bit:11,echo:.10});
-  push('ruSputnikHum',1.2,({t,d,noiseLp})=>{
-    const a=PI2*t/d,modulation=.73+.12*Math.sin(a)+.06*Math.sin(2*a);
-    const low=tri(96*t)+.40*tri(192*t+.02*Math.sin(a));
-    const drone=.24*Math.sin(PI2*144*t+.18*Math.sin(a));
-    const shimmer=.07*sq(384*t)*(.5+.5*Math.sin(3*a));
-    return (low*.30+drone+shimmer+noiseLp*.05)*modulation;
-  },{seed:92,repeat:true,bit:11});
-  push('ruSputnikFreeze',.31,({t,d,n})=>{
-    const hit=Math.exp(-t*14),bright=oscillator(1640,430,t,d,'triangle')*.35;
-    const ping=Math.sin(PI2*920*t)*Math.exp(-t*10);
-    const step=[1568,1175,784,587][Math.min(3,Math.floor(t/.064))];
-    return (bright+.27*tone(step,t,'square')+.26*ping+n*.22*Math.exp(-t*30))*hit;
-  },{seed:370,bit:11,echo:.09});
-  push('ruCrystalDeep',.78,({t,d,n})=>{
-    const tones=[1760,1320,990,660,495];let bell=0;
-    for(let j=0;j<tones.length;j++){
-      const at=j*.094,age=t-at;
-      if(age>=0)bell+=.22*Math.sin(PI2*tones[j]*age)*Math.exp(-age*10);
+  // Arranque do lançador: pressão hidráulica, propulsor grave e calda metálica.
+  push('ruSputnikLaunch',.67,({t,d,n,noiseLp})=>{
+    const body=.34*oscillator(254,78,t,d,'saw')*Math.exp(-t*2.5);
+    const motor=.34*oscillator(110,52,t,d,'triangle')*Math.exp(-t*3.2);
+    const steam=(noiseLp*.30+n*.045)*Math.exp(-t*5.7);
+    const clank=.17*Math.sin(PI2*97*t)*Math.exp(-t*12);
+    return body+motor+steam+clank;
+  },{seed:27,bit:12,echo:.07});
+  // Motor inerte e frio; frequências baixas em ciclos inteiros para fechar o loop.
+  push('ruSputnikHum',1.5,({t,d,noiseLp})=>{
+    const rotation=PI2*t/d;
+    const growl=.32*(2*frac(58*t)-1)+.24*tri(74*t);
+    const motor=.19*Math.sin(PI2*114*t+.22*Math.sin(rotation));
+    const air=noiseLp*.095;
+    return (growl+motor+air)*(.80+.09*Math.sin(rotation)+.06*Math.sin(2*rotation));
+  },{seed:92,repeat:true,bit:12});
+  // Congelamento seco, como metal vitrificando; sem notas musicais.
+  push('ruSputnikFreeze',.36,({t,d,n,noiseLp})=>{
+    const grit=(noiseLp*.53+n*.14)*Math.exp(-t*18);
+    const low=.28*oscillator(325,118,t,d,'triangle')*Math.exp(-t*10);
+    const stress=.18*Math.sin(PI2*427*t)*Math.exp(-t*17);
+    const brittle=.15*Math.sin(PI2*713*t)*Math.exp(-t*23);
+    return grit+low+stress+brittle;
+  },{seed:370,bit:11,echo:.04});
+  // Cristalização profunda: fratura interna e ressonância irregular descendente.
+  push('ruCrystalDeep',.68,({t,d,n,noiseLp})=>{
+    const core=.36*oscillator(310,73,t,d,'saw')*Math.exp(-t*3.9);
+    const bell=.15*Math.sin(PI2*391*t)*Math.exp(-t*13)
+      +.12*Math.sin(PI2*617*t)*Math.exp(-t*15);
+    const snap=(noiseLp*.3+n*.06)*Math.exp(-t*21);
+    return core+bell+snap+.13*Math.sin(PI2*81*t)*Math.exp(-t*7);
+  },{seed:822,bit:12,echo:.06});
+  // Estilhaços pesados: granular, pouco brilhante, sem "moedinhas".
+  push('ruFrozenShatter',.52,({t,d,n,noiseLp})=>{
+    const initial=(n*.17+noiseLp*.47)*Math.exp(-t*23);
+    let chips=0;
+    for(let j=0;j<5;j++){
+      const age=t-(.022+j*.038);
+      if(age>=0)chips+=.105*Math.sin(PI2*(480+j*91)*age)
+        *Math.exp(-age*(26+j*2));
     }
-    const descending=oscillator(660,220,t,d,'triangle')*.30;
-    const chilly=Math.sin(PI2*2100*t)*Math.exp(-t*4)*.11;
-    return (bell+descending+chilly+n*.035)*(1-t/d*.3);
-  },{seed:822,bit:12,echo:.14});
-  push('ruFrozenShatter',.58,({t,d,n,noiseLp})=>{
-    const crack=(n*.40+noiseLp*.16)*Math.exp(-t*28);let glass=0;
-    for(let j=0;j<8;j++){
-      const age=t-(.018+j*.033);
-      if(age>=0)glass+=(j%2?1:-1)*.13*Math.sin(PI2*(1840-j*153)*age)*Math.exp(-age*22);
-    }
-    const down=oscillator(1300,180,t,d,'saw')*.10*Math.exp(-t*12);
-    return crack+glass+down;
-  },{seed:54,bit:10,echo:.075});
-  push('ruSputnikCollapse',.61,({t,d,n,noiseLp})=>{
-    const low=oscillator(460,63,t,d,'triangle')*.40;
-    const pulse=t<.12?oscillator(590,1320,t,.12,'square')*.21:
-      oscillator(980,135,t-.12,d-.12,'square')*.13;
-    const tail=Math.sin(PI2*185*t)*Math.exp(-t*7)*.16;
-    return (low+pulse+tail+(noiseLp*.22+n*.07)*Math.exp(-t*7))*(1-t/d*.6);
-  },{seed:1007,bit:11,echo:.08});
-  push('ruIceBreath',1.0,({t,d,n,noiseLp})=>{
-    const theta=PI2*t/d,flutter=.76+.14*Math.sin(theta*3)+.09*Math.sin(theta*7);
-    const chiptone=.09*tri(220*t+.02*Math.sin(theta))+.055*sq(440*t);
-    return (noiseLp*.40+n*.09+chiptone)*flutter*.72;
-  },{seed:282,repeat:true,bit:10});
+    const body=.17*oscillator(380,90,t,d,'triangle')*Math.exp(-t*10);
+    return initial+chips+body;
+  },{seed:54,bit:11,echo:.035});
+  // Pulso e colapso: impacto de pressão negativo, não explosão de arcade.
+  push('ruSputnikCollapse',.62,({t,d,n,noiseLp})=>{
+    const gravity=.44*oscillator(180,39,t,d,'triangle')*Math.exp(-t*4);
+    const shell=.23*oscillator(450,98,t,d,'saw')*Math.exp(-t*10);
+    const vent=(noiseLp*.31+n*.05)*Math.exp(-t*13);
+    return gravity+shell+vent;
+  },{seed:1007,bit:12,echo:.045});
+  // Sopro em loop: ventania digital rugosa + turbina baixa, sem apito.
+  push('ruIceBreath',1.25,({t,d,n,noiseLp})=>{
+    const phase=PI2*t/d;
+    const fan=.19*(2*frac(72*t)-1)+.12*tri(96*t);
+    const air=noiseLp*.37+n*.075;
+    return (air+fan)*(.86+.08*Math.sin(phase)+.045*Math.sin(2*phase));
+  },{seed:282,repeat:true,bit:11});
+  // Tiro principal russo independente do canhão genérico:
+  // disparo curto, pesado, por compressão com corpo metálico baixo.
+  push('ruBasicShot',.19,({t,d,n,noiseLp})=>{
+    const attack=(noiseLp*.48+n*.11)*Math.exp(-t*32);
+    const recoil=.35*oscillator(310,105,t,d,'triangle')*Math.exp(-t*17);
+    const metal=.14*Math.sin(PI2*583*t)*Math.exp(-t*31);
+    const bass=.18*Math.sin(PI2*96*t)*Math.exp(-t*18);
+    return attack+recoil+metal+bass;
+  },{seed:1987,bit:12});
   return sounds;
 }
 const script=fileURLToPath(import.meta.url);

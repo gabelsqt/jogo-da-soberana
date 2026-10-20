@@ -2591,7 +2591,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   freezeRussianEnemy(enemy,durationMs) {
-    return applyRussianFreeze(enemy,this.elapsed,durationMs);
+    // O estalo de gelo soa somente na primeira aplicação. Acertos
+    // sucessivos renovam o congelamento sem produzir uma cascata de bipes.
+    const firstFreeze=!!enemy&&enemy.type!==6&&
+      (enemy.frozenUntil??-Infinity)<=this.elapsed;
+    const applied=applyRussianFreeze(enemy,this.elapsed,durationMs);
+    if(applied&&firstFreeze)
+      playSfx('ruSputnikFreeze',{throttle:180,volumeScale:0.33});
+    return applied;
   }
 
   shatterRussianEnemy(enemy) {
@@ -3225,7 +3232,10 @@ export class GameScene extends Phaser.Scene {
     const turbo = this.time.now < (this.brazilTurboUntil || 0) ? this.combat.brazilTurboMultiplier : 1;
     if (this.time.now - this.lastBasicFire < this.combat.basicInterval / ((1 + heat) * turbo)) return;
     this.lastBasicFire = this.time.now;
-    playSfx('cannon',{throttle:95,volumeScale:0.48});
+    // O tiro básico russo não usa o som genérico da metralhadora.
+    if(this.isV1Campaign&&this.combat.russianFreezeMs>0)
+      playSfx('ruBasicShot',{throttle:88,volumeScale:0.56});
+    else playSfx('cannon',{throttle:95,volumeScale:0.48});
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     const nextShot = this.basicShotCount + 1;
     if (this.isV1Campaign && this.combat.koreaContinuous) {
@@ -3739,7 +3749,9 @@ export class GameScene extends Phaser.Scene {
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
     const target=specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
     this.lastSpecialFire=this.time.now;
-    playSfx('specialShot',{throttle:180,volumeScale:0.85});
+    // Não misturar o bip do especial genérico ao lançamento do Sputnik.
+    if(!this.isV1Campaign||this.specialBuild?.primary!=='ru')
+      playSfx('specialShot',{throttle:180,volumeScale:0.85});
     if (this.isV1Campaign && this.combat.brazilTurboMultiplier>1)
       this.brazilTurboUntil=this.time.now+5000;
     const shot=this.createProjectile(target.angle,true,target.distance);

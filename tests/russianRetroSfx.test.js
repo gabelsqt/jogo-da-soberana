@@ -7,12 +7,12 @@ import {RUSSIAN_RETRO_FILES,generateRussianRetroSfx}
   from '../scripts/generate-russian-sfx.mjs';
 import {SFX_FILES} from '../src/audio/sfx.js';
 
-test('sintetizador gera sete WAVs retro 16-bit, mono e não silenciosos',()=>{
+test('sintetizador gera oito WAVs retro 16-bit, mono e não silenciosos',()=>{
  const tmp=mkdtempSync(join(tmpdir(),'soberania-russia-'));
  try{
    const generated=generateRussianRetroSfx(tmp);
-   assert.equal(generated.length,7);
-   assert.equal(readdirSync(tmp).length,7);
+   assert.equal(generated.length,8);
+   assert.equal(readdirSync(tmp).length,8);
    for(const [id,name] of Object.entries(RUSSIAN_RETRO_FILES)){
      assert.equal(SFX_FILES[id],name);
      const b=readFileSync(join(tmp,name));
@@ -72,4 +72,19 @@ test('regressão: ausência de Sputnik nunca interrompe partida de outros paíse
  assert.equal((null?.length??0)>0,false);
  assert.equal(([]?.length??0)>0,false);
  assert.equal(([{}]?.length??0)>0,true);
+});
+
+test('áudio russo v2 grave: som exclusivo de tiro, congelamento só na transição',()=>{
+ const game=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
+ const sfx=readFileSync(new URL('../src/audio/sfx.js',import.meta.url),'utf8');
+ assert.match(game,/if\(this\.isV1Campaign&&this\.combat\.russianFreezeMs>0\)/);
+ assert.match(game,/playSfx\('ruBasicShot',\{throttle:88,volumeScale:0\.56\}\)/);
+ assert.match(game,/else playSfx\('cannon',\{throttle:95,volumeScale:0\.48\}\)/);
+ assert.match(game,/const firstFreeze=!!enemy&&enemy\.type!==6/);
+ assert.match(game,/if\(applied&&firstFreeze\)/);
+ assert.match(game,/if\(!this\.isV1Campaign\|\|this\.specialBuild\?\.primary!=='ru'\)/);
+ assert.match(sfx,/id==='cannon'\|\|id==='ruBasicShot'/);
+ assert.equal(SFX_FILES.ruBasicShot,'19_ru_tiro_criogenico_v2.wav');
+ assert.ok(Object.entries(SFX_FILES).filter(([key])=>key.startsWith('ru'))
+   .every(([,filename])=>filename.endsWith('_v2.wav')));
 });

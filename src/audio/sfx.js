@@ -13,18 +13,20 @@ const FILES=Object.freeze({
   supreme:'09_supremo_carregamento.wav',
   shieldHit:'10_impacto_escudo.wav',
   specialShot:'11_tiro_especial.wav',
-  ruSputnikLaunch:'12_ru_sputnik_lancamento.wav',
-  ruSputnikHum:'13_ru_sputnik_zumbido_loop.wav',
-  ruSputnikFreeze:'14_ru_sputnik_contato.wav',
-  ruCrystalDeep:'15_ru_cristalizacao_profunda.wav',
-  ruFrozenShatter:'16_ru_estilhacamento_congelado.wav',
-  ruSputnikCollapse:'17_ru_pulso_colapso.wav',
-  ruIceBreath:'18_ru_sopro_congelante_loop.wav',
+  ruSputnikLaunch:'12_ru_sputnik_lancamento_v2.wav',
+  ruSputnikHum:'13_ru_sputnik_zumbido_loop_v2.wav',
+  ruSputnikFreeze:'14_ru_sputnik_contato_v2.wav',
+  ruCrystalDeep:'15_ru_cristalizacao_profunda_v2.wav',
+  ruFrozenShatter:'16_ru_estilhacamento_congelado_v2.wav',
+  ruSputnikCollapse:'17_ru_pulso_colapso_v2.wav',
+  ruIceBreath:'18_ru_sopro_congelante_loop_v2.wav',
+  ruBasicShot:'19_ru_tiro_criogenico_v2.wav',
 });
 // Configuração reutilizável: novos efeitos podem definir suas faixas aqui.
 // [mínimo,máximo] em multiplicadores; 1 representa o áudio original.
 export const SFX_VARIATIONS=Object.freeze({
   cannon:Object.freeze({pitch:Object.freeze([0.78,1.22]),volume:Object.freeze([0.90,1.10])}),
+  ruBasicShot:Object.freeze({pitch:Object.freeze([0.96,1.04]),volume:Object.freeze([0.95,1.05])}),
   explosion:Object.freeze({pitch:Object.freeze([0.75,1.25]),volume:Object.freeze([0.94,1.06])}),
   boss:Object.freeze({pitch:Object.freeze([0.85,1.15]),volume:Object.freeze([0.97,1.03])}),
 });
@@ -67,7 +69,7 @@ export function playSfx(id,{throttle=0,volumeScale=1}={}){
   if(throttle&&now-(lastPlayed.get(id)??-Infinity)<throttle)return;
   lastPlayed.set(id,now);
   const sound=source.cloneNode();
-  if(id==='cannon'){
+  if(id==='cannon'||id==='ruBasicShot'){
     // Limita vozes simultâneas em builds de cadência extrema.
     for(let i=activeCannonVoices.length-1;i>=0;i--){
       if(activeCannonVoices[i].ended||activeCannonVoices[i].paused)activeCannonVoices.splice(i,1);
