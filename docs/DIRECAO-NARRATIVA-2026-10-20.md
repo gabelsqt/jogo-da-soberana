@@ -65,6 +65,23 @@ Os textos acima são um **rascunho sugerido**, não frases autoralmente aprovada
 - A origem profissional de Zeca como **mecânico de automóveis recrutado à força para manutenção** substitui qualquer caracterização anterior de operador experiente do canhão ou técnico militar de carreira, inclusive a definição I1 do GDD quando houver conflito.
 - **Não modificar**, nesta etapa, progressão de ondas, gameplay, finais, sprites ou código. Essas alterações ficam para uma implementação posterior explícita.
 
+## 5. Victor McDollar — direção de personagem aprovada em 20/10/2026
+
+- **Victor McDollar representa os Estados Unidos.** Seu traço dominante é a paixão por tudo que é **grande, enorme, monumental e exagerado**: equipamentos, poder de fogo, investimentos, espetáculos, promessas e até gestos.
+- É **nostálgico de quando, na visão dele, os Estados Unidos eram grandiosos como antigamente**. Fala frequentemente dessa grandeza perdida e tem o impulso de recuperá-la. Trata-se de sua visão de mundo e bordão, não de um fato objetivo que o narrador precise afirmar.
+- **Ele oferece ajuda de modo insistente, caloroso e aparentemente muito bem-intencionado.** Deve parecer que realmente quer ajudar o Brasil e está empolgado em oferecer coisas maiores e melhores, não um vilão óbvio ou um negociador agressivo.
+- **A maioria de suas interações deve remeter ao tamanho/grandeza**, com variações criativas, em vez de repetir exatamente a mesma frase toda vez. Quando recebe uma proposta modesta, tende a ampliá-la.
+- **Voz:** confiante, otimista, ligeiramente espalhafatosa, nostálgica e cheia de entusiasmo comercial/diplomático. Humor na insistência em aumentar a escala e na comparação com os bons tempos.
+- **Traição sorteada continua independente:** Victor não é automaticamente traidor nem se torna suspeito de saída. Se for escolhido como traidor numa campanha, sua motivação e a mudança de tom serão reveladas apenas no momento narrativo adequado. Sua aparente boa intenção anterior deve funcionar tanto em campanhas em que ajuda como naquelas em que trai.
+- **Aplicação futura:** revisar falas de apresentação, ofertas de upgrades, respostas após ondas, histórias, conselhos, notícias e eventual confrontação final. As antigas piadas de sala VIP, milhas e assinatura premium podem ser reavaliadas, pois não expressam tão bem esse eixo da grandeza.
+- **Exemplos provisórios para o revisor (não são falas finais aprovadas):**
+  - Apresentação: “Victor McDollar, dos Estados Unidos! Eu vim oferecer ajuda. Ajuda grande! Como a gente fazia antigamente!”
+  - Oferta de armamento: “Esse canhão é ótimo. Sabe o que seria melhor? Um MUITO maior! Pode deixar comigo.”
+  - Upgrade: “Mais potência, mais alcance, mais explosão! Ah, isso me lembra os velhos tempos!”
+  - Após combate: “Excelente trabalho, general! Agora imagine tudo isso... só que dez vezes maior!”
+  - Comentário nostálgico: “Antigamente a gente fazia coisas enormes. Até os problemas eram maiores. Que saudade!”
+- **Estado:** registrado como direcionamento de escrita; nenhuma fala de código, mecânica ou asset alterado aqui.
+
 ## Fonte da decisão
 
 Conversa de direção narrativa e revisão textual do projeto em **20/10/2026**.
