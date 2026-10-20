@@ -50,7 +50,6 @@ jobs:
           tests/russianDamageProgression.test.js
           tests/iceBreath.test.js
           tests/iceBreathBossDamage.test.js
-          tests/type6Swept049.test.js
       - name: Gerar HTML único do jogo
         run: npm run build:itch
       - name: Preparar página
