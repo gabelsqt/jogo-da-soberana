@@ -80,7 +80,7 @@ import {createCuboNewsState,tickCuboNews,queueCuboNews} from '../gameplay/cuboNe
 import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
-import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Targets} from '../gameplay/iceBreath.js';
+import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Target} from '../gameplay/iceBreath.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
@@ -3028,21 +3028,13 @@ export class GameScene extends Phaser.Scene {
         // A fortaleza ocupa quase toda a largura. O centro da nave não é
         // um ponto vulnerável: procurar os módulos vivos dentro do cone.
         const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
-        const targets=iceBreathType6Targets(x,y,angle,rects);
-        if(!targets.length)continue;
-        // Barreira protege TODA a nave e recebe um único hit por tick;
-        // nenhum dano atravessa para os módulos enquanto ela resistir.
-        if(enemy.type6.barrier.active&&enemy.type6.barrier.hp>0){
-          const first=targets[0];
-          hitType6At(this,enemy,first.x,first.y,bossDamage,0,true);
-        }else{
-          // Depois que a barreira cai, o sopro pode atingir diferentes
-          // módulos dentro do cone, e o núcleo quando estiver exposto.
-          for(const target of targets){
-            if(enemy.type6.defeated)break;
-            hitType6At(this,enemy,target.x,target.y,bossDamage,0,true);
-          }
-        }
+        const target=iceBreathType6Target(x,y,angle,rects);
+        if(!target)continue;
+        // O sopro espalha frio sobre a fortaleza, mas concentra todo o
+        // dano direto em UM alvo por tick. A v0.846 multiplicava o dano
+        // pelos módulos simultaneamente dentro do cone, matando cedo demais.
+        // O hitType6At preserva as regras da barreira e do núcleo exposto.
+        hitType6At(this,enemy,target.x,target.y,bossDamage,0,true);
         continue;
       }
       if(!insideIceBreathCone(x,y,angle,enemy.sprite.x,enemy.sprite.y,
