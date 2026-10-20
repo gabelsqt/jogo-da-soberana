@@ -13,7 +13,7 @@ export const TYPE6_TURN_ORDER=Object.freeze([2,0,1,3]); // hangar > bomba > lase
 export const TYPE6_OFFSETS=Object.freeze([-255,-87,87,255]);
 export const TYPE6_WIDTH=790,TYPE6_HEIGHT=122;
 export const TYPE6_CHARGE_MS=5000,TYPE6_BEAM_AT_MS=0;
-export const TYPE6_OPENING_SECONDS=4,TYPE6_REBUILD_SECONDS=6;
+export const TYPE6_OPENING_SECONDS=2.0,TYPE6_REBUILD_SECONDS=6;
 export const TYPE6_LASER_CHARGE_SECONDS=10,TYPE6_LASER_FIRE_SECONDS=3;
 export const TYPE6_TURN_GAP_SECONDS=1;
 export function createType6State(country='alien',hp=600){
@@ -24,10 +24,10 @@ export function createType6State(country='alien',hp=600){
   const moduleHp=base*0.36,coreHp=base*0.16;
   const modules=TYPE6_ROLES.map((role,i)=>({
     id:i,role,offsetX:TYPE6_OFFSETS[i],offsetY:0,halfWidth:57,halfHeight:42,
-    hp:moduleHp,maxHp:moduleHp,shield:moduleHp*0.20,maxShield:moduleHp*0.20,
+    hp:moduleHp,maxHp:moduleHp,shield:moduleHp*0.42,maxShield:moduleHp*0.42,
     broken:false,hitAt:-Infinity,deadAt:-Infinity,
   }));
-  const barrierMaxHp=moduleHp*0.30;
+  const barrierMaxHp=moduleHp*0.85;
   return {
     country:id,modules,coreHp,coreMaxHp:coreHp,coreExposed:false,
     coreReveal:0,defeated:false,charging:false,chargeStarted:false,
