@@ -345,3 +345,14 @@
 - [ ] Controle de silenciar/ligar funciona sem alterar o volume selecionado; botão MÚSICA recolhe o painel novamente.
 - [ ] Versão **v0.71** no canto inferior direito, sem tarja jornalística, e controles de música da pausa não foram afetados.
 - [ ] Rodar `npm test` (inclui `tests/menuClean071.test.js`), `npm run build` e playtest visual em desktop/mobile. **Ainda pendentes no ambiente de edição.**
+
+
+## v0.72 — onda 1: menos tiros e altitude mais baixa
+- [ ] Ao entrar na **onda 1**, enxames básicos surgem perto de y=120 e descem em curvas suaves até ~y=235, sem subir para o alto da tela; esquadrilhas táticas aparecem/maniobram na faixa média, perto de y=190–230.
+- [ ] Conferir o ritmo visual de sete enxames (4,5,5,5,5,6,6 naves) e três esquadrilhas táticas (3,4,4), sem tela saturada. Total: 47 inimigos programados.
+- [ ] Conferir a frequência de tiros: **um disparo por grupo Tipo 1 e até dois disparos por grupo Tipo 2**, não tiros de cada integrante ou salvas duplas. Limite esperado de 13 tiros de formação se todos os atiradores designados sobreviverem.
+- [ ] Conferir que os tiros básicos e táticos causam 10 de dano (antes 14) e têm velocidade 0,9×; colisões da onda 1 causam 0,75× o dano normal.
+- [ ] Última formação abre aos 12,7 segundos de batalha e os integrantes devem ser liberados antes de 15 segundos, inclusive quando duas formações usam o mesmo corredor.
+- [ ] Confirmar que **onda 0 e ondas 2–11 não mudaram** em quantidade, movimento ou disparos; Wave Maker abre e, em rascunho novo/oficial, mostra a nova onda 1, sem sobrescrever rascunho salvo.
+- [ ] Com build Brasil nível 1 e outro país nível 1, verificar que a onda 1 continua desafiadora, mas vencível sem tantos projéteis.
+- [ ] Executar `npm test` (incluindo `tests/wave1Balance.test.js` e `tests/formation035.test.js`), `npm run build` e teste visual no navegador. **Ainda pendentes no ambiente de edição.**
