@@ -85,6 +85,25 @@ Os textos acima são um **rascunho sugerido**, não frases autoralmente aprovada
   - Comentário nostálgico: “Nos velhos tempos, nós éramos os melhores em tudo. Eu quero aquela grandeza de volta. E ninguém vai pensar pequeno comigo!”
 - **Estado:** história, apresentação e falas de upgrades alteradas na branch de trabalho, **sem modificações em mecânicas, assets ou outros personagens**.
 
+## 6. Cubo News — linha editorial canônica (20/10/2026)
+
+**Decisão aprovada para TODO o noticiário, incluindo manchetes, subtítulos e plantões da campanha:**
+
+- **Nunca se referir à própria emissora pelo nome dentro do conteúdo editorial.** Evitar “Cubo News afirma”, “Cubo News celebra”, “segundo a Cubo News”, “a emissora”, “a redação”, “nós da Cubo News” e equivalentes autocentrados quando não acrescentam piada. O logotipo e a marca gráfica **CUBO NEWS** continuam existindo nas molduras e na identidade da transmissão: a proibição é de **autorreferência editorial**, não do crédito visual.
+- **Nunca pedir desculpas, corrigir-se humildemente, admitir erro ou mostrar arrependimento.** Não publicar retratação nem ressalvas honestas que reconheçam incoerência.
+- **Hipocrisia absoluta:** a cobertura muda de opinião conforme o patrocinador, upgrade e resultado da guerra. Elogiou ontem, despreza hoje, proclama que **sempre** teve a posição atual; trata evidências do passado como boato, montagem, contexto distorcido ou outra invenção conveniente.
+- **Interesses próprios mascarados como objetividade:** patrocínios, publicidade e interesses estrangeiros definem sua linha. A voz é de jornalismo sensacionalista e falsamente imparcial, porém com convicção total e sem metacomentário do tipo “a emissora mentiu”.
+- **Exibir as contradições pelas manchetes sucessivas**, não por subtítulos que explicam ao jogador “apesar dos elogios de ontem”. O público infere sozinho a fraude e a cara de pau.
+- **Compatibilidade com o mistério alienígena:** nas ondas 0–9 ninguém recebeu promessa ou comunicação dos ETs; remover todas as manchetes e subtítulos que falem de acordos, ultimatos, garantias e mensagens extraterrestres antes da onda 10. A emissora pode **inventar unilateralmente** explicações para os acontecimentos, se o texto deixar claro que é uma afirmação humana, não uma comunicação real.
+- **Revisão separada e sem aplicação automática:** a rodada de revisão jornalística deve apresentar **todas as notícias**, em grupos de 10, com manchete e subtítulo juntos e possibilidade de substituição/comentário. As mudanças só serão consolidadas no código após avaliação editorial do usuário.
+
+**Exemplo de contraste editorial (rascunho, não aprovado como fala final):**
+- Primeiro: “ARMAMENTO BRASILEIRO LEVANTA DÚVIDAS; ANALISTAS RECOMENDAM CAUTELA”.
+- Depois: “TECNOLOGIA NACIONAL SEMPRE FOI SUPERIOR, GARANTEM ESPECIALISTAS”.
+- Se cobrada: “ANTIGAS REPORTAGENS CONTRÁRIAS SÃO APONTADAS COMO MONTAGEM”.
+
+**Estado:** regra de escrita aprovada e registrada; conteúdo das notícias ainda será revisado. Nenhum texto do noticiário ou mecânica alterado no jogo nesta decisão.
+
 ## Fonte da decisão
 
 Conversa de direção narrativa e revisão textual do projeto em **20/10/2026**.
