@@ -356,3 +356,14 @@
 - [ ] Confirmar que **onda 0 e ondas 2–11 não mudaram** em quantidade, movimento ou disparos; Wave Maker abre e, em rascunho novo/oficial, mostra a nova onda 1, sem sobrescrever rascunho salvo.
 - [ ] Com build Brasil nível 1 e outro país nível 1, verificar que a onda 1 continua desafiadora, mas vencível sem tantos projéteis.
 - [ ] Executar `npm test` (incluindo `tests/wave1Balance.test.js` e `tests/formation035.test.js`), `npm run build` e teste visual no navegador. **Ainda pendentes no ambiente de edição.**
+
+
+## v0.73 — botão PAUSAR visível e responsivo
+- [ ] **Desktop (Firefox/Chrome):** onda 1 após contagem de 30 segundos, PAUSAR [P] aparece **inteiro**, centralizado e com margem superior, sem corte pelo browser.
+- [ ] Durante o zoom 1,48× da abertura da onda, botão PAUSAR mantém seu tamanho e posição; não sobe junto com a câmera nem desaparece.
+- [ ] Testar janela maximizada, janela estreita, F11/tela cheia, zoom do navegador e barras de interface móveis: botão não sai do viewport.
+- [ ] Testar iframe itch.io ou safe area simulada: manter margem no topo, incluindo notch em dispositivo móvel horizontal.
+- [ ] Clique/tap PAUSAR abre PauseScene; botão do jogo desaparece durante pausa; botão Retomar e tecla P/ESC retomam o jogo e fazem o botão reaparecer.
+- [ ] Trocar de onda, voltar ao menu e reiniciar: nenhum botão DOM duplicado nem sobreposição com cortes de cena.
+- [ ] Layout Cubo News (onda) e modo laboratório (sem faixa): reposicionar sobre o jogo sem afetar faixa, cronômetro, tiro ou mira.
+- [ ] Executar `npm test` (inclui `tests/pauseHudResponsive.test.js`), `npm run build`, `npm run dev`; **pendentes** neste ambiente.
