@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,iceBreathMotes,insideIceBreathCone} from '../src/gameplay/iceBreath.js';
+import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,iceBreathMotes,insideIceBreathCone,iceBreathTickDamage} from '../src/gameplay/iceBreath.js';
 import {v1CombatStats} from '../src/gameplay/v1Upgrades.js';
 
 test('frost cone accepts targets in its forward sector only',()=>{
@@ -27,5 +27,6 @@ test('Inverno Eterno unlocks the cone and maintains freeze and shatter',()=>{
   assert.equal(stats.transformed,'ru');
   assert.equal(stats.russianFreezeMs,3000);
   assert.equal(stats.russianShatterRadius,120);
-  assert.ok(stats.russianShatterDamage>0);
+  assert.equal(stats.russianShatterDamage,7);
+  assert.ok(iceBreathTickDamage(stats.basicDamage,true) > iceBreathTickDamage(stats.basicDamage));
 });
