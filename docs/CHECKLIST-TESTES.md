@@ -306,3 +306,17 @@
 - [ ] Testar outras nações traidoras e a rota Full Brazil (sem botão de submissão).
 - [ ] Passar pela cutscene da onda 10 para verificar limpeza do botão de continuar.
 - [ ] Executar `npm test` (inclusive `finalePreludeCleanup.test.js`) e `npm run build`; validar visualmente no navegador. Ainda não executado.
+
+
+## v0.69 — Operação Desvio de Carga (validar em jogo)
+- [ ] Com traidor dos EUA/Coreia/Rússia/China na onda 11, **primeira derrota**: tela de aceitar derrota com retrato pequeno e sério do Zeca ao lado; não aparecer na luta nem na rota Full Brazil.
+- [ ] Clicar retrato abre proposta do Zeca. **Recusar** leva diretamente ao final colonial; **aceitar** abre cena de recuperação específica do traidor.
+- [ ] Cena da operação permanece até clicar; texto apresenta motorista **brasileiro** sem explicação de logística. Arte geométrica provisória visível sem erro de assets (substituir por 4 artes do usuário quando disponíveis).
+- [ ] Depois de aceitar, recomeçar a **onda 11 inteira**, com **o mesmo traidor**, todos os módulos/escudos/ataques do boss intactos, vida de canhão 100 e escudo cheio; **sem mostrar novamente** a cutscene de traição.
+- [ ] Todas as melhorias do traidor que estavam confiscadas voltam com efeito original (inclusive transformação final); **Supremo do traidor permanece indisponível**. Melhorias dos outros países permanecem ativas.
+- [ ] Testar traidor no nível 9 e 10 para conferir bloqueio do Supremo com transformação ativa.
+- [ ] Na **segunda derrota**, não oferecer Zeca novamente. Mostrar a despedida do Zeca e permitir somente ver o final colonial.
+- [ ] Na vitória da revanche, mostrar final de vitória apropriado ao traidor original; não alterar contagem de finais.
+- [ ] "ACEITAR SUBMISSÃO" no prelúdio continua levando diretamente ao final colonial, sem Zeca. Full Brazil continua com fluxo original.
+- [ ] O atalho R e opção de pausa para "Reiniciar onda" não permitem revanches ilimitadas na onda 11; reinício normal segue disponível em ondas anteriores.
+- [ ] Executar `npm test` (testes novos de Zeca + antigos da campanha) e `npm run build`; testes sintáticos e verificações diretas isoladas passaram, mas suíte/build/playtest ainda **pendentes**.
