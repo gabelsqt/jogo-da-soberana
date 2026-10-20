@@ -317,6 +317,12 @@ export class GameScene extends Phaser.Scene {
       const name = 'frame_' + String(frame).padStart(2, '0') + '.png';
       this.load.image('tipo1_' + frame, assetUrl('assets/inimigos/tipo1/' + name));
     }
+    // Tipo 2: 8 quadros normalizados, 4 × 2, 112 × 112 px, transparentes.
+    // O original 1448 × 1086 tem margens verticais desiguais por linha:
+    // usamos o atlas recortado para evitar deslocamentos na animação.
+    this.load.spritesheet('tipo2_sheet',assetUrl('assets/inimigos/tipo2/spritesheet.png'),{
+      frameWidth:112,frameHeight:112,
+    });
     // Tipo 3: spritesheet 16-bit 4 x 3 (12 quadros de 128 px).
     // O PNG será colocado pelo desenvolvedor em public/assets/inimigos/tipo3/.
     // Enquanto estiver ausente, o visual vetorial antigo serve de fallback.
@@ -352,6 +358,13 @@ export class GameScene extends Phaser.Scene {
       ? this.add.rectangle(W / 2, H / 2, W, H, 0xffc285, 0).setDepth(18)
       : null;
 
+    if(this.textures.exists('tipo2_sheet')&&!this.anims.exists('tipo2_voo')){
+      this.anims.create({
+        key:'tipo2_voo',
+        frames:this.anims.generateFrameNumbers('tipo2_sheet',{frames:[0,1,2,3,4,5]}),
+        frameRate:5,repeat:-1,
+      });
+    }
     if (!this.anims.exists('tipo1_voo')) {
       this.anims.create({
         key: 'tipo1_voo',
@@ -1470,8 +1483,16 @@ export class GameScene extends Phaser.Scene {
       if (level > 1) sprite.setTint(definition.tintColor);
       return { sprite, box: null };
     }
+    if(type===2&&this.textures.exists('tipo2_sheet')){
+      const sprite=this.add.sprite(x,y,'tipo2_sheet',0)
+        .setDisplaySize(58,58).setDepth(19);
+      sprite.play('tipo2_voo');
+      // Cores da nave original são intencionais: não tingir o casco inteiro.
+      // HP, hitbox, rota e padrões de tiro continuam os mesmos.
+      return {sprite,box:null};
+    }
     if (type === 2) {
-      // Protótipo vetorial Phaser: nave triangular industrial, núcleo vermelho.
+      // Fallback vetorial caso o arquivo do spritesheet não esteja disponível.
       // Partes separadas permitem validar rotação e propulsão antes da sprite sheet.
       const sprite=this.add.container(x,y).setDepth(19);
       const hull=this.add.graphics();
@@ -2082,7 +2103,10 @@ export class GameScene extends Phaser.Scene {
             this.frostGraphics.fillTriangle(px-3,py,px+3,py,px,py+5);
           }
         }
-        if(enemy.type===2)enemy.sprite.rotation=steerType2Rotation(enemy.sprite.rotation,0,0,dt);
+        if(enemy.type===2){
+          enemy.type2Facing=steerType2Rotation(enemy.type2Facing??0,0,0,dt);
+          enemy.sprite.rotation=enemy.type2Facing;
+        }
         // Congelar não dá imunidade às explosões que já estejam ativas.
         this.hitEnemyWithBlast(i);
         continue;
@@ -2485,7 +2509,8 @@ export class GameScene extends Phaser.Scene {
         // A ponta acompanha a velocidade enquanto manobra e volta para cima ao parar.
         const vx=(enemy.sprite.x-previousX)/Math.max(dt,0.001);
         const vy=(enemy.sprite.y-previousY)/Math.max(dt,0.001);
-        enemy.sprite.rotation=steerType2Rotation(enemy.sprite.rotation,vx,vy,dt);
+        enemy.type2Facing=steerType2Rotation(enemy.type2Facing??0,vx,vy,dt);
+        enemy.sprite.rotation=enemy.type2Facing;
       }
       this.updateType4Appearance(enemy,previousX,previousY,dt);
       this.updateEnemyHitVisual(enemy);
@@ -2725,7 +2750,9 @@ export class GameScene extends Phaser.Scene {
     // O cálculo de rota/velocidade acima permanece inalterado; o deslocamento
     // é adicionado após o movimento e subtraído no frame seguinte.
     enemy.sprite.x += reaction.dx;
-    enemy.sprite.setRotation(reaction.rotation);
+    // Não apagar a orientação de voo do Tipo 2 quando ocorre o shake de dano.
+    enemy.sprite.setRotation(enemy.type===2
+      ?(enemy.type2Facing??0)+reaction.rotation:reaction.rotation);
     // Preserva o tamanho inicial do PNG Tipo 1 (setDisplaySize(62, 72)).
     // Os outros tipos são Containers com escala-base 1.
     enemy.sprite.setScale(enemy.baseScaleX * reaction.scale,
@@ -2733,8 +2760,16 @@ export class GameScene extends Phaser.Scene {
 
     if (enemy.box) {
       enemy.box.setFillStyle(reaction.flash ? 0xffffff : enemy.definition.color);
+    } else if(enemy.type===2&&enemy.sprite.texture?.key==='tipo2_sheet'){
+      const damaged=enemy.hp<=enemy.maxHp*0.55;
+      const anim=enemy.sprite.anims;
+      if(reaction.flash||damaged){
+        if(anim.isPlaying)anim.stop();
+        if(Number(enemy.sprite.frame.name)!==6)enemy.sprite.setFrame(6);
+      }else if(!anim.isPlaying)enemy.sprite.play('tipo2_voo');
+      enemy.sprite.setAlpha(reaction.flash?0.75:1);
     } else if (enemy.type === 2) {
-      // Phaser Container não implementa setTintFill/setTint/clearTint.
+      // Fallback Container não implementa setTintFill.
       enemy.sprite.setAlpha(reaction.flash ? 0.65 : 1);
     } else if (reaction.flash) {
       enemy.sprite.setTintFill(0xffffff);
@@ -2746,6 +2781,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   showEnemyDeath(enemy) {
+    if(enemy.type===2&&enemy.sprite.texture?.key==='tipo2_sheet'){
+      // 7: casco desintegrando em explosões. Sobrepõe o burst padrão,
+      // sem prolongar a vida real do inimigo nem modificar colisões.
+      const wreck=this.add.sprite(enemy.sprite.x,enemy.sprite.y,'tipo2_sheet',7)
+        .setDisplaySize(enemy.sprite.displayWidth,enemy.sprite.displayHeight)
+        .setRotation(enemy.sprite.rotation).setDepth(53);
+      this.tweens.add({targets:wreck,alpha:0,scaleX:wreck.scaleX*1.3,
+        scaleY:wreck.scaleY*1.3,duration:300,onComplete:()=>wreck.destroy()});
+    }
     if (enemy.type === 4 && enemy.sprite.texture?.key === 'tipo4_sheet') {
       // O último quadro mostra a fragmentação antes da explosão padrão.
       const debris=this.add.sprite(enemy.sprite.x,enemy.sprite.y,'tipo4_sheet',11)
