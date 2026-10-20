@@ -885,3 +885,10 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Para desempenho, manter o limite visual de **até 8 trajetórias por pulso** e intervalo de 80 ms entre salvas visuais; reflexos adicionais **continuam causando todo o dano**.
 - Implementação: `src/gameplay/discoReflectionVfx.js` e integração em `fireV1DiscoReflections`.
 - Testes automatizados preparados mas **não executados neste ambiente**; validar comportamento e desempenho no navegador.
+
+### Correção de cutscenes — v0.68 (onda 11)
+- A cutscene da traição deve desaparecer **inteiramente** quando o jogador escolhe **RESISTIR À TRAIÇÃO**: sobreposição, texto, moldura temporária do Cubo News, fundos, legendas, sombras e faixas vermelhas decorativas de ambos os botões.
+- **ACEITAR SUBMISSÃO** continua disponível somente na cutscene anterior ao combate e leva ao final colonial sem lutar; a escolha de resistir inicia o contador e a batalha com tela livre.
+- `addMenuButton` produz quatro GameObjects independentes; limpar o botão implica destruir todos. `addCuboBroadcastFrame` agora devolve todos os objetos criados para permitir limpeza integral nas telas temporárias.
+- Limpeza equivalente do botão de continuar na cutscene anterior à onda 10.
+- Testes de regressão em `tests/finalePreludeCleanup.test.js` verificam resistência, submissão e Full Brazil. Não executar mudanças na campanha/arte.
