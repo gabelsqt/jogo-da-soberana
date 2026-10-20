@@ -857,3 +857,11 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Testes de unidade documentam histórico, comparação, limite e exportação.
 - Métricas de abates/interceptações seguem **parciais**; testes não são automáticos. Sem alterar dados de campanha ou publicar rascunhos.
 - Funcionalidade ainda **não validada visualmente/no build** nesta sessão.
+
+
+### v0.64 — acessibilidade do Laboratório e Enemy Maker inicial
+- Corrigido acesso: a tela principal de testes de upgrades (`V1PlaytestScene`) oferece botões **WAVE MAKER** e **ENEMY MAKER**. O Wave Maker existia antes, mas era acessível apenas através da tela separada `LabSetupScene`.
+- Removido botão de build fixa **BR+EUA+CHINA** da tela de upgrades, conforme pedido.
+- Criada interface inicial do Enemy Maker, acessível na tela de upgrades: selecionar **Tipo 1–6**, nível 1–10, visualizar atributos de combate já definidos e editar numericamente os valores presentes.
+- Rascunhos Enemy Maker salvos em **localStorage**, separados por tipo e nível. Restaurar redefine valores da variante corrente apenas no rascunho; alterações **não afetam a campanha**.
+- **Não implementado ainda:** publicação de dados globais no jogo, testes diretos do Enemy Maker, prévia animada e demais funções avançadas já aprovadas. Não confundir este MVP com Enemy Maker completo.
