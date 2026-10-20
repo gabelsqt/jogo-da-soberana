@@ -13,15 +13,28 @@ const FILES=Object.freeze({
   supreme:'09_supremo_carregamento.wav',
   shieldHit:'10_impacto_escudo.wav',
 });
-// Faixas discretas: 1.0 = pitch original. O browser altera também a duração.
-export const SFX_PITCH_RANGES=Object.freeze({
-  cannon:Object.freeze([0.95,1.05]),
-  explosion:Object.freeze([0.93,1.07]),
-  boss:Object.freeze([0.96,1.04]),
+// Configuração reutilizável: novos efeitos podem definir suas faixas aqui.
+// [mínimo,máximo] em multiplicadores; 1 representa o áudio original.
+export const SFX_VARIATIONS=Object.freeze({
+  cannon:Object.freeze({pitch:Object.freeze([0.95,1.05]),volume:Object.freeze([0.96,1.04])}),
+  explosion:Object.freeze({pitch:Object.freeze([0.93,1.07]),volume:Object.freeze([0.94,1.06])}),
+  boss:Object.freeze({pitch:Object.freeze([0.96,1.04]),volume:Object.freeze([0.97,1.03])}),
 });
+export const SFX_PITCH_RANGES=Object.freeze(Object.fromEntries(
+  Object.entries(SFX_VARIATIONS).filter(([,v])=>v.pitch).map(([id,v])=>[id,v.pitch])
+));
+export function randomSfxRange(range,random=Math.random){
+  if(!range)return 1;
+  const [min,max]=range;
+  if(!Number.isFinite(min)||!Number.isFinite(max)||min<0||max<min)
+    throw new RangeError('Invalid SFX variation range');
+  return min+Math.max(0,Math.min(1,random()))*(max-min);
+}
 export function randomSfxPlaybackRate(id,random=Math.random){
-  const range=SFX_PITCH_RANGES[id];
-  return range?range[0]+random()*(range[1]-range[0]):1;
+  return randomSfxRange(SFX_VARIATIONS[id]?.pitch,random);
+}
+export function randomSfxVolumeScale(id,random=Math.random){
+  return randomSfxRange(SFX_VARIATIONS[id]?.volume,random);
 }
 const clips=new Map(), lastPlayed=new Map();
 let enabled=true,volume=0.24;
@@ -43,7 +56,7 @@ export function playSfx(id,{throttle=0,volumeScale=1}={}){
   if(throttle&&now-(lastPlayed.get(id)??-Infinity)<throttle)return;
   lastPlayed.set(id,now);
   const sound=source.cloneNode();
-  sound.volume=Math.max(0,Math.min(1,volume*volumeScale));
+  sound.volume=Math.max(0,Math.min(1,volume*volumeScale*randomSfxVolumeScale(id)));
   sound.playbackRate=randomSfxPlaybackRate(id);
   sound.play()?.catch?.(()=>{});
 }
