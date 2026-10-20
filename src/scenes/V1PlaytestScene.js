@@ -85,9 +85,7 @@ export class V1PlaytestScene extends Phaser.Scene {
     const previewDeath = () => this.scene.start('GameScene', {
       mode: 'wave1', campaign: { choices: [] }, v1Playtest: true, previewDestruction: true,
     });
-    addMenuButton(this,{x:802,y:418,width:294,height:29,
-      text:'D: testar destruição do canhão',fontSize:'12px',
-      depth:45,onClick:previewDeath});
+    // Atalho D permanece disponível sem sobrepor os novos botões dos editores.
     this.input.keyboard.on('keydown-D', previewDeath);
     this.input.keyboard.on('keydown-ENTER',()=>this.play());
     this.refresh();
