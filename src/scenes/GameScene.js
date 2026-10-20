@@ -505,13 +505,14 @@ export class GameScene extends Phaser.Scene {
     });
 
     if (import.meta.env.DEV && this.mode.startsWith('wave')) {
-      // Playtest local: Shift+5–9 abre ondas intermediárias;
-      // Shift+0 e Shift+1 abrem os novos chefões 10 e 11.
+      // Só para diagnóstico em DEV: Ctrl+Alt+Shift+5–9 pula ondas;
+      // Ctrl+Alt+Shift+0/1 pula para chefes. Nunca um atalho acidental.
 
       // Se entrar antes da terceira escolha, usa Brasil III como equipamento
       // padrão apenas no salto de testes, sem sobrescrever a campanha.
       this.input.keyboard.on('keydown', (event) => {
-        if (this.supremeTyping || this.supremeCinematic || !event.shiftKey) return;
+        if (this.supremeTyping || this.supremeCinematic ||
+          !event.shiftKey || !event.ctrlKey || !event.altKey) return;
         const choice = /^Digit([0-9])$/.exec(event.code ?? '');
         if (!choice || Number(choice[1])<5&&choice[1]!=='0'&&choice[1]!=='1') return;
         event.preventDefault();
