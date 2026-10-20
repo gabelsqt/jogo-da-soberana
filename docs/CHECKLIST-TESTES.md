@@ -289,3 +289,12 @@
 - [ ] Comparar tempo de sobrevivência dos quatro módulos com versões anteriores usando build brasileira forte e build básica.
 - [ ] Confirmar que módulos ainda podem ser destruídos, o núcleo é exposto e pode ser derrotado; verificar escudos/barreira.
 - [ ] Rodar `npm test` e `npm run build`; verificar navegador e estabilidade das ondas 10/11.
+
+## v0.67 — globo coreano com reflexos curvos (a validar)
+- [ ] Ao atingir o globo com tiro básico ou laser, reflexos surgem em **arcos curvos** a partir do globo na direção dos inimigos.
+- [ ] Brilho violeta/lilás, núcleo quase branco, flash na origem e pequeno impacto no destino são visíveis sem prejudicar legibilidade em pixel art.
+- [ ] Quantidade e dano dos reflexos permanecem iguais aos da v0.66 em todos os níveis coreanos; foco em 3/6/12/24 reflexos.
+- [ ] Com múltiplos inimigos, arcos variam suavemente; com nenhum inimigo, não há efeitos desnecessários.
+- [ ] Rajadas frequentes, níveis altos e luta Tipo 6 não causam travamento: máximo de oito raios **visuais** por salva, sem reduzir o dano.
+- [ ] Efeitos são removidos após animação e ao trocar de cena; não deixar Graphics/tweens residuais.
+- [ ] Executar `npm test` (inclui discoGlobe e discoReflectionVfx) e `npm run build`; rodar playtest visual — pendentes nesta sessão.
