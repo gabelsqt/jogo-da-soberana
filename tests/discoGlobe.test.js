@@ -27,8 +27,8 @@ function scene(){
  drawV1DiscoReflectionArcs(x,y,targets){arcs.push({x,y,targets});},
  impactInvader(index,damage){hits.push({id:this.enemies[index].uid,damage});},hits,arcs};
 }
-test('cada ativação mantém quantidade de raios, com teto de dano por salva',()=>{
- for(const [level,count,budget] of [[2,3,3],[4,6,5],[6,12,7.5],[8,24,10]]){
+test('cada ativação mantém quantidade de raios, com dano reforçado mas limitado por salva',()=>{
+ for(const [level,count,budget] of [[2,3,6],[4,6,12],[6,12,22],[8,24,36]]){
   const s=scene(),b=v1SpecialConfig({choices:Array(level).fill('jp')});
   const orb={lastVisualAt:-Infinity,lastReflectAt:-Infinity};
   fire.call(s,100,100,b,orb);

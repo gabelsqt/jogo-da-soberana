@@ -1,24 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  discoReflectionArcPoints,animateDiscoReflectionArcs,
+  discoReflectionLaserPoints,animateDiscoReflectionArcs,
   DISCO_REFLECTION_MAX_VISUAL_RAYS,
 } from '../src/gameplay/discoReflectionVfx.js';
 
-test('raio começa no globo, termina no alvo e forma arco curvo',()=>{
-  const points=discoReflectionArcPoints(360,370,95,90,0,24);
+test('laser começa no globo, termina no alvo e é quase reto',()=>{
+  const points=discoReflectionLaserPoints(360,370,95,90,0,24);
   assert.deepEqual(points[0],{x:360,y:370});
   assert.deepEqual(points.at(-1),{x:95,y:90});
-  const midpoint=points[12];
-  const straightMidY=(370+90)/2;
-  assert.ok(midpoint.y<straightMidY-20);
+  assert.ok(Math.abs(points[12].y-230)<=4);
+  assert.ok(Math.abs(points[12].x-227.5)<=4);
   assert.equal(points.length,25);
 });
 test('variações de direção usam caminhos distintos e determinísticos',()=>{
-  const a=discoReflectionArcPoints(370,310,100,95,0);
-  const b=discoReflectionArcPoints(370,310,100,95,2);
+  const a=discoReflectionLaserPoints(370,310,100,95,0);
+  const b=discoReflectionLaserPoints(370,310,100,95,2);
   assert.notDeepEqual(a,b);
-  assert.deepEqual(a,discoReflectionArcPoints(370,310,100,95,0));
+  assert.deepEqual(a,discoReflectionLaserPoints(370,310,100,95,0));
 });
 test('salva de reflexos é agrupada visualmente e destruída após animar',()=>{
   const seen=[];
@@ -26,14 +25,14 @@ test('salva de reflexos é agrupada visualmente e destruída após animar',()=>{
     const g={destroyed:false,clear(){return this;},fillStyle(){return this;},
       fillCircle(){return this;},fillRect(){return this;},
       lineStyle(){return this;},strokeCircle(){return this;},
-      beginPath(){return this;},moveTo(){return this;},lineTo(){return this;},
+      beginPath(){return this;},moveTo(){return this;},lineTo(){return this;},lineBetween(){return this;},
       strokePath(){return this;},setDepth(){return this;},
       destroy(){this.destroyed=true;}};
     seen.push(g);return g;
   }
   const scene={add:{graphics:makeGraphics},
     tweens:{add({targets,onUpdate,onComplete}){
-      if('progress' in targets){targets.progress=1;onUpdate?.();}
+      if('intensity' in targets){targets.intensity=0;onUpdate?.();}
       onComplete?.();
     }},
   };

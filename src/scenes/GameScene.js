@@ -4135,6 +4135,8 @@ export class GameScene extends Phaser.Scene {
     if (this.isV1Campaign && this.combat.transformed === 'cn') style.color = centerGlow ? 0xffe56a : 0xff5651;
     if (this.isV1Campaign && this.combat.transformed === 'ru') style.color = 0x8beaff;
     const vfx = special ? null : (effects ?? shotVfxFor(this.activeUpgradeIds()));
+    // Identidade coreana: pulso laser visual em cada tiro físico, sem mudar física.
+    const koreanLaserPulse=!special&&this.isV1Campaign&&this.combat.plasmaEvery>0;
     // Somente a representação gráfica é limitada. Balas invisíveis continuam com física e dano.
     const visible = special || this.visibleProjectileCount < MAX_VISUAL_PROJECTILES;
     if (visible) this.visibleProjectileCount += 1;
@@ -4143,14 +4145,17 @@ export class GameScene extends Phaser.Scene {
       : vfx?.cryogenic
         ? this.add.circle(x, y, style.width * 0.6, style.color, 0.30)
           .setStrokeStyle(1,0xf0ffff,0.34).setDepth(35)
-        : this.add.rectangle(x, y, style.width, style.length, style.color)
-          .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff, centerGlow ? 0.95 : 0.65)
+        : this.add.rectangle(x, y, style.width,
+          koreanLaserPulse ? Math.max(20,style.length) : style.length,
+          koreanLaserPulse ? 0xb96aff : style.color)
+          .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff,
+            koreanLaserPulse ? 0.98 : centerGlow ? 0.95 : 0.65)
           .setRotation(angle + Math.PI / 2)
           .setDepth(35);
     const speed = special ? 300 : this.combat.basicSpeed;
     // Uma única Graphics por bala, redesenhada enquanto ela se move.
     // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
-    const trail = visible && vfx && (vfx.heavy || vfx.multiple)
+    const trail = visible && vfx && (vfx.heavy || vfx.multiple || koreanLaserPulse)
       ? this.add.graphics().setDepth(34) : null;
     const bullet = {
       sprite: dot,
@@ -4159,6 +4164,7 @@ export class GameScene extends Phaser.Scene {
       trail,
       vfx,
       centerGlow,
+      koreanLaserPulse,
       vx: vx * speed,
       vy: vy * speed,
       special,
@@ -4204,6 +4210,15 @@ export class GameScene extends Phaser.Scene {
         }
       }
       gfx.fillStyle(0xffffff,0.58).fillCircle(x,y,3.3);
+    }
+    if (bullet.koreanLaserPulse) {
+      // Trilha de laser branco/violeta na Graphics reutilizada por projétil.
+      gfx.lineStyle(9,0x7531e2,0.20);
+      gfx.lineBetween(x-dx*37,y-dy*37,x,y);
+      gfx.lineStyle(4,0xc86cff,0.68);
+      gfx.lineBetween(x-dx*30,y-dy*30,x,y);
+      gfx.lineStyle(1,0xffffff,0.92);
+      gfx.lineBetween(x-dx*26,y-dy*26,x,y);
     }
     if (bullet.vfx.multiple) {
       // Destaque independente dos dois/três tiros da China. Pode coexistir

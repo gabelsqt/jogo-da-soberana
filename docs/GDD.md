@@ -1051,3 +1051,9 @@ O PNG do Cruzador-Colmeia agora é RGBA verdadeiro em 896×512. O feedback de da
 - Atlas 4×1, PNG RGBA 3360×280, com quadros de 840×280 do casco original enviado pelo usuário (inteiro, avariado, núcleo exposto e destruído).
 - Transições: inicial até 1 módulo destruído; avariado após 2 módulos; núcleo aberto depois de destruídos os 4 módulos; ruínas durante a sequência de vitória.
 - Arte é camada de fundo independente: escudo do tipo 6, módulos, núcleo e energia continuam por cima, sem mudança de colisões. Chefes das nações traidoras continuam provisoriamente com cascos vetoriais exclusivos.
+
+### v0.864 — Coreia: globo reforçado e lasers (20/10/2026)
+- **Dano total por salva** do globo nos níveis 2/4/6/8: **6 / 12 / 22 / 36** dividido entre 3/6/12/24 reflexos; jamais multiplicar o orçamento pelo número de raios.
+- **Uma salva a cada 180 ms por globo; duração de 4 s**. Retirados os arcos altos: reflexos quase retos, em laser roxo/magenta com núcleo branco, brilho no alvo e fade de 155 ms. No máximo oito feixes VISUAIS por salva, mantendo todos os acertos de gameplay.
+- Disparos físicos com upgrade coreano usam trilha curta de pulso laser, compatível com efeitos das outras nações e sem alteração de dano, cadência, trajetória ou colisão. As habilidades de laser perfurante continuam inalteradas.
+- Esta decisão de implementação substitui o orçamento de dano da v0.862 e o estilo antigo dos reflexos.

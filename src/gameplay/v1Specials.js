@@ -32,7 +32,8 @@ export function v1SpecialConfig(state = {}) {
   const br=stages.br,us=stages.us,ru=stages.ru,cn=stages.cn,jp=stages.jp;
   // O dano por salva NÃO é multiplicado pelo número de raios.
   const krReflections=at(jp,[3,6,12,24]);
-  const krSalvoDamage=at(jp,[3,5,7.5,10]);
+  // Reforço moderado, ainda bem abaixo dos antigos 108 pontos no nível máximo.
+  const krSalvoDamage=at(jp,[6,12,22,36]);
   return {
     ...loadout,
     // Brasil preserva as contagens e o turbo aprovados.
@@ -59,7 +60,7 @@ export function v1SpecialConfig(state = {}) {
     cnDropRadius:at(cn,[40,55,75,105]),
     cnPayloads:at(cn,[1,2,3,4]),
     cnDamage:at(cn,[3,4,5,7]),
-    // Coreia: um orçamento total limitado dividido entre 3/6/12/24 raios.
+    // Coreia: 3/6/12/24 reflexos compartilham 6/12/22/36 de dano por salva.
     krReflections,
     krSalvoDamage,
     krReflectDamage:krReflections ? krSalvoDamage/krReflections : 0,
