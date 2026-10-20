@@ -2811,7 +2811,9 @@ export class GameScene extends Phaser.Scene {
           if(Number(enemy.sprite.frame.name)!==damaged)enemy.sprite.setFrame(damaged);
         }else if(!anim.isPlaying)enemy.sprite.play('tipo5_voo');
       }
-      // Pequeno flash, sem substituir os detalhes do casco por tinta branca.
+      // setTintFill(0xffffff) pinta a silhueta inteira de branco e persiste.
+      // Mantemos o flash apenas pela opacidade, preservando a arte original.
+      enemy.sprite.clearTint();
       enemy.sprite.setAlpha(reaction.flash?0.73:1);
     } else if(enemy.type===2&&enemy.sprite.texture?.key==='tipo2_sheet'){
       const damaged=enemy.hp<=enemy.maxHp*0.55;
@@ -2840,6 +2842,7 @@ export class GameScene extends Phaser.Scene {
       const wreck=this.add.sprite(enemy.sprite.x,enemy.sprite.y,'tipo5_sheet',12)
         .setDisplaySize(enemy.sprite.displayWidth,enemy.sprite.displayHeight)
         .setRotation(enemy.sprite.rotation).setDepth(56);
+      wreck.clearTint();
       wreck.play('tipo5_morte');
       wreck.once('animationcomplete-tipo5_morte',()=>wreck.destroy());
     }
@@ -3005,6 +3008,12 @@ export class GameScene extends Phaser.Scene {
         enemy.sprite.setFlipX(false);
         enemy.type4NeedsRestore=true; // recupera a pose ao sair do flash
         enemy.type4PoseLockUntil=this.time.now+160;
+      }
+      else if (enemy.type === 5 && enemy.sprite.texture?.key === 'tipo5_sheet') {
+        // O Tipo 5 usa flash de alpha em updateEnemyHitVisual; não usar
+        // setTintFill pois força a nave inteira a ficar totalmente branca.
+        enemy.sprite.clearTint();
+        enemy.sprite.setAlpha(0.73);
       }
       else enemy.sprite.setTintFill(0xffffff);
       if (enemy.phase === 'dive' && knockback > 0) {
