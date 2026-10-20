@@ -320,3 +320,17 @@
 - [ ] "ACEITAR SUBMISSÃO" no prelúdio continua levando diretamente ao final colonial, sem Zeca. Full Brazil continua com fluxo original.
 - [ ] O atalho R e opção de pausa para "Reiniciar onda" não permitem revanches ilimitadas na onda 11; reinício normal segue disponível em ondas anteriores.
 - [ ] Executar `npm test` (testes novos de Zeca + antigos da campanha) e `npm run build`; testes sintáticos e verificações diretas isoladas passaram, mas suíte/build/playtest ainda **pendentes**.
+
+
+## v0.70 — escudos, Tipo 6, Wave Maker e Rússia (a validar no navegador)
+- [ ] Escudo principal tem aparência de **sprite pixel-art**, acompanha mudanças de HP azul/verde/amarelo/vermelho; colisão e raio da cúpula permanecem idênticos.
+- [ ] Escudo de cada torre aparece como sprite independente com tamanho correto; desaparece ao morrer e reaparece na regeneração.
+- [ ] Após cair da faixa vermelha para **0 HP**, o escudo quebra em pequenos estilhaços, sem permanecer visível nem afetar dano. Testar perda por tiro normal, gelo russo e ogiva americana.
+- [ ] Tipo 6 ondas **10 e 11** surge **com escudo principal ativo e cheio**, e os escudos dos módulos resistem mais; núcleos e sequência de ataques preservados.
+- [ ] Tipo 6 entra lentamente (4,2 s alienígena, 4,6 s traidores) e estabiliza por 2 s; nenhum dano ao boss antes disso; **relógio de 60 s não cai até o chefe ficar alvejável**, então inicia em 60 s.
+- [ ] A entrada e cronômetro funcionam tanto na onda 11 inicial quanto na única revanche do Zeca.
+- [ ] WAVE MAKER abre a partir do Laboratório de Upgrades sem erro de método `events()`; alterna onda, edita, salva, testa e retorna corretamente.
+- [ ] Rússia: tiros diretos congelam e alvos congelados **não atraem nem contagiam** outros inimigos.
+- [ ] Rússia: destruir um inimigo ainda congelado provoca explosão de gelo que causa dano próximo (níveis 1/3/5/7/10: 44/60/76/96/120 px, dano 2/3/4,5/6/9). Não estilhaçar depois de descongelar.
+- [ ] Estilhaçamentos em cadeia não travam nem afetam indevidamente o boss Tipo 6; Matryoshka, Supremo e builds híbridas com Coreia/China continuam funcionando.
+- [ ] Executar `npm test` (russianFrost, type6Boss, balance069Plus e regressão completa), `npm run build`, `npm run dev`. **Ainda pendentes** neste ambiente.
