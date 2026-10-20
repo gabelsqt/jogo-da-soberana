@@ -80,6 +80,7 @@ import {createCuboNewsState,tickCuboNews,queueCuboNews} from '../gameplay/cuboNe
 import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
+import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,insideIceBreathCone,iceBreathMotes} from '../gameplay/iceBreath.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
@@ -449,6 +450,8 @@ export class GameScene extends Phaser.Scene {
     installShieldSprites(this);
     this.enemyHealthGraphics = this.add.graphics().setDepth(27);
     this.frostGraphics = this.add.graphics().setDepth(46);
+    this.iceBreathGraphics=this.combat.transformed==='ru'?
+      this.add.graphics().setDepth(37):null;
     this.towerStatusGraphics = this.add.graphics().setDepth(35);
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
@@ -2500,19 +2503,34 @@ export class GameScene extends Phaser.Scene {
       ease:'Cubic.Out',onComplete:()=>fx.destroy()});
     this.russianShardVisualCount??=0;
     const budget=Math.max(0,64-this.russianShardVisualCount);
-    const shards=russianShardVisuals(radius,Math.min(10,budget));
+    const russianLevel=this.combatCampaign?.choices?.filter(id=>id==='ru').length||
+      (this.combat.transformed==='ru'?10:1);
+    const shards=russianShardVisuals(radius,Math.min(6+Math.floor(russianLevel*0.65),budget),
+      Math.random,russianLevel);
     for(const [i,crystal] of shards.entries()){
       const shard=this.add.graphics({x,y}).setDepth(58);
       const w=crystal.width,h=crystal.length;
-      shard.fillStyle(i%3===0?0xffffff:i%2===0?0x80dbff:0xc3f7ff,0.98);
-      shard.fillTriangle(-w,2, w,2, 0,-h);
-      shard.lineStyle(1,0x2e92c5,0.95).strokeTriangle(-w,2,w,2,0,-h);
+      const tint=i%3===0?0xe5ffff:i%2===0?0x85d9fa:0xafedff;
+      // Cristal bipiramidal com facetas iluminadas e núcleo translúcido.
+      shard.fillStyle(0x287da7,0.90);
+      shard.fillTriangle(0,-h,-w,0,0,h*0.36);
+      shard.fillStyle(tint,0.98);
+      shard.fillTriangle(0,-h,w,0,0,h*0.36);
+      shard.fillStyle(0xffffff,0.80);
+      shard.fillTriangle(0,-h,-w*.18,-h*.17,w*.15,-h*.05);
+      shard.lineStyle(1,0xd9faff,0.95);
+      shard.lineBetween(0,-h,-w,0);
+      shard.lineBetween(0,-h,w,0);
+      shard.lineBetween(-w,0,0,h*.36);
+      shard.lineBetween(w,0,0,h*.36);
+      shard.lineStyle(1,0x2f86b0,0.8);
+      shard.lineBetween(0,-h,0,h*.36);
       shard.setRotation(crystal.angle+Math.PI/2);
       this.russianShardVisualCount++;
       this.tweens.add({
-        targets:shard,
-        x:x+crystal.dx,y:y+crystal.dy,
-        alpha:0,scale:0.65,rotation:crystal.angle+Math.PI/2+0.25,
+        targets:shard,x:x+crystal.dx,y:y+crystal.dy,
+        alpha:0,scale:0.7,
+        rotation:crystal.angle+Math.PI/2+crystal.spin,
         duration:crystal.duration,ease:'Cubic.Out',
         onComplete:()=>{
           shard.destroy();
@@ -2951,9 +2969,69 @@ export class GameScene extends Phaser.Scene {
     this.cannonRecoil = Math.max(this.cannonRecoil, effects.recoil);
   }
 
+  russianBreathMuzzle(angle){
+    if(this.cannonBarrelArt){
+      const pose=cannonSpritePose(angle,CANNON.x,CANNON.y-11,this.cannonRecoil);
+      return {x:pose.muzzleX,y:pose.muzzleY};
+    }
+    return {x:CANNON.x+Math.cos(angle)*40,y:CANNON.y+Math.sin(angle)*40};
+  }
+
+  drawRussianBreath(angle,active){
+    const gfx=this.iceBreathGraphics;
+    if(!gfx)return;
+    gfx.clear();
+    if(!active)return;
+    const {x,y}=this.russianBreathMuzzle(angle);
+    const c=Math.cos(angle),sn=Math.sin(angle);
+    // Nuvem contínua de geada com bordas difusas e cristais em movimento.
+    for(const [i,mote] of iceBreathMotes(angle,this.elapsed).entries()){
+      const px=x+mote.x,py=y+mote.y;
+      const color=i%4===0?0xf2ffff:i%3===0?0x6dcbf5:0xb2ecff;
+      gfx.fillStyle(color,mote.alpha);
+      gfx.fillEllipse(px,py,mote.radius*2.6,mote.radius*1.65);
+      if(mote.icy){
+        const size=2.4+mote.radius*.24;
+        gfx.lineStyle(1,0xe1ffff,0.65);
+        gfx.lineBetween(px-size,py,px+size,py);
+        gfx.lineBetween(px,py-size,px,py+size);
+      }
+    }
+    // Neblina mais densa junto à boca, clareando em direção à borda.
+    gfx.fillStyle(0xcff6ff,0.27);
+    gfx.fillEllipse(x+c*18,y+sn*18,28,20);
+    gfx.fillStyle(0xf4ffff,0.13);
+    gfx.fillEllipse(x+c*35,y+sn*35,39,23);
+  }
+
+  fireRussianBreath(angle){
+    const {x,y}=this.russianBreathMuzzle(angle);
+    const damage=Math.max(1,this.combat.basicDamage*0.45);
+    // Uma aplicação de dano por tick e por alvo: partículas não multiplicam hits.
+    for(let i=this.enemies.length-1;i>=0;i--){
+      const enemy=this.enemies[i];
+      if(!enemy?.sprite?.active)continue;
+      const hitRadius=enemy.type===6?42:enemyContactRadius(enemy.type);
+      if(!insideIceBreathCone(x,y,angle,enemy.sprite.x,enemy.sprite.y,hitRadius))
+        continue;
+      if(enemy.type===6){
+        hitType6At(this,enemy,enemy.sprite.x,enemy.sprite.y,damage,18);
+      }else{
+        this.freezeRussianEnemy(enemy,this.combat.russianFreezeMs);
+        this.impactInvader(i,damage,0,'#b9eeff',false);
+      }
+    }
+  }
+
   shootBasic(pointer) {
     if (this.tutorialComplete || this.countdownActive ||
       this.elapsed<this.cannonFrozenUntil)return;
+    if(this.isV1Campaign&&this.combat.transformed==='ru'){
+      if(this.time.now-this.lastBasicFire<ICE_BREATH_TICK_MS)return;
+      this.lastBasicFire=this.time.now;
+      this.fireRussianBreath(restrictedAimAngle(CANNON.x,CANNON.y,pointer.x,pointer.y));
+      return;
+    }
     // Aceleração automática em ondas: aquece, sustenta o pico e desacelera.
     const heatCycle = 5200;
     const phase = (this.time.now % heatCycle) / heatCycle;
@@ -5018,6 +5096,8 @@ export class GameScene extends Phaser.Scene {
       if (!this.gameOver) this.updateBlasts();
       return;
     }
+    // Se a onda for interrompida, o cone não permanece desenhado no céu.
+    this.iceBreathGraphics?.clear();
     // Sem disparos, movimentação ou cronômetro de onda antes do "1".
     if (this.countdownActive) return;
     if (this.supremeCinematic) return;
@@ -5060,7 +5140,10 @@ export class GameScene extends Phaser.Scene {
     if(this.isV1Campaign && this.combat.koreaContinuous)
       this.drawEncoreContinuousBeam(this.aimAngle,
         pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer));
-    if (pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer)) this.shootBasic(pointer);
+    const firing=pointer.leftButtonDown()&&!this.pointerOverEnemyLabControls(pointer);
+    if(this.iceBreathGraphics)this.drawRussianBreath(this.aimAngle,
+      firing&&this.elapsed>=this.cannonFrozenUntil);
+    if(firing)this.shootBasic(pointer);
     // O ciclo de calor continua mesmo quando o jogador solta o disparo.
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
     // volta ao lugar sem alterar a origem física das balas.
