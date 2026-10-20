@@ -14,6 +14,7 @@ import { supremeCodeFor, advanceSupremeCode } from '../gameplay/supremeCodeInput
 import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
+import {registerAmericanJulyHit,americanJulyReady,consumeAmericanJulyShot} from '../gameplay/usJuly.js';
 import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame, firePulseRadius } from '../gameplay/arraialBrasil2.js';
 import {
   normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout,
@@ -490,6 +491,7 @@ export class GameScene extends Phaser.Scene {
     this.lastFinaleWarningAt=-Infinity;
     this.finaleCounterattackCount=0;
     this.basicShotCount = 0;
+    this.usJulyHits = 0; // A carga pertence somente à noite atual.
     this.waveMakerMetrics={enemyShots:0,enemyKills:0,intercepted:0,damageReceived:0};
     this.cannonRecoil = 0;
     this.lastHeavyShake = -Infinity;
@@ -3292,19 +3294,27 @@ export class GameScene extends Phaser.Scene {
     const volleyAngles = this.isV1Campaign && count>3
       ? horizontalOffsets(count,0.065).map(offset=>Phaser.Math.Clamp(aimed+offset,-Math.PI+Math.PI/12,-Math.PI/12))
       : shotAngles(aimed,count);
+    // Uma salva patriótica por carregamento, mesmo se a China multiplicar tiros.
+    // Somente uma bala do centro recebe o efeito; as demais seguem normais.
+    const july=consumeAmericanJulyShot(this.usJulyHits,
+      this.isV1Campaign?this.combat.usJulyHitsRequired:0);
+    if(july.patriotic)this.usJulyHits=july.hits;
+    const julyIndex=Math.floor((volleyAngles.length-1)/2);
     volleyAngles.forEach((firingAngle, index) => {
       const centerGlow = isChinaCenterProjectile(
         index, volleyAngles.length, effects.multiple,
       );
       const offset = this.isV1Campaign && this.combat.horizontalSpread
         ? (nextShot % 2 ? -1 : 1) * this.combat.horizontalSpread : 0;
-      if (this.isV1Campaign) this.createProjectile(firingAngle, false, 0, effects, centerGlow, offset);
+      if (this.isV1Campaign) this.createProjectile(firingAngle, false, 0,
+        effects, centerGlow, offset, 0, null, july.patriotic&&index===julyIndex);
       else this.createProjectile(firingAngle, false, 0, effects, centerGlow);
       if (this.isV1Campaign && this.combat.extraBurstEvery && nextShot % this.combat.extraBurstEvery === 0) {
         this.createProjectile(firingAngle, false, 0, effects, false, offset + 7);
       }
     });
     this.basicShotCount = nextShot;
+    if(july.patriotic)this.showAmericanJulyMuzzle(aimed);
     // O laser coreano mantém a direção da mira original (a oscilação da
     // Gambiarra altera apenas as balas básicas, não a arma laser).
     if (this.combat.plasmaEvery > 0 && this.basicShotCount % (this.isV1Campaign ? this.combat.plasmaEvery * 2 : this.combat.plasmaEvery) === 0) {
@@ -4137,7 +4147,7 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  createProjectile(angle, special, distance = 0, effects = null, centerGlow = false, offsetX = 0, generation = 0, origin = null) {
+  createProjectile(angle, special, distance = 0, effects = null, centerGlow = false, offsetX = 0, generation = 0, origin = null, patriotic = false) {
     const vx = Math.cos(angle);
     const vy = Math.sin(angle);
     // A origem física acompanha a boca desenhada, mesmo entre dois frames.
@@ -4152,6 +4162,7 @@ export class GameScene extends Phaser.Scene {
     if (this.isV1Campaign && this.combat.transformed === 'cn') style.color = centerGlow ? 0xffe56a : 0xff5651;
     if (this.isV1Campaign && this.combat.transformed === 'ru') style.color = 0x8beaff;
     const vfx = special ? null : (effects ?? shotVfxFor(this.activeUpgradeIds()));
+    const julyShot=!special&&patriotic;
     // Identidade coreana: pulso laser visual em cada tiro físico, sem mudar física.
     const koreanLaserPulse=!special&&this.isV1Campaign&&this.combat.plasmaEvery>0;
     // Somente a representação gráfica é limitada. Balas invisíveis continuam com física e dano.
@@ -4159,6 +4170,9 @@ export class GameScene extends Phaser.Scene {
     if (visible) this.visibleProjectileCount += 1;
     const dot = !visible ? {x, y, destroy(){}} : special
       ? this.add.circle(x, y, 8, 0x72eaf8).setDepth(35)
+      : julyShot
+        ? this.add.circle(x,y,9,0xf5f8ff)
+          .setStrokeStyle(3,0x427ee3,0.96).setDepth(36)
       : vfx?.cryogenic
         ? this.add.circle(x, y, style.width * 0.6, style.color, 0.30)
           .setStrokeStyle(1,0xf0ffff,0.34).setDepth(35)
@@ -4166,7 +4180,7 @@ export class GameScene extends Phaser.Scene {
           .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff, centerGlow ? 0.95 : 0.65)
           .setRotation(angle + Math.PI / 2)
           .setDepth(35);
-    if(koreanLaserPulse && visible && !vfx?.cryogenic){
+    if(koreanLaserPulse && visible && !vfx?.cryogenic && !julyShot){
       // Mesma forma base para não afetar os outros países; mudança visual local.
       dot.setFillStyle(0xb96aff).setScale(1,Math.max(1,20/style.length))
         .setStrokeStyle(centerGlow ? 2 : 1,0xffffff,0.98);
@@ -4174,7 +4188,7 @@ export class GameScene extends Phaser.Scene {
     const speed = special ? 300 : this.combat.basicSpeed;
     // Uma única Graphics por bala, redesenhada enquanto ela se move.
     // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
-    const trail = visible && vfx && (vfx.heavy || vfx.multiple || koreanLaserPulse)
+    const trail = visible && vfx && (vfx.heavy || vfx.multiple || koreanLaserPulse || julyShot)
       ? this.add.graphics().setDepth(34) : null;
     const bullet = {
       sprite: dot,
@@ -4184,6 +4198,7 @@ export class GameScene extends Phaser.Scene {
       vfx,
       centerGlow,
       koreanLaserPulse,
+      patriotic:julyShot,
       vx: vx * speed,
       vy: vy * speed,
       special,
@@ -4196,9 +4211,9 @@ export class GameScene extends Phaser.Scene {
       impactColor: style.impactColor,
       hitEnemyIds: new Set(),
       distanceTravelled:0,
-      usGrowthMax:!special ? (this.combat.usGrowthMax || 1) : 1,
-      usRadius:7,
-      chinaSplit:!special && generation===0 && this.combat.chinaSplitCount>1,
+      usRadius:julyShot?10:7,
+      chinaSplit:!special && !julyShot && generation===0 &&
+        this.combat.chinaSplitCount>1,
     };
     this.projectiles.push(bullet);
     this.drawProjectileTrail(bullet);
@@ -4213,6 +4228,15 @@ export class GameScene extends Phaser.Scene {
     const dx = bullet.vx / length;
     const dy = bullet.vy / length;
     gfx.clear();
+    if(bullet.patriotic){
+      // Feixe de três cores: espetáculo patriótico, não fogos de São João.
+      gfx.lineStyle(10,0x316bb9,0.25);
+      gfx.lineBetween(x-dx*36,y-dy*36,x,y);
+      gfx.lineStyle(5,0xe54a5a,0.70);
+      gfx.lineBetween(x-dx*29,y-dy*29,x,y);
+      gfx.lineStyle(2,0xffffff,0.98);
+      gfx.lineBetween(x-dx*23,y-dy*23,x,y);
+    }
     if (bullet.vfx.cryogenic) {
       // 5 volutas por projétil; nenhuma partícula nova por frame.
       const sidewaysX=-dy,sidewaysY=dx;
@@ -4573,10 +4597,79 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  // O clarão no cano avisa quando uma salva Quatro de Julho sai de fato.
+  // Só UMA animação por salva, sem partículas persistentes nem novos assets.
+  showAmericanJulyMuzzle(angle){
+    const x=CANNON.x+Math.cos(angle)*35;
+    const y=CANNON.y+Math.sin(angle)*35;
+    const colors=[0x2769cf,0xf3f8ff,0xe74c60];
+    for(let i=0;i<3;i++){
+      const ring=this.add.circle(x,y,7+i*4,colors[i],0.27)
+        .setStrokeStyle(2,colors[i],0.85).setDepth(39);
+      this.tweens.add({targets:ring,scale:1.8+i*0.33,alpha:0,
+        duration:190+i*55,onComplete:()=>ring.destroy()});
+    }
+  }
+
+  // Quatro de Julho: dano APENAS no impacto do projétil carregado.
+  // Estilhaços e ondas não alimentam o medidor nem provocam novas explosões.
+  detonateAmericanJuly(x,y,directId,baseDamage){
+    const radius=this.combat.usJulyBlastRadius;
+    if(!radius)return;
+    playSfx('usShockwave',{throttle:105,volumeScale:0.44});
+    this.explodeAmericanPrimary(x,y,directId,
+      Math.max(this.combat.usJulyBlastDamage,baseDamage*2),radius);
+    const colors=[0x367bd4,0xf4f7ff,0xe24b62];
+    for(let i=0;i<3;i++){
+      const ring=this.add.circle(x,y,Math.max(10,radius*(0.40+i*0.23)),
+        colors[i],0.18).setStrokeStyle(i===1?4:3,colors[i],0.92)
+        .setDepth(53);
+      this.tweens.add({targets:ring,scale:1.10+i*0.15,alpha:0,
+        duration:270+i*85,onComplete:()=>ring.destroy()});
+    }
+    const spark=this.add.graphics().setPosition(x,y).setDepth(54);
+    for(let k=0;k<15;k++){
+      const a=(Math.PI*2*k)/15;
+      const inner=radius*(0.19+(k%3)*0.08);
+      const outer=radius*(0.56+(k%4)*0.09);
+      spark.lineStyle(k%3===1?3.2:2.3,colors[k%3],0.95);
+      spark.lineBetween(Math.cos(a)*inner,Math.sin(a)*inner,
+        Math.cos(a)*outer,Math.sin(a)*outer);
+    }
+    this.tweens.add({targets:spark,scale:1.35,alpha:0,
+      duration:360,onComplete:()=>spark.destroy()});
+    if(!this.combat.usJulyShards)return;
+    // Coroa limitada (30 px) além do raio principal; não duplica o dano nos
+    // inimigos que já estavam dentro da explosão nem gera colisões recursivas.
+    const outer=radius+30;
+    for(let k=this.enemies.length-1;k>=0;k--){
+      const enemy=this.enemies[k];
+      if(enemy.type===6){
+        // Escudos e módulos do Tipo 6 usam as regras existentes de área.
+        const innerSet=new Set(type6AreaTargets(enemy.type6,
+          enemy.sprite.x,enemy.sprite.y,x,y,radius));
+        const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
+        const additional=type6AreaTargets(enemy.type6,
+          enemy.sprite.x,enemy.sprite.y,x,y,outer);
+        for(const id of additional){
+          if(innerSet.has(id))continue;
+          const rect=rects.find(rect=>rect.id===id);
+          if(rect)hitType6At(this,enemy,rect.x,rect.y,0.65,0,true);
+        }
+        continue;
+      }
+      if(enemy.uid===directId)continue;
+      const d=Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y)-
+        enemyContactRadius(enemy.type);
+      if(d>radius&&d<=outer)
+        this.impactInvader(k,0.65,0,'#c9defe',false);
+    }
+  }
+
   explodeAmericanPrimary(x,y,primaryId,damage,radius) {
     // O alvo direto já recebeu o dano: onda secundária atinge apenas outros.
-    const flash=this.add.circle(x,y,radius,0xffca65,0.27)
-      .setStrokeStyle(3,0xffffff,0.7).setDepth(52);
+    const flash=this.add.circle(x,y,radius,0x3b79d9,0.17)
+      .setStrokeStyle(3,0xffffff,0.82).setDepth(52);
     this.tweens.add({targets:flash,scale:1.35,alpha:0,duration:210,
       onComplete:()=>flash.destroy()});
     for(let k=this.enemies.length-1;k>=0;k--){
@@ -4596,7 +4689,7 @@ export class GameScene extends Phaser.Scene {
       }
       if(other.uid===primaryId)continue;
       if(Math.hypot(other.sprite.x-x,other.sprite.y-y)<=radius+enemyContactRadius(other.type))
-        this.impactInvader(k,damage*0.5,0,'#ffce87',false);
+        this.impactInvader(k,damage*0.5,0,'#b5d9ff',false);
     }
   }
 
@@ -4624,30 +4717,9 @@ export class GameScene extends Phaser.Scene {
           bullet.vy=Math.sin(current+turn)*speed;
         }
       }
-      if (!bullet.special && bullet.usGrowthMax>1 && this.combat.usHoming>0 && this.enemies.length) {
-        // Curva angular limitada: o míssil americano persegue sem teletransportar.
-        let nearest=null, nearestDist=Infinity;
-        for(const target of this.enemies) {
-          const d=Math.hypot(target.sprite.x-bullet.sprite.x,target.sprite.y-bullet.sprite.y);
-          if(d<460 && d<nearestDist){nearest=target;nearestDist=d;}
-        }
-        if(nearest) {
-          const desired=Math.atan2(nearest.sprite.y-bullet.sprite.y,nearest.sprite.x-bullet.sprite.x);
-          const current=Math.atan2(bullet.vy,bullet.vx);
-          const change=Phaser.Math.Angle.Wrap(desired-current);
-          const turn=Phaser.Math.Clamp(change,-this.combat.usHoming*dt,this.combat.usHoming*dt);
-          const speed=Math.hypot(bullet.vx,bullet.vy);
-          bullet.vx=Math.cos(current+turn)*speed;
-          bullet.vy=Math.sin(current+turn)*speed;
-          if(bullet.visual)bullet.sprite.setRotation(current+turn+Math.PI/2);
-        }
-      }
+      // Apenas o MÍSSIL SECUNDÁRIO acima continua guiado.
+      // O tiro principal americano não altera direção nem tamanho durante o voo.
       bullet.distanceTravelled+=Math.hypot(bullet.vx,bullet.vy)*dt;
-      if(!bullet.special && bullet.usGrowthMax>1) {
-        const scale=1+(bullet.usGrowthMax-1)*Math.min(1,bullet.distanceTravelled/300);
-        bullet.usRadius=5.5*scale;
-        if(bullet.visual)bullet.sprite.setScale(scale);
-      }
       const previousX=bullet.sprite.x,previousY=bullet.sprite.y;
       bullet.sprite.x += bullet.vx * dt;
       bullet.sprite.y += bullet.vy * dt;
@@ -4714,10 +4786,16 @@ export class GameScene extends Phaser.Scene {
               bullet.damage,Math.max(7,bullet.usRadius),previousX,previousY);
             if(!hit.blocked)continue;
             if(hit.target!==null)bullet.hitEnemyIds.add(enemy.uid+':'+hit.target);
+            if(hit.target!==null&&hit.target!=='barrier')
+              this.usJulyHits=registerAmericanJulyHit(this.usJulyHits,
+                this.combat.usJulyHitsRequired,bullet);
+            if(bullet.patriotic){
+              if(hit.target!==null&&hit.target!=='barrier')
+                this.detonateAmericanJuly(bullet.sprite.x,bullet.sprite.y,enemy.uid,bullet.damage);
+              remove=true;break;
+            }
             if(bullet.fragmentation)this.explodeFragments(bullet.sprite.x,bullet.sprite.y,
               enemy.uid);
-            if(bullet.usGrowthMax>1)this.explodeAmericanPrimary(bullet.sprite.x,
-              bullet.sprite.y,enemy.uid,bullet.damage,20+bullet.usRadius);
             if(bullet.knockback>0)this.showHeavyImpact(bullet.sprite.x,bullet.sprite.y);
             if(bullet.fragmentation){remove=true;break;}
             bullet.pierceLeft-=1;
@@ -4747,9 +4825,10 @@ export class GameScene extends Phaser.Scene {
             j, hitDamage, knockback, bullet.impactColor,
             true, this.combat.strategicRecoil ? 720 : 400,
           );
-          if(bullet.usGrowthMax>1)
-            this.explodeAmericanPrimary(deathPosition.x,deathPosition.y,directTargetId,
-              bullet.damage,20+bullet.usRadius);
+          this.usJulyHits=registerAmericanJulyHit(this.usJulyHits,
+            this.combat.usJulyHitsRequired,bullet);
+          if(bullet.patriotic)
+            this.detonateAmericanJuly(deathPosition.x,deathPosition.y,directTargetId,bullet.damage);
           if (bullet.knockback > 0) {
             if (this.combat.strategicRecoil) {
               this.showStrategicRecoilImpact(deathPosition.x, deathPosition.y);
@@ -4763,8 +4842,8 @@ export class GameScene extends Phaser.Scene {
               bullet.generation + 1, {x:deathPosition.x+8,y:deathPosition.y-8});
             replica?.hitEnemyIds.add(directTargetId);
           }
-          if (bullet.fragmentation) {
-            this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
+          if (bullet.fragmentation || bullet.patriotic) {
+            if(!bullet.patriotic)this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
               destroyed ? deathPosition : null);
             remove = true;
           } else {
@@ -5399,8 +5478,11 @@ export class GameScene extends Phaser.Scene {
     } else if (this.mode.startsWith('wave')) {
       const history = this.combatCampaign.choices.map((id) =>
         getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' + ');
-      const special = this.combat.plasmaEvery ? ' | LIGHTSTICK: ' +
-        (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/' + PLASMA_EVERY_SHOTS
+      const special = this.combat.usJulyHitsRequired
+        ? ' | 4 JULHO: '+(americanJulyReady(this.usJulyHits,this.combat.usJulyHitsRequired)
+          ? 'PRONTO!' : this.usJulyHits+'/'+this.combat.usJulyHitsRequired)
+        : this.combat.plasmaEvery ? ' | LIGHTSTICK: ' +
+          (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/' + PLASMA_EVERY_SHOTS
         : this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
       const towerLabel = this.supportTowers.map((tower) => tower.definition.label).join(' + ');
       const levelTwo = unlockedSecondUpgrades(this.combatCampaign)
