@@ -298,3 +298,11 @@
 - [ ] Rajadas frequentes, níveis altos e luta Tipo 6 não causam travamento: máximo de oito raios **visuais** por salva, sem reduzir o dano.
 - [ ] Efeitos são removidos após animação e ao trocar de cena; não deixar Graphics/tweens residuais.
 - [ ] Executar `npm test` (inclui discoGlobe e discoReflectionVfx) e `npm run build`; rodar playtest visual — pendentes nesta sessão.
+
+## v0.68 — evitar rastros da cutscene antes da onda 11
+- [ ] Iniciar onda 11 com **Coreia traidora** e escolher **RESISTIR À TRAIÇÃO**; confirmar ausência de barras vermelhas, fundos de botões, sombras, rótulos, rodapé e cabeçalho da cutscene sobre combate.
+- [ ] Confirmar que a interface normal do combate permanece e que contagem regressiva/inimigos aparecem corretamente.
+- [ ] Aceitar submissão **antes** da onda 11 e confirmar entrada direta no final correspondente, sem vazamento de elementos.
+- [ ] Testar outras nações traidoras e a rota Full Brazil (sem botão de submissão).
+- [ ] Passar pela cutscene da onda 10 para verificar limpeza do botão de continuar.
+- [ ] Executar `npm test` (inclusive `finalePreludeCleanup.test.js`) e `npm run build`; validar visualmente no navegador. Ainda não executado.
