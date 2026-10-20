@@ -72,7 +72,8 @@ test('cristais de gelo se espalham sem exceder o limite visual',()=>{
     assert.ok(Math.hypot(shard.dx,shard.dy)>=39);
     assert.ok(shard.width>=3&&shard.width<=6);
     assert.ok(shard.length>=9&&shard.length<=17);
-    assert.ok(shard.duration>=230&&shard.duration<=340);
+    assert.ok(shard.duration>=260&&shard.duration<=390);
+    assert.ok(Math.abs(shard.spin)>=1.3&&Math.abs(shard.spin)<=4.1);
   }
   assert.equal(russianShardVisuals(0,10).length,0);
   assert.equal(russianShardVisuals(60,0).length,0);
@@ -84,4 +85,14 @@ test('dano radial russo permanece independente dos cristais visuais',()=>{
  assert.deepEqual(russianShatterTargets(source,[source,close,far],100,44),[2]);
  // Mesmo sem partículas visuais em uma onda congestionada, o alvo é acertado.
  assert.equal(russianShardVisuals(44,0).length,0);
+});
+
+test('cristais russos crescem progressivamente e giram mais do que antes',()=>{
+  const fixed=()=>0.75;
+  const small=russianShardVisuals(44,10,fixed,1);
+  const large=russianShardVisuals(120,12,fixed,10);
+  assert.ok(large[0].length>small[0].length*1.8);
+  assert.ok(large[0].width>small[0].width*1.8);
+  assert.ok(large.every(shard=>Math.abs(shard.spin)>=1.3));
+  assert.equal(russianShardVisuals(120,0,fixed,10).length,0);
 });
