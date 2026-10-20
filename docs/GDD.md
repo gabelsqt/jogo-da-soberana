@@ -843,3 +843,9 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Vitória de teste não segue a progressão da campanha; permite **voltar ao Wave Maker**. Derrota de teste também oferece retorno ao editor.
 - **Limitações importantes:** ainda não há relatórios persistentes de dano, HP, taxa de vitórias, IA automática nem simulações em lote. A lógica de ondas especiais/chefões exige playtest cuidadoso. Sem alterar publicação de rascunhos.
 - **Validação:** implementação enviada ao GitHub sem testes locais/build realizados nesta sessão.
+
+### v0.62 — resultados do teste jogável Wave Maker
+- Em `waveMakerTest`, coletar quantidade de projéteis inimigos disparados, abates de inimigos por dano no método comum, interceptações por explosões especiais, dano bruto recebido pelo canhão/escudo, tiros básicos do canhão e HP/escudo restantes ao finalizar.
+- Gravar últimos 30 relatórios de testes finalizados no `localStorage` sob chave `soberana-wave-maker-results-v1`; Wave Maker oferece botão RESULTADOS que lista os cinco resultados mais recentes da onda corrente.
+- Estes números são contagens instrumentadas parciais: interceptações feitas por outras mecânicas e abates de chefes via lógica especial podem não estar incluídos; não anunciar métricas como totais completos até instrumentação centralizada. Sem execução automática, taxa de vitórias estatisticamente confiável ou exportação nesta versão.
+- Resultado registrado em vitória ou derrota de teste; sem publicação da onda nem interferência nas campanhas oficiais.
