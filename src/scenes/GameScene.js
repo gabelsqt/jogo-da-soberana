@@ -394,6 +394,7 @@ export class GameScene extends Phaser.Scene {
     this.lastFinaleWarningAt=-Infinity;
     this.finaleCounterattackCount=0;
     this.basicShotCount = 0;
+    this.waveMakerMetrics={enemyShots:0,enemyKills:0,intercepted:0,damageReceived:0};
     this.cannonRecoil = 0;
     this.lastHeavyShake = -Infinity;
     this.lastSpecialFire = -this.combat.specialCooldown;
@@ -4407,6 +4408,7 @@ export class GameScene extends Phaser.Scene {
     this.clearDiscoGlobes();
     this.music.stop();
     if (this.mode==='wave11' && !this.waveMakerTest) {this.showFinaleDefeat(reason);return;}
+    if(this.waveMakerTest)this.saveWaveMakerReport('derrota');
     this.tutorialComplete = true;
     this.gameOver = true;
     this.statusText.setText(reason==='timeout'?'TEMPO ESGOTADO':'CANHÃO DESTRUÍDO');
@@ -4478,9 +4480,22 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  saveWaveMakerReport(outcome){
+    if(!this.waveMakerTest||!this.waveMakerMetrics)return;
+    const report={wave:Number(this.mode.slice(4)),outcome,health:Math.ceil(this.cannonHealth),
+      shield:Math.ceil(this.shield),playerShots:this.basicShotCount,
+      ...this.waveMakerMetrics,completedAt:new Date().toISOString()};
+    try{
+      const key='soberana-wave-maker-results-v1';
+      const history=JSON.parse(localStorage.getItem(key)||'[]');
+      const updated=[...(Array.isArray(history)?history:[]),report].slice(-30);
+      localStorage.setItem(key,JSON.stringify(updated));
+    }catch{ /* Teste ainda encerra normalmente com armazenamento indisponível. */ }
+  }
   showWaveComplete(outcome = 'cleared') {
     if (this.tutorialComplete) return;
     if (this.waveMakerTest) {
+      this.saveWaveMakerReport(outcome);
       this.clearDiscoGlobes();this.music.stop();this.tutorialComplete=true;
       this.statusText.setText('TESTE CONCLUÍDO — '+outcome.toUpperCase());
       addMenuButton(this,{x:W/2,y:365,width:340,height:48,
