@@ -80,7 +80,7 @@ import {createCuboNewsState,tickCuboNews,queueCuboNews} from '../gameplay/cuboNe
 import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
-import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,insideIceBreathCone,iceBreathMotes} from '../gameplay/iceBreath.js';
+import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Targets} from '../gameplay/iceBreath.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
@@ -3017,20 +3017,38 @@ export class GameScene extends Phaser.Scene {
 
   fireRussianBreath(angle){
     const {x,y}=this.russianBreathMuzzle(angle);
-    const damage=Math.max(1,this.combat.basicDamage*0.45);
-    // Uma aplicação de dano por tick e por alvo: partículas não multiplicam hits.
+    const regularDamage=iceBreathTickDamage(this.combat.basicDamage);
+    const bossDamage=iceBreathTickDamage(this.combat.basicDamage,true);
+    // Dano periódico independe da quantidade de partículas da névoa.
     for(let i=this.enemies.length-1;i>=0;i--){
       const enemy=this.enemies[i];
       if(!enemy?.sprite?.active)continue;
-      const hitRadius=enemy.type===6?42:enemyContactRadius(enemy.type);
-      if(!insideIceBreathCone(x,y,angle,enemy.sprite.x,enemy.sprite.y,hitRadius))
-        continue;
       if(enemy.type===6){
-        hitType6At(this,enemy,enemy.sprite.x,enemy.sprite.y,damage,18);
-      }else{
-        this.freezeRussianEnemy(enemy,this.combat.russianFreezeMs);
-        this.impactInvader(i,damage,0,'#b9eeff',false);
+        if(!enemy.type6?.introComplete||enemy.type6.defeated)continue;
+        // A fortaleza ocupa quase toda a largura. O centro da nave não é
+        // um ponto vulnerável: procurar os módulos vivos dentro do cone.
+        const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
+        const targets=iceBreathType6Targets(x,y,angle,rects);
+        if(!targets.length)continue;
+        // Barreira protege TODA a nave e recebe um único hit por tick;
+        // nenhum dano atravessa para os módulos enquanto ela resistir.
+        if(enemy.type6.barrier.active&&enemy.type6.barrier.hp>0){
+          const first=targets[0];
+          hitType6At(this,enemy,first.x,first.y,bossDamage,0,true);
+        }else{
+          // Depois que a barreira cai, o sopro pode atingir diferentes
+          // módulos dentro do cone, e o núcleo quando estiver exposto.
+          for(const target of targets){
+            if(enemy.type6.defeated)break;
+            hitType6At(this,enemy,target.x,target.y,bossDamage,0,true);
+          }
+        }
+        continue;
       }
+      if(!insideIceBreathCone(x,y,angle,enemy.sprite.x,enemy.sprite.y,
+        enemyContactRadius(enemy.type)))continue;
+      this.freezeRussianEnemy(enemy,this.combat.russianFreezeMs);
+      this.impactInvader(i,regularDamage,0,'#b9eeff',false);
     }
   }
 
