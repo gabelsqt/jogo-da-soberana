@@ -1007,3 +1007,25 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - **Feedback visível:** antes da janela final, apertar Espaço mostra aviso de que o Supremo fica disponível nos últimos cinco segundos (com limite de frequência). Quando o Supremo fica pronto, surge um aviso claro **"★ SUPREMO PRONTO — ESPAÇO"** durante a campanha; antes o antigo indicador ficava oculto junto dos rótulos de laboratório. Prompt inicial e feedback corrigidos com **quebras de linha reais**; erro de digitação marca texto e orienta usar Backspace.
 - **Debug com acesso seguro:** saltos de onda durante desenvolvimento passam de **Shift+número** para **Ctrl+Alt+Shift+número**, para não trocar de fase acidentalmente. Disponíveis apenas em `import.meta.env.DEV`; não são comandos normais da campanha.
 - **Testes:** `tests/supremeCodeInput.test.js` exercita todas as palavras, P/R/F, correção de erro, cancelamento, abertura apenas no fim da onda, pausa/restauração do relógio e despacho do teclado. Simulação direta das regras nos seis IDs técnicos (inclui alias kr) passou. **Ainda pendentes suíte completa `npm test`, `npm run build` e playtest no navegador.**
+
+---
+
+## Atualização aprovada — 20/10/2026 — Sputnik, identidade visual e Tipo 6 (v0.848)
+
+Esta seção **substitui as especificações anteriores** de Matryoshka 8/12/16/24 fragmentos e seus efeitos instantâneos. Não altera o tiro principal russo dos níveis 1, 3, 5 e 7 nem as regras atuais do Supremo russo.
+
+**Cores institucionais:** Brasil verde (`#37C878`), EUA azul (`#4897F5`), Rússia dourado (`#E8B84C`), China vermelho (`#E84D51`) e Coreia do Sul roxo (`#A46CF0`). Tons criogênicos ciano e detalhes de metal continuam permitidos para efeitos físicos; cor institucional rege destaques de interface, seleção, bordas, identidade das facções e cor-base de seus especiais.
+
+**Especial russo — Sputnik Criogênico:** satélite metálico com quatro antenas, núcleo ciano, cristais orbitais e névoa. Viaja até o local selecionado e permanece estacionário. Em contato, congela e aplica Cristalizado, aumentando o dano do tiro principal russo; ao morrer congelado, o alvo provoca estilhaços com raio ampliado. Sputnik por si só **não causa dano direto**, não elimina inimigos e não muda a imunidade do Tipo 6 a congelamento. Máximo de três Sputniks simultâneos por performance. Atualizações aprovadas:
+- **Nível 2 — Sputnik Criogênico:** duração 4 s, raio 43 px; cristalizados tomam ×1,30 dano primário e têm explosão ×1,25 em raio.
+- **Nível 4 — Órbita Fria:** duração 5 s e raio de contato 59 px.
+- **Nível 6 — Reator de Permafrost:** explosões em cristalizados ganham ×1,55 de raio e ×1,25 de dano; sem substituir o dano base normal de estilhaços.
+- **Nível 8 — Zero Absoluto Orbital:** raio 67 px, pulsos de congelamento a cada 1,05 s dentro de 112 px e onda final congelante de 152 px. Sem dano automático por pulso/expiração.
+
+O sistema de danos continua limitado a um estilhaçamento por vítima congelada; visuais obedecem ao orçamento de partículas. O especial híbrido de outros países continua compatível: o Sputnik é um componente persistente e não bloqueia as demais cargas do disparo especial.
+
+**Tipo 6:** barreira protetora em semicírculo invertido, curvado para baixo (∪), preservando lógica/colisão da barreira anterior. Todos os módulos e o núcleo têm animação **estritamente visual** de energia convergente; o laser de cerco (99 px) e o núcleo (116 px) têm raio maior que os outros módulos (58 px). Não altera HP, ataque, capacidade real de absorção ou o relógio do boss.
+
+**UX:** relógio do Cubo News fica invisível até o instante final da transição da contagem central, sem interpolação de opacidade nem CSS transition. Retrato do Zeca Carrara no diálogo ampliado com `setDisplaySize` executado após `setTexture` para evitar herança da escala microscópica do placeholder; usa prévia redimensionada/crop específico para diálogo.
+
+**Validação:** testes funcionais adicionados para mecânica do Sputnik, estágios de upgrade, identidade visual, domo, retrato e cronômetro. Verificação no navegador deve confirmar alinhamento, legibilidade e desempenho, especialmente no Tipo 6 e na mesa de negociações.
