@@ -7,6 +7,7 @@ import {
   type6HullContains,TYPE6_OFFSETS,
 } from './type6Boss.js';
 import {drawType6Ship} from './type6Visual.js';
+import {TYPE6_HULL_SHEET,type6HullFrame,type6HullUsesSheet} from './type6HullSprite.js';
 
 const W=960,H=540,CANNON={x:480,y:494};
 const COLOR={alien:0xff304c,us:0xffa34e,ru:0x88e4ff,jp:0xe6a1ff,cn:0xffd66c};
@@ -14,11 +15,17 @@ export function spawnType6Encounter(scene,options={}){
   const country=TYPE6_PALETTES[options.bossCountry]?options.bossCountry:'alien';
   const state=createType6State(country,options.hp);
   const sprite=scene.add.container(W/2,-90).setDepth(21);
-  const graphics=scene.add.graphics();sprite.add(graphics);
+  const hasHull=type6HullUsesSheet(state,
+    scene.textures?.exists?.(TYPE6_HULL_SHEET.key));
+  const hullSprite=hasHull?scene.add.sprite(0,0,TYPE6_HULL_SHEET.key,0)
+    .setDisplaySize(TYPE6_HULL_SHEET.displayWidth,TYPE6_HULL_SHEET.displayHeight):null;
+  const graphics=scene.add.graphics();
+  if(hullSprite)sprite.add(hullSprite); // No fundo, antes dos módulos.
+  sprite.add(graphics);
   const enemy={
     uid:scene.nextEnemyId++,type:6,level:10,
     definition:{width:790,height:122,color:TYPE6_PALETTES[country].light},
-    sprite,graphics,type6:state,finalBoss:true,bossCountry:country,
+    sprite,graphics,hullSprite,type6:state,finalBoss:true,bossCountry:country,
     hp:state.coreHp,maxHp:state.coreMaxHp,sourceBossId:null,
     phase:'arrival6',age:0,phaseAge:0,
     shockOffset:{x:0,y:0,vx:0,vy:0},russianPullOffset:{x:0,y:0},
@@ -44,7 +51,7 @@ export function spawnType6Encounter(scene,options={}){
   scene.tweens.add({targets:interference,alpha:0,duration:state.introDuration,
     onComplete:()=>interference.destroy()});
   scene.cameras.main.shake(340,0.0024);
-  drawType6Ship(graphics,state,scene.time.now);
+  drawType6Ship(graphics,state,scene.time.now,hasHull);
   return enemy;
 }
 function burst(scene,x,y,color,size=25){
@@ -204,12 +211,20 @@ export function updateType6Encounter(scene,enemy,dt){
   // Microtremor restrito ao desenho; contêiner e hitboxes não mudam.
   const shakeLeft=Math.max(0,enemy.impactShakeUntil-scene.time.now);
   const shake=enemy.impactShakeStrength*Math.min(1,shakeLeft/100);
-  enemy.graphics.setPosition(Math.sin(scene.time.now*0.2)*shake,
-    Math.cos(scene.time.now*0.24)*shake*0.5);
+  const shakeX=Math.sin(scene.time.now*0.2)*shake;
+  const shakeY=Math.cos(scene.time.now*0.24)*shake*0.5;
+  enemy.graphics.setPosition(shakeX,shakeY);
+  // Mesmo deslocamento para casco e módulos. Nunca mover o contêiner,
+  // pois sua posição define as hitboxes reais e a mira dos projéteis.
+  if(enemy.hullSprite){
+    enemy.hullSprite.setPosition(shakeX,shakeY);
+    const phase=type6HullFrame(s);
+    if(Number(enemy.hullSprite.frame.name)!==phase)enemy.hullSprite.setFrame(phase);
+  }
   // Chefões chineses e coreanos produzem muitos objetos/efeitos. Renderizar o
   // casco a até 30 fps mantém TODOS os passos de física/dano em 60 fps.
   if(!enemy.lastType6PaintAt||scene.time.now-enemy.lastType6PaintAt>=33){
-    drawType6Ship(enemy.graphics,s,scene.time.now);
+    drawType6Ship(enemy.graphics,s,scene.time.now,!!enemy.hullSprite);
     enemy.lastType6PaintAt=scene.time.now;
   }
   drawActiveLaser(scene,enemy);
