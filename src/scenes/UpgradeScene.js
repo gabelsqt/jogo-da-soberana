@@ -50,6 +50,43 @@ function preparePortraitTextures(scene){
   }
 }
 
+// O PNG original do Zeca tem margens transparentes/lisas amplas.
+// Criar uma textura recortada EXCLUSIVA para diálogos: o card na cadeira
+// mantém seu enquadramento anterior, enquanto a fala mostra o personagem.
+function prepareZecaDialoguePortrait(scene){
+  if(typeof document==='undefined'||!scene.textures.exists('leader-br-full')||
+    scene.textures.exists('leader-br-dialogue'))return;
+  const source=scene.textures.get('leader-br-full').getSourceImage();
+  if(!source?.width||!source?.height)return;
+  const canvas=document.createElement('canvas');
+  canvas.width=source.width;canvas.height=source.height;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(source,0,0);
+  const {data}=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const w=canvas.width,h=canvas.height;
+  const sample=(x,y)=>{const i=(y*w+x)*4;return [data[i],data[i+1],data[i+2],data[i+3]];};
+  const bg=sample(0,0);
+  let minX=w,minY=h,maxX=-1,maxY=-1;
+  for(let y=0;y<h;y+=2)for(let x=0;x<w;x+=2){
+    const [r,g,b,a]=sample(x,y);
+    const distinct=a>35&&(a<246||Math.abs(r-bg[0])+Math.abs(g-bg[1])+Math.abs(b-bg[2])>95);
+    if(!distinct)continue;
+    minX=Math.min(minX,x);minY=Math.min(minY,y);
+    maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
+  }
+  if(maxX<minX){minX=0;minY=0;maxX=w-1;maxY=h-1;}
+  const pad=Math.max(2,Math.floor(Math.max(maxX-minX,maxY-minY)*0.09));
+  const sx=Math.max(0,minX-pad),sy=Math.max(0,minY-pad);
+  const sw=Math.min(w-sx,maxX+pad-sx+1),sh=Math.min(h-sy,maxY+pad-sy+1);
+  const result=document.createElement('canvas');result.width=192;result.height=192;
+  const target=result.getContext('2d');target.imageSmoothingEnabled=false;
+  const scale=Math.min(184/sw,184/sh);
+  const tw=sw*scale,th=sh*scale;
+  target.drawImage(source,sx,sy,sw,sh,(192-tw)/2,(192-th)/2,tw,th);
+  scene.textures.addCanvas('leader-br-dialogue',result);
+  scene.textures.get('leader-br-dialogue').setFilter(Phaser.Textures.FilterMode.NEAREST);
+}
+
 function portrait(scene,option,index){
   const color=option.locked?0x68737d:(option.color??0x668eac);
   const id=option.id;
@@ -107,6 +144,7 @@ export class UpgradeScene extends Phaser.Scene {
   }
   create(){
     preparePortraitTextures(this);
+    prepareZecaDialoguePortrait(this);
     bindSceneMusic(this,'upgrades');
     this.add.image(W/2,H/2,'boteco-dia').setDisplaySize(W,H).setDepth(1);
     // A arte diurna é central: cabeçalho discreto, sem cobrir a janela do Rio.
@@ -194,11 +232,11 @@ export class UpgradeScene extends Phaser.Scene {
     this.botecoOverlay=this.add.container(0,0).setDepth(190);
     const shade=this.add.rectangle(W/2,H/2,W,H,0x07101c,0.90).setInteractive();
     const frame=this.add.rectangle(W/2,260,810,255,0x16283a,0.99).setStrokeStyle(3,COLOR.amber);
-    // Retrato pequeno no diálogo; narrador não recebe rosto.
-    const portraitFrame=this.add.rectangle(196,250,144,160,0x101d2b,1)
+    // Moldura generosa para o retrato recortado do Zeca.
+    const portraitFrame=this.add.rectangle(197,251,176,196,0x101d2b,1)
       .setStrokeStyle(2,COLOR.amber);
-    this.botecoPortrait=this.add.image(196,245,'boteco-dia')
-      .setDisplaySize(136,136).setVisible(false);
+    this.botecoPortrait=this.add.image(197,249,'boteco-dia')
+      .setDisplaySize(168,184).setVisible(false);
     this.botecoPortraitFrame=portraitFrame.setVisible(false);
     this.botecoSpeaker=makeText(this,W/2,174,'',22,'#ffe0a6').setOrigin(0.5);
     this.botecoLine=makeText(this,620,256,'',18,'#f4f5ff',530,{align:'center'}).setOrigin(0.5);
@@ -222,7 +260,8 @@ export class UpgradeScene extends Phaser.Scene {
     const show=Boolean(key&&this.textures.exists(key));
     this.botecoPortraitFrame.setVisible(show);
     this.botecoPortrait.setVisible(show);
-    if(show)this.botecoPortrait.setTexture(key);
+    if(show)this.botecoPortrait.setTexture(id==='br'&&this.textures.exists('leader-br-dialogue')
+      ?'leader-br-dialogue':key);
     this.botecoLine.setX(show?620:W/2).setWordWrapWidth(show?530:740);
   }
   advanceBotecoDialogue(){
