@@ -31,6 +31,26 @@ export const WAVE0_EASY_PACING=Object.freeze({
   bulletSpeedMultiplier:0.85,
 });
 
+// Onda 1: primeiro combate após a introdução. Grupos menores, menos salvas
+// e voo progressivamente mais baixo. Não modifica as outras ondas/laboratórios.
+export const WAVE1_PACING = Object.freeze({
+  swarmTimes: Object.freeze([400,2300,4300,6400,8600,10800,13000]),
+  swarmCounts: Object.freeze([4,5,5,5,5,6,6]),
+  squadCounts: Object.freeze([3,4,4]),
+  swarmPortalY: 120,
+  tacticalPortalY: 192,
+  bulletSpeedMultiplier: 0.9,
+  bulletDamage: 10,
+  impactDamageMultiplier: 0.75,
+});
+
+// Um ou dois atiradores por esquadrilha: as outras naves ainda podem mergulhar.
+export function wave1FormationShooter(kind,index,count) {
+  const n=Math.max(1,Math.trunc(Number(count)||1));
+  if(kind==='swarm')return index===Math.floor((n-1)/2);
+  return index===Math.floor(n/3) || index===Math.floor(2*n/3);
+}
+
 export const V035_SWARM_SIZES = Object.freeze([
   [3, 5], [3, 5], [3, 5],
   [6, 10], [6, 10], [6, 10],
@@ -70,6 +90,17 @@ export function getV035WaveEvents(mode, legacyEvents) {
     return WAVE0_PORTAL_SEQUENCE.map(({at,portalX,count})=>({
       at,portalX,type:1,pattern:'swarm',count,level:1,
     }));
+  }
+  if(wave===1){
+    const squads=legacyEvents.filter(event=>event.type===2)
+      .map((event,index)=>({
+        ...event,pattern:'tactical',group:true,
+        count:WAVE1_PACING.squadCounts[Math.min(index,WAVE1_PACING.squadCounts.length-1)],
+      }));
+    const swarms=WAVE1_PACING.swarmTimes.map((at,index)=>({
+      at,type:1,level:1,pattern:'swarm',count:WAVE1_PACING.swarmCounts[index],
+    }));
+    return [...squads,...swarms].sort((a,b)=>a.at-b.at);
   }
   const regular = legacyEvents.filter(event => event.type !== 1).map(event => {
     if (event.type !== 2) return { ...event };
@@ -136,6 +167,13 @@ export function swarmDanceCenter(group, elapsed) {
       return { x: x + Math.cos(angle) * radius - 125,
         y: mix(-28, 172, t) + Math.sin(angle) * 37 * t };
     }
+    case 'lowSweep':
+      // Onda 1: o conjunto entra perto de y=120 e desce de forma legível.
+      return {x:x+Math.sin(t*Math.PI*2)*90,
+        y:120+115*t+7*Math.sin(t*Math.PI)};
+    case 'lowZigzag':
+      return {x:x+Math.sin(t*Math.PI*3)*78,
+        y:120+115*t+5*Math.sin(t*Math.PI*2)};
     case 'circle':
       return {x:x+Math.sin(t*Math.PI*2)*94,
         y:mix(48,184,t)-Math.cos(t*Math.PI*2)*26};
@@ -190,7 +228,9 @@ export function tacticalManeuverPosition(group, index, elapsed) {
   const orbitRadius = 78;
   // Centro retorna à posição inicial ao completar duas voltas.
   const cx = group.centerX + orbitRadius * Math.sin(angle);
-  const cy = (group.portalY ?? 125) - orbitRadius * (1 - Math.cos(angle)) * 0.55;
+  const cy = group.lowFlight
+    ? mix(group.portalY??192,227,eased)+15*Math.sin(angle)
+    : (group.portalY ?? 125) - orbitRadius * (1 - Math.cos(angle)) * 0.55;
   const formA = {x:0,y:0};
   const formB = tacticalFormationOffset(group.finalFormation ?? 'triangle',index,group.count);
   // Em formação para toda a pausa, sem oscilação nem deslocamento.
