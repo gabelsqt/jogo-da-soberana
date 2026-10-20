@@ -43,6 +43,7 @@ export class WaveMakerScene extends Phaser.Scene {
   this.drawButton(691,320,'TRECHO',()=>this.setAnalysisRange(),100,28);
   this.drawButton(565,320,'COMPARAR',()=>this.comparePressure(),112,28);
   this.drawButton(431,320,'TESTAR',()=>this.testDraft(),116,28);
+  this.drawButton(297,320,'RESULTADOS',()=>this.showTestResults(),119,28);
   this.add.rectangle(510,371,736,65,0x101f31).setStrokeStyle(1,0x436278);
   this.add.text(145,418,'EVENTO SELECIONADO',textStyle(12,'#ffe2a6'));
   this.fields=this.add.container(0,0);
@@ -147,6 +148,18 @@ export class WaveMakerScene extends Phaser.Scene {
   if(!this.currentEvent())return;
   this.entry().events=this.events().filter(e=>e.id!==this.selected);
   this.selected=null;this.persist();this.render();
+ }
+ showTestResults(){
+  let entries=[];
+  try{entries=JSON.parse(localStorage.getItem('soberana-wave-maker-results-v1')||'[]');}catch{}
+  const results=(Array.isArray(entries)?entries:[]).filter(r=>r.wave===this.current).slice(-5);
+  if(!results.length){window.alert('Nenhum teste de combate finalizado para esta onda neste navegador.');return;}
+  window.alert(['ÚLTIMOS TESTES — ONDA '+this.current,...results.map((r,i)=>[
+    (i+1)+'. '+String(r.outcome).toUpperCase()+' • '+new Date(r.completedAt).toLocaleString('pt-BR'),
+    'Vida '+r.health+' / Escudo '+r.shield+' • Disparos do canhão '+r.playerShots,
+    'Tiros inimigos '+r.enemyShots+' • Abates '+r.enemyKills+' • Interceptações medidas '+r.intercepted,
+    'Dano bruto ao canhão/escudo '+r.damageReceived,
+  ].join('\\n'))].join('\\n\\n'));
  }
  testDraft(){
   // Snapshot da onda atual, exclusivamente para teste; não publicar.
