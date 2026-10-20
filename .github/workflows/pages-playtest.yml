@@ -6,6 +6,7 @@ on:
       - feat/brasil2-arraial-balístico
     paths:
       - 'src/**'
+      - 'tests/**'
       - 'public/**'
       - 'index.html'
       - 'package.json'
