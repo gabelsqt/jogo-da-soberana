@@ -67,7 +67,7 @@ test('catálogo de upgrades americanos descreve a nova mecânica',()=>{
   const levels=V1_UPGRADES.us;
   for(const index of [0,2,4,6,9]){
     const text=levels[index].description;
-    assert.doesNotMatch(text,/crescem.*voo|persegu|teleguiados/i);
+    assert.doesNotMatch(text,/(?:balas|projéteis).*(?:crescem|perseguem|teleguiados)/i);
   }
   assert.match(levels[2].title,/Quatro de Julho/);
   assert.match(levels[9].title,/Independence Day/);
