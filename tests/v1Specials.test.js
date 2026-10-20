@@ -73,6 +73,9 @@ test('encomendas e reflexos ofensivos evoluem sem bônus de escudo',()=>{
     assert.equal(v1SpecialConfig(countryAt('cn',tier)).cnPayloads,payloads);
     const kr=v1SpecialConfig(countryAt('jp',tier));
     assert.equal(kr.krReflections,rays);
+    assert.ok(kr.krReflectDamage>0);
+    assert.ok(Math.abs(kr.krReflectDamage*rays-kr.krSalvoDamage)<1e-9);
+    assert.ok(kr.krSalvoDamage<=10);
     assert.equal(kr.krShieldChance,undefined);
   }
 });
@@ -83,6 +86,8 @@ test('os cinco países oferecem uma cor própria, mas nenhum efeito não desbloq
   assert.equal(b.active.length,0);
   assert.equal(b.fireworks,0);
   assert.equal(b.krReflections,0);
+  assert.equal(b.krSalvoDamage,0);
+  assert.equal(b.krReflectDamage,0);
   assert.equal(b.cnPayloads,0);
   assert.equal(b.ruSputnikDurationMs,0);
   for(const id of ['br','us','ru','cn','jp'])assert.ok(specialPalette(id)>0);
