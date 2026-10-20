@@ -299,7 +299,10 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     preloadRioBackdrop(this);
-    for(let i=0;i<9;i++)this.load.image('cannon-angle-'+i,assetUrl('assets/canhao/direcao_'+i+'.png'));
+    this.load.image('cannon-base',assetUrl('assets/canhao/base.png'));
+    for(let i=0;i<9;i++){
+      this.load.image('cannon-head-'+i,assetUrl('assets/canhao/head_'+i+'.png'));
+    }
     for(let i=0;i<DAWN_KEYS.length;i++){
       this.load.image(DAWN_KEYS[i],assetUrl('assets/cenario/amanhecer/'+DAWN_FILES[i]));
     }
@@ -1304,7 +1307,8 @@ export class GameScene extends Phaser.Scene {
 
   createTurret() {
     const x=CANNON.x,y=CANNON.y;
-    const spriteReady=Array.from({length:9},(_,i)=>this.textures.exists('cannon-angle-'+i)).every(Boolean);
+    const spriteReady=this.textures.exists('cannon-base')&&
+      Array.from({length:9},(_,i)=>this.textures.exists('cannon-head-'+i)).every(Boolean);
     // Mantém o canhão vetorial como fallback até os recortes serem publicados.
     const base=this.add.rectangle(x,y+10,65,22,0x354958).setStrokeStyle(2,0xa9d0df).setDepth(21);
     const middle=this.add.rectangle(x,y+1,42,25,0x637b88).setStrokeStyle(2,0xc1d4db).setDepth(22);
@@ -1313,8 +1317,10 @@ export class GameScene extends Phaser.Scene {
     const pivot=this.add.circle(x,y-1,12,0x314f62).setStrokeStyle(2,0xc4d7dc).setDepth(23);
     if(spriteReady){
       for(const part of [base,middle,this.barrel,pivot])part.setVisible(false);
-      this.cannonArtwork=this.add.image(x,y-20,'cannon-angle-4')
-        .setDisplaySize(104,119).setDepth(24);
+      this.cannonBaseArt=this.add.image(x,y+7,'cannon-base')
+        .setDisplaySize(104,48).setDepth(21);
+      this.cannonArtwork=this.add.image(x,y-19,'cannon-head-4')
+        .setDisplaySize(70,68).setDepth(24);
     }
   }
 
@@ -4997,7 +5003,7 @@ export class GameScene extends Phaser.Scene {
     if(this.cannonArtwork){
       // A folha usa ângulos discretos; nada de girar e distorcer os pixels.
       const facing=Phaser.Math.Clamp(Math.round((this.aimAngle+Math.PI)/Math.PI*8),0,8);
-      this.cannonArtwork.setTexture('cannon-angle-'+facing);
+      this.cannonArtwork.setTexture('cannon-head-'+facing);
     }
     if(this.isV1Campaign && this.combat.koreaContinuous)
       this.drawEncoreContinuousBeam(this.aimAngle,
