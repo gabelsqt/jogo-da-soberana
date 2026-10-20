@@ -1,3 +1,4 @@
+import { appendWaveResult } from '../gameplay/waveTestResults.js';
 import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS } from '../gameplay/discoGlobe.js';
 import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
@@ -4485,12 +4486,7 @@ export class GameScene extends Phaser.Scene {
     const report={wave:Number(this.mode.slice(4)),outcome,health:Math.ceil(this.cannonHealth),
       shield:Math.ceil(this.shield),playerShots:this.basicShotCount,
       ...this.waveMakerMetrics,completedAt:new Date().toISOString()};
-    try{
-      const key='soberana-wave-maker-results-v1';
-      const history=JSON.parse(localStorage.getItem(key)||'[]');
-      const updated=[...(Array.isArray(history)?history:[]),report].slice(-30);
-      localStorage.setItem(key,JSON.stringify(updated));
-    }catch{ /* Teste ainda encerra normalmente com armazenamento indisponível. */ }
+    appendWaveResult(typeof localStorage==='undefined'?null:localStorage,report);
   }
   showWaveComplete(outcome = 'cleared') {
     if (this.tutorialComplete) return;
