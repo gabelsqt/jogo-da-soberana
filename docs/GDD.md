@@ -871,3 +871,8 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Ao escolher resistir, **destruir ambos os botões e a sobreposição da cutscene** antes do contador e do combate. A opção de submissão **nunca fica visível durante a luta**.
 - Ao aceitar submissão, ir diretamente ao final de derrota por colonização, sem iniciar a batalha.
 - A tela posterior à derrota em combate pode permitir ver o final, mas não representa uma nova oferta de submissão durante a batalha.
+
+### Balanceamento Tipo 6 — v0.66
+- A vida de **cada um dos quatro módulos** passa de 16% para **36% da vida-base do chefe** (2,25×). Escudos individuais e barreira seguem proporções existentes e, portanto, também ficam mais resistentes.
+- A vida do **núcleo** permanece em 16% da vida-base, para preservar um encerramento mais rápido após a destruição de todos os módulos.
+- Mantêm-se os papéis, sequência de ataques, hitboxes e mecânica do núcleo. Sujeito a playtest, especialmente com builds brasileiras avançadas.
