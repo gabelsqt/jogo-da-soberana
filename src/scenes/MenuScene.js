@@ -22,7 +22,7 @@ export class MenuScene extends Phaser.Scene{
       stroke:'#081423',strokeThickness:7,
       shadow:{offsetX:3,offsetY:4,color:'#06101e',blur:0,fill:true},
     };
-    this.add.text(W/2,116,'Soberana',titleStyle)
+    this.add.text(W/2,116,'Operação Soberania',titleStyle)
       .setOrigin(0.5).setDepth(30);
     this.add.text(W/2,178,'O RIO NÃO VAI CAIR',{
       fontFamily:"'IBM Plex Sans',system-ui,sans-serif",
