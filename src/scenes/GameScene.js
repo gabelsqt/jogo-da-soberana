@@ -3404,6 +3404,7 @@ export class GameScene extends Phaser.Scene {
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
     const target=specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
     this.lastSpecialFire=this.time.now;
+    playSfx('specialShot',{throttle:180,volumeScale:0.85});
     if (this.isV1Campaign && this.combat.brazilTurboMultiplier>1)
       this.brazilTurboUntil=this.time.now+5000;
     const shot=this.createProjectile(target.angle,true,target.distance);
