@@ -78,8 +78,10 @@ export class V1PlaytestScene extends Phaser.Scene {
       onClick:()=>this.scene.start('MenuScene'),depth:45});
     addMenuButton(this,{x:480,y:484,width:340,height:43,text:'▶  TESTAR ESTA BUILD',
       primary:true,onClick:()=>this.play(),depth:45});
-    addMenuButton(this,{x:792,y:484,width:270,height:42,text:'BR+EUA+CHINA',
-      onClick:()=>this.playMixed(),depth:45});
+    addMenuButton(this,{x:775,y:484,width:166,height:42,text:'WAVE MAKER',fontSize:'14px',
+      onClick:()=>this.scene.start('WaveMakerScene',{wave:Math.min(this.arenaIndex,11)}),depth:45});
+    addMenuButton(this,{x:775,y:439,width:166,height:34,text:'ENEMY MAKER',fontSize:'13px',
+      onClick:()=>this.scene.start('EnemyMakerScene'),depth:45});
     const previewDeath = () => this.scene.start('GameScene', {
       mode: 'wave1', campaign: { choices: [] }, v1Playtest: true, previewDestruction: true,
     });
@@ -112,13 +114,6 @@ export class V1PlaytestScene extends Phaser.Scene {
       mode:this.arenaIndex===12?'upgradeLab':'wave'+this.arenaIndex,
       v1Playtest:true,
       campaign:{choices},
-    });
-  }
-  playMixed() {
-    this.scene.start('GameScene',{
-      mode:this.arenaIndex===12?'upgradeLab':'wave'+this.arenaIndex,
-      v1Playtest:true,
-      campaign:{choices:['br','us','cn','br','us','cn','br','us','cn']},
     });
   }
 }
