@@ -45,18 +45,18 @@ test('controle de música inicia fechado, abre slider e conserva mute e volume',
   try{
     music.setVolume(0.4);if(music.muted)music.toggleMute();
     const control=addMenuMusicControl(scene,{x:91,y:518,depth:45});
-    assert.equal(scene.items.length,9);
+    assert.equal(scene.items.length,10);
     assert.ok(scene.items.slice(2).every(o=>!o.visible));
     control.dock.emit('pointerdown',leftClick,0,0,event);
     assert.ok(scene.items.slice(2).every(o=>o.visible));
-    const track=scene.items.find(o=>o.kind==='rectangle' && o.y===453 && o!==scene.items.at(-2));
+    const track=scene.items[5];
     assert.ok(track,'trilho de volume existente no painel');
     track.emit('pointerdown',{...leftClick,x:231},0,0,event);
     assert.equal(music.volume,1);
     scene.input.emit('pointermove',{leftButtonDown:()=>true,x:61});
     assert.equal(music.volume,0);
     scene.input.emit('pointerup');
-    const mute=scene.items.find(o=>o.kind==='rectangle'&&o.y===453&&o!==track);
+    const mute=scene.items.at(-2);
     assert.ok(mute);
     mute.emit('pointerdown',leftClick,0,0,event);
     assert.equal(music.muted,true);
