@@ -5378,7 +5378,7 @@ export class GameScene extends Phaser.Scene {
       this.tutorialText.setText(
         'ALIADOS: ' + (history || 'NENHUM') +
         (levelTwo ? ' | N2: ' + levelTwo : '') +
-        (towerLabel ? ' | TORRE: ' + towerLabel : '') +
+        (towerLabel ? ' | APOIO: ' + towerLabel : '') +
         enemies + recovery + special,
       );
     } else if (this.mode === 'upgradeLab' && !this.v1Playtest) {
