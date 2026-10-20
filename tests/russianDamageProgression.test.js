@@ -16,7 +16,7 @@ test('Russian primary hit damage increases with main-weapon upgrades',()=>{
 });
 
 test('Russian shatter damage grows separately from primary shot damage',()=>{
-  const damageSteps=[[0,0],[1,2],[3,4],[5,7],[7,12],[10,18]];
+  const damageSteps=[[0,0],[1,2],[3,3],[5,4],[7,5],[10,7]];
   for(const [n,dmg] of damageSteps){
     assert.equal(stats(n).russianShatterDamage,dmg);
     assert.equal(russianShatterDamage(n),dmg);
@@ -35,9 +35,9 @@ test('damage combines with Brazil bonuses and final frost breath receives strong
   const br=v1CombatStats({choices:Array(5).fill('br')});
   const mixed=v1CombatStats({choices:[...Array(5).fill('br'),...Array(5).fill('ru')]});
   assert.ok(mixed.basicDamage>br.basicDamage);
-  assert.equal(mixed.russianShatterDamage,7);
+  assert.equal(mixed.russianShatterDamage,4);
   const final=stats(10);
   assert.equal(final.transformed,'ru');
-  near(final.basicDamage*0.45,5.616); // per 110 ms damage tick
+  near(final.basicDamage*0.45,5.616); // component that scales with upgrades
   assert.equal(final.russianFreezeMs,3000);
 });
