@@ -26,3 +26,22 @@ export function russianShatterTargets(source,enemies,now,radius){
     &&Math.hypot(enemy.sprite.x-source.sprite.x,
       enemy.sprite.y-source.sprite.y)<=radius).map(enemy=>enemy.uid);
 }
+
+// Somente visual: cristais disparados radialmente no abate de um alvo congelado.
+// O dano continua calculado pelo raio de shatter, sem projetéis adicionais.
+export function russianShardVisuals(radius,count=10,random=Math.random){
+  if(!(radius>0)||!(count>0))return [];
+  const n=Math.min(12,Math.floor(count));
+  return Array.from({length:n},(_,i)=>{
+    const angle=(i+(random()-0.5)*0.2)*Math.PI*2/n;
+    const distance=radius*(0.65+random()*0.33);
+    return {
+      angle,
+      dx:Math.cos(angle)*distance,
+      dy:Math.sin(angle)*distance,
+      width:3+Math.round(random()*3),
+      length:9+Math.round(random()*8),
+      duration:230+Math.round(random()*110),
+    };
+  });
+}
