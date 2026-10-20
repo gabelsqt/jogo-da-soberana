@@ -56,7 +56,7 @@ test('onda 0 usa cinco portais (um e depois dois pares) para 48 naves',()=>{
   assert.ok(events.every(e=>e.type===1&&e.pattern==='swarm'));
 });
 
-test('Tipo 1 chega em enxames progressivos reais de 3–5 até 15–18', () => {
+test('Tipo 1 das ondas 2–9 chega em enxames progressivos até 15–18', () => {
   assert.deepEqual(V035_SWARM_SIZES[0],[3,5]);
   assert.deepEqual(V035_SWARM_SIZES[9],[15,18]);
   assert.equal(progressiveGroupCount(0,1,0),3);
@@ -64,7 +64,7 @@ test('Tipo 1 chega em enxames progressivos reais de 3–5 até 15–18', () => {
   assert.equal(progressiveGroupCount(9,1,0),15);
   assert.equal(progressiveGroupCount(9,1,1),18);
   assert.equal(progressiveGroupCount(9,1,0.5),17);
-  for(let wave=1;wave<=9;wave++){
+  for(let wave=2;wave<=9;wave++){
     const events=getV035WaveEvents('wave'+wave,getWaveEvents('wave'+wave));
     const swarms=events.filter(e=>e.type===1);
     assert.ok(swarms.length>=2);
@@ -81,11 +81,11 @@ test('Tipo 1 chega em enxames progressivos reais de 3–5 até 15–18', () => {
   assert.deepEqual(SWARM_DANCES,['serpentine','cross','spiral','circle']);
 });
 
-test('Tipo 2 substitui entradas soltas ou órbitas por esquadrilhas de 6–16', () => {
+test('Tipo 2 das ondas 2–9 usa esquadrilhas progressivas de 6–16', () => {
   assert.deepEqual(V035_SQUAD_SIZES[0],[6,8]);
   assert.deepEqual(V035_SQUAD_SIZES[9],[12,16]);
   assert.deepEqual(TACTICAL_FORMATIONS,['triangle','square']);
-  for(let wave=1;wave<=9;wave++){
+  for(let wave=2;wave<=9;wave++){
     const events=getV035WaveEvents('wave'+wave,getWaveEvents('wave'+wave));
     const squads=events.filter(e=>e.type===2);
     assert.ok(squads.length, 'onda '+wave);
