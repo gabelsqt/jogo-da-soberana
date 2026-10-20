@@ -12,6 +12,7 @@ const FILES=Object.freeze({
   betrayal:'08_alerta_traicao.wav',
   supreme:'09_supremo_carregamento.wav',
   shieldHit:'10_impacto_escudo.wav',
+  specialShot:'11_tiro_especial.wav',
 });
 // Configuração reutilizável: novos efeitos podem definir suas faixas aqui.
 // [mínimo,máximo] em multiplicadores; 1 representa o áudio original.
