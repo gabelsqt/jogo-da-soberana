@@ -6,12 +6,12 @@ import {v1CombatStats} from '../src/gameplay/v1Upgrades.js';
 test('frost cone accepts targets in its forward sector only',()=>{
   const ox=480,oy=470,angle=-Math.PI/2;
   assert.equal(insideIceBreathCone(ox,oy,angle,480,300,10),true);
-  assert.equal(insideIceBreathCone(ox,oy,angle,480,100,0),false);
+  assert.equal(insideIceBreathCone(ox,oy,angle,480,-150,0),false);
   assert.equal(insideIceBreathCone(ox,oy,angle,690,310,10),false);
   assert.equal(insideIceBreathCone(ox,oy,angle,480,500,0),false);
   assert.equal(insideIceBreathCone(ox,oy,angle,480,500,32),true);
   assert.equal(ICE_BREATH_TICK_MS,110);
-  assert.ok(ICE_BREATH_RANGE>=240);
+  assert.ok(ICE_BREATH_RANGE>=500);
 });
 
 test('frost mist flows continuously and stays bounded',()=>{
