@@ -7,3 +7,6 @@ itch-build/
 !.env.example
 .DS_Store
 Thumbs.db
+
+# Arquivos WAV gerados antes de dev/build. O sintetizador é versionado.
+public/assets/sons/1[2-8]_ru_*.wav

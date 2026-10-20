@@ -1,11 +1,13 @@
 {
   "name": "jogo-da-soberana",
-  "version": "0.856.0",
+  "version": "0.857.0",
   "private": true,
   "type": "module",
   "description": "Jogo arcade brasileiro de defesa antiaérea para a Soberana Game Jam.",
   "scripts": {
+    "predev": "node scripts/generate-russian-sfx.mjs",
     "dev": "vite --host 0.0.0.0",
+    "prebuild": "node scripts/generate-russian-sfx.mjs",
     "build": "vite build --base=./",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test",

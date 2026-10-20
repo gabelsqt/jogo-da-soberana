@@ -13,6 +13,13 @@ const FILES=Object.freeze({
   supreme:'09_supremo_carregamento.wav',
   shieldHit:'10_impacto_escudo.wav',
   specialShot:'11_tiro_especial.wav',
+  ruSputnikLaunch:'12_ru_sputnik_lancamento.wav',
+  ruSputnikHum:'13_ru_sputnik_zumbido_loop.wav',
+  ruSputnikFreeze:'14_ru_sputnik_contato.wav',
+  ruCrystalDeep:'15_ru_cristalizacao_profunda.wav',
+  ruFrozenShatter:'16_ru_estilhacamento_congelado.wav',
+  ruSputnikCollapse:'17_ru_pulso_colapso.wav',
+  ruIceBreath:'18_ru_sopro_congelante_loop.wav',
 });
 // Configuração reutilizável: novos efeitos podem definir suas faixas aqui.
 // [mínimo,máximo] em multiplicadores; 1 representa o áudio original.
@@ -40,6 +47,7 @@ export function randomSfxVolumeScale(id,random=Math.random){
 const clips=new Map(), lastPlayed=new Map();
 const activeCannonVoices=[];
 const MAX_CANNON_VOICES=5;
+const activeLoops=new Map();
 let enabled=true,volume=0.24;
 export function prepareSfx(){
   if(typeof Audio==='undefined')return;
@@ -78,7 +86,38 @@ export function playSfx(id,{throttle=0,volumeScale=1}={}){
   sound.playbackRate=randomSfxPlaybackRate(id);
   sound.play()?.catch?.(()=>{});
 }
-export function setSfxVolume(value){volume=Math.max(0,Math.min(1,Number(value)||0));}
+// Uma única voz por loop, reutilizada entre frames sem reiniciar áudio.
+export function setSfxLoopActive(id,active,{volumeScale=1}={}){
+  if(!FILES[id])return;
+  const previous=activeLoops.get(id);
+  if(!active||!enabled||volume<=0||typeof Audio==='undefined'){
+    if(previous){previous.sound.pause();previous.sound.currentTime=0;activeLoops.delete(id);}
+    return;
+  }
+  if(previous){
+    previous.sound.volume=Math.max(0,Math.min(1,volume*volumeScale));
+    return;
+  }
+  prepareSfx();
+  const source=clips.get(id);
+  if(!source)return;
+  const sound=source.cloneNode();
+  sound.loop=true;
+  sound.volume=Math.max(0,Math.min(1,volume*volumeScale));
+  activeLoops.set(id,{sound});
+  sound.play()?.catch?.(()=>{});
+}
+export function stopRussianSfxLoops(){
+  setSfxLoopActive('ruSputnikHum',false);
+  setSfxLoopActive('ruIceBreath',false);
+}
+export function setSfxVolume(value){
+  volume=Math.max(0,Math.min(1,Number(value)||0));
+  if(volume===0)for(const id of activeLoops.keys())setSfxLoopActive(id,false);
+}
 export function getSfxVolume(){return volume;}
-export function setSfxEnabled(value){enabled=Boolean(value);}
+export function setSfxEnabled(value){
+  enabled=Boolean(value);
+  if(!enabled)for(const id of activeLoops.keys())setSfxLoopActive(id,false);
+}
 export {FILES as SFX_FILES};

@@ -4,7 +4,7 @@ import {TYPE5_SPRITE,type5DamageFrame} from '../gameplay/type5Sprite.js';
 import {TYPE6_HULL_SHEET} from '../gameplay/type6HullSprite.js';
 import {TYPE6_MODULE_SHEET} from '../gameplay/type6ModuleSprite.js';
 import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
-import {playSfx} from '../audio/sfx.js';
+import {playSfx,setSfxLoopActive,stopRussianSfxLoops} from '../audio/sfx.js';
 import { appendWaveResult } from '../gameplay/waveTestResults.js';
 import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS } from '../gameplay/discoGlobe.js';
 import { animateDiscoReflectionArcs, DISCO_REFLECTION_MAX_VISUAL_RAYS } from '../gameplay/discoReflectionVfx.js';
@@ -277,7 +277,9 @@ export class GameScene extends Phaser.Scene {
   clearDiscoGlobes() {
     for (const globe of this.discoGlobes ?? []) { globe.graphics.destroy(); globe.label.destroy(); }
     this.discoGlobes = [];
+    for(const sat of this.russianSputniks??[])sat.graphics?.destroy();
     this.russianSputniks=[];
+    stopRussianSfxLoops();
   }
 
   clearTestEnemies() {
@@ -367,6 +369,12 @@ export class GameScene extends Phaser.Scene {
     if(focused?.closest?.('#player-name-panel') ||
       focused?.classList?.contains('soberana-pause-hud'))focused.blur?.();
     this.music = bindSceneMusic(this, waveMusic(this.mode, this.campaign));
+    // Nunca deixar loops de sons russos tocando na pausa ou após trocar de cena.
+    this.events.on('pause',stopRussianSfxLoops);
+    this.events.once('shutdown',()=>{
+      this.events.off('pause',stopRussianSfxLoops);
+      stopRussianSfxLoops();
+    });
     this.input.mouse?.disableContextMenu();
 
     drawRioBackdrop(this);
@@ -2591,6 +2599,7 @@ export class GameScene extends Phaser.Scene {
     if(!enemy||enemy.type===6||enemy.frozenUntil<=this.elapsed||
       !radius||!damage||enemy.russianShattered)return;
     enemy.russianShattered=true;
+    playSfx('ruFrozenShatter',{throttle:140,volumeScale:0.56});
     const x=enemy.sprite.x,y=enemy.sprite.y;
     const victims=russianShatterTargets(enemy,this.enemies,this.elapsed,radius);
     // Estilhaçamento visual: pequenos cristais são lançados em todas as
@@ -3818,7 +3827,17 @@ export class GameScene extends Phaser.Scene {
       graphics:this.add.graphics().setPosition(x,y).setDepth(56),
     };
     this.russianSputniks.push(sat);
+    playSfx('ruSputnikLaunch',{throttle:120,volumeScale:0.72});
     this.updateRussianSputniks();
+  }
+
+  freezeWithSputnikFx(enemy,freezeMs,stage=1){
+    const firstContact=!isSputnikCrystalized(enemy,this.elapsed);
+    crystallizeSputnikEnemy(enemy,this.elapsed,freezeMs);
+    if(firstContact){
+      playSfx('ruSputnikFreeze',{throttle:130,volumeScale:0.45});
+      if(stage>=3)playSfx('ruCrystalDeep',{throttle:430,volumeScale:0.52});
+    }
   }
 
   sputnikFreezeArea(sat,radius){
@@ -3826,7 +3845,7 @@ export class GameScene extends Phaser.Scene {
       if(enemy.type===6||!enemy?.sprite?.active)continue;
       if(Math.hypot(enemy.sprite.x-sat.x,enemy.sprite.y-sat.y)>
         radius+enemyContactRadius(enemy.type))continue;
-      crystallizeSputnikEnemy(enemy,this.elapsed,sat.build.ruFreezeMs);
+      this.freezeWithSputnikFx(enemy,sat.build.ruFreezeMs,sat.build.stages.ru);
     }
   }
 
@@ -3889,6 +3908,7 @@ export class GameScene extends Phaser.Scene {
           this.drawV1SpecialPulse(sat.x,sat.y,build.ruSputnikFinalRadius,0xa2f3ff);
         }
         // Colapso criogênico, sem causar dano direto.
+        playSfx('ruSputnikCollapse',{throttle:210,volumeScale:0.76});
         this.tweens.add({targets:sat.graphics,alpha:0,scale:0.2,duration:260,
           onComplete:()=>sat.graphics.destroy()});
         this.russianSputniks.splice(i,1);
@@ -3897,10 +3917,11 @@ export class GameScene extends Phaser.Scene {
       for(const enemy of this.enemies)
         if(sputnikTouchesEnemy(sat,enemy,
           enemy.type===6?0:enemyContactRadius(enemy.type)))
-          crystallizeSputnikEnemy(enemy,this.elapsed,build.ruFreezeMs);
+          this.freezeWithSputnikFx(enemy,build.ruFreezeMs,build.stages.ru);
       if(build.ruSputnikPulseMs&&this.elapsed>=sat.nextPulseAt){
         this.sputnikFreezeArea(sat,build.ruSputnikPulseRadius);
         this.drawV1SpecialPulse(sat.x,sat.y,build.ruSputnikPulseRadius,0x83dffc);
+        playSfx('ruSputnikCollapse',{throttle:210,volumeScale:0.48});
         sat.nextPulseAt=this.elapsed+build.ruSputnikPulseMs;
       }
       this.drawRussianSputnik(sat);
@@ -5308,8 +5329,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time, delta) {
-    if(this.deathSequence||this.tutorialComplete||this.boss6Victory)
+    if(this.deathSequence||this.tutorialComplete||this.boss6Victory){
       this.iceBreathGraphics?.clear();
+      stopRussianSfxLoops();
+    }
     if (this.deathSequence) {
       this.deathSequence.update(delta, this.input.activePointer);
       return;
@@ -5327,13 +5350,15 @@ export class GameScene extends Phaser.Scene {
     // Se a onda for interrompida, o cone não permanece desenhado no céu.
     this.iceBreathGraphics?.clear();
     // Sem disparos, movimentação ou cronômetro de onda antes do "1".
-    if (this.countdownActive) return;
-    if (this.supremeCinematic) return;
-    if (this.supremeTyping) return;
+    if (this.countdownActive||this.supremeCinematic||this.supremeTyping){
+      stopRussianSfxLoops();
+      return;
+    }
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += this.boss6IntroPaused?0:delta;
     this.updateDiscoGlobes();
     this.updateRussianSputniks();
+    setSfxLoopActive('ruSputnikHum',this.russianSputniks.length>0,{volumeScale:0.30});
     // Amanhecer nos dez segundos finais; o Supremo congela o relógio e a imagem.
     if(this.dawnLayers?.length===4&&this.dawnLayers.every(Boolean)){
       const alphas=dawnLayerAlphas(this.waveDurationMs-this.elapsed);
@@ -5370,8 +5395,10 @@ export class GameScene extends Phaser.Scene {
       this.drawEncoreContinuousBeam(this.aimAngle,
         pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer));
     const firing=pointer.leftButtonDown()&&!this.pointerOverEnemyLabControls(pointer);
-    if(this.iceBreathGraphics)this.drawRussianBreath(this.aimAngle,
-      firing&&this.elapsed>=this.cannonFrozenUntil);
+    const breathActive=!!this.iceBreathGraphics&&firing&&
+      this.elapsed>=this.cannonFrozenUntil;
+    if(this.iceBreathGraphics)this.drawRussianBreath(this.aimAngle,breathActive);
+    setSfxLoopActive('ruIceBreath',breathActive,{volumeScale:0.43});
     if(firing)this.shootBasic(pointer);
     // O ciclo de calor continua mesmo quando o jogador solta o disparo.
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
