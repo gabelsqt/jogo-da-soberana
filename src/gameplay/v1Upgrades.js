@@ -1,5 +1,6 @@
 import { russianShatterRadius, russianShatterDamage } from './russianFrost.js';
 import {countryColor} from '../config/countryIdentity.js';
+import {americanJulyConfig} from './usJuly.js';
 
 // Versão 1 — catálogo aprovado nas decisões 53–68. Animais antigos ficam arquivados.
 // 'jp' continua sendo o identificador técnico legado da COREIA DO SUL.
@@ -69,8 +70,8 @@ export const V1_UPGRADES = {
   "us": [
     {
       "level": 1,
-      "title": "Super Size Me™",
-      "description": "Balas crescem gradualmente no voo até 2× de diâmetro.",
+      "title": "Munição de Fragmentação™",
+      "description": "Balas convencionais explodem ao atingir naves. Sem crescimento durante o voo.",
       "kind": "primary"
     },
     {
@@ -81,8 +82,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 3,
-      "title": "Tamanho Família™",
-      "description": "Balas crescem até 4× e seguem o alvo.",
+      "title": "Quatro de Julho™",
+      "description": "Cada 5 acertos diretos carregam automaticamente o próximo tiro patriótico. Sem perseguição.",
       "kind": "primary"
     },
     {
@@ -93,8 +94,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 5,
-      "title": "Destino Manifesto™",
-      "description": "Balas crescem até 6× e seguem o alvo.",
+      "title": "Espetáculo da Independência™",
+      "description": "Quatro de Julho com raio de explosão ampliado e clarão vermelho, branco e azul.",
       "kind": "primary"
     },
     {
@@ -105,8 +106,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 7,
-      "title": "Orçamento Ilimitado™",
-      "description": "Balas crescem até 8× com perseguição intensificada.",
+      "title": "Estrelas e Estilhaços™",
+      "description": "Quatro de Julho mais poderoso: estilhaços atingem inimigos na borda da explosão.",
       "kind": "primary"
     },
     {
@@ -123,8 +124,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 10,
-      "title": "Liberdade Irrestrita™",
-      "description": "Transformação: projéteis teleguiados crescem durante o voo até 12× de diâmetro e explodem ao atingir inimigos.",
+      "title": "Independence Day™",
+      "description": "Transformação: tiro patriótico automático a cada 3 acertos diretos, explosões monumentais e balas pequenas sem mira automática.",
       "kind": "transformation"
     }
   ],
@@ -369,7 +370,9 @@ export function v1CombatStats(state = {}, base = {}) {
     duplicateChance:0, missileEvery:0, extraBurstEvery:0, electricDamage:1,
     laserDamage:3, shockRadius:0, slowShot:false, specialAmplifier:1,
     shieldIntercept:false, shieldPulse:false, brazilTurboMultiplier:1, brazilFireworkCount:0, brazilHeatPeak:0, ultimate:v1SupremeFor(state),
-    usGrowthMax:1, usHoming:0, russianFreezeMs:0,
+    usGrowthMax:1, usHoming:0,
+    usJulyHitsRequired:0,usJulyBlastRadius:0,usJulyBlastDamage:0,usJulyShards:false,
+    russianFreezeMs:0,
     russianShatterRadius:0,russianShatterDamage:0,
     chinaSplitCount:1, koreaContinuous:false, transformed:null};
   // Brasil: metralhadora potente desde o nível 1; picos de calor cíclicos.
@@ -382,15 +385,18 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.br>=7){stats.basicInterval/=1.3;stats.brazilHeatPeak=1.5;stats.horizontalSpread=11;}
   if(n.br>=8){stats.specialAmplifier+=0.2;stats.brazilFireworkCount=32;stats.brazilTurboMultiplier=3;}
   if(n.br>=10){stats.basicInterval/=1.9;stats.brazilHeatPeak=2.4;stats.horizontalSpread=16;}
-  if(n.us>=1){stats.fragmentation=true;stats.usGrowthMax=2;}
-  if(n.us>=3){stats.usGrowthMax=4;stats.usHoming=1.8;}
-  if(n.us>=5){stats.usGrowthMax=6;stats.usHoming=2.1;}
-  if(n.us>=7){stats.usGrowthMax=8;stats.usHoming=2.6;}
+  if(n.us>=1)stats.fragmentation=true;
+  // EUA não perseguem nem crescem: o acerto direto constrói a próxima salva.
+  Object.assign(stats,{
+    usJulyHitsRequired:americanJulyConfig(n.us).hitsRequired,
+    usJulyBlastRadius:americanJulyConfig(n.us).blastRadius,
+    usJulyBlastDamage:americanJulyConfig(n.us).blastDamage,
+    usJulyShards:americanJulyConfig(n.us).shards,
+  });
   if(n.us>=2){stats.specialAmplifier+=0.25;}
-  if(n.us>=3)stats.collateral=true;
-  if(n.us>=5)stats.missileEvery=5;
+  // Ondas extras permanentes e drones automáticos antigos foram substituídos
+  // pelo Quatro de Julho, ativado só após cinco acertos (três no nível 10).
   if(n.us>=6){stats.specialAmplifier+=0.4;}
-  if(n.us>=7)stats.missileFragmentation=true;
   if(n.us>=8){stats.specialAmplifier+=0.4;}
   if(n.jp>=1)stats.plasmaEvery=3;
   if(n.jp>=2){stats.residualSlash=true;}
@@ -447,7 +453,7 @@ export function v1CombatStats(state = {}, base = {}) {
   }
   if(n.us>=10){
     stats.transformed='us';stats.basicDamage*=2;stats.basicInterval*=0.42;
-    stats.basicSpeed*=1.35;stats.usGrowthMax=12;stats.usHoming=3.2;
+    stats.basicSpeed*=1.35;
   }
   if(n.ru>=10){
     stats.transformed='ru';stats.basicDamage*=2.6;stats.basicInterval*=0.5;

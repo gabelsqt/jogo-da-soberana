@@ -1,6 +1,6 @@
 # EUA — Quatro de Julho (direção aprovada; ainda não implementar)
 
-**Estado:** aprovado em 20/10/2026 para o jogo **Operação Soberania**. Esta especificação registra as decisões antes do trabalho de implementação. **Não altere a mecânica atual até a próxima autorização.**
+**Estado:** aprovado em 20/10/2026 e **implementado na v0.871** de Operação Soberania após autorização explícita. Testes de combate e playtest acompanham a alteração.
 
 ## Problema identificado
 O tiro principal americano atualmente combina crescimento progressivo de projéteis até 12×, perseguição automática e explosões em área. Essa combinação automatiza demais os acertos e prejudica a habilidade do jogador.
@@ -21,7 +21,7 @@ O tiro principal americano atualmente combina crescimento progressivo de projét
 - Os detalhes numéricos de dano, raio, dispersão e frequência precisam de playtest e não foram aprovados como valores finais.
 
 ## Limites de escopo
-A decisão **não muda automaticamente** upgrades de outros países, escudos, torres, progressão da campanha, Supremo ou balanceamento do Tipo 6. Implementação reservada para solicitação posterior.
+A decisão **não muda automaticamente** upgrades de outros países, escudos, torres, progressão da campanha, Supremo ou balanceamento do Tipo 6. Implementado em `src/gameplay/usJuly.js`, `src/gameplay/v1Upgrades.js` e `src/scenes/GameScene.js`, sem mudanças no míssil gigante do especial.
 
 ## Identidade narrativa
 Victor McDollar ama os maiores espetáculos e as maiores armas: o Quatro de Julho é uma salva militar coreografada de independência, enquanto o especial continua sendo a **bomba monumental**.

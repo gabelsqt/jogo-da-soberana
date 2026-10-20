@@ -45,7 +45,8 @@ test('hybrid combinations retain independent offensive effects without country s
   assert.ok(stats.basicInterval<400);
   assert.equal(stats.heat,true);
   assert.equal(stats.fragmentation,true);
-  assert.equal(stats.collateral,true);
+  assert.equal(stats.collateral,false);
+  assert.equal(stats.usJulyHitsRequired,5);
   assert.equal(stats.bulletsPerShot,3);
   assert.equal(stats.shieldRegen,3.5);
   assert.equal(stats.shieldBonus,0);
