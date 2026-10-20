@@ -173,3 +173,82 @@ export function addMusicControls(scene, y, depth = 50) {
   }
   refresh();
 }
+
+
+// Controle compacto da tela inicial. Fica recolhido no canto inferior esquerdo;
+// clicar em MÚSICA abre o volume, sem poluir a arte do Rio.
+// Os controles completos das outras telas continuam usando addMusicControls.
+export function addMenuMusicControl(scene,{x=91,y=518,depth=40}={}){
+  const music=musicPlayer();
+  const font="'IBM Plex Sans',system-ui,sans-serif";
+  const dock=scene.add.rectangle(x,y,143,32,0x0b1621,0.86)
+    .setStrokeStyle(1,0x67869b,0.65).setDepth(depth)
+    .setInteractive({useHandCursor:true});
+  const dockLabel=scene.add.text(x,y,'♫  MÚSICA',{
+    fontFamily:font,fontSize:'13px',fontStyle:'bold',color:'#e9eff1',
+  }).setOrigin(0.5).setDepth(depth+1);
+
+  const py=y-76,px=x+82,objects=[];
+  const add=(obj)=>{objects.push(obj);return obj;};
+  add(scene.add.rectangle(px,py,330,65,0x0b1621,0.96)
+    .setStrokeStyle(1,0x67869b,0.82).setDepth(depth+2));
+  add(scene.add.text(px-148,py-20,'VOLUME',{
+    fontFamily:font,fontSize:'12px',fontStyle:'bold',color:'#dce8ee',
+  }).setDepth(depth+3));
+  const percent=add(scene.add.text(px+82,py-20,'',{
+    fontFamily:font,fontSize:'12px',color:'#ffcd8c',
+  }).setDepth(depth+3));
+  const left=px-112,right=px+58,trackY=py+11;
+  const track=add(scene.add.rectangle((left+right)/2,trackY,right-left,7,0x547c92)
+    .setDepth(depth+3).setInteractive({useHandCursor:true}));
+  const fill=add(scene.add.rectangle(left,trackY,1,7,0xe2a45e).setOrigin(0,0.5).setDepth(depth+4));
+  const thumb=add(scene.add.circle(left,trackY,9,0xffdda5)
+    .setStrokeStyle(2,0x142536).setDepth(depth+5).setInteractive({useHandCursor:true}));
+  const mute=add(scene.add.rectangle(px+115,py+11,69,28,0x244358)
+    .setStrokeStyle(1,0x86a6bd).setDepth(depth+4).setInteractive({useHandCursor:true}));
+  const muteLabel=add(scene.add.text(px+115,py+11,'',{
+    fontFamily:font,fontSize:'11px',fontStyle:'bold',color:'#f2f5f7',
+  }).setOrigin(0.5).setDepth(depth+5));
+  let expanded=false,dragging=false;
+  const refresh=()=>{
+    const vol=Math.max(0,Math.min(1,music.volume));
+    thumb.setPosition(left+(right-left)*vol,trackY);
+    fill.setDisplaySize(Math.max(1,(right-left)*vol),7);
+    percent.setText(Math.round(vol*100)+'%');
+    muteLabel.setText(music.muted?'LIGAR':'MUDO');
+  };
+  const show=value=>{
+    expanded=value;
+    for(const object of objects)object.setVisible(value);
+    if(!value)dragging=false;
+    refresh();
+  };
+  const setFromPointer=pointer=>{
+    const vol=Math.round(Math.max(0,Math.min(1,(pointer.x-left)/(right-left)))*100)/100;
+    music.setVolume(vol);refresh();
+  };
+  dock.on('pointerdown',(pointer,_x,_y,event)=>{
+    if(!pointer.leftButtonDown())return;
+    event?.stopPropagation();show(!expanded);
+  });
+  for(const control of [track,thumb]){
+    control.on('pointerdown',(pointer,_x,_y,event)=>{
+      if(!pointer.leftButtonDown())return;
+      event?.stopPropagation();dragging=true;setFromPointer(pointer);
+    });
+  }
+  const move=pointer=>{if(expanded&&dragging&&pointer.leftButtonDown())setFromPointer(pointer);};
+  const up=()=>{dragging=false;};
+  scene.input.on('pointermove',move);
+  scene.input.on('pointerup',up);
+  mute.on('pointerdown',(pointer,_x,_y,event)=>{
+    if(!pointer.leftButtonDown())return;
+    event?.stopPropagation();music.toggleMute();refresh();
+  });
+  scene.events.once('shutdown',()=>{
+    scene.input.off('pointermove',move);
+    scene.input.off('pointerup',up);
+  });
+  show(false);
+  return {dock,show,refresh};
+}
