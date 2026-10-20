@@ -1,5 +1,6 @@
 import { appendWaveResult } from '../gameplay/waveTestResults.js';
 import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS } from '../gameplay/discoGlobe.js';
+import { animateDiscoReflectionArcs, DISCO_REFLECTION_MAX_VISUAL_RAYS } from '../gameplay/discoReflectionVfx.js';
 import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
@@ -3466,11 +3467,16 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  drawV1DiscoReflectionArcs(x,y,targets) {
+    animateDiscoReflectionArcs(this,x,y,targets);
+  }
+
   fireV1DiscoReflections(x,y,build,globe) {
-    // Agrega apenas o desenho em cadência alta, preservando cada raio/dano.
+    // Limite visual apenas: cada reflexo causa o dano previsto mesmo com
+    // rajadas de 24 e independentemente de quantos arcos forem renderizados.
     const show=!globe||this.elapsed-globe.lastVisualAt>=80;
-    const g=show?this.add.graphics().setDepth(58):null;
     if(globe&&show)globe.lastVisualAt=this.elapsed;
+    const visualTargets=[];
     const targets=[...this.enemies].sort((a,b)=>
       Math.hypot(a.sprite.x-x,a.sprite.y-y)-Math.hypot(b.sprite.x-x,b.sprite.y-y));
     let cursor=0;
@@ -3479,19 +3485,15 @@ export class GameScene extends Phaser.Scene {
       const alive=targets.filter(t=>liveIds.has(t.uid));
       if(!alive.length)break;
       const target=alive[cursor++%alive.length];
-      if(g && ray<8){
-        // No limite de 24 reflexos, desenha até oito linhas por pulso.
-        // Os demais reflexos mantêm seu dano; evita congelar a onda 11.
-        g.lineStyle(ray%2?2:3,ray%3===0?0xffffff:0xe69aff,0.72);
-        g.lineBetween(x,y,target.sprite.x,target.sprite.y);
-      }
+      if(show&&visualTargets.length<DISCO_REFLECTION_MAX_VISUAL_RAYS)
+        visualTargets.push({x:target.sprite.x,y:target.sprite.y});
       const index=this.enemies.findIndex(enemy=>enemy.uid===target.uid);
       if(index>=0){
         if(build.stages.ru)this.freezeRussianEnemy(target,build.ruFreezeMs);
         this.impactInvader(index,build.krReflectDamage,0,'#f1baff',false);
       }
     }
-    if(g)this.tweens.add({targets:g,alpha:0,duration:180,onComplete:()=>g.destroy()});
+    if(visualTargets.length)this.drawV1DiscoReflectionArcs(x,y,visualTargets);
   }
 
   pushV1EnemiesUp(x,y,radius,strength) {
