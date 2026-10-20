@@ -55,8 +55,8 @@ test('flash do Tipo 5 não substitui casco por uma silhueta branca',()=>{
     hitFn.indexOf("} else if(enemy.type===2"));
   assert.match(type5Hit,/enemy\.sprite\.clearTint\(\)/);
   assert.match(type5Hit,/enemy\.sprite\.setAlpha\(reaction\.flash\?0\.73:1\)/);
-  assert.doesNotMatch(type5Hit,/enemy\\.sprite\\.setTintFill\\(/);
+  assert.ok(!type5Hit.includes('enemy.sprite.setTintFill('));
   const type5Impact=damageFn.slice(damageFn.indexOf("else if (enemy.type === 5"),damageFn.indexOf("else enemy.sprite.setTintFill"));
   assert.match(type5Impact,/enemy\.sprite\.clearTint\(\)/);
-  assert.doesNotMatch(type5Impact,/setTintFill\(/);
+  assert.ok(!type5Impact.includes('enemy.sprite.setTintFill('));
 });
