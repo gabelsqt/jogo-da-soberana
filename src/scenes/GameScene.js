@@ -2483,6 +2483,7 @@ export class GameScene extends Phaser.Scene {
         this.removeEnemyBullet(i);
         if(!reflected){
           if(shot.cryoImpact){
+            if(this.shield>0)shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
             this.shield=0; // Gelo russo rompe o escudo e impede disparos.
             this.cannonFrozenUntil=Math.max(this.cannonFrozenUntil,this.elapsed+2000);
           }else if(shot.frostMs){
@@ -2491,7 +2492,10 @@ export class GameScene extends Phaser.Scene {
           if(shot.instantUnshielded){
             // Ogiva americana destrói imediatamente um canhão sem escudo.
             if(this.shield<=0)this.damageTarget(shot.target,1000);
-            else {this.shield=0;this.damageTarget(shot.target,75);}
+            else {
+              shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
+              this.shield=0;this.damageTarget(shot.target,75);
+            }
           }else this.damageTarget(shot.target,shot.damage??ENEMY_BULLET_DAMAGE);
         }
         if (this.gameOver) return;
