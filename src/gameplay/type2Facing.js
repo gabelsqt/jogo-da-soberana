@@ -2,7 +2,10 @@
 // O rumo vem do deslocamento REAL, não do alvo ou do recuo de impacto.
 export function type2FacingAngle(dx,dy,speedThreshold=8){
   if(!Number.isFinite(dx)||!Number.isFinite(dy)||Math.hypot(dx,dy)<speedThreshold)return 0;
-  return Math.atan2(dy,dx)+Math.PI/2;
+  // Normaliza -π…π para evitar uma volta longa ao apontar para a esquerda.
+  // O spritesheet do Tipo 2 nasce orientado para cima.
+  const angle=Math.atan2(dy,dx)+Math.PI/2;
+  return Math.atan2(Math.sin(angle),Math.cos(angle));
 }
 export function steerType2Rotation(current,dx,dy,dt,turnSpeed=9){
   const target=type2FacingAngle(dx,dy);
