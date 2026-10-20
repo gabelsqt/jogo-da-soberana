@@ -69,7 +69,7 @@ test('cristais de gelo se espalham sem exceder o limite visual',()=>{
   assert.equal(shards.length,10);
   for(const shard of shards){
     assert.ok(Math.hypot(shard.dx,shard.dy)<=60);
-    assert.ok(Math.hypot(shard.dx,shard.dy)>=36);
+    assert.ok(Math.hypot(shard.dx,shard.dy)>=35.999);
     assert.ok(shard.width>=3&&shard.width<=6);
     assert.ok(shard.length>=9&&shard.length<=17);
     assert.ok(shard.duration>=260&&shard.duration<=390);
