@@ -1,19 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { russianShatterTargets,applyRussianFreeze } from '../src/gameplay/russianFrost.js';
+import { russianShatterTargets,russianShardVisuals,applyRussianFreeze } from '../src/gameplay/russianFrost.js';
 const source=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
 const start=source.indexOf('  shatterRussianEnemy(enemy) {');
 const end=source.indexOf('\n  fireEnemyProjectile(',start);
 assert.ok(start>0&&end>start);
-const shatter=new Function('russianShatterTargets','hitType6At',
+const shatter=new Function('russianShatterTargets','russianShardVisuals','hitType6At',
   'return ({'+source.slice(start,end)+'}).shatterRussianEnemy')(
-   russianShatterTargets,()=>({hit:false}));
+   russianShatterTargets,russianShardVisuals,()=>({hit:false}));
 
 function enemy(uid,x,y,until=1000,type=1){return {uid,type,sprite:{x,y},frozenUntil:until};}
 function testScene(){
  const hits=[];
  const graphics=()=>({setDepth(){return this;},lineStyle(){return this;},
+   fillStyle(){return this;},fillTriangle(){return this;},setRotation(){return this;},
    strokeCircle(){return this;},lineBetween(){return this;},destroy(){}});
  return {elapsed:200,time:{now:200},combat:{russianShatterRadius:60,russianShatterDamage:3},
   enemies:[],add:{graphics},tweens:{add(){}},hits,
