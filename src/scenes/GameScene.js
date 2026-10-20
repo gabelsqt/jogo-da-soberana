@@ -1,5 +1,6 @@
 import {cannonSpritePose,CANNON_BARREL_DISPLAY_SIZE} from '../gameplay/cannonSpriteAim.js';
 import {steerType2Rotation} from '../gameplay/type2Facing.js';
+import {TYPE5_SPRITE,type5DamageFrame} from '../gameplay/type5Sprite.js';
 import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
 import {playSfx} from '../audio/sfx.js';
 import { appendWaveResult } from '../gameplay/waveTestResults.js';
@@ -323,6 +324,12 @@ export class GameScene extends Phaser.Scene {
     this.load.spritesheet('tipo2_sheet',assetUrl('assets/inimigos/tipo2/spritesheet.png'),{
       frameWidth:112,frameHeight:112,
     });
+    // Tipo 5: cruzador-colmeia (4x4, 16 quadros de 224x128),
+    // normalizado para animações de voo, liberação de escoltas e destruição.
+    this.load.spritesheet('tipo5_sheet',
+      assetUrl('assets/inimigos/tipo5/spritesheet.png'),{
+        frameWidth:TYPE5_SPRITE.frameWidth,frameHeight:TYPE5_SPRITE.frameHeight,
+      });
     // Tipo 3: spritesheet 16-bit 4 x 3 (12 quadros de 128 px).
     // O PNG será colocado pelo desenvolvedor em public/assets/inimigos/tipo3/.
     // Enquanto estiver ausente, o visual vetorial antigo serve de fallback.
@@ -364,6 +371,18 @@ export class GameScene extends Phaser.Scene {
         frames:this.anims.generateFrameNumbers('tipo2_sheet',{frames:[0,1,2,3,4,5]}),
         frameRate:5,repeat:-1,
       });
+    }
+    if(this.textures.exists('tipo5_sheet')){
+      for(const [key,frames,frameRate,repeat] of [
+        ['tipo5_voo',TYPE5_SPRITE.flight,4,-1],
+        ['tipo5_spawn',TYPE5_SPRITE.deploy,8,0],
+        ['tipo5_morte',TYPE5_SPRITE.death,8,0],
+      ]){
+        if(this.anims.exists(key))continue;
+        this.anims.create({key,
+          frames:this.anims.generateFrameNumbers('tipo5_sheet',{frames}),
+          frameRate,repeat});
+      }
     }
     if (!this.anims.exists('tipo1_voo')) {
       this.anims.create({
@@ -1526,6 +1545,22 @@ export class GameScene extends Phaser.Scene {
       if (level > 1) sprite.setTint(definition.tintColor);
       return { sprite, box:null };
     }
+    if(type===5&&this.textures.exists('tipo5_sheet')){
+      const sprite=this.add.sprite(x,y,'tipo5_sheet',0)
+        .setDisplaySize(TYPE5_SPRITE.displayWidth,TYPE5_SPRITE.displayHeight)
+        .setDepth(19)
+        .play('tipo5_voo');
+      // Não retarda a invocação dos minions: a animação apenas acompanha
+      // o evento real. Ao terminar, retorna à aparência compatível com o HP.
+      sprite.on('animationcomplete-tipo5_spawn',()=>{
+        if(!sprite.active)return;
+        sprite.setData('tipo5_deploying',false);
+        const damaged=sprite.getData('tipo5_damage_frame');
+        if(damaged===null||damaged===undefined)sprite.play('tipo5_voo');
+        else sprite.setFrame(damaged);
+      });
+      return {sprite,box:null};
+    }
     const sprite = this.add.container(x, y).setDepth(19);
     const box = this.add.rectangle(0, 0, definition.width, definition.height, definition.color)
       .setStrokeStyle(level > 1 ? 3 : 2, level >= 3 ? 0xffffff : level > 1 ? 0xffd26e : 0xf7efff);
@@ -2445,6 +2480,12 @@ export class GameScene extends Phaser.Scene {
             const allMinions=this.enemies.filter(unit=>unit.sourceBossId!==null).length;
             count=Math.min(count,Math.max(0,10-allMinions));
           }
+          // Somente quando há escoltas a liberar: as baias abrem enquanto
+          // o spawn original acontece (sem atrasar o relógio da IA).
+          if(count>0&&enemy.type===5&&enemy.sprite.texture?.key==='tipo5_sheet'){
+            enemy.sprite.setData('tipo5_deploying',true);
+            enemy.sprite.play('tipo5_spawn',true);
+          }
           // Na campanha, minions herdam HP/cor do nível atual. O miniboss
           // tem no máximo 12 invocações totais e 6 vivas simultaneamente.
           for (let j = 0; j < count; j += 1) {
@@ -2760,6 +2801,18 @@ export class GameScene extends Phaser.Scene {
 
     if (enemy.box) {
       enemy.box.setFillStyle(reaction.flash ? 0xffffff : enemy.definition.color);
+    } else if(enemy.type===5&&enemy.sprite.texture?.key==='tipo5_sheet'){
+      const damaged=type5DamageFrame(enemy.hp,enemy.maxHp);
+      enemy.sprite.setData('tipo5_damage_frame',damaged);
+      if(!enemy.sprite.getData('tipo5_deploying')){
+        const anim=enemy.sprite.anims;
+        if(damaged!==null){
+          if(anim.isPlaying)anim.stop();
+          if(Number(enemy.sprite.frame.name)!==damaged)enemy.sprite.setFrame(damaged);
+        }else if(!anim.isPlaying)enemy.sprite.play('tipo5_voo');
+      }
+      // Pequeno flash, sem substituir os detalhes do casco por tinta branca.
+      enemy.sprite.setAlpha(reaction.flash?0.73:1);
     } else if(enemy.type===2&&enemy.sprite.texture?.key==='tipo2_sheet'){
       const damaged=enemy.hp<=enemy.maxHp*0.55;
       const anim=enemy.sprite.anims;
@@ -2781,6 +2834,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   showEnemyDeath(enemy) {
+    if(enemy.type===5&&enemy.sprite.texture?.key==='tipo5_sheet'){
+      // Morte visual completa; a colisão e a remoção da nave continuam
+      // imediatas, preservando regras de vitória, loot e contagem de alvos.
+      const wreck=this.add.sprite(enemy.sprite.x,enemy.sprite.y,'tipo5_sheet',12)
+        .setDisplaySize(enemy.sprite.displayWidth,enemy.sprite.displayHeight)
+        .setRotation(enemy.sprite.rotation).setDepth(56);
+      wreck.play('tipo5_morte');
+      wreck.once('animationcomplete-tipo5_morte',()=>wreck.destroy());
+    }
     if(enemy.type===2&&enemy.sprite.texture?.key==='tipo2_sheet'){
       // 7: casco desintegrando em explosões. Sobrepõe o burst padrão,
       // sem prolongar a vida real do inimigo nem modificar colisões.
