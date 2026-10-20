@@ -82,7 +82,7 @@ test('áudio russo v2 grave: som exclusivo de tiro, congelamento só na transiç
  assert.match(game,/else playSfx\('cannon',\{throttle:95,volumeScale:0\.48\}\)/);
  assert.match(game,/const firstFreeze=!!enemy&&enemy\.type!==6/);
  assert.match(game,/if\(applied&&firstFreeze\)/);
- assert.match(game,/if\(!this\.isV1Campaign\|\|this\.specialBuild\?\.primary!=='ru'\)/);
+ assert.match(game,/else if\(!\['ru','jp'\]\.includes\(specialCountry\)\)/);
  assert.match(sfx,/id==='cannon'\|\|id==='ruBasicShot'/);
  assert.equal(SFX_FILES.ruBasicShot,'19_ru_tiro_criogenico_v2.wav');
  assert.ok(Object.entries(SFX_FILES).filter(([key])=>key.startsWith('ru'))

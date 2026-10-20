@@ -4024,7 +4024,9 @@ export class GameScene extends Phaser.Scene {
       }
     }
     if(visualTargets.length){
-      playSfx('krLaserRicochet',{throttle:105,volumeScale:0.55});
+      // Os testes de dano executam o método isoladamente, sem módulo de áudio.
+      if(typeof playSfx==='function')
+        playSfx('krLaserRicochet',{throttle:105,volumeScale:0.55});
       this.drawV1DiscoReflectionArcs(x,y,visualTargets);
     }
   }
