@@ -4,6 +4,7 @@ import { IntroScene } from './scenes/IntroScene.js';
 import { V1PlaytestScene } from './scenes/V1PlaytestScene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { EndingScene } from './scenes/EndingScene.js';
+import { ZecaRecoveryScene } from './scenes/ZecaRecoveryScene.js';
 import { PauseScene } from './scenes/PauseScene.js';
 import { UpgradeScene } from './scenes/UpgradeScene.js';
 import { LabSetupScene } from './scenes/LabSetupScene.js';
@@ -26,7 +27,7 @@ const game = new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [MenuScene, IntroScene, V1PlaytestScene, GameScene, EndingScene, PauseScene, UpgradeScene, UpgradeLabScene, LabSetupScene, WaveMakerScene, EnemyMakerScene],
+  scene: [MenuScene, IntroScene, V1PlaytestScene, GameScene, EndingScene, ZecaRecoveryScene, PauseScene, UpgradeScene, UpgradeLabScene, LabSetupScene, WaveMakerScene, EnemyMakerScene],
 });
 
 // O #viewport é a moldura com safe areas; #game continua sem padding,
