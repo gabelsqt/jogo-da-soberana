@@ -60,7 +60,7 @@ export class WaveMakerScene extends Phaser.Scene {
   this.drawButton(651,492,'SALVAR',()=>this.persist(),125,34);
   this.drawButton(804,492,'COPIAR OFICIAL',()=>this.resetDraft(),145,34);
   this.input.on('drag',(pointer,object,dragX,dragY)=>{
-   const e=this.events().find(it=>it.id===object.getData('eventId'));if(!e)return;
+   const e=this.waveEvents().find(it=>it.id===object.getData('eventId'));if(!e)return;
    if(object.getData('kind')==='map'){
     e.x=clamp(Math.round((dragX-142)/736*960),0,960);
     e.y=clamp(Math.round((dragY-82)/226*540),-100,540);
@@ -82,8 +82,8 @@ export class WaveMakerScene extends Phaser.Scene {
   return rect;
  }
  entry(){return this.project.waves['wave'+this.current];}
- events(){return this.entry().events;}
- currentEvent(){return this.events().find(e=>e.id===this.selected);}
+ waveEvents(){return this.entry().events;}
+ currentEvent(){return this.waveEvents().find(e=>e.id===this.selected);}
  persist(){const ok=saveWaveMakerProject(typeof localStorage==='undefined'?null:localStorage,this.project);this.status=ok?'Rascunho salvo neste navegador':'Não foi possível salvar: armazenamento indisponível';this.statusLabel.setText(this.status);}
  select(id){this.selected=id;this.render();}
  numeric(label,key,x,y,min,max,step=1){
@@ -104,7 +104,7 @@ export class WaveMakerScene extends Phaser.Scene {
   this.waveButtons?.forEach(({rect,waveIndex})=>rect.setFillStyle(waveIndex===this.current?0x36766e:panel));
   this.markers.removeAll(true);this.timeline.removeAll(true);this.fields.removeAll(true);
   this.renderPressure();
-  const events=this.events(),duration=entry.durationMs;
+  const events=this.waveEvents(),duration=entry.durationMs;
   const maxShown=45;
   const visible=events.slice(0,maxShown);
   visible.forEach((e,i)=>{
@@ -138,17 +138,17 @@ export class WaveMakerScene extends Phaser.Scene {
   this.statusLabel.setText(this.status+(events.length>maxShown?' • primeiros 45 eventos exibidos':''));
  }
  addEvent(){
-  const events=this.events(),id=nextWaveMakerEventId(events);
+  const events=this.waveEvents(),id=nextWaveMakerEventId(events);
   events.push(normalizeWaveMakerEvent({id,type:1,level:1,pattern:'swarm',count:3,at:1000,x:480,y:0},events.length));
   this.selected=id;this.persist();this.render();
  }
  duplicate(){
-  const e=this.currentEvent();if(!e)return;const clone=cloneWaveMakerEvent(e,this.events());
-  this.events().push(clone);this.selected=clone.id;this.persist();this.render();
+  const e=this.currentEvent();if(!e)return;const clone=cloneWaveMakerEvent(e,this.waveEvents());
+  this.waveEvents().push(clone);this.selected=clone.id;this.persist();this.render();
  }
  removeSelected(){
   if(!this.currentEvent())return;
-  this.entry().events=this.events().filter(e=>e.id!==this.selected);
+  this.entry().events=this.waveEvents().filter(e=>e.id!==this.selected);
   this.selected=null;this.persist();this.render();
  }
  showTestResults(){
