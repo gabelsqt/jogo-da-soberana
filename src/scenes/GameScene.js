@@ -3687,8 +3687,10 @@ export class GameScene extends Phaser.Scene {
   createProjectile(angle, special, distance = 0, effects = null, centerGlow = false, offsetX = 0, generation = 0, origin = null) {
     const vx = Math.cos(angle);
     const vy = Math.sin(angle);
-    const x = (origin?.x ?? CANNON.x + vx * 29) + offsetX;
-    const y = origin?.y ?? CANNON.y + vy * 29;
+    // Projéteis nascem mais perto da boca do novo canhão em sprites.
+    const muzzleDistance = 40;
+    const x = (origin?.x ?? CANNON.x + vx * muzzleDistance) + offsetX;
+    const y = origin?.y ?? CANNON.y + vy * muzzleDistance;
     const style = shotVisualFor(this.activeUpgradeIds());
     if (this.isV1Campaign && this.combat.transformed === 'br') style.color = 0x55e99e;
     if (this.isV1Campaign && this.combat.transformed === 'cn') style.color = centerGlow ? 0xffe56a : 0xff5651;
