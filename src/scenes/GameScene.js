@@ -2762,6 +2762,7 @@ export class GameScene extends Phaser.Scene {
     if (killed) {
       const frozenShatter=enemy.frozenUntil>this.elapsed;
       this.showEnemyDeath(enemy);
+      playSfx(enemy.finalBoss?'boss':'explosion',{throttle:enemy.finalBoss?500:170,volumeScale:enemy.finalBoss?1:0.58});
       this.removeEnemy(index);
       // Remover primeiro evita atingir o mesmo alvo duas vezes em reações.
       if(frozenShatter)this.shatterRussianEnemy(enemy);
@@ -4303,8 +4304,12 @@ export class GameScene extends Phaser.Scene {
       const oldShield=tower.shield??0;
       const result = applyShieldedHit(oldShield, tower.health, amount);
       tower.shield = result.shield;
-      if(oldShield>0&&tower.shield<=0)
+      if(oldShield>0&&tower.shield<=0){
         shatterShieldSprite(this,tower.x,tower.y+10,tower.shieldRadius);
+        playSfx('shieldBreak',{throttle:400});
+      }else if(oldShield>tower.shield){
+        playSfx('shieldHit',{throttle:160,volumeScale:0.55});
+      }
       tower.health = result.health;
       tower.lastDamageAt = this.time.now;
       if (tower.health === 0 && tower.sprite) tower.sprite.setAlpha(0.32);
