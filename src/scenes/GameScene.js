@@ -3267,8 +3267,11 @@ export class GameScene extends Phaser.Scene {
     const turbo = this.time.now < (this.brazilTurboUntil || 0) ? this.combat.brazilTurboMultiplier : 1;
     if (this.time.now - this.lastBasicFire < this.combat.basicInterval / ((1 + heat) * turbo)) return;
     this.lastBasicFire = this.time.now;
-    // O tiro básico russo não usa o som genérico da metralhadora.
-    if(this.isV1Campaign&&this.combat.russianFreezeMs>0)
+    // Coreia usa laser de arcade mesmo em builds híbridas; se não houver
+    // upgrades coreanos, preservar gelo russo e metralhadora dos outros países.
+    if(this.isV1Campaign&&this.combat.plasmaEvery>0)
+      playSfx('krBasicShot',{throttle:85,volumeScale:0.52});
+    else if(this.isV1Campaign&&this.combat.russianFreezeMs>0)
       playSfx('ruBasicShot',{throttle:88,volumeScale:0.56});
     else playSfx('cannon',{throttle:95,volumeScale:0.48});
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
@@ -3367,6 +3370,20 @@ export class GameScene extends Phaser.Scene {
     beam.lineBetween(startX, startY, endX, endY);
     beam.lineStyle(3, 0xffffff, 1);
     beam.lineBetween(startX, startY, endX, endY);
+    // Halo de energia elétrica ao redor do laser principal; não há
+    // hitbox nem ataque adicional. Curvas em estilo arcada, com poucas linhas.
+    const dx=endX-startX,dy=endY-startY,len=Math.max(1,Math.hypot(dx,dy));
+    const nx=-dy/len,ny=dx/len;
+    for(const side of [-1,1]){
+      beam.lineStyle(2,0xc67aff,0.56);
+      beam.beginPath();
+      for(let k=0;k<=12;k++){
+        const t=k/12,offset=side*(5+5*Math.sin(Math.PI*t*4));
+        const px=startX+dx*t+nx*offset,py=startY+dy*t+ny*offset;
+        if(k===0)beam.moveTo(px,py);else beam.lineTo(px,py);
+      }
+      beam.strokePath();
+    }
     this.tweens.add({
       targets: beam, alpha: 0, duration: 280,
       onComplete: () => beam.destroy(),

@@ -31,12 +31,14 @@ const FILES=Object.freeze({
   krDiscoDeploy:'27_kr_bola_discoteca_ativar.wav',
   krDiscoSpin:'28_kr_discoteca_giro_loop.wav',
   krLaserRicochet:'29_kr_ricochete_laser.wav',
+  krBasicShot:'30_kr_tiro_laser.wav',
 });
 // Configuração reutilizável: novos efeitos podem definir suas faixas aqui.
 // [mínimo,máximo] em multiplicadores; 1 representa o áudio original.
 export const SFX_VARIATIONS=Object.freeze({
   cannon:Object.freeze({pitch:Object.freeze([0.78,1.22]),volume:Object.freeze([0.90,1.10])}),
   ruBasicShot:Object.freeze({pitch:Object.freeze([0.96,1.04]),volume:Object.freeze([0.95,1.05])}),
+  krBasicShot:Object.freeze({pitch:Object.freeze([0.96,1.04]),volume:Object.freeze([0.94,1.06])}),
   explosion:Object.freeze({pitch:Object.freeze([0.75,1.25]),volume:Object.freeze([0.94,1.06])}),
   boss:Object.freeze({pitch:Object.freeze([0.85,1.15]),volume:Object.freeze([0.97,1.03])}),
 });
@@ -79,7 +81,7 @@ export function playSfx(id,{throttle=0,volumeScale=1}={}){
   if(throttle&&now-(lastPlayed.get(id)??-Infinity)<throttle)return;
   lastPlayed.set(id,now);
   const sound=source.cloneNode();
-  if(id==='cannon'||id==='ruBasicShot'){
+  if(id==='cannon'||id==='ruBasicShot'||id==='krBasicShot'){
     // Limita vozes simultâneas em builds de cadência extrema.
     for(let i=activeCannonVoices.length-1;i>=0;i--){
       if(activeCannonVoices[i].ended||activeCannonVoices[i].paused)activeCannonVoices.splice(i,1);

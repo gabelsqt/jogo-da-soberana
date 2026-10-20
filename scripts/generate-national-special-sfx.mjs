@@ -70,6 +70,7 @@ export const NATIONAL_SPECIAL_FILES=Object.freeze({
  krDiscoDeploy:'27_kr_bola_discoteca_ativar.wav',
  krDiscoSpin:'28_kr_discoteca_giro_loop.wav',
  krLaserRicochet:'29_kr_ricochete_laser.wav',
+ krBasicShot:'30_kr_tiro_laser.wav',
 });
 export function generateNationalSpecialSfx(outDir){
  mkdirSync(outDir,{recursive:true});
@@ -158,6 +159,16 @@ export function generateNationalSpecialSfx(outDir){
    const refract=.13*wave(615,t,'square')*Math.exp(-t*14);
    return ray+snap+refract+lp*.09*Math.exp(-t*22);
  },{seed:503,bit:12,echo:.047});
+ // Coreia — laser PRINCIPAL de arcade 16/32 bits: zap curto, metal eletrônico
+ // e queda brusca de frequência; sem notas musicais ou guinchos infantis.
+ // Cada disparo usa apenas este som, com throttle e limite de vozes no jogo.
+ put('krBasicShot',.17,({t,d,noise,lp})=>{
+   const plasma=.40*sweepWave(1050,310,t,d,'saw')*Math.exp(-t*10);
+   const edge=.22*sweepWave(660,230,t,d,'square')*Math.exp(-t*18);
+   const snap=(lp*.18+noise*.055)*Math.exp(-t*39);
+   const tail=.16*Math.sin(TAU*238*t)*Math.exp(-t*25);
+   return plasma+edge+snap+tail;
+ },{seed:504,bit:12,echo:.035});
  return results;
 }
 const script=fileURLToPath(import.meta.url);

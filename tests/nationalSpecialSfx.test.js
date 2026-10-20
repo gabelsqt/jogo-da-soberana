@@ -7,12 +7,12 @@ import {NATIONAL_SPECIAL_FILES,generateNationalSpecialSfx}
   from '../scripts/generate-national-special-sfx.mjs';
 import {SFX_FILES} from '../src/audio/sfx.js';
 
-test('dez sons nacionais retrô gerados em PCM mono 22.050 Hz, sem silêncio',()=>{
+test('onze sons nacionais retrô gerados em PCM mono 22.050 Hz, sem silêncio',()=>{
  const dir=mkdtempSync(join(tmpdir(),'soberania-nacional-sfx-'));
  try{
    const sounds=generateNationalSpecialSfx(dir);
-   assert.equal(sounds.length,10);
-   assert.equal(readdirSync(dir).length,10);
+   assert.equal(sounds.length,11);
+   assert.equal(readdirSync(dir).length,11);
    const durations=[];
    for(const [key,name] of Object.entries(NATIONAL_SPECIAL_FILES)){
      assert.equal(SFX_FILES[key],name);
@@ -41,12 +41,15 @@ test('ganchos reproduzem cada som na ação e nunca em todos os frames',()=>{
  for(const id of [
    'brFireworkLaunch','brFireworkBurst','usMissileLaunch','usShockwave',
    'cnCargoDeploy','cnContainerImpact','krDiscoDeploy','krLaserRicochet',
+   'krBasicShot',
  ]) assert.ok(scene.includes("playSfx('"+id+"'"),id);
  assert.match(scene,/setSfxLoopActive\('brBonfire',\(this\.arraialNuclei\?\.length\?\?0\)>0/);
  assert.match(scene,/setSfxLoopActive\('krDiscoSpin',\(this\.discoGlobes\?\.length\?\?0\)>0/);
  assert.match(scene,/stopNationalSpecialSfxLoops\(\)/);
  assert.match(scene,/this\.events\.on\('pause',stopNationalSpecialSfxLoops\)/);
  assert.match(scene,/if\(visualTargets\.length\)\{[\s\S]*?playSfx\('krLaserRicochet'/);
+ assert.match(scene,/if\(this\.isV1Campaign&&this\.combat\.plasmaEvery>0\)/);
+ assert.match(scene,/playSfx\('krBasicShot',\{throttle:85,volumeScale:0\.52\}\)/);
  assert.match(scene,/const specialCountry=this\.isV1Campaign\?this\.specialBuild\?\.primary:null/);
  assert.match(scene,/else if\(!\['ru','jp'\]\.includes\(specialCountry\)\)/);
  assert.match(scene,/playSfx\('brFireworkBurst',\{throttle:95/);

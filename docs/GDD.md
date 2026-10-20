@@ -1057,3 +1057,9 @@ O PNG do Cruzador-Colmeia agora é RGBA verdadeiro em 896×512. O feedback de da
 - **Uma salva a cada 180 ms por globo; duração de 4 s**. Retirados os arcos altos: reflexos quase retos, em laser roxo/magenta com núcleo branco, brilho no alvo e fade de 155 ms. No máximo oito feixes VISUAIS por salva, mantendo todos os acertos de gameplay.
 - Disparos físicos com upgrade coreano usam trilha curta de pulso laser, compatível com efeitos das outras nações e sem alteração de dano, cadência, trajetória ou colisão. As habilidades de laser perfurante continuam inalteradas.
 - Esta decisão de implementação substitui o orçamento de dano da v0.862 e o estilo antigo dos reflexos.
+
+### v0.865 — Coreia: restauração dos arcos e som de laser principal (20/10/2026)
+- Corrigida a direção visual da v0.864: **reflexos do globo continuam curvos**, com arco quadrático ascendente, várias camadas violeta, miolo claro, arcos menores paralelos e ramificações elétricas breves. Essas descargas são exclusivamente visuais, limitadas a oito feixes por salva, com um objeto gráfico e animação por salva.
+- Os feixes tradicionais do Lightstick recebem também duas bordas elétricas oscilantes e discretas durante cada pulso (efeito visual, sem alteração de dano).
+- **Tiro principal coreano usa som de laser retrô independente** em lugar da metralhadora comum. Vale com qualquer upgrade coreano ativo, inclusive builds híbridas; na transformação russa, o som de sopro continua prevalecendo.
+- Mantidos os limites e orçamentos de dano do globo aprovados na v0.864 (**6/12/22/36 por salva**, cooldown 180 ms), duração de 4 segundos, contagem 3/6/12/24 raios e mecânicas de todos os países.
