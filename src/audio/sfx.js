@@ -13,6 +13,16 @@ const FILES=Object.freeze({
   supreme:'09_supremo_carregamento.wav',
   shieldHit:'10_impacto_escudo.wav',
 });
+// Faixas discretas: 1.0 = pitch original. O browser altera também a duração.
+export const SFX_PITCH_RANGES=Object.freeze({
+  cannon:Object.freeze([0.95,1.05]),
+  explosion:Object.freeze([0.93,1.07]),
+  boss:Object.freeze([0.96,1.04]),
+});
+export function randomSfxPlaybackRate(id,random=Math.random){
+  const range=SFX_PITCH_RANGES[id];
+  return range?range[0]+random()*(range[1]-range[0]):1;
+}
 const clips=new Map(), lastPlayed=new Map();
 let enabled=true,volume=0.24;
 export function prepareSfx(){
@@ -34,6 +44,7 @@ export function playSfx(id,{throttle=0,volumeScale=1}={}){
   lastPlayed.set(id,now);
   const sound=source.cloneNode();
   sound.volume=Math.max(0,Math.min(1,volume*volumeScale));
+  sound.playbackRate=randomSfxPlaybackRate(id);
   sound.play()?.catch?.(()=>{});
 }
 export function setSfxVolume(value){volume=Math.max(0,Math.min(1,Number(value)||0));}
