@@ -51,7 +51,8 @@ Os textos acima são um **rascunho sugerido**, não frases autoralmente aprovada
 - É um civil improvisador com conhecimento real de mecânica automotiva, aplicado de forma precária e inventiva ao armamento. Manter o humor de gambiarra e burocracia e sua personalidade carismática; não apresentá-lo como especialista em artilharia.
 - O encontro vem **antes do primeiro combate** e introduz a relação jogador-general ↔ Zeca-mecânico; Zeca orienta e interage com o jogador ao longo da campanha.
 - Não estabelecer por conta própria quem o obrigou ou o processo de requisição — detalhe ainda aberto.
-- **Rascunho de fala (não aprovado literalmente):** “Ô, general! Você é o mesário? Sou Zeca Carrara, mecânico de carros. Quer dizer, era. Me botaram pra fazer manutenção desse obuseiro aqui. Disseram que era tudo mecânica. Eu tentei explicar a diferença, mas já tinham me dado a chave.”
+- **Zeca deve explicar ao jogador que “obuseiro” é o canhão que ele está vendo**, com linguagem simples, natural e bem-humorada, na própria apresentação; evitar pressupor que o jogador conheça o termo militar.
+- **Rascunho de fala (não aprovado literalmente):** “Ô, general! Você que era o mesário? Sou Zeca Carrara, mecânico de carros. Quer dizer, era. Me botaram pra cuidar desse obuseiro aqui. Obuseiro é esse canhão, tá? Eu também não sabia. Disseram que era tudo mecânica. Eu tentei explicar a diferença, mas já tinham me dado a chave.”
 - Apresentação simples, sem alongar a abertura; formato visual e número de falas permanecem a definir.
 
 ## 4. Continuidade e revisão necessárias
