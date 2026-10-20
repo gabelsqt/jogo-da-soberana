@@ -48,14 +48,24 @@ test('míssil dos EUA escala 1/2/4/8, e ondas superam o raio da explosão',()=>{
   }
 });
 
-test('matryoshka tem 8/12/16/24 estilhaços sem efeitos defensivos',()=>{
-  for(const [tier,shards] of [[2,8],[4,12],[6,16],[8,24]]){
+test('Sputnik russo progride em duração, raio, cristalização e pulsos',()=>{
+  for(const [tier,duration,radius] of [[2,4000,43],[4,5000,59],[6,5000,59],[8,5000,67]]){
     const b=v1SpecialConfig(countryAt('ru',tier));
-    assert.equal(b.ruShards,shards);
+    assert.equal(b.ruSputnikDurationMs,duration);
+    assert.equal(b.ruSputnikRadius,radius);
     assert.ok(b.ruFreezeMs>0);
+    assert.ok(b.ruCrystalBonus>1);
     assert.equal(b.ruShieldFreezeMs,undefined);
-    assert.equal(b.ruShieldRadius,undefined);
+    assert.equal(b.ruShards,undefined);
   }
+  const s2=v1SpecialConfig(countryAt('ru',2));
+  const s6=v1SpecialConfig(countryAt('ru',6));
+  const s8=v1SpecialConfig(countryAt('ru',8));
+  assert.ok(s6.ruCrystalShatterRadius>s2.ruCrystalShatterRadius);
+  assert.ok(s6.ruCrystalShatterDamage>s2.ruCrystalShatterDamage);
+  assert.equal(s2.ruSputnikPulseRadius,0);
+  assert.ok(s8.ruSputnikPulseRadius>0);
+  assert.ok(s8.ruSputnikFinalRadius>s8.ruSputnikPulseRadius);
 });
 
 test('encomendas e reflexos ofensivos evoluem sem bônus de escudo',()=>{
@@ -74,6 +84,6 @@ test('os cinco países oferecem uma cor própria, mas nenhum efeito não desbloq
   assert.equal(b.fireworks,0);
   assert.equal(b.krReflections,0);
   assert.equal(b.cnPayloads,0);
-  assert.equal(b.ruShards,0);
+  assert.equal(b.ruSputnikDurationMs,0);
   for(const id of ['br','us','ru','cn','jp'])assert.ok(specialPalette(id)>0);
 });
