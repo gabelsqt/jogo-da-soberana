@@ -11,7 +11,7 @@ import {addCuboBroadcastFrame,CUBO_FONT} from '../ui/cuboNewsTheme.js';
 import {assetUrl} from '../config/assetUrl.js';
 
 export const BOTECO_CHAIR_X=Object.freeze([116,298,480,662,844]);
-export const BOTECO_PORTRAIT_Y=241;
+export const BOTECO_PORTRAIT_Y=263;
 export const BOTECO_FOCUS=Object.freeze({x:155,y:163,scale:1.47,duration:320});
 const COLOR={ink:0x0b1621,panel:0x193043,outline:0x5b788f,
   cream:0xdce8ee,amber:0xe2a45e,red:0xc45151};
@@ -53,8 +53,8 @@ function portrait(scene,option,index){
   const color=option.locked?0x68737d:(option.color??0x668eac);
   const id=option.id;
   const frame=scene.add.graphics();
-  frame.fillStyle(0x101d2b,0.98).fillRoundedRect(-56,-67,112,133,8);
-  frame.lineStyle(3,color,1).strokeRoundedRect(-56,-67,112,133,8);
+  frame.fillStyle(0x101d2b,0.98).fillRoundedRect(-56,-67,112,143,6);
+  frame.lineStyle(3,color,1).strokeRoundedRect(-56,-67,112,143,6);
   const portraitKey=scene.textures.exists('leader-'+id+'-full-screen')?
     'leader-'+id+'-full-screen':'leader-'+id+'-full';
   const loaded=scene.textures.exists(portraitKey);
@@ -63,14 +63,14 @@ function portrait(scene,option,index){
     frame.fillStyle(color,0.72).fillCircle(0,-27,23);
     frame.fillStyle(color,0.72).fillRoundedRect(-39,-3,78,36,14);
   }
-  const footer=scene.add.rectangle(0,46,104,30,0x101d2b,0.94);
-  const label=makeText(scene,0,43,option.shortName??option.name,12,
+  const footer=scene.add.rectangle(0,50,104,46,0x101d2b,0.96);
+  const label=makeText(scene,0,41,option.shortName??option.name,12,
     '#dce8ee',100,{fontStyle:'bold',align:'center'}).setOrigin(0.5);
-  const lvl=makeText(scene,0,76,'Nível '+option.level,11,
+  const lvl=makeText(scene,0,60,'Nível '+option.level,10,
     '#e2a45e',null,{fontStyle:'bold'}).setOrigin(0.5);
   const children=image?[frame,image,footer,label,lvl]:[frame,footer,label,lvl];
   const node=scene.add.container(BOTECO_CHAIR_X[index],BOTECO_PORTRAIT_Y,children).setDepth(26);
-  node.setSize(114,161).setInteractive({useHandCursor:true});
+  node.setSize(114,147).setInteractive({useHandCursor:true});
   return {node,option,index,originX:BOTECO_CHAIR_X[index],originY:BOTECO_PORTRAIT_Y};
 }
 
