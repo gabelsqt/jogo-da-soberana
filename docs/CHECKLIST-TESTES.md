@@ -367,3 +367,16 @@
 - [ ] Trocar de onda, voltar ao menu e reiniciar: nenhum botão DOM duplicado nem sobreposição com cortes de cena.
 - [ ] Layout Cubo News (onda) e modo laboratório (sem faixa): reposicionar sobre o jogo sem afetar faixa, cronômetro, tiro ou mira.
 - [ ] Executar `npm test` (inclui `tests/pauseHudResponsive.test.js`), `npm run build`, `npm run dev`; **pendentes** neste ambiente.
+
+
+## v0.74 — Supremo: palavras e segurança do teclado
+- [ ] Com Supremo desbloqueado (nove melhorias de um país), **Espaço antes dos últimos 5 s** não reinicia nem inicia o Supremo; apresenta aviso claro sobre a janela de disponibilidade.
+- [ ] Quando faltarem 5 s, o indicador **SUPREMO PRONTO — ESPAÇO** aparece de forma legível mesmo com Cubo News ativo.
+- [ ] Apertar Espaço abre painel central com a palavra exigida e quebras de linha corretas; jogo, inimigos, projéteis e relógio param **completamente** até concluir ou cancelar a digitação.
+- [ ] Digitar **REVEILLON** (Brasil), **FREEDOM** (EUA), **SPUTNIK** (Rússia), **ENTREGA** (China) e **ENCORE** (Coreia) — letras R, F, P etc. **não reiniciam nem pausam**; palavra completa ativa o Supremo exatamente uma vez.
+- [ ] Digitar letra incorreta indica erro, permite **Backspace** e após corrigir conclui. **Esc** cancela e restaura tempo/combate; pressionar Espaço depois permite reabrir enquanto a janela está disponível.
+- [ ] Durante combate normal, teclas **R** e **F** sozinhas não provocam reinício. **P/Esc** abrem pausa normalmente; não devem pausar quando fazem parte da digitação do Supremo.
+- [ ] Após Supremo ativado, a cena cinematográfica decorre e conclui a onda conforme final aprovado; não reaparecer prompt na mesma batalha.
+- [ ] Em modo DEV, **Shift+1/5 isolado** não salta a onda; somente o atalho deliberado **Ctrl+Alt+Shift+número** continua funcionando.
+- [ ] Retestar Type 6 e onda 11 para confirmar que digitação do Supremo congela o relógio/ataques e não interfere na revanche do Zeca.
+- [ ] Rodar `npm test`, `npm run build` e playtest visual em Firefox/Chrome — **ainda pendentes** no ambiente de edição. Regressões em `tests/supremeCodeInput.test.js`.
