@@ -1029,3 +1029,10 @@ O sistema de danos continua limitado a um estilhaçamento por vítima congelada;
 **UX:** relógio do Cubo News fica invisível até o instante final da transição da contagem central, sem interpolação de opacidade nem CSS transition. Retrato do Zeca Carrara no diálogo ampliado com `setDisplaySize` executado após `setTexture` para evitar herança da escala microscópica do placeholder; usa prévia redimensionada/crop específico para diálogo.
 
 **Validação:** testes funcionais adicionados para mecânica do Sputnik, estágios de upgrade, identidade visual, domo, retrato e cronômetro. Verificação no navegador deve confirmar alinhamento, legibilidade e desempenho, especialmente no Tipo 6 e na mesa de negociações.
+
+
+### v0.849 — Nave Tipo 2 em sprite 2D animado (20/10/2026)
+- Atualizado o inimigo **Tipo 2 — Esquadrão de Formação** com atlas 4×2 de oito quadros (112×112 cada, PNG transparente), baseado na arte original aprovada: fuselagem escura azul-metal e luzes vermelhas.
+- **0 a 5:** animação de voo; **6:** avariado/recebendo dano; **7:** destruição animada junto ao burst existente. Mantida rotação progressiva conforme a direção de deslocamento.
+- O feedback de impacto apenas acrescenta shake à direção, sem sobrescrever a orientação da nave. Formação, velocidade, HP, colisão, tiros e fallback vetorial permanecem inalterados.
+- Arquivo `public/assets/inimigos/tipo2/spritesheet.png`, criado diretamente no GitHub.
