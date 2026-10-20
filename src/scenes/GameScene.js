@@ -1,3 +1,4 @@
+import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
 import {playSfx} from '../audio/sfx.js';
 import { appendWaveResult } from '../gameplay/waveTestResults.js';
 import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS } from '../gameplay/discoGlobe.js';
@@ -297,6 +298,9 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     preloadRioBackdrop(this);
+    for(let i=0;i<DAWN_KEYS.length;i++){
+      this.load.image(DAWN_KEYS[i],assetUrl('assets/cenario/amanhecer/'+DAWN_FILES[i]));
+    }
     preloadMechSprites(this);
     this.load.setPath('');
     for (let frame = 1; frame <= 4; frame += 1) {
@@ -327,6 +331,13 @@ export class GameScene extends Phaser.Scene {
     this.input.mouse?.disableContextMenu();
 
     drawRioBackdrop(this);
+    // Quatro imagens completas: a mais escura fica visível durante a noite.
+    // As seguintes surgem por sobreposição progressiva nos cinco segundos finais.
+    this.dawnLayers=this.mode.startsWith('wave')?DAWN_KEYS.map(key=>
+      this.textures.exists(key)?this.add.image(W/2,H/2,key)
+        .setDisplaySize(W,H).setDepth(0.5).setAlpha(0):null):[];
+    if(this.dawnLayers.every(Boolean)&&this.dawnLayers.length===4)
+      this.dawnLayers[0].setAlpha(1);
     // Iluminação de amanhecer nos últimos 5 segundos das noites.
     // Camada atrás dos alvos/defesas e acima do cenário.
     this.sunriseOverlay = this.mode.startsWith('wave')
@@ -4948,7 +4959,11 @@ export class GameScene extends Phaser.Scene {
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += this.boss6IntroPaused?0:delta;
     this.updateDiscoGlobes();
-    // Nunca clarear o Rio antes de o cronômetro chegar a ZERO.
+    // Amanhecer gradual apenas no relógio ativo da onda; o Supremo congela a imagem.
+    if(this.dawnLayers?.length===4&&this.dawnLayers.every(Boolean)){
+      const alphas=dawnLayerAlphas(this.waveDurationMs-this.elapsed);
+      this.dawnLayers.forEach((layer,i)=>layer.setAlpha(alphas[i]));
+    }
     if(this.sunriseOverlay)this.sunriseOverlay.setAlpha(0);
     // À meia-noite de 30 segundos, sobreviver basta — mesmo com inimigos vivos.
     // A verificação vem ANTES das atualizações hostis do quadro final.
