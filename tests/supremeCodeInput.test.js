@@ -129,3 +129,39 @@ test('sem hotkeys de reinício durante partida ou ações para letras do protoco
   assert.match(gameSource,/if \(this\.supremeTyping\) return;/);
   assert.match(gameSource,/supremeReadyHint\.setVisible/);
 });
+
+
+test('roteador real do GameScene não reinicia com R ou F e prioriza P no Supremo',()=>{
+  const a=gameSource.indexOf('    // Um único despachante de teclado:');
+  const z=gameSource.indexOf('    if (import.meta.env.DEV',a);
+  assert.ok(a>0&&z>a);
+  const setup=new Function('return function(){'+gameSource.slice(a,z)+'}')();
+  const callbacks={},actions=[],captures=[];
+  const state={
+    supremeTyping:false,
+    scene:{isActive:()=>true,isPaused:()=>false},
+    input:{keyboard:{
+      addCapture:(keys)=>captures.push(...keys),
+      on:(kind,fn)=>{callbacks[kind]=fn},
+    }},
+    handleSupremeCodeKey(e){actions.push('letter:'+e.key)},
+    openSupremeCode(){actions.push('open')},
+    pauseGame(){actions.push('pause')},
+  };
+  setup.call(state);
+  assert.deepEqual(captures,['SPACE','BACKSPACE']);
+  const press=(key,code)=>callbacks.keydown(event(key,{code}));
+  press('r','KeyR');
+  press('f','KeyF');
+  assert.deepEqual(actions,[],'R e F não executam ações no combate');
+  press(' ','Space');
+  assert.deepEqual(actions,['open']);
+  state.supremeTyping=true;
+  press('r','KeyR');
+  press('f','KeyF');
+  press('p','KeyP');
+  assert.deepEqual(actions,['open','letter:r','letter:f','letter:p']);
+  state.supremeTyping=false;
+  press('p','KeyP');
+  assert.equal(actions.at(-1),'pause');
+});
