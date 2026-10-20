@@ -19,8 +19,11 @@ test('fonte pixelada v0.48 mantém caixa alta/baixa e acentos portugueses',()=>{
   const accent=bitmap('Água');assert.ok(accent.height>small.height);
   const phrase=bitmap('Cubo News');assert.ok(phrase.width>100);
 });
-test('menus e telas secundárias compartilham a moldura da Cubo News',()=>{
-  const sceneNames=['MenuScene','PauseScene','UpgradeScene','V1PlaytestScene',
+test('menu é limpo, telas secundárias mantêm moldura Cubo News',()=>{
+  const menu=readFileSync(new URL('../src/scenes/MenuScene.js',import.meta.url),'utf8');
+  assert.doesNotMatch(menu,/addCuboBroadcastFrame\(this/);
+  assert.match(menu,/drawRioBackdrop\(this\)/);
+  const sceneNames=['PauseScene','UpgradeScene','V1PlaytestScene',
     'LabSetupScene','UpgradeLabScene','EndingScene'];
   for(const name of sceneNames){
     const src=readFileSync(new URL('../src/scenes/'+name+'.js',import.meta.url),'utf8');

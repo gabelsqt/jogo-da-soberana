@@ -10,9 +10,10 @@ const gameSource=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.u
 const a=gameSource.indexOf('  supremeExpectedCode() {');
 const z=gameSource.indexOf('  // Storyboards temporários',a);
 assert.ok(a>=0&&z>a,'métodos do protocolo disponíveis');
-const SupremeMethods=new Function('supremeCodeFor','advanceSupremeCode','W','H',
+// O método real importa playSfx; para o teste unitário basta um stub.
+const SupremeMethods=new Function('supremeCodeFor','advanceSupremeCode','W','H','playSfx',
   'return class SupremeMethods {'+gameSource.slice(a,z)+'}')(
-    supremeCodeFor,advanceSupremeCode,960,540);
+    supremeCodeFor,advanceSupremeCode,960,540,()=>{});
 
 function scene(country='br',elapsed=26000){
   const prompts=[],activated=[];

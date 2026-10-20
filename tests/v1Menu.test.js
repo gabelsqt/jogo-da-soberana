@@ -5,10 +5,11 @@ import { V1_UPGRADES } from '../src/gameplay/v1Upgrades.js';
 
 test('menu do playtest v1 não expõe laboratório de animais',()=>{
  const menu=readFileSync(new URL('../src/scenes/MenuScene.js',import.meta.url),'utf8');
- assert.match(menu,/Testar upgrades V1/);
- assert.match(menu,/Começar campanha V1/);
+ assert.match(menu,/TESTAR UPGRADES/);
+ assert.match(menu,/COMEÇAR CAMPANHA/);
+ assert.match(menu,/Operação Soberania/);
  assert.doesNotMatch(menu,/this\.scene\.start\('LabSetupScene'/);
- assert.match(menu,/PLAYTEST V1/);
+ assert.match(menu,/this\.scene\.start\('V1PlaytestScene'\)/);
 });
 test('menu escolhe próximos níveis da árvore nova, incluindo 9 e 10',()=>{
  const scene=readFileSync(new URL('../src/scenes/V1PlaytestScene.js',import.meta.url),'utf8');

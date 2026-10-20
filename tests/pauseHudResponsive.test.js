@@ -94,7 +94,8 @@ test('reposiciona com resize, safe area e alternância Cubo News',()=>{
 test('GameScene mantém P/Esc e não desenha pausa sobre câmera quando DOM existe',()=>{
   const source=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
   assert.match(source,/mountPauseHudButton\(this,\(\)=>this\.pauseGame\(\)\)/);
-  assert.match(source,/keydown-P/);
-  assert.match(source,/keydown-ESC/);
+  assert.match(source,/this\.input\.keyboard\.on\('keydown',/);
+  assert.match(source,/event\.code==='Escape'\|\|event\.code==='KeyP'/);
+  assert.doesNotMatch(source,/keydown-P|keydown-ESC/);
   assert.match(source,/if\(!pauseButton\)/);
 });

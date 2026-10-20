@@ -24,8 +24,9 @@ const block = (start, end) => {
 
 test('v0.49 retira a cerca elétrica defensiva da cúpula brasileira',()=>{
   const drawShield=block('  drawShield() {','  showFinaleDefeat(');
-  assert.match(drawShield,/CANNON_DOME_RADIUS/);
-  assert.match(drawShield,/cannonShieldColor/);
+  assert.match(drawShield,/updateShieldSprites\(this,CANNON\.x,CANNON\.y\+10,this\.supportTowers\)/);
+  assert.match(drawShield,/this\.elapsed<this\.cannonFrozenUntil/);
+  assert.match(source,/cannonDomeIntercept/);
   assert.doesNotMatch(drawShield,/combat\.electricFence|fenceGlowAt|escudo pulsante/);
   assert.equal(ELECTRIC_FENCE_RADIUS_BONUS,18,'constante legada arquivada para laboratório');
   assert.equal(fenceGlowAt(0,0),0,'função de laboratório permanece isolada');

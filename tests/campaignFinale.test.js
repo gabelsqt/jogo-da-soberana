@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolveFinalOpponent, finalePrelude, finaleEnding, allFinaleIds } from '../src/gameplay/campaignFinale.js';
 import { getFinalWaveEvents, getWaveEvents, MODES, waveOutcome, FINAL_WAVE_DURATION_MS } from '../src/gameplay/waves.js';
-import { hostileBosses, pickBetrayer, continueResistanceAfterDefeat } from '../src/gameplay/wave11Rules.js';
+import { hostileBosses, pickBetrayer } from '../src/gameplay/wave11Rules.js';
+import { canOfferZecaRecovery, zecaRevengeLoadout } from '../src/gameplay/zecaRecovery.js';
 import { v1CombatStats } from '../src/gameplay/v1Upgrades.js';
 import { v1SpecialLoadout } from '../src/gameplay/v1Specials.js';
 
@@ -59,19 +60,17 @@ test('os dez finais permanecem distintos por país e resultado',()=>{
   }
 });
 
-test('a resistência ainda concede upgrades brasileiros até o limite',()=>{
-  const initial=Array(10).fill('us');
-  let awarded=[];
-  for(let i=0;i<10;i++){
-    const next=continueResistanceAfterDefeat(initial,awarded,'us');
-    assert.equal(next.outcome,'retry');
-    awarded=next.awardedLevels;
-  }
-  assert.equal(awarded.at(-1),10);
-  assert.equal(continueResistanceAfterDefeat(initial,awarded,'us').outcome,'colonized');
-  const stats=v1CombatStats({choices:[],resistanceLevels:awarded});
-  assert.equal(stats.transformed,'br');
-  assert.equal(v1SpecialLoadout({choices:[],resistanceLevels:awarded}).stages.br,4);
+test('Zeca permite uma única revanche com a build original, sem Supremo do traidor',()=>{
+  const initial={choices:Array(10).fill('us')};
+  assert.equal(canOfferZecaRecovery(initial,'us'),true);
+  assert.equal(canOfferZecaRecovery(initial,'us',true),false);
+  assert.equal(canOfferZecaRecovery(initial,'cn'),false);
+  const retry=zecaRevengeLoadout(initial,'us');
+  assert.deepEqual(retry.choices,initial.choices);
+  assert.equal(retry.disabledSupremeCountry,'us');
+  assert.equal(v1CombatStats(retry).transformed,'us');
+  assert.equal(v1CombatStats(retry).ultimate,null);
+  assert.equal(v1SpecialLoadout(retry).stages.us,4);
 });
 
 test('cena continua ligada aos epílogos da campanha',()=>{
