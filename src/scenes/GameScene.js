@@ -2,6 +2,7 @@ import {cannonSpritePose,CANNON_BARREL_DISPLAY_SIZE} from '../gameplay/cannonSpr
 import {steerType2Rotation} from '../gameplay/type2Facing.js';
 import {TYPE5_SPRITE,type5DamageFrame} from '../gameplay/type5Sprite.js';
 import {TYPE6_HULL_SHEET} from '../gameplay/type6HullSprite.js';
+import {TYPE6_MODULE_SHEET} from '../gameplay/type6ModuleSprite.js';
 import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
 import {playSfx} from '../audio/sfx.js';
 import { appendWaveResult } from '../gameplay/waveTestResults.js';
@@ -337,6 +338,13 @@ export class GameScene extends Phaser.Scene {
       assetUrl('assets/inimigos/tipo6/casco-alien.png'),{
         frameWidth:TYPE6_HULL_SHEET.frameWidth,
         frameHeight:TYPE6_HULL_SHEET.frameHeight,
+      });
+    // Módulos do Tipo 6: sete estados por função, quatro linhas de sprites.
+    // Ausência da imagem mantém o visual procedural anterior como fallback.
+    this.load.spritesheet(TYPE6_MODULE_SHEET.key,
+      assetUrl('assets/inimigos/tipo6/modulos-alien.png'),{
+        frameWidth:TYPE6_MODULE_SHEET.frameWidth,
+        frameHeight:TYPE6_MODULE_SHEET.frameHeight,
       });
     // Tipo 3: spritesheet 16-bit 4 x 3 (12 quadros de 128 px).
     // O PNG será colocado pelo desenvolvedor em public/assets/inimigos/tipo3/.

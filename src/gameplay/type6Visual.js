@@ -24,7 +24,7 @@ function drawEnergyIntake(g,x,y,time,radius,color,count=9,strength=1){
 }
 
 // Visual vetorial provisório desenhado em blocos, pronto para futura sprite sheet.
-export function drawType6Ship(g,state,ageMs=0,useHullSprite=false) {
+export function drawType6Ship(g,state,ageMs=0,useHullSprite=false,useModuleSprites=false) {
   const p=TYPE6_PALETTES[state.country];
   const pulse=0.5+0.5*Math.sin(ageMs*0.008);
   const flashFor=t=>Number.isFinite(t)&&ageMs>=t?Math.max(0,1-(ageMs-t)/150):0;
@@ -126,6 +126,8 @@ export function drawType6Ship(g,state,ageMs=0,useHullSprite=false) {
       g.lineStyle(4,p.glow,0.40+0.55*pulse).strokeCircle(0,0,52);
     }
   }
+  // O atlas substitui apenas o metal procedural, nunca os escudos ou os efeitos.
+  if(!useModuleSprites){
   // Quatro módulos simétricos, mas com funções e estado de dano individuais.
   for(const module of state.modules){
     const x=module.offsetX,y=module.offsetY;
@@ -183,6 +185,21 @@ export function drawType6Ship(g,state,ageMs=0,useHullSprite=false) {
         g.strokeRoundedRect(x-65,y-50,130,100,12);
       }
 
+    }
+  }
+  }
+  if(useModuleSprites){
+    // Escudos independentes continuam como camada de feedback sobre o PNG.
+    for(const module of state.modules){
+      if(module.broken||module.shield<=0)continue;
+      const x=module.offsetX,y=module.offsetY;
+      const fraction=module.shield/module.maxShield;
+      const color=fraction>0.75?0x388bff:fraction>0.50?0x35c86d:
+        fraction>0.25?0xf1cb35:0xf04a52;
+      g.lineStyle(4,color,0.55+0.22*pulse);
+      g.strokeRoundedRect(x-61,y-46,122,92,9);
+      g.lineStyle(2,color,0.17+0.16*pulse);
+      g.strokeRoundedRect(x-65,y-50,130,100,12);
     }
   }
   // Cada módulo atrai energia visualmente; o laser de cerco possui

@@ -48,7 +48,7 @@ test('sprite novo é exclusivo do Tipo 6 alienígena e outros países mantêm vi
  assert.match(encounter,/if\(hullSprite\)sprite\.add\(hullSprite\)/);
  assert.match(encounter,/sprite\.add\(graphics\)/);
  assert.match(encounter,/enemy\.hullSprite\.setFrame\(phase\)/);
- assert.match(encounter,/drawType6Ship\(enemy\.graphics,s,scene\.time\.now,!!enemy\.hullSprite\)/);
+ assert.match(encounter,/drawType6Ship\(enemy\.graphics,s,scene\.time\.now,!!enemy\.hullSprite,/);
  assert.match(visual,/if\(!useHullSprite\)/);
  assert.match(visual,/if\(useHullSprite&&state\.defeated\)return/);
 });

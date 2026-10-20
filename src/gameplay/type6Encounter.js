@@ -8,6 +8,7 @@ import {
 } from './type6Boss.js';
 import {drawType6Ship} from './type6Visual.js';
 import {TYPE6_HULL_SHEET,type6HullFrame,type6HullUsesSheet} from './type6HullSprite.js';
+import {TYPE6_MODULE_SHEET,type6ModuleFrame,type6ModuleUsesSheet} from './type6ModuleSprite.js';
 
 const W=960,H=540,CANNON={x:480,y:494};
 const COLOR={alien:0xff304c,us:0xffa34e,ru:0x88e4ff,jp:0xe6a1ff,cn:0xffd66c};
@@ -19,13 +20,21 @@ export function spawnType6Encounter(scene,options={}){
     scene.textures?.exists?.(TYPE6_HULL_SHEET.key));
   const hullSprite=hasHull?scene.add.sprite(0,0,TYPE6_HULL_SHEET.key,0)
     .setDisplaySize(TYPE6_HULL_SHEET.displayWidth,TYPE6_HULL_SHEET.displayHeight):null;
+  const hasModules=type6ModuleUsesSheet(state,
+    scene.textures?.exists?.(TYPE6_MODULE_SHEET.key));
+  const moduleSprites=hasModules?state.modules.map(module=>
+    scene.add.sprite(module.offsetX,module.offsetY,TYPE6_MODULE_SHEET.key,
+      type6ModuleFrame(state,module,scene.time.now))
+      .setOrigin(0.5,TYPE6_MODULE_SHEET.bodyOriginY)
+      .setDisplaySize(TYPE6_MODULE_SHEET.displayWidth,TYPE6_MODULE_SHEET.displayHeight)):[];
   const graphics=scene.add.graphics();
-  if(hullSprite)sprite.add(hullSprite); // No fundo, antes dos módulos.
-  sprite.add(graphics);
+  if(hullSprite)sprite.add(hullSprite); // Fundo, sob os quatro módulos.
+  if(moduleSprites.length)sprite.add(moduleSprites);
+  sprite.add(graphics); // Núcleo, escudos e efeitos continuam na frente.
   const enemy={
     uid:scene.nextEnemyId++,type:6,level:10,
     definition:{width:790,height:122,color:TYPE6_PALETTES[country].light},
-    sprite,graphics,hullSprite,type6:state,finalBoss:true,bossCountry:country,
+    sprite,graphics,hullSprite,moduleSprites,type6:state,finalBoss:true,bossCountry:country,
     hp:state.coreHp,maxHp:state.coreMaxHp,sourceBossId:null,
     phase:'arrival6',age:0,phaseAge:0,
     shockOffset:{x:0,y:0,vx:0,vy:0},russianPullOffset:{x:0,y:0},
@@ -51,7 +60,7 @@ export function spawnType6Encounter(scene,options={}){
   scene.tweens.add({targets:interference,alpha:0,duration:state.introDuration,
     onComplete:()=>interference.destroy()});
   scene.cameras.main.shake(340,0.0024);
-  drawType6Ship(graphics,state,scene.time.now,hasHull);
+  drawType6Ship(graphics,state,scene.time.now,hasHull,hasModules);
   return enemy;
 }
 function burst(scene,x,y,color,size=25){
@@ -154,9 +163,9 @@ function updateModuleAction(scene,enemy,dt){
     scene.damageCannon(45*dt);
     if(a.elapsed>=TYPE6_LASER_FIRE_SECONDS){s.action=null;s.attackClock=0;}
   }else if(a.kind==='hangar'){
-    if(a.elapsed>=2){launchHangar(scene,enemy,m);s.action=null;s.attackClock=0;}
+    if(a.elapsed>=2){m.activeUntil=scene.time.now+480;launchHangar(scene,enemy,m);s.action=null;s.attackClock=0;}
   }else if(a.kind==='bomb'){
-    if(a.elapsed>=0.65){fireBomb(scene,enemy,m);s.action=null;s.attackClock=0;}
+    if(a.elapsed>=0.65){m.activeUntil=scene.time.now+380;fireBomb(scene,enemy,m);s.action=null;s.attackClock=0;}
   }
 }
 function drawActiveLaser(scene,enemy){
@@ -221,10 +230,19 @@ export function updateType6Encounter(scene,enemy,dt){
     const phase=type6HullFrame(s);
     if(Number(enemy.hullSprite.frame.name)!==phase)enemy.hullSprite.setFrame(phase);
   }
+  // Os sprites usam os mesmos deslocamentos cosméticos do casco;
+  // o contêiner principal e as hitboxes permanecem imutáveis.
+  for(let i=0;i<(enemy.moduleSprites?.length??0);i++){
+    const m=s.modules[i],art=enemy.moduleSprites[i];
+    art.setPosition(m.offsetX+shakeX,m.offsetY+shakeY);
+    art.setVisible(!s.defeated);
+    const frame=type6ModuleFrame(s,m,scene.time.now);
+    if(Number(art.frame.name)!==frame)art.setFrame(frame);
+  }
   // Chefões chineses e coreanos produzem muitos objetos/efeitos. Renderizar o
   // casco a até 30 fps mantém TODOS os passos de física/dano em 60 fps.
   if(!enemy.lastType6PaintAt||scene.time.now-enemy.lastType6PaintAt>=33){
-    drawType6Ship(enemy.graphics,s,scene.time.now,!!enemy.hullSprite);
+    drawType6Ship(enemy.graphics,s,scene.time.now,!!enemy.hullSprite,!!enemy.moduleSprites?.length);
     enemy.lastType6PaintAt=scene.time.now;
   }
   drawActiveLaser(scene,enemy);
