@@ -1,61 +1,54 @@
-import {bindSceneMusic,addMusicControls} from '../audio/music.js';
+import {bindSceneMusic,addMenuMusicControl} from '../audio/music.js';
 import Phaser from 'phaser';
 import {
   GAME_WIDTH as W,GAME_HEIGHT as H,
   preloadRioBackdrop,drawRioBackdrop,
 } from '../config/scenery.js';
 import {addMenuButton} from '../ui/menuButton.js';
-import {addCuboBroadcastFrame,addCuboPanel,addCuboPixelText} from '../ui/cuboNewsTheme.js';
 import {GAME_VERSION_LABEL} from '../config/version.js';
 
+// A tela inicial é uma vitrine da pixel art do Rio.
+// Cubo News fica reservada para o noticiário e para as cenas do jogo.
 export class MenuScene extends Phaser.Scene{
   constructor(){super({key:'MenuScene'});}
   preload(){preloadRioBackdrop(this);}
   create(){
     bindSceneMusic(this,'menu');
     drawRioBackdrop(this);
-    addMusicControls(this,385);
-    this.add.rectangle(W/2,H/2,W,H,0x020712,0.64).setDepth(20);
-    addCuboPanel(this,{x:W/2,y:281,width:720,height:383,depth:25,
-      accent:0x607e99});
-    addCuboBroadcastFrame(this,{
-      section:'Central de transmissões',
-      headline:'Plantão especial • Defesa do Rio de Janeiro',
-      footer:'Transmissão de emergência • A defesa brasileira continua',
-      depth:45,
-    });
-    addCuboPixelText(this,{x:W/2,y:119,text:'Soberana',size:7,
-      color:'#e2a45e',depth:33,maxWidth:540});
-    this.add.text(W/2,163,'O Rio não vai cair',{
-      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'21px',fontStyle:'bold',
-      color:'#dce8ee',
-    }).setOrigin(0.5).setDepth(34);
-    this.add.rectangle(W/2,200,540,3,0xe2a45e).setDepth(34);
-    this.add.text(W/2,219,'Defesa antiaérea  •  Playtest V1',{
-      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'15px',color:'#bdcfdb',
-    }).setOrigin(0.5).setDepth(34);
-    // O nome não é um modal do menu: faz parte do expediente no PC velho.
+
+    const titleStyle={
+      fontFamily:"'IBM Plex Sans',system-ui,sans-serif",
+      fontSize:'65px',fontStyle:'bold',color:'#f2af68',
+      stroke:'#081423',strokeThickness:7,
+      shadow:{offsetX:3,offsetY:4,color:'#06101e',blur:0,fill:true},
+    };
+    this.add.text(W/2,116,'Soberana',titleStyle)
+      .setOrigin(0.5).setDepth(30);
+    this.add.text(W/2,178,'O RIO NÃO VAI CAIR',{
+      fontFamily:"'IBM Plex Sans',system-ui,sans-serif",
+      fontSize:'18px',fontStyle:'bold',color:'#f2f2e4',
+      stroke:'#06101e',strokeThickness:4,
+    }).setOrigin(0.5).setDepth(30);
+
     const startGame=()=>this.scene.start('IntroScene',{campaign:{choices:[]}});
     const testUpgrades=()=>this.scene.start('V1PlaytestScene');
-    addMenuButton(this,{x:W/2,y:282,text:'▶  Começar campanha V1',
-      onClick:startGame,primary:true,depth:34,width:388});
-    addMenuButton(this,{x:W/2,y:350,text:'★  Testar upgrades V1',
-      onClick:testUpgrades,depth:34,width:358});
-    this.add.text(W/2,404,'5 países  •  50 upgrades  •  Uma só soberania',{
-      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'14px',color:'#e2a45e',
-    }).setOrigin(0.5).setDepth(35);
-    this.add.text(W/2,445,
-      'Mouse: mirar  •  Esq.: tiro  •  Dir.: especial  •  Espaço: suprema',{
-        fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'12px',color:'#dfeafb',
-      }).setOrigin(0.5).setDepth(35);
-    this.add.text(W/2,473,'ENTER: iniciar   •   U: laboratório de upgrades',{
-      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'12px',color:'#e2a45e',
-    }).setOrigin(0.5).setDepth(35);
-    // Rótulo da versão preservado e acima da tarja do telejornal.
-    this.add.text(W-16,H-12,GAME_VERSION_LABEL+' • PLAYTEST V1',{
-      fontFamily:'IBM Plex Sans, system-ui, sans-serif',fontSize:'12px',color:'#bfd2e9',
-      stroke:'#061124',strokeThickness:2,
-    }).setOrigin(1,1).setDepth(52);
+    addMenuButton(this,{
+      x:W/2,y:319,width:390,height:56,text:'▶  COMEÇAR CAMPANHA',
+      primary:true,depth:31,onClick:startGame,
+    });
+    addMenuButton(this,{
+      x:W/2,y:389,width:354,height:49,text:'★  TESTAR UPGRADES',
+      depth:31,onClick:testUpgrades,
+    });
+
+    // O volume fica fechado em um único botão no canto inferior esquerdo.
+    // Clicar revela slider real e mudo, sem cobrir o cenário permanentemente.
+    addMenuMusicControl(this,{x:91,y:H-22,depth:45});
+    this.add.text(W-16,H-14,GAME_VERSION_LABEL,{
+      fontFamily:'monospace',fontSize:'11px',color:'#d0dce6',
+      stroke:'#06101e',strokeThickness:3,
+    }).setOrigin(1,1).setDepth(40);
+
     this.input.keyboard.on('keydown-ENTER',startGame);
     this.input.keyboard.on('keydown-U',testUpgrades);
   }
