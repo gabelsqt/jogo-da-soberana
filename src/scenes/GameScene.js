@@ -1,3 +1,4 @@
+import {cannonSpritePose,CANNON_BARREL_DISPLAY_SIZE} from '../gameplay/cannonSpriteAim.js';
 import {steerType2Rotation} from '../gameplay/type2Facing.js';
 import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
 import {playSfx} from '../audio/sfx.js';
@@ -1336,8 +1337,13 @@ export class GameScene extends Phaser.Scene {
           0,startY,source.width,source.height-startY);
         this.textures.addCanvas(key,canvas);
       }
-      this.cannonBarrelArt=this.add.image(x,y-44,'cannon-barrel-4')
-        .setDisplaySize(82,87).setDepth(22);
+      // O centro da articulação é comum a todos os quadros:
+      // cada textura tem uma origem diferente, mas ocupa o mesmo pivô no mundo.
+      const startPose=cannonSpritePose(-Math.PI/2,x,y-11);
+      this.cannonBarrelArt=this.add.image(x,y-11,'cannon-barrel-'+startPose.frame)
+        .setDisplaySize(CANNON_BARREL_DISPLAY_SIZE.width,CANNON_BARREL_DISPLAY_SIZE.height)
+        .setOrigin(startPose.originX,startPose.originY)
+        .setRotation(startPose.rotation).setDepth(22);
       this.cannonArtwork=this.add.image(x,y-19,'cannon-pivot-4')
         .setDisplaySize(70,68).setDepth(24);
     }
@@ -3706,15 +3712,13 @@ export class GameScene extends Phaser.Scene {
   createProjectile(angle, special, distance = 0, effects = null, centerGlow = false, offsetX = 0, generation = 0, origin = null) {
     const vx = Math.cos(angle);
     const vy = Math.sin(angle);
-    // Projéteis nascem mais perto da boca do novo canhão em sprites.
-    // O cano longo em sprites vai além do centro lógico antigo.
-    // Nasce na ponta visual (ângulo quantizado dos nove quadros), mas a
-    // direção/velocidade física do projétil continua seguindo a mira real.
-    const muzzleDistance = this.cannonBarrelArt ? 76 : 40;
-    const frame=Math.max(0,Math.min(8,Math.round((angle+Math.PI)/Math.PI*8)));
-    const visualAngle=this.cannonBarrelArt ? -Math.PI+frame*Math.PI/8 : angle;
-    const x = (origin?.x ?? CANNON.x + Math.cos(visualAngle)*muzzleDistance) + offsetX;
-    const y = origin?.y ?? CANNON.y + Math.sin(visualAngle)*muzzleDistance;
+    // A origem física acompanha a boca desenhada, mesmo entre dois frames.
+    // Se o tiro foi gerado por outra arma, preservamos sua origem explícita.
+    const muzzle=this.cannonBarrelArt
+      ? cannonSpritePose(this.aimAngle??angle,CANNON.x,CANNON.y-11,this.cannonRecoil)
+      : null;
+    const x=(origin?.x??muzzle?.muzzleX??(CANNON.x+vx*40))+offsetX;
+    const y=origin?.y??muzzle?.muzzleY??(CANNON.y+vy*40);
     const style = shotVisualFor(this.activeUpgradeIds());
     if (this.isV1Campaign && this.combat.transformed === 'br') style.color = 0x55e99e;
     if (this.isV1Campaign && this.combat.transformed === 'cn') style.color = centerGlow ? 0xffe56a : 0xff5651;
@@ -5027,10 +5031,14 @@ export class GameScene extends Phaser.Scene {
     this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     this.barrel.rotation = this.aimAngle + Math.PI / 2;
     if(this.cannonArtwork){
-      // A folha usa ângulos discretos; nada de girar e distorcer os pixels.
-      const facing=Phaser.Math.Clamp(Math.round((this.aimAngle+Math.PI)/Math.PI*8),0,8);
-      this.cannonArtwork.setTexture('cannon-pivot-'+facing);
-      this.cannonBarrelArt?.setTexture('cannon-barrel-'+facing);
+      // O sprite mais próximo serve de base, com rotação complementar
+      // para que o cano realmente acompanhe a mira até as laterais.
+      const pose=cannonSpritePose(this.aimAngle,CANNON.x,CANNON.y-11,this.cannonRecoil);
+      this.cannonArtwork.setTexture('cannon-pivot-'+pose.frame);
+      this.cannonBarrelArt.setTexture('cannon-barrel-'+pose.frame)
+        .setOrigin(pose.originX,pose.originY)
+        .setRotation(pose.rotation)
+        .setPosition(pose.pivotX,pose.pivotY);
     }
     if(this.isV1Campaign && this.combat.koreaContinuous)
       this.drawEncoreContinuousBeam(this.aimAngle,
@@ -5045,9 +5053,10 @@ export class GameScene extends Phaser.Scene {
       CANNON.x - Math.cos(this.aimAngle) * this.cannonRecoil,
       CANNON.y - 20 - Math.sin(this.aimAngle) * this.cannonRecoil,
     );
-    if(this.cannonBarrelArt)this.cannonBarrelArt.setPosition(
-      CANNON.x-Math.cos(this.aimAngle)*this.cannonRecoil,
-      CANNON.y-44-Math.sin(this.aimAngle)*this.cannonRecoil);
+    if(this.cannonBarrelArt){
+      const pose=cannonSpritePose(this.aimAngle,CANNON.x,CANNON.y-11,this.cannonRecoil);
+      this.cannonBarrelArt.setPosition(pose.pivotX,pose.pivotY);
+    }
 
 
     this.updateEnemies(dt);
