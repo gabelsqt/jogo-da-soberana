@@ -163,10 +163,17 @@ export class UpgradeScene extends Phaser.Scene {
     this.botecoOverlay=this.add.container(0,0).setDepth(190);
     const shade=this.add.rectangle(W/2,H/2,W,H,0x07101c,0.90).setInteractive();
     const frame=this.add.rectangle(W/2,260,810,255,0x16283a,0.99).setStrokeStyle(3,COLOR.amber);
+    // Retrato pequeno no diálogo; narrador não recebe rosto.
+    const portraitFrame=this.add.rectangle(196,250,144,160,0x101d2b,1)
+      .setStrokeStyle(2,COLOR.amber);
+    this.botecoPortrait=this.add.image(196,245,'boteco-dia')
+      .setDisplaySize(136,150).setVisible(false);
+    this.botecoPortraitFrame=portraitFrame.setVisible(false);
     this.botecoSpeaker=makeText(this,W/2,174,'',22,'#ffe0a6').setOrigin(0.5);
-    this.botecoLine=makeText(this,W/2,256,'',18,'#f4f5ff',740,{align:'center'}).setOrigin(0.5);
+    this.botecoLine=makeText(this,620,256,'',18,'#f4f5ff',530,{align:'center'}).setOrigin(0.5);
     this.botecoHint=makeText(this,W/2,354,'CLIQUE OU TOQUE PARA CONTINUAR  ▶',14,'#9bded9').setOrigin(0.5);
-    this.botecoOverlay.add([shade,frame,this.botecoSpeaker,this.botecoLine,this.botecoHint]);
+    this.botecoOverlay.add([shade,frame,portraitFrame,this.botecoPortrait,
+      this.botecoSpeaker,this.botecoLine,this.botecoHint]);
     shade.on('pointerdown',()=>this.advanceBotecoDialogue());
     frame.setInteractive().on('pointerdown',()=>this.advanceBotecoDialogue());
     this.renderBotecoDialogue();
@@ -175,6 +182,16 @@ export class UpgradeScene extends Phaser.Scene {
     const [speaker,line]=this.botecoPages[this.botecoPage];
     this.botecoSpeaker.setText(speaker);
     this.botecoLine.setText(line);
+    const leaders={...Object.fromEntries(Object.entries(REPRESENTATIVES).map(
+      ([id,representative])=>[representative.name.toUpperCase(),id])),
+      'ZECA CARRARA':'br'};
+    const id=leaders[speaker.toUpperCase()];
+    const key=id?'leader-'+id+'-full':null;
+    const show=Boolean(key&&this.textures.exists(key));
+    this.botecoPortraitFrame.setVisible(show);
+    this.botecoPortrait.setVisible(show);
+    if(show)this.botecoPortrait.setTexture(key);
+    this.botecoLine.setX(show?620:W/2).setWordWrapWidth(show?530:740);
   }
   advanceBotecoDialogue(){
     if(!this.introDialogueActive)return;
