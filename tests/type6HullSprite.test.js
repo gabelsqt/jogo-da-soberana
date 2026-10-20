@@ -58,5 +58,5 @@ test('casco sprite não muda os retângulos colidíveis de módulos e núcleo',(
  assert.deepEqual(boss.modules.map(m=>m.offsetX),[-255,-87,87,255]);
  assert.ok(boss.modules.every(m=>m.halfWidth===57&&m.halfHeight===42));
  assert.match(encounter,/enemy\.hullSprite\.setPosition\(shakeX,shakeY\)/);
- assert.match(encounter,/não mover o contêiner/);
+ assert.match(encounter,/Nunca mover o contêiner/);
 });
