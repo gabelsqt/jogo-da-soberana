@@ -3660,6 +3660,106 @@ export class GameScene extends Phaser.Scene {
       onComplete:()=>ring.destroy()});
   }
 
+  createRussianSputnik(x,y,build){
+    // Até três unidades ativas: sem crescimento infinito de objetos gráficos.
+    while(this.russianSputniks.length>=MAX_ACTIVE_SPUTNIKS){
+      const old=this.russianSputniks.shift();
+      old.graphics?.destroy();
+    }
+    const sat={
+      x,y,radius:build.ruSputnikRadius||43,build,
+      expiresAt:this.elapsed+(build.ruSputnikDurationMs||4000),
+      nextPulseAt:this.elapsed+(build.ruSputnikPulseMs||Infinity),
+      graphics:this.add.graphics().setPosition(x,y).setDepth(56),
+    };
+    this.russianSputniks.push(sat);
+    this.updateRussianSputniks();
+  }
+
+  sputnikFreezeArea(sat,radius){
+    for(const enemy of this.enemies){
+      if(enemy.type===6||!enemy?.sprite?.active)continue;
+      if(Math.hypot(enemy.sprite.x-sat.x,enemy.sprite.y-sat.y)>
+        radius+enemyContactRadius(enemy.type))continue;
+      crystallizeSputnikEnemy(enemy,this.elapsed,sat.build.ruFreezeMs);
+    }
+  }
+
+  drawRussianSputnik(sat){
+    const g=sat.graphics,age=this.elapsed,stage=sat.build.stages.ru;
+    const phase=age*0.00135;
+    g.clear();
+    const R=17+(stage-1)*1.6,halo=sat.radius;
+    // Contorno institucional dourado, interior criogênico azul-ciano.
+    g.lineStyle(2,0xe8b84c,0.22).strokeCircle(0,0,halo);
+    g.fillStyle(0x8ae7ff,0.065).fillCircle(0,0,halo);
+    // Antenas diagonais rotacionam suavemente com o Sputnik.
+    for(let i=0;i<4;i++){
+      const a=phase*0.13+i*Math.PI/2+Math.PI/4;
+      const ux=Math.cos(a),uy=Math.sin(a);
+      g.lineStyle(3,0x343c50,0.95).lineBetween(ux*R,uy*R,ux*(R+19),uy*(R+19));
+      g.lineStyle(1,0xffe8ac,0.94).lineBetween(ux*(R+2),uy*(R+2),ux*(R+18),uy*(R+18));
+      g.fillStyle(0xf7d98a,0.92).fillRect(ux*(R+19)-2,uy*(R+19)-2,4,4);
+    }
+    // Casco facetado pseudo-pixel art, sem blur.
+    g.fillStyle(0x18232e,0.98).fillCircle(0,0,R+2);
+    g.lineStyle(3,0xa9b8c3,0.98).strokeCircle(0,0,R+1);
+    g.fillStyle(0x3d5565).fillCircle(-4,-4,R*.67);
+    g.lineStyle(2,0xe8b84c,0.95).strokeCircle(0,0,R*.88);
+    for(let i=0;i<4;i++){
+      const a=phase*.22+i*Math.PI/2;
+      g.fillStyle(i%2?0x98a7b3:0x6c8193,0.95)
+        .fillRect(Math.cos(a)*R*.72-3,Math.sin(a)*R*.72-2,6,4);
+    }
+    g.fillStyle(0x69dff7,0.4).fillCircle(0,0,11+Math.sin(phase*3)*1.5);
+    g.fillStyle(0xb1f7ff,0.96).fillCircle(0,0,7);
+    g.fillStyle(0xffffff,0.84).fillRect(-2,-2,4,4);
+    // Cristais orbitais maiores em níveis altos, no máximo seis sprites vetoriais.
+    const n=3+Math.min(3,stage-1);
+    for(let i=0;i<n;i++){
+      const a=phase*(.5+stage*.03)+i*Math.PI*2/n;
+      const r=R+12+Math.sin(phase*2+i)*3;
+      const px=Math.cos(a)*r,py=Math.sin(a)*r;
+      const width=2+stage*.7,length=4+stage*1.2;
+      g.fillStyle(i%2?0xffffff:0x75dcff,.85);
+      g.fillTriangle(px,py-length,px-width,py,px,py+length*.45);
+      g.fillStyle(0x41a9d9,.9);
+      g.fillTriangle(px,py-length,px+width,py,px,py+length*.45);
+    }
+    const progress=Math.max(0,Math.min(1,(sat.expiresAt-age)/1000));
+    g.lineStyle(2,0xffda79,0.5).strokeCircle(0,0,R+7+Math.sin(phase*4)*2);
+    // Anel fino de duração evita HUD extra sobre os inimigos.
+    g.lineStyle(2,0xd3faff,0.42).strokeArc(0,0,R+6,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(1,progress/5),false);
+  }
+
+  updateRussianSputniks(){
+    if(!this.russianSputniks?.length)return;
+    for(let i=this.russianSputniks.length-1;i>=0;i--){
+      const sat=this.russianSputniks[i],build=sat.build;
+      if(this.elapsed>=sat.expiresAt){
+        if(build.ruSputnikFinalRadius){
+          this.sputnikFreezeArea(sat,build.ruSputnikFinalRadius);
+          this.drawV1SpecialPulse(sat.x,sat.y,build.ruSputnikFinalRadius,0xa2f3ff);
+        }
+        // Colapso criogênico, sem causar dano direto.
+        this.tweens.add({targets:sat.graphics,alpha:0,scale:0.2,duration:260,
+          onComplete:()=>sat.graphics.destroy()});
+        this.russianSputniks.splice(i,1);
+        continue;
+      }
+      for(const enemy of this.enemies)
+        if(sputnikTouchesEnemy(sat,enemy,
+          enemy.type===6?0:enemyContactRadius(enemy.type)))
+          crystallizeSputnikEnemy(enemy,this.elapsed,build.ruFreezeMs);
+      if(build.ruSputnikPulseMs&&this.elapsed>=sat.nextPulseAt){
+        this.sputnikFreezeArea(sat,build.ruSputnikPulseRadius);
+        this.drawV1SpecialPulse(sat.x,sat.y,build.ruSputnikPulseRadius,0x83dffc);
+        sat.nextPulseAt=this.elapsed+build.ruSputnikPulseMs;
+      }
+      this.drawRussianSputnik(sat);
+    }
+  }
+
   createDiscoGlobe(x,y,build) {
     const graphics=this.add.graphics().setDepth(56);
     const label=this.add.text(x,y+40,'4.0s',{
