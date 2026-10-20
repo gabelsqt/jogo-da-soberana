@@ -9,12 +9,12 @@ export function russianShatterRadius(level=0){
   return level>=1?44:0;
 }
 export function russianShatterDamage(level=0){
-  // Explosões ficam significativamente mais fortes nas últimas ondas.
-  // O dano acontece uma vez por inimigo dentro do raio, por estilhaçamento.
-  if(level>=10)return 18;
-  if(level>=7)return 12;
-  if(level>=5)return 7;
-  if(level>=3)return 4;
+  // Estilhaços ajudam a limpar grupos, mas não substituem a arma principal.
+  // Dano único por alvo atingido pela explosão de um inimigo congelado.
+  if(level>=10)return 7;
+  if(level>=7)return 5;
+  if(level>=5)return 4;
+  if(level>=3)return 3;
   return level>=1?2:0;
 }
 export function applyRussianFreeze(target,now,durationMs){
