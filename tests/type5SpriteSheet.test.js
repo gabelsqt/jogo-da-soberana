@@ -11,7 +11,8 @@ test('Tipo 5 possui atlas transparente de 16 quadros em grade regular',()=>{
   assert.equal(bytes.toString('hex',0,8),'89504e470d0a1a0a');
   assert.equal(bytes.readUInt32BE(16),896);
   assert.equal(bytes.readUInt32BE(20),512);
-  assert.ok(bytes.includes(Buffer.from('tRNS')),'PNG precisa preservar transparência');
+  assert.equal(bytes[24],8,'canal RGBA deve ter 8 bits por componente');
+  assert.equal(bytes[25],6,'PNG truecolor+alpha (RGBA), sem paleta indexada');
   assert.deepEqual(TYPE5_SPRITE.flight,[0,1,2,3]);
   assert.deepEqual(TYPE5_SPRITE.deploy,[4,5,6,7]);
   assert.deepEqual(TYPE5_SPRITE.damage,[8,9,10,11]);
@@ -43,4 +44,19 @@ test('jogo carrega e toca voo, abertura e morte com animações independentes',(
   assert.match(game,/minibossSummonCount\(enemy\.spawnedMinions/);
   assert.match(game,/this\.fireEnemyProjectile\(enemy\)/);
   assert.match(game,/this\.removeEnemy\(index\)/);
+});
+
+test('flash do Tipo 5 não substitui casco por uma silhueta branca',()=>{
+  const hitFn=game.slice(game.indexOf('  updateEnemyHitVisual(enemy) {'),
+    game.indexOf('  showEnemyDeath(enemy) {'));
+  const damageFn=game.slice(game.indexOf('  impactInvader(index, damage ='),
+    game.indexOf('  activeUpgradeIds() {'));
+  const type5Hit=hitFn.slice(hitFn.indexOf("} else if(enemy.type===5"),
+    hitFn.indexOf("} else if(enemy.type===2"));
+  assert.match(type5Hit,/enemy\.sprite\.clearTint\(\)/);
+  assert.match(type5Hit,/enemy\.sprite\.setAlpha\(reaction\.flash\?0\.73:1\)/);
+  assert.doesNotMatch(type5Hit,/setTintFill/);
+  const type5Impact=damageFn.slice(damageFn.indexOf("else if (enemy.type === 5"),damageFn.indexOf("else enemy.sprite.setTintFill"));
+  assert.match(type5Impact,/enemy\.sprite\.clearTint\(\)/);
+  assert.doesNotMatch(type5Impact,/setTintFill\(/);
 });
