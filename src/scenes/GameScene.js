@@ -145,9 +145,7 @@ export class GameScene extends Phaser.Scene {
     const legacy = getFirstUpgrade(data.upgradeId) && this.mode === 'wave1'
       ? { choices: [data.upgradeId] } : {};
     this.campaign = normalizeCampaignState(data.campaign ?? legacy);
-    this.brazilResistanceLevels=Array.isArray(data.brazilResistanceLevels)
-      ? [...new Set(data.brazilResistanceLevels.filter(level=>
-        Number.isInteger(level)&&level>=1&&level<=10))].sort((a,b)=>a-b):[];
+    // A progressão de níveis brasileiros pós-derrota foi substituída por Zeca.
     this.selectedBetrayer=this.mode==='wave11'
       ? (data.selectedBetrayer || pickBetrayer(this.campaign.choices)) : null;
     this.finaleCampaign={...this.campaign,selectedBetrayer:this.selectedBetrayer};
@@ -4686,7 +4684,7 @@ export class GameScene extends Phaser.Scene {
   advanceAfterWave() {
     if(this.mode==='wave10') {
       this.scene.start('GameScene',{
-        mode:'wave11',campaign:this.campaign,brazilResistanceLevels:[],
+        mode:'wave11',campaign:this.campaign,
         v1Playtest:this.v1Playtest,
       });
       return;
@@ -4808,13 +4806,12 @@ export class GameScene extends Phaser.Scene {
       const enemies=this.mode==='wave11'&&this.finale?.coalition.length
         ? ' | TRAIDORES: '+this.finale.coalition
           .map(id=>FINALE_COUNTRIES[id].name).join('+') : '';
-      const resistance=this.brazilResistanceLevels.length
-        ? ' | RESISTÊNCIA BR N'+Math.max(...this.brazilResistanceLevels) : '';
+      const recovery=this.zecaRevenge?' | CARGA RECUPERADA': '';
       this.tutorialText.setText(
         'ALIADOS: ' + (history || 'NENHUM') +
         (levelTwo ? ' | N2: ' + levelTwo : '') +
         (towerLabel ? ' | TORRE: ' + towerLabel : '') +
-        enemies + resistance + special,
+        enemies + recovery + special,
       );
     } else if (this.mode === 'upgradeLab' && !this.v1Playtest) {
       this.tutorialText.setText('1–5: GERAR   SHIFT+1–5: NÍVEL 2   C: LIMPAR   U: UPGRADES');
