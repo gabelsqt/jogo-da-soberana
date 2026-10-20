@@ -367,7 +367,7 @@ export function v1CombatStats(state = {}, base = {}) {
     duplicateChance:0, missileEvery:0, extraBurstEvery:0, electricDamage:1,
     laserDamage:3, shockRadius:0, slowShot:false, specialAmplifier:1,
     shieldIntercept:false, shieldPulse:false, brazilTurboMultiplier:1, brazilFireworkCount:0, brazilHeatPeak:0, ultimate:v1SupremeFor(state),
-    usGrowthMax:1, usHoming:0, russianFreezeMs:0, russianAttractRadius:0,
+    usGrowthMax:1, usHoming:0, russianFreezeMs:0,
     russianShatterRadius:0,russianShatterDamage:0,
     chinaSplitCount:1, koreaContinuous:false, transformed:null};
   // Brasil: metralhadora potente desde o nível 1; picos de calor cíclicos.
