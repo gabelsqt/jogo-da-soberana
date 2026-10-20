@@ -2599,7 +2599,8 @@ export class GameScene extends Phaser.Scene {
     if(!enemy||enemy.type===6||enemy.frozenUntil<=this.elapsed||
       !radius||!damage||enemy.russianShattered)return;
     enemy.russianShattered=true;
-    playSfx('ruFrozenShatter',{throttle:140,volumeScale:0.56});
+    // Testes antigos extraem este método isoladamente; o áudio é opcional.
+    if(typeof playSfx==='function')playSfx('ruFrozenShatter',{throttle:140,volumeScale:0.56});
     const x=enemy.sprite.x,y=enemy.sprite.y;
     const victims=russianShatterTargets(enemy,this.enemies,this.elapsed,radius);
     // Estilhaçamento visual: pequenos cristais são lançados em todas as
@@ -5350,10 +5351,11 @@ export class GameScene extends Phaser.Scene {
     // Se a onda for interrompida, o cone não permanece desenhado no céu.
     this.iceBreathGraphics?.clear();
     // Sem disparos, movimentação ou cronômetro de onda antes do "1".
-    if (this.countdownActive||this.supremeCinematic||this.supremeTyping){
+    if (this.countdownActive||this.supremeCinematic||this.supremeTyping)
       stopRussianSfxLoops();
-      return;
-    }
+    if (this.countdownActive) return;
+    if (this.supremeCinematic) return;
+    if (this.supremeTyping) return;
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += this.boss6IntroPaused?0:delta;
     this.updateDiscoGlobes();
