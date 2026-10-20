@@ -1041,3 +1041,7 @@ O sistema de danos continua limitado a um estilhaçamento por vítima congelada;
 ### v0.850 — Spritesheet do Tipo 5 (20/10/2026)
 
 O **Tipo 5 — Cruzador-Colmeia**, usado como miniboss e invocador de escoltas, recebe atlas técnico 4×4 com dezesseis quadros (224×128 por quadro), preservando a identidade de metal escuro e núcleos vermelhos da arte original. Fases: voo [0–3], abertura das baias [4–7] durante invocação, quatro níveis visuais de dano [8–11] e destruição [12–15]. A animação não altera HP, colisão, movimento, tempo dos disparos ou limite de minions; continua havendo fallback vetorial caso o spritesheet falhe.
+
+
+### v0.851 — Correção de cor do Tipo 5
+O PNG do Cruzador-Colmeia agora é RGBA verdadeiro em 896×512. O feedback de dano não usa mais tint branco sólido, que estava ocultando a textura original; aplica um flash discreto por opacidade e limpa quaisquer tints residuais. As animações 0–15 e a lógica do inimigo permanecem inalteradas.
