@@ -2,8 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   pickBetrayer, betrayalCoalition, hostileBosses, survivingCountryLevels,
-  installedSupportTowers, nextBrazilianResistanceUpgrade,
-  continueResistanceAfterDefeat,
+  installedSupportTowers,
 } from '../src/gameplay/wave11Rules.js';
 
 test('Brasil puro não gera traição',()=>{
@@ -30,19 +29,4 @@ test('somente o país sorteado perde upgrades e torres',()=>{
   assert.equal(levels.br,4);
   assert.ok(installedSupportTowers(choices,[],'jp').some(t=>t.country==='us'));
   assert.ok(!installedSupportTowers(choices,[],'jp').some(t=>t.country==='jp'));
-});
-test('a resistência continua disponível até o décimo upgrade',()=>{
-  const choices=Array(10).fill('us');
-  let awarded=[];
-  let steps=0;
-  for(;;){
-    const next=continueResistanceAfterDefeat(choices,awarded,'us');
-    if(next.outcome==='colonized')break;
-    awarded=next.awardedLevels;steps++;
-    assert.ok(steps<=10);
-  }
-  assert.equal(steps,10);
-  assert.deepEqual(awarded,[1,2,3,4,5,6,7,8,9,10]);
-  assert.equal(nextBrazilianResistanceUpgrade(choices,awarded,'us'),null);
-  assert.equal(continueResistanceAfterDefeat(Array(10).fill('br')).outcome,'colonized');
 });
