@@ -58,7 +58,8 @@ import {CANNON_DOME_RADIUS,cannonShieldColor,cannonDomeIntercept} from '../gamep
 import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
 import { resolveFinalOpponent, finalePrelude, FINALE_COUNTRIES } from '../gameplay/campaignFinale.js';
-import { hostileBosses, pickBetrayer, continueResistanceAfterDefeat } from '../gameplay/wave11Rules.js';
+import { hostileBosses, pickBetrayer } from '../gameplay/wave11Rules.js';
+import { canOfferZecaRecovery, zecaRevengeLoadout, zecaOperationCopy } from '../gameplay/zecaRecovery.js';
 import {
   spawnType6Encounter, updateType6Encounter, hitType6At, hitType6Segment,
   hitType6Bullet, defeatType6, type6NextDeadline, type6AimPosition,
@@ -136,6 +137,7 @@ export class GameScene extends Phaser.Scene {
       ? Math.max(1000,Math.min(120000,data.waveMakerDuration)) : null;
     this.v1Playtest = Boolean(data.v1Playtest);
     this.previewDestruction = Boolean(data.previewDestruction);
+    this.zecaRevenge = this.mode === 'wave11' && Boolean(data.zecaRevenge);
     this.deathSequence = null;
     this.unifiedLab = Boolean(data.labConfig);
     this.labConfig = this.unifiedLab ? normalizeLabConfig(data.labConfig) : null;
@@ -157,9 +159,9 @@ export class GameScene extends Phaser.Scene {
       ? this.campaign.choices.filter(id=>!this.finale.coalition.includes(id))
       : this.campaign.choices;
     this.combatCampaign=this.mode==='wave11'
-      ? {choices:[...survivors,
-          ...(this.brazilResistanceLevels.length&&!survivors.includes('br')?['br']:[])],
-        resistanceLevels:this.brazilResistanceLevels} : this.campaign;
+      ? (this.zecaRevenge
+        ? zecaRevengeLoadout(this.campaign,this.selectedBetrayer)
+        : {choices:survivors}) : this.campaign;
     this.waveDurationMs=this.mode.startsWith('wave')
       ? MODES[this.mode].minDuration:WAVE_DURATION_MS;
     if(this.waveMakerDuration!==null)this.waveDurationMs=this.waveMakerDuration;
@@ -214,8 +216,8 @@ export class GameScene extends Phaser.Scene {
       };
     }
     return { mode: this.mode, campaign: normalizeCampaignState(this.campaign),
-      brazilResistanceLevels:[...this.brazilResistanceLevels],
-      selectedBetrayer:this.selectedBetrayer };
+      selectedBetrayer:this.selectedBetrayer,
+      zecaRevenge:this.zecaRevenge };
   }
 
   refreshLabStats() {
@@ -468,7 +470,11 @@ export class GameScene extends Phaser.Scene {
       this.specialAimActive = true;
       if (pointer.rightButtonDown()) this.shootSpecial(pointer);
     });
-    this.input.keyboard.on('keydown-R', () => this.scene.restart(this.getRunOptions()));
+    // No confronto final a derrota é definitiva ou leva à única oferta de Zeca.
+    // O atalho R não pode gerar revanches ilimitadas fora do fluxo narrativo.
+    this.input.keyboard.on('keydown-R', () => {
+      if(this.mode!=='wave11')this.scene.restart(this.getRunOptions());
+    });
     this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
     this.input.keyboard.on('keydown-P', () => this.pauseGame());
     this.input.keyboard.addCapture('SPACE');
@@ -509,7 +515,7 @@ export class GameScene extends Phaser.Scene {
     if (this.unifiedLab && this.mode === 'lab') {
       // Arena livre: nenhum spawn agendado e nenhuma duração limite.
       this.waveEvents = [];
-    } else if (this.mode === 'wave11' && !this.v1Playtest && !this.waveMakerTest) {
+    } else if (this.mode === 'wave11' && !this.zecaRevenge && !this.v1Playtest && !this.waveMakerTest) {
       this.showFinalePrelude();
     } else if (this.mode === 'wave10' && !this.v1Playtest && !this.waveMakerTest) {
       this.showAlienRevelation();
@@ -4339,54 +4345,108 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  // O retrato de Zeca surge somente na primeira derrota contra um traidor.
+  showZecaProposal() {
+    if(this.zecaProposalOpened||this.zecaRevenge)return;
+    this.zecaProposalOpened=true;
+    this.add.rectangle(W/2,H/2,W,H,0x071021,0.96)
+      .setInteractive().setDepth(246);
+    addCuboBroadcastFrame(this,{
+      section:'Cubo News • Conversa reservada',
+      headline:'ZECA CARRARA TEM UM PLANO',
+      footer:'A decisão é sua • Nenhum contrato estrangeiro envolvido',
+      depth:261,
+    });
+    this.add.text(W/2,110,'O ZECA TEM UMA PROPOSTA',{
+      fontFamily:'monospace',fontSize:'28px',fontStyle:'bold',color:'#ffe2a6',
+    }).setOrigin(0.5).setDepth(250);
+    this.add.text(W/2,233,
+      'ZECA: "Conheço uns motoristas que resolvem isso.\n'+
+      'A gente pega de volta tudo que eles levaram.\n'+
+      'O Supremo não cabe no carro. Esse vai ficar.\n\n'+
+      'Mas é uma corrida só, chefe. Se perder de novo, acabou."',{
+        fontFamily:'monospace',fontSize:'17px',color:'#e9f3ff',
+        align:'center',wordWrap:{width:840},lineSpacing:11,
+      }).setOrigin(0.5).setDepth(250);
+    addMenuButton(this,{x:W/2,y:368,width:440,height:49,
+      text:'▶  ACEITAR AJUDA DO ZECA',primary:true,depth:255,
+      onClick:()=>this.scene.start('ZecaRecoveryScene',{
+        campaign:this.campaign,selectedBetrayer:this.selectedBetrayer,
+      }),
+    });
+    addMenuButton(this,{x:W/2,y:434,width:390,height:44,
+      text:'NÃO, ACEITAR DERROTA',depth:255,
+      onClick:()=>this.scene.start('EndingScene',{
+        campaign:this.finaleCampaign,won:false,
+      }),
+    });
+  }
+
   showFinaleDefeat(reason='cannon') {
     this.music.stop();
     this.tutorialComplete=true;
     this.gameOver=true;
-    const next=continueResistanceAfterDefeat(
-      this.campaign.choices,this.brazilResistanceLevels,this.selectedBetrayer);
-    const canRetry=!this.finale.fullBrazil&&next.outcome==='retry';
+    const available=canOfferZecaRecovery(
+      this.campaign,this.selectedBetrayer,this.zecaRevenge) && !this.finale.fullBrazil;
+    const lastChance=this.zecaRevenge&&!this.finale.fullBrazil;
+    const copy=zecaOperationCopy(this.selectedBetrayer);
     this.add.rectangle(W/2,H/2,W,H,0x070c1c,0.90)
       .setInteractive().setDepth(220);
     addCuboBroadcastFrame(this,{
       section:'Plantão da resistência',
-      headline:canRetry?'Brasil mantém defesa ativa':'Soberania em risco',
-      footer:'Cubo News • Cobertura ao vivo do confronto final',
+      headline:lastChance?'A última chance acabou':'Soberania em risco',
+      footer:'Cubo News • Cobertura do confronto final',
       depth:232,
     });
-    this.add.text(W/2,118,
-      canRetry?'O BRASIL AINDA RESISTE':'SOBERANIA PERDIDA',{
-        fontFamily:'monospace',fontSize:'34px',fontStyle:'bold',
-        color:canRetry?'#ffe3a0':'#ff9ca1',align:'center',
-      }).setOrigin(0.5).setDepth(222);
+    this.add.text(W/2,118,'SOBERANIA PERDIDA',{
+      fontFamily:'monospace',fontSize:'34px',fontStyle:'bold',
+      color:'#ff9ca1',align:'center',
+    }).setOrigin(0.5).setDepth(222);
     const caption=(this.finale.fullBrazil
       ? [reason==='timeout'?'O TEMPO ACABOU E A ÚLTIMA FROTA CONTINUOU ATIVA.':'A ÚLTIMA FROTA ALIENÍGENA ROMPEU AS DEFESAS.',
         'O BRASIL LUTOU SOZINHO.']
-      : canRetry
-        ? [reason==='timeout'?'O PRAZO ESGOTOU ANTES DE DERRUBAR A COALIZÃO.':'A COALIZÃO QUEBROU AS DEFESAS.',
-          `RESISTÊNCIA BRASILEIRA: MELHORIA NÍVEL ${next.awardedLevel} DISPONÍVEL.`,
-          'REINICIAR TODA A BATALHA CONTRA OS MESMOS CHEFES?']
-        : ['OS RECURSOS DA RESISTÊNCIA SE ESGOTARAM.',
-          'A COALIZÃO TOMOU O BRASIL.']).join(String.fromCharCode(10));
-    this.add.text(W/2,235,caption,{
+      : lastChance
+        ? [reason==='timeout'?'A ÚLTIMA CHANCE ACABOU.':'O CANHÃO CAIU NA ÚLTIMA BATALHA.',
+          'ZECA: "'+(copy?.farewell??'A gente fez o que podia, chefe.')+'"']
+        : [reason==='timeout'?'O PRAZO ACABOU ANTES DE DERRUBAR O TRAIDOR.':'O TRAIDOR QUEBROU AS DEFESAS.',
+          available?'NEM TODO MUNDO ACEITOU O RESULTADO.':'O BRASIL FOI COLONIZADO.']).join(String.fromCharCode(10));
+    this.add.text(W/2,238,caption,{
       fontFamily:'monospace',fontSize:'17px',fontStyle:'bold',
-      color:'#e9f0ff',align:'center',wordWrap:{width:825},lineSpacing:8,
+      color:'#e9f0ff',align:'center',wordWrap:{width:825},lineSpacing:9,
     }).setOrigin(0.5).setDepth(223);
-    if(canRetry)addMenuButton(this,{
-      x:W/2,y:355,width:460,height:49,
-      text:`▶ RESISTIR — BRASIL NÍVEL ${next.awardedLevel}`,
-      primary:true,depth:225,onClick:()=>this.scene.start('GameScene',{
-        mode:'wave11',campaign:this.campaign,
-        brazilResistanceLevels:next.awardedLevels,selectedBetrayer:this.selectedBetrayer,
-      }),
-    });
+
     addMenuButton(this,{
-      x:W/2,y:canRetry?431:371,width:390,height:46,
-      text:canRetry?'ACEITAR DERROTA / VER FINAL':'VER FINAL DA DERROTA',
-      depth:225,onClick:()=>this.scene.start('EndingScene',{
+      x:W/2,y:393,width:420,height:49,
+      text:'ACEITAR DERROTA / VER FINAL',depth:225,
+      onClick:()=>this.scene.start('EndingScene',{
         campaign:this.finaleCampaign,won:false,
       }),
     });
+
+    if(available){
+      const px=747,py=393;
+      // Retrato pixelado provisório, sem substituir a arte que o usuário criará.
+      const portrait=this.add.rectangle(px,py,72,76,0x244052,1)
+        .setStrokeStyle(3,0xffd69f).setDepth(240)
+        .setInteractive({useHandCursor:true});
+      const g=this.add.graphics().setDepth(241);
+      g.fillStyle(0x101e2d).fillRect(px-27,py-19,54,46);
+      g.fillStyle(0xe0a57b).fillRect(px-19,py-12,38,36);
+      g.fillStyle(0x4a2c2a).fillRect(px-24,py-25,48,13);
+      g.fillStyle(0x12202b).fillRect(px-13,py-1,9,5);
+      g.fillStyle(0x12202b).fillRect(px+4,py-1,9,5);
+      g.fillStyle(0x55322f).fillRect(px-13,py-9,12,3);
+      g.fillStyle(0x55322f).fillRect(px+3,py-9,12,3);
+      g.fillStyle(0x42251f).fillRect(px-8,py+16,16,4);
+      this.add.text(px,py+51,'ZECA?',{
+        fontFamily:'monospace',fontSize:'14px',fontStyle:'bold',color:'#ffe2aa',
+      }).setOrigin(0.5).setDepth(242);
+      portrait.on('pointerdown',(pointer,_x,_y,event)=>{
+        if(!pointer.leftButtonDown())return;
+        event?.stopPropagation();
+        this.showZecaProposal();
+      });
+    }
   }
 
   showDefeat(reason='cannon') {
