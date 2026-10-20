@@ -247,7 +247,7 @@ export const V1_UPGRADES = {
     {
       "level": 10,
       "title": "Inverno Eterno",
-      "description": "Transformação: tiros congelam por 3 s; inimigos congelados estilhaçam em explosões de 120 px ao morrer.",
+      "description": "Transformação: tiro principal vira um sopro contínuo de fumaça gelada em cone. Congela por 3 s; inimigos mortos congelados estilhaçam em 120 px.",
       "kind": "transformation"
     }
   ],
