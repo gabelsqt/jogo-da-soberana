@@ -865,3 +865,9 @@ Implementação e testes de referência: `docs/versao-0.50.md`. Não incluir nov
 - Criada interface inicial do Enemy Maker, acessível na tela de upgrades: selecionar **Tipo 1–6**, nível 1–10, visualizar atributos de combate já definidos e editar numericamente os valores presentes.
 - Rascunhos Enemy Maker salvos em **localStorage**, separados por tipo e nível. Restaurar redefine valores da variante corrente apenas no rascunho; alterações **não afetam a campanha**.
 - **Não implementado ainda:** publicação de dados globais no jogo, testes diretos do Enemy Maker, prévia animada e demais funções avançadas já aprovadas. Não confundir este MVP com Enemy Maker completo.
+
+### v0.65 — opção de submissão exclusivamente na revelação da traição
+- Na cutscene **anterior à onda 11**, revelar traição e oferecer **RESISTIR À TRAIÇÃO** ou **ACEITAR SUBMISSÃO** (não disponível no percurso Full Brazil).
+- Ao escolher resistir, **destruir ambos os botões e a sobreposição da cutscene** antes do contador e do combate. A opção de submissão **nunca fica visível durante a luta**.
+- Ao aceitar submissão, ir diretamente ao final de derrota por colonização, sem iniciar a batalha.
+- A tela posterior à derrota em combate pode permitir ver o final, mas não representa uma nova oferta de submissão durante a batalha.
