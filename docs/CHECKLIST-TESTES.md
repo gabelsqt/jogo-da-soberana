@@ -256,3 +256,11 @@
 - [ ] Interceptações por outros mecanismos e abates de chefes requerem instrumentação adicional; não divulgar como contagens completas.
 - [ ] Confirmar estabilidade de testes nas ondas 0, 1, 9, 10 e 11, incluindo derrota por destruição, tempo e vitória.
 - [ ] Executar `npm test` e `npm run build` e verificar no navegador; não validados nesta sessão.
+
+## Wave Maker v0.63 — validação pendente
+- [ ] RESULTADOS mostra últimos cinco testes por onda sem misturar dados de outras ondas.
+- [ ] Comparar os dois testes mais recentes mostra valor anterior, novo, delta e resultado; dados não medidos recebem n/d.
+- [ ] EXPORTAR cria JSON com metadados e até 30 registros, sem mutar o histórico salvo.
+- [ ] Histórico de resultados sobrevive à recarga, tolera armazenamento corrompido ou indisponível.
+- [ ] Métricas incompletas são explicitamente identificadas como medidas parciais.
+- [ ] Rodar `npm test`, `npm run build`, testar interações no navegador; pendente nesta sessão.
