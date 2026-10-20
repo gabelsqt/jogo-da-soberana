@@ -33,6 +33,12 @@ function preparePortraitTextures(scene){
       if(!scene.textures.exists(original)||scene.textures.exists(optimized))continue;
       const source=scene.textures.get(original).getSourceImage();
       if(!source?.width||!source?.height)continue;
+      // Retratos oficiais 128×128: preservar os pixels já preparados, sem
+      // reamostrar via canvas ou suavizar as bordas na tela de negociação.
+      if(source.width===128&&source.height===128){
+        scene.textures.get(original).setFilter(Phaser.Textures.FilterMode.NEAREST);
+        continue;
+      }
       const stage=document.createElement('canvas');
       stage.width=192;stage.height=192;
       const a=stage.getContext('2d',{willReadFrequently:false});
