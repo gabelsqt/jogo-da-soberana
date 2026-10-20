@@ -23,12 +23,12 @@ test('nome: 40 opções brasileiras, gênero não requerido e persistência segu
   assert.equal(getSavedPlayerName(store),'Rafa');
   assert.equal(getSavedPlayerName(null),'');
 });
-test('visual novel 24 s: expediente, diálogo direto alienígena, etiqueta e mesários',()=>{
+test('intro legada mantém seis quadros até a revisão narrativa planejada',()=>{
   const slides=introductionSlides('Rafa');
   assert.equal(slides.length,6);
   assert.equal(INTRO_PAGE_MS*slides.length,24000);
   assert.equal(slides[1].speaker,'COMANDANTE ALIENÍGENA');
-  assert.match(slides[1].body,/braços cruzados/);
+  assert.match(slides[1].body,/braços abertos/);
   assert.match(slides[2].body,/dia/);
   assert.match(slides[4].body,/bolacha de biscoito/);
   assert.match(slides[5].title,/Rafa/);

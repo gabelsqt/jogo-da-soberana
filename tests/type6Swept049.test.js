@@ -49,8 +49,9 @@ test('v0.49: proteção anti-travamento mantém ofensiva dos chefões atualizand
   assert.match(src,/scene\.time\.now-enemy\.lastType6PaintAt>=33/);
   assert.match(src,/updateModuleAction\(scene,enemy,dt\)/);
   const game=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
-  assert.match(game,/this\.enemyBullets\.length>=140/);
-  assert.match(game,/ray<8/);
+  assert.match(game,/const activeLimit=regularWave\?Math\.min\(95,25\+Number\(this\.mode\.slice\(4\)\)\*7\):140/);
+  assert.match(game,/this\.enemyBullets\.length>=activeLimit/);
+  assert.match(game,/DISCO_REFLECTION_MAX_VISUAL_RAYS/);
   assert.match(game,/this\.enemies\.some\(e=>e\.type===6/);
 });
 

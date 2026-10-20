@@ -157,7 +157,8 @@ export function type6ModuleVisualState(module){
   if(module.broken)return 3;
   if(module.shield>0)return 0;
   const fraction=module.hp/module.maxHp;
-  return fraction>0.65?0:fraction>0.3?1:2;
+  // Limiares inclusivos apesar do arredondamento IEEE-754 (ex.: 0.30000000000000004).
+  return fraction>0.65+1e-9?0:fraction>0.3+1e-9?1:2;
 }
 export function advanceType6Cruise(s,dt,limit=65){
   if(s.edgeHold>0){s.edgeHold=Math.max(0,s.edgeHold-dt);return s.shift;}

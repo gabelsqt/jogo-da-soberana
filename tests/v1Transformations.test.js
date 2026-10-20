@@ -23,13 +23,14 @@ test('EUA: crescimento até 12× com rastreamento', () => {
     assert.equal(v1CombatStats(countryAt('us',level)).usGrowthMax,scale);
   assert.ok(v1CombatStats(countryAt('us',10)).usHoming>0);
 });
-test('Rússia: congelamento e atração crescem até 3 s / 160 px', () => {
+test('Rússia: congelamento e estilhaços evoluem sem atração antiga', () => {
   const start=v1CombatStats(countryAt('ru',1));
   const end=v1CombatStats(countryAt('ru',10));
   assert.ok(start.russianFreezeMs>0);
-  assert.ok(start.russianAttractRadius>0);
+  assert.equal(start.russianAttractRadius,undefined);
   assert.equal(end.russianFreezeMs,3000);
-  assert.equal(end.russianAttractRadius,160);
+  assert.ok(end.russianShatterRadius>start.russianShatterRadius);
+  assert.ok(end.russianShatterDamage>=start.russianShatterDamage);
 });
 test('China: 10 projéteis por salva, divisão 1→2, sem repetição infinita', () => {
   const s=v1CombatStats(countryAt('cn',10));

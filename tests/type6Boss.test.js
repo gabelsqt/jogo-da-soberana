@@ -56,7 +56,9 @@ test('escudos individuais são independentes e absorvem dano sem excedente',()=>
   assert.equal(b.shield,b.maxShield);
   assert.equal(type6ModuleVisualState(a),0);
   type6Damage(s,0,a.maxHp*0.7);
-  assert.equal(type6ModuleVisualState(a),2);
+  assert.equal(type6ModuleVisualState(a),2,'70% de dano ativa avaria intensa');
+  assert.equal(type6ModuleVisualState({...a,hp:a.maxHp*0.31}),1);
+  assert.equal(type6ModuleVisualState({...a,hp:a.maxHp*0.30}),2);
   assert.equal(type6Damage(s,0,a.maxHp).moduleDestroyed,true);
   assert.equal(type6AliveModules(s).length,3);
 });
