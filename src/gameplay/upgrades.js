@@ -1,4 +1,6 @@
 // Primeira leva de upgrades: efeitos jogáveis, um por país.
+// Intervalo comum a todas as armas básicas, antes de aplicar qualquer upgrade.
+export const BASE_CANNON_INTERVAL_MS = 300;
 // O catálogo de níveis 2–10 será incorporado em versões posteriores.
 export const FIRST_UPGRADES = [
   {
@@ -34,7 +36,7 @@ export function getFirstUpgrade(id) {
 
 export function combatStatsFor(upgradeId) {
   const stats = {
-    basicInterval: 400,
+    basicInterval: BASE_CANNON_INTERVAL_MS,
     basicSpeed: 480,
     basicDamage: 1,
     pierce: 1,

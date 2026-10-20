@@ -1,6 +1,7 @@
 import { russianShatterRadius, russianShatterDamage } from './russianFrost.js';
 import {countryColor} from '../config/countryIdentity.js';
 import {americanJulyConfig} from './usJuly.js';
+import {BASE_CANNON_INTERVAL_MS} from './upgrades.js';
 
 // Versão 1 — catálogo aprovado nas decisões 53–68. Animais antigos ficam arquivados.
 // 'jp' continua sendo o identificador técnico legado da COREIA DO SUL.
@@ -362,7 +363,7 @@ export function v1SupremeFor(state) {
 // A soma das dez escolhas impede duas supremas simultâneas.
 export function v1CombatStats(state = {}, base = {}) {
   const n = v1CountryLevels(state);
-  const stats = {...base, basicInterval:400, basicSpeed:480, basicDamage:1, pierce:1,
+  const stats = {...base, basicInterval:BASE_CANNON_INTERVAL_MS, basicSpeed:480, basicDamage:1, pierce:1,
     fragmentation:false, plasmaEvery:0, knockback:0, bulletsPerShot:1,
     brazilZigzag:false, specialCooldown:8000, collateral:false,
     residualSlash:false, strategicRecoil:false, electricFence:false,
