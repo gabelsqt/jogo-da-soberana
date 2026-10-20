@@ -352,7 +352,9 @@ export function chooseV1Upgrade(state = {}, countryId) {
 }
 export function v1SupremeFor(state) {
   const levels = v1CountryLevels(state);
-  return Object.keys(V1_UPGRADES).find(id=>levels[id]>=9)??null;
+  const supreme=Object.keys(V1_UPGRADES).find(id=>levels[id]>=9)??null;
+  // Zeca recupera até a transformação, mas não o Supremo do traidor.
+  return supreme && supreme===state?.disabledSupremeCountry ? null : supreme;
 }
 // A soma das dez escolhas impede duas supremas simultâneas.
 export function v1CombatStats(state = {}, base = {}) {
