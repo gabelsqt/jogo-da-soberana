@@ -33,6 +33,11 @@ test('onze sons nacionais retrô gerados em PCM mono 22.050 Hz, sem silêncio',(
      durations.push(wav.length);
    }
    assert.ok(new Set(durations).size>4,'diferentes eventos têm durações distintas');
+   const shot=sounds.find(s=>s.id==='krBasicShot');
+   assert.ok(shot,'laser principal coreano sintetizado');
+   assert.ok(shot.duration>=0.24&&shot.duration<=0.26,
+     'tiro coreano mais longo que o antigo disparo de 0.17s');
+   assert.match(shot.file,/kr_tiro_laser_v2\.wav$/);
  }finally{rmSync(dir,{recursive:true,force:true});}
 });
 
@@ -49,7 +54,7 @@ test('ganchos reproduzem cada som na ação e nunca em todos os frames',()=>{
  assert.match(scene,/this\.events\.on\('pause',stopNationalSpecialSfxLoops\)/);
  assert.match(scene,/if\(visualTargets\.length\)\{[\s\S]*?playSfx\('krLaserRicochet'/);
  assert.match(scene,/if\(this\.isV1Campaign&&this\.combat\.plasmaEvery>0\)/);
- assert.match(scene,/playSfx\('krBasicShot',\{throttle:85,volumeScale:0\.52\}\)/);
+ assert.match(scene,/playSfx\('krBasicShot',\{throttle:95,volumeScale:0\.46\}\)/);
  assert.match(scene,/const specialCountry=this\.isV1Campaign\?this\.specialBuild\?\.primary:null/);
  assert.match(scene,/else if\(!\['ru','jp'\]\.includes\(specialCountry\)\)/);
  assert.match(scene,/playSfx\('brFireworkBurst',\{throttle:95/);

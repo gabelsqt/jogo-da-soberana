@@ -31,14 +31,15 @@ const FILES=Object.freeze({
   krDiscoDeploy:'27_kr_bola_discoteca_ativar.wav',
   krDiscoSpin:'28_kr_discoteca_giro_loop.wav',
   krLaserRicochet:'29_kr_ricochete_laser.wav',
-  krBasicShot:'30_kr_tiro_laser.wav',
+  krBasicShot:'30_kr_tiro_laser_v2.wav',
 });
 // Configuração reutilizável: novos efeitos podem definir suas faixas aqui.
 // [mínimo,máximo] em multiplicadores; 1 representa o áudio original.
 export const SFX_VARIATIONS=Object.freeze({
   cannon:Object.freeze({pitch:Object.freeze([0.78,1.22]),volume:Object.freeze([0.90,1.10])}),
   ruBasicShot:Object.freeze({pitch:Object.freeze([0.96,1.04]),volume:Object.freeze([0.95,1.05])}),
-  krBasicShot:Object.freeze({pitch:Object.freeze([0.96,1.04]),volume:Object.freeze([0.94,1.06])}),
+  // Laser coreano: variação audível de tom, com viés grave e volume controlado.
+  krBasicShot:Object.freeze({pitch:Object.freeze([0.86,1.10]),volume:Object.freeze([0.94,1.06])}),
   explosion:Object.freeze({pitch:Object.freeze([0.75,1.25]),volume:Object.freeze([0.94,1.06])}),
   boss:Object.freeze({pitch:Object.freeze([0.85,1.15]),volume:Object.freeze([0.97,1.03])}),
 });

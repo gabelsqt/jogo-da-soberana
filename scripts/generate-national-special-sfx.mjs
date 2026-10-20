@@ -70,7 +70,7 @@ export const NATIONAL_SPECIAL_FILES=Object.freeze({
  krDiscoDeploy:'27_kr_bola_discoteca_ativar.wav',
  krDiscoSpin:'28_kr_discoteca_giro_loop.wav',
  krLaserRicochet:'29_kr_ricochete_laser.wav',
- krBasicShot:'30_kr_tiro_laser.wav',
+ krBasicShot:'30_kr_tiro_laser_v2.wav',
 });
 export function generateNationalSpecialSfx(outDir){
  mkdirSync(outDir,{recursive:true});
@@ -159,16 +159,17 @@ export function generateNationalSpecialSfx(outDir){
    const refract=.13*wave(615,t,'square')*Math.exp(-t*14);
    return ray+snap+refract+lp*.09*Math.exp(-t*22);
  },{seed:503,bit:12,echo:.047});
- // Coreia — laser PRINCIPAL de arcade 16/32 bits: zap curto, metal eletrônico
- // e queda brusca de frequência; sem notas musicais ou guinchos infantis.
- // Cada disparo usa apenas este som, com throttle e limite de vozes no jogo.
- put('krBasicShot',.17,({t,d,noise,lp})=>{
-   const plasma=.40*sweepWave(1050,310,t,d,'saw')*Math.exp(-t*10);
-   const edge=.22*sweepWave(660,230,t,d,'square')*Math.exp(-t*18);
-   const snap=(lp*.18+noise*.055)*Math.exp(-t*39);
-   const tail=.16*Math.sin(TAU*238*t)*Math.exp(-t*25);
-   return plasma+edge+snap+tail;
- },{seed:504,bit:12,echo:.035});
+ // Coreia — disparo laser V2: mais grave, encorpado e um pouco mais longo.
+ // Troca o brilho áspero das ondas square/saw agudas por triangle/sine.
+ // Uma pequena borda serrilhada mantém a identidade 16/32-bit sem apitar.
+ put('krBasicShot',.25,({t,d,noise,lp})=>{
+   const laser=.39*sweepWave(540,155,t,d,'triangle')*Math.exp(-t*5.8);
+   const body=.31*sweepWave(300,112,t,d,'sine')*Math.exp(-t*7.2);
+   const edge=.09*sweepWave(430,165,t,d,'saw')*Math.exp(-t*15);
+   const attack=(lp*.105+noise*.018)*Math.exp(-t*34);
+   const tail=.13*Math.sin(TAU*143*t)*Math.exp(-t*10);
+   return laser+body+edge+attack+tail;
+ },{seed:504,bit:12,echo:.04});
  return results;
 }
 const script=fileURLToPath(import.meta.url);
