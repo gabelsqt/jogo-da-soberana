@@ -91,7 +91,8 @@ function fireBomb(scene,enemy,module){
   const speed=Math.hypot(dx,dy)/7;
   const us=s.country==='us',ru=s.country==='ru',cn=s.country==='cn';
   const size=us?58:cn?43:38;
-  const sprite=scene.add.rectangle(x,y,size,size*(cn?0.67:1),ru?0x8bdcff:us?0xd8e0e6:p.light)
+  // Bomba interceptável circular; lógica de impacto continua sem alteração.
+  const sprite=scene.add.circle(x,y,size*0.5,ru?0x8bdcff:us?0xd8e0e6:p.light)
     .setStrokeStyle(3,ru?0xffffff:p.glow).setDepth(33);
   scene.enemyBullets.push({
     sprite,target,vx:dx/7,vy:dy/7,damage:us?999:65,
@@ -379,7 +380,7 @@ export function detonateType6Bomb(scene,shot){
       Math.hypot(other.sprite.x-current.sprite.x,other.sprite.y-current.sprite.y)<90);
     for(const other of near){
       if(other.colossal)queue.push(other);
-      else {const index=scene.enemyBullets.indexOf(other);if(index>=0)scene.removeEnemyBullet(index);}
+      else {const index=scene.enemyBullets.indexOf(other);if(index>=0)scene.removeEnemyBullet(index,true);}
     }
     const index=scene.enemyBullets.indexOf(current);
     if(index>=0)scene.removeEnemyBullet(index);

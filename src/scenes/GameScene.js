@@ -1139,7 +1139,7 @@ export class GameScene extends Phaser.Scene {
       const hostile = this.enemyBullets[i];
       if (Math.hypot(hostile.sprite.x - x, hostile.sprite.y - y) <= SHOCK_BLAST_RADIUS + 7) {
         if(hostile.colossal)detonateType6Bomb(this,hostile);
-        else this.removeEnemyBullet(i);
+        else this.removeEnemyBullet(i,true);
       }
     }
 
@@ -2695,7 +2695,8 @@ export class GameScene extends Phaser.Scene {
       const dx = target.x - x;
       const dy = target.y - y;
       const distance = Math.max(1, Math.hypot(dx, dy));
-      const projectile = this.add.rectangle(x,y,16.5,16.5,ENEMY_SHOT_COLOR)
+      // Arte circular; raio de colisão e balanceamento permanecem 8,25.
+      const projectile = this.add.circle(x,y,8.25,ENEMY_SHOT_COLOR)
         .setStrokeStyle(2,0xfff5bc).setDepth(28);
       const projectilePace=this.mode==='wave0'&&enemy.type===1
         ?WAVE0_EASY_PACING.bulletSpeedMultiplier
@@ -2716,6 +2717,11 @@ export class GameScene extends Phaser.Scene {
   updateEnemyBullets(dt) {
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
       const shot = this.enemyBullets[i];
+      // Restaura a cor após o flash, sem sobrescrever o visual do bombardeiro.
+      if(shot.hitFlashUntil && this.time.now>=shot.hitFlashUntil){
+        shot.sprite.setFillStyle(shot.baseFillColor??ENEMY_SHOT_COLOR);
+        shot.hitFlashUntil=0;
+      }
       const previousX=shot.sprite.x,previousY=shot.sprite.y;
       shot.sprite.x += shot.vx * dt;
       shot.sprite.y += shot.vy * dt;
@@ -2724,7 +2730,7 @@ export class GameScene extends Phaser.Scene {
         shot.sprite.x, shot.sprite.y, shot.radius??8,
       ))) {
         if(shot.colossal)detonateType6Bomb(this,shot);
-        else this.removeEnemyBullet(i);
+        else this.removeEnemyBullet(i,true);
         continue;
       }
       const domeHit=shot.target?.kind==='cannon'&&this.shield>0&&
@@ -2763,9 +2769,34 @@ export class GameScene extends Phaser.Scene {
   reflectV1ShieldProjectile(_shot) { return false; }
   reactV1ShieldImpact() {}
 
-  removeEnemyBullet(index) {
+  // Feedback de interceptação exclusivamente visual: nenhum dano/raio extra.
+  // Uma única Graphics por impacto evita dezenas de partículas Phaser ativas.
+  showEnemyBulletHit(shot,destroyed=false){
+    if(!shot?.sprite?.active)return;
+    const radius=Math.min(13,shot.radius??(shot.colossal?19:8.25));
+    if(!destroyed){
+      shot.baseFillColor??=shot.sprite.fillColor??ENEMY_SHOT_COLOR;
+      shot.sprite.setFillStyle(0xffffff);
+      shot.hitFlashUntil=this.time.now+80;
+    }
+    const g=this.add.graphics().setPosition(shot.sprite.x,shot.sprite.y).setDepth(36);
+    // Para tiros de 1 HP, o núcleo branco persiste mesmo após a remoção.
+    g.fillStyle(0xffffff,0.95).fillCircle(0,0,Math.max(3,radius*0.55));
+    g.lineStyle(2,0xffdfa6,0.9).strokeCircle(0,0,radius*0.80);
+    for(let j=0;j<6;j++){
+      const a=j*Math.PI/3,len=radius*(j%2===0?1.9:1.5);
+      g.lineStyle(j%2===0?2:1, j%2===0?0xffb16b:0xffffff,0.85);
+      g.lineBetween(Math.cos(a)*radius*0.7,Math.sin(a)*radius*0.7,
+        Math.cos(a)*len,Math.sin(a)*len);
+    }
+    this.tweens.add({targets:g,scale:1.75,alpha:0,duration:160,
+      onComplete:()=>g.destroy()});
+  }
+
+  removeEnemyBullet(index,intercepted=false) {
     const shot = this.enemyBullets[index];
     if (!shot) return;
+    if(intercepted)this.showEnemyBulletHit(shot,true);
     shot.sprite.destroy();
     this.enemyBullets.splice(index, 1);
   }
@@ -3319,7 +3350,7 @@ export class GameScene extends Phaser.Scene {
         startX, startY, endX, endY, bullet.sprite.x, bullet.sprite.y, PLASMA_HALF_WIDTH, bullet.radius??7,
       )) {
         if(bullet.colossal)detonateType6Bomb(this,bullet);
-        else this.removeEnemyBullet(i);
+        else this.removeEnemyBullet(i,true);
       }
     }
     if (this.combat.residualSlash && drawFlash) {
@@ -3527,7 +3558,7 @@ export class GameScene extends Phaser.Scene {
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
       const shot = this.enemyBullets[i];
       if (fragmentHitsTarget(x, y, shot.sprite.x, shot.sprite.y, 8)) {
-        this.removeEnemyBullet(i);
+        this.removeEnemyBullet(i,true);
       }
     }
     if (this.combat.collateral && casualty) {
@@ -4625,9 +4656,9 @@ export class GameScene extends Phaser.Scene {
           hostile.hp -= bullet.damage;
           if (hostile.hp <= 0){
             if(hostile.colossal)detonateType6Bomb(this,hostile);
-            else this.removeEnemyBullet(j);
+            else this.removeEnemyBullet(j,true);
           }
-          else hostile.sprite.setFillStyle(0xfff5d0);
+          else this.showEnemyBulletHit(hostile);
           remove = true;
           break;
         }
