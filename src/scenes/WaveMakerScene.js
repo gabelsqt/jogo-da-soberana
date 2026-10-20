@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { analyzeWavePressure } from '../gameplay/wavePressure.js';
+import { recentWaveResults, compareWaveResults, exportWaveResults } from '../gameplay/waveTestResults.js';
 import { bindSceneMusic } from '../audio/music.js';
 import { normalizeLabConfig } from '../gameplay/labConfig.js';
 import {
@@ -44,6 +45,7 @@ export class WaveMakerScene extends Phaser.Scene {
   this.drawButton(565,320,'COMPARAR',()=>this.comparePressure(),112,28);
   this.drawButton(431,320,'TESTAR',()=>this.testDraft(),116,28);
   this.drawButton(297,320,'RESULTADOS',()=>this.showTestResults(),119,28);
+  this.drawButton(181,320,'EXPORTAR',()=>this.exportResults(),95,28);
   this.add.rectangle(510,371,736,65,0x101f31).setStrokeStyle(1,0x436278);
   this.add.text(145,418,'EVENTO SELECIONADO',textStyle(12,'#ffe2a6'));
   this.fields=this.add.container(0,0);
@@ -150,16 +152,35 @@ export class WaveMakerScene extends Phaser.Scene {
   this.selected=null;this.persist();this.render();
  }
  showTestResults(){
-  let entries=[];
-  try{entries=JSON.parse(localStorage.getItem('soberana-wave-maker-results-v1')||'[]');}catch{}
-  const results=(Array.isArray(entries)?entries:[]).filter(r=>r.wave===this.current).slice(-5);
+  const results=recentWaveResults(typeof localStorage==='undefined'?null:localStorage,this.current,5);
   if(!results.length){window.alert('Nenhum teste de combate finalizado para esta onda neste navegador.');return;}
-  window.alert(['ÚLTIMOS TESTES — ONDA '+this.current,...results.map((r,i)=>[
-    (i+1)+'. '+String(r.outcome).toUpperCase()+' • '+new Date(r.completedAt).toLocaleString('pt-BR'),
-    'Vida '+r.health+' / Escudo '+r.shield+' • Disparos do canhão '+r.playerShots,
-    'Tiros inimigos '+r.enemyShots+' • Abates '+r.enemyKills+' • Interceptações medidas '+r.intercepted,
-    'Dano bruto ao canhão/escudo '+r.damageReceived,
-  ].join('\\n'))].join('\\n\\n'));
+  const lines=['ÚLTIMOS TESTES — ONDA '+this.current,...results.map((r,i)=>[
+   (i+1)+'. '+String(r.outcome).toUpperCase()+' • '+new Date(r.completedAt).toLocaleString('pt-BR'),
+   'Vida '+r.health+' / Escudo '+r.shield+' • Disparos do canhão '+r.playerShots,
+   'Tiros inimigos '+r.enemyShots+' • Abates medidos '+r.enemyKills+' • Interceptações medidas '+r.intercepted,
+   'Dano bruto ao canhão/escudo '+r.damageReceived
+  ].join('\\n'))];
+  window.alert(lines.join('\\n\\n'));
+  if(results.length<2)return;
+  if(!window.confirm('Comparar os dois testes mais recentes desta onda?'))return;
+  const [previous,current]=results.slice(-2);
+  const comparison=compareWaveResults(previous,current);
+  const names={health:'Vida',shield:'Escudo',playerShots:'Tiros do canhão',
+   enemyShots:'Tiros inimigos',enemyKills:'Abates medidos',intercepted:'Interceptações medidas',
+   damageReceived:'Dano bruto'};
+  window.alert(['ANTES → DEPOIS',comparison.outcome.join(' → '),...comparison.values.map(v=>
+   (names[v.key]||v.key)+': '+(v.old??'n/d')+' → '+(v.current??'n/d')+
+   (v.delta===null?'':' ('+(v.delta>=0?'+':'')+v.delta+')')
+  ),'Métricas de abate/interceptação ainda parciais.'].join('\\n'));
+ }
+ exportResults(){
+  const text=exportWaveResults(typeof localStorage==='undefined'?null:localStorage);
+  const blob=new Blob([text],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const anchor=document.createElement('a');
+  anchor.href=url;anchor.download='soberana-testes-wave-maker.json';
+  document.body.appendChild(anchor);anchor.click();anchor.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
  }
  testDraft(){
   // Snapshot da onda atual, exclusivamente para teste; não publicar.
