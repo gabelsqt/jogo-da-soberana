@@ -317,6 +317,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
+    // O login inicial usa um input HTML. Seu foco não pode sobreviver à
+    // transição e capturar letras/ESPAÇO durante o combate ou o Supremo.
+    const focused=globalThis.document?.activeElement;
+    if(focused?.closest?.('#player-name-panel') ||
+      focused?.classList?.contains('soberana-pause-hud'))focused.blur?.();
     this.music = bindSceneMusic(this, waveMusic(this.mode, this.campaign));
     this.input.mouse?.disableContextMenu();
 
@@ -3302,6 +3307,7 @@ export class GameScene extends Phaser.Scene {
     }
     const expected=this.supremeExpectedCode();
     if(!expected)return false;
+    globalThis.document?.activeElement?.blur?.();
     this.supremeTyping=true;
     this.supremeCode='';
     this.supremeReadyHint?.setVisible(false);
