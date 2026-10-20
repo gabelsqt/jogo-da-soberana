@@ -1036,3 +1036,8 @@ O sistema de danos continua limitado a um estilhaçamento por vítima congelada;
 - **0 a 5:** animação de voo; **6:** avariado/recebendo dano; **7:** destruição animada junto ao burst existente. Mantida rotação progressiva conforme a direção de deslocamento.
 - O feedback de impacto apenas acrescenta shake à direção, sem sobrescrever a orientação da nave. Formação, velocidade, HP, colisão, tiros e fallback vetorial permanecem inalterados.
 - Arquivo `public/assets/inimigos/tipo2/spritesheet.png`, criado diretamente no GitHub.
+
+
+### v0.850 — Spritesheet do Tipo 5 (20/10/2026)
+
+O **Tipo 5 — Cruzador-Colmeia**, usado como miniboss e invocador de escoltas, recebe atlas técnico 4×4 com dezesseis quadros (224×128 por quadro), preservando a identidade de metal escuro e núcleos vermelhos da arte original. Fases: voo [0–3], abertura das baias [4–7] durante invocação, quatro níveis visuais de dano [8–11] e destruição [12–15]. A animação não altera HP, colisão, movimento, tempo dos disparos ou limite de minions; continua havendo fallback vetorial caso o spritesheet falhe.
