@@ -264,3 +264,14 @@
 - [ ] Histórico de resultados sobrevive à recarga, tolera armazenamento corrompido ou indisponível.
 - [ ] Métricas incompletas são explicitamente identificadas como medidas parciais.
 - [ ] Rodar `npm test`, `npm run build`, testar interações no navegador; pendente nesta sessão.
+
+
+## v0.64 — acesso e Enemy Maker inicial (validação pendente)
+- [ ] Em Menu > Testar upgrades V1, botões WAVE MAKER e ENEMY MAKER aparecem sem sobreposição com o seletor de ondas ou outros controles.
+- [ ] Botão antigo BR+EUA+CHINA não aparece; seu comportamento de build fixa foi retirado da tela.
+- [ ] WAVE MAKER abre o editor de ondas e VOLTAR retorna ao Laboratório.
+- [ ] ENEMY MAKER abre a galeria/lista inicial de tipos 1–6 e seleção de nível 1–10.
+- [ ] Campos numéricos alteram os atributos mostrados; valores inválidos são rejeitados; SALVAR persiste após voltar e abrir novamente.
+- [ ] RESTAURAR NÍVEL volta aos padrões do tipo/nível sem alterar configurações publicadas.
+- [ ] Rascunhos do Enemy Maker não modificam estatísticas reais de inimigos ou campanha nesta versão.
+- [ ] Executar `npm test` e `npm run build`; validar visualmente 960×540 no navegador antes de marcar a versão como estável.
