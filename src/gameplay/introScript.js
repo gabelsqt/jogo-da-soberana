@@ -1,33 +1,39 @@
-// Placeholders narrativos: 6 quadros x 4 s = 24 s de visual novel.
-// O login no computador velho NÃO desconta tempo desses quadros.
-// Revisão completa de piadas e textos será feita antes do lançamento.
-export const INTRO_PAGE_MS=4000;
-export function introductionSlides(name){
-  const user=String(name||'servidor').trim()||'servidor';
+// Operação Soberania — abertura por e-mails, plantão e apresentação do Zeca.
+// Antes da onda 10, invasores não falam nem explicam suas intenções.
+export const INTRO_CHAR_DELAY_MS=32;
+export const INTRO_PAGE_MS=1900; // pausa de leitura após digitação
+export const INTRO_NEWS_HOLD_MS=2700;
+export const INTRO_FOOTNOTE_DELAY_MS=850;
+
+export function introductionSlides(){
   return [
-    {speaker:'CUBO NEWS',tag:'PLANTÃO EXTRAORDINÁRIO',
-      title:'Alienígenas chegam à Terra!',
-      body:'Naves desconhecidas apareceram sobre o Rio. Autoridades ainda não sabem o que querem. A Cubo News recomenda calma e audiência.',
-      art:'news'},
-    {speaker:'COMANDANTE ALIENÍGENA',tag:'COMUNICAÇÃO EXTRATERRESTRE',
-      title:'“Aquele é o Líder Supremo da Terra?”',
-      body:'“Por que ele está com os braços abertos? Nosso povo cruza os braços para demonstrar respeito! Braços abertos são uma ofensa enorme!”',
-      art:'christ'},
-    {speaker:'OFICIAL ALIENÍGENA',tag:'PROTOCOLO DE ETIQUETA',
-      title:'“Ele continua desse jeito, comandante.”',
-      body:'“Podemos bombardear a cidade à noite. Atacar de dia seria muita falta de educação. Vamos aguardar o pôr do sol.”',
-      art:'alien'},
-    {speaker:'CUBO NEWS',tag:'ACORDO DIPLOMÁTICO',
-      title:'Invasores prometem ir embora ao amanhecer',
-      body:'Segundo os ETs, a paz será possível quando o Cristo finalmente cruzar os braços. Governo classifica as negociações como promissoras.',
-      art:'moon'},
-    {speaker:'CONTATO: EX',tag:'MENSAGEM RECEBIDA NO COMPUTADOR',
-      title:'Uma cobrança do passado',
-      body:'“Você chamou bolacha de biscoito. Eu sou de São Paulo. A gente terminou por isso, sim. E te inscrevi como mesário. Boa sorte.”',
-      art:'message'},
-    {speaker:'SISTEMA DO SERVIDOR',tag:'PORTARIA EXTRAORDINÁRIA',
-      title:`${user}, sua promoção foi aprovada!`,
-      body:'Após as baixas do ataque anterior, a lista de mesários virou cadeia de comando. Você é o próximo responsável pela defesa carioca. Escolha as alianças internacionais. Não existe botão Recusar.',
-      art:'document'},
+    {
+      kind:'email',id:'convocation',
+      from:'JUSTIÇA ELEITORAL',subject:'Convocação para serviço eleitoral',
+      body:'Parabéns!\n\nVocê foi escolhido(a) para atuar como MESÁRIO* nas próximas eleições.\n\nAguarde novas instruções.',
+    },
+    {
+      kind:'news',id:'invasion',tag:'PLANTÃO EXTRAORDINÁRIO',
+      headline:'INVASÃO ALIENÍGENA CONFIRMADA NO RIO DE JANEIRO',
+      body:'Naves desconhecidas aparecem sobre a cidade. O espaço aéreo foi fechado.',
+    },
+    {
+      kind:'news',id:'elections',tag:'ÚLTIMA HORA',
+      headline:'ELEIÇÕES SÃO CANCELADAS EM TODO O PAÍS',
+      body:'A decisão ocorre em meio à invasão extraterrestre. A convocação dos mesários permanece em vigor.',
+    },
+    {
+      kind:'email',id:'promotion',
+      from:'JUSTIÇA ELEITORAL',subject:'URGENTE — ATUALIZAÇÃO DA CONVOCAÇÃO',
+      body:'Em razão da invasão alienígena, as eleições foram canceladas.\n\nSua convocação permanece válida. Você foi promovido(a), com efeito imediato, a:',
+      promotion:'GENERAL DE GUERRA',
+      footnote:'*Em situações excepcionais, a convocação para mesário poderá ser convertida em qualquer função de interesse nacional, inclusive de natureza militar, sem necessidade de consentimento.',
+      status:'ACEITE REGISTRADO AUTOMATICAMENTE',
+    },
+    {
+      kind:'zeca',id:'zeca',tag:'PRIMEIRO CONTATO • EQUIPE DE MANUTENÇÃO',
+      headline:'ZECA CARRARA',
+      body:'Ô, general! Você que era mesário? Eu sou o Zeca Carrara, mecânico de carros. Me colocaram pra cuidar desse obuseiro.\n\nObuseiro é esse canhão aqui, viu? Eu também tive que perguntar.\n\nDe motor eu entendo. De invasão alienígena, a gente vai aprender junto.',
+    },
   ];
 }
