@@ -32,7 +32,11 @@ export function spawnType6Encounter(scene,options={}){
   // A luta só começa após a entrada. A cena mantém o tempo da onda congelado.
   scene.boss6IntroPaused=true;scene.elapsed=0;
   state.introStart=scene.time.now;
-  state.introDuration=country==='alien'?2400:2600;
+  // Entrada mais cinematográfica: queda lenta + intervalo de estabilização.
+  // O chefe já aparece com a barreira principal ativa, mas só pode ser
+  // alvejado quando termina a apresentação inteira.
+  state.introDuration=country==='alien'?4200:4600;
+  type6FinishBarrierCharge(state);
   scene.showAttackWarning('CUBO NEWS — FORTALEZA GIGANTE NO CÉU!');
   scene.queueCuboNews?.('FORTALEZA HOSTIL APARECE NO HORIZONTE',
     'A estrutura ocupa a faixa superior da cidade. Defesa brasileira inicia operações.');
@@ -171,25 +175,19 @@ export function updateType6Encounter(scene,enemy,dt){
     const smooth=t*t*(3-2*t);
     enemy.sprite.y=-90+215*smooth;
     if(t>=1){
-      s.introComplete=true;enemy.phase='boss6';
-      scene.boss6IntroPaused=false;scene.elapsed=0;
+      // Estabilização de 2 s: enquanto ela ocorre, nenhuma arma pode
+      // danificar o Tipo 6 e o cronômetro de 60 s permanece parado.
+      s.openingClock+=dt;
+      if(s.openingClock>=TYPE6_OPENING_SECONDS){
+        s.introComplete=true;enemy.phase='boss6';
+        s.firstShieldRaised=true;s.attackClock=0;
+        scene.boss6IntroPaused=false;scene.elapsed=0;
+      }
     }
   }else{
     advanceType6Cruise(s,dt);enemy.sprite.x=W/2+s.shift;
-    if(!s.firstShieldRaised&&s.openingClock<TYPE6_OPENING_SECONDS){
-      s.openingClock+=dt;
-      s.barrier.charging=!s.modules[3].broken;
-      s.barrier.progress=Math.min(1,s.openingClock/TYPE6_OPENING_SECONDS);
-      if(s.openingClock>=TYPE6_OPENING_SECONDS){
-        s.barrier.charging=false;
-        if(!s.modules[3].broken){
-          type6FinishBarrierCharge(s);
-          burst(scene,enemy.sprite.x+TYPE6_OFFSETS[3],enemy.sprite.y,
-            TYPE6_PALETTES[s.country].barrier,44);
-        }
-        s.firstShieldRaised=true;s.attackClock=0;
-      }
-    }else if(!s.defeated){
+    if(!s.defeated){
+
       if(s.coreExposed&&s.coreReveal<1)s.coreReveal=Math.min(1,s.coreReveal+dt/2);
       if(s.action){
         updateModuleAction(scene,enemy,dt);
