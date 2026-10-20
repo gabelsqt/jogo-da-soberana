@@ -1,4 +1,5 @@
 import { russianShatterRadius, russianShatterDamage } from './russianFrost.js';
+import {countryColor} from '../config/countryIdentity.js';
 
 // Versão 1 — catálogo aprovado nas decisões 53–68. Animais antigos ficam arquivados.
 // 'jp' continua sendo o identificador técnico legado da COREIA DO SUL.
@@ -317,10 +318,10 @@ export const V1_UPGRADES = {
 
 export const V1_SUPREMES = Object.freeze({
   br: {title:'Réveillon de Copacabana',scope:'sky',color:0x4de88c},
-  us: {title:'Operação Liberdade Duradoura™',scope:'target',color:0xffae59},
-  jp: {title:'Último Encore',scope:'beam',color:0xe68aff},
-  ru: {title:'Protocolo Cortina de Ferro',scope:'target',color:0xff6b69},
-  cn: {title:'Seu Pedido Chegou!',scope:'sky',color:0xffdb5d},
+  us: {title:'Operação Liberdade Duradoura™',scope:'target',color:countryColor('us')},
+  jp: {title:'Último Encore',scope:'beam',color:countryColor('jp')},
+  ru: {title:'Protocolo Cortina de Ferro',scope:'target',color:countryColor('ru')},
+  cn: {title:'Seu Pedido Chegou!',scope:'sky',color:countryColor('cn')},
 });
 
 export const MAX_VISUAL_PROJECTILES = 95;
@@ -342,6 +343,7 @@ export function v1CountryLevels(state = {}) {
 export function nextV1Options(state = {}, countryBase = []) {
   const levels = v1CountryLevels(state);
   return countryBase.map(country => ({...country, ...V1_UPGRADES[country.id][levels[country.id] ?? 0],
+    color:countryColor(country.id),
     locked:(state.choices?.length??0)>=10, tower:false }));
 }
 export function chooseV1Upgrade(state = {}, countryId) {
