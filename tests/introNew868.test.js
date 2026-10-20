@@ -44,7 +44,8 @@ test('efeito letra por letra usa áudio de tecla, intervalos, avanço e revelaç
  assert.match(scene,/playSfx\('introNotice'/);
  assert.match(scene,/this\.segmentTimer=this\.time\.delayedCall\(650,\(\)=>this\.revealPromotion\(\)\)/);
  assert.match(scene,/this\.beginTyping\(this\.footnote,slide\.footnote,'footnote'\)/);
- assert.match(scene,/keydown-SPACE/);
- assert.match(scene,/keydown-ENTER/);
+ assert.match(scene,/for\(const key of \['SPACE','ENTER'\]\)/);
+ assert.match(scene,/this\.input\.keyboard\.on\('keydown-'\+key/);
  assert.match(scene,/keydown-ESC/);
+ assert.match(scene,/intro-obuseiro-head/);
 });

@@ -31,6 +31,8 @@ export class IntroScene extends Phaser.Scene {
     preloadRioBackdrop(this);
     this.load.image('intro-zeca',assetUrl('assets/lideres/br_retrato.png'));
     this.load.image('intro-obuseiro-base',assetUrl('assets/canhao/base.png'));
+    this.load.image('intro-obuseiro-head',assetUrl('assets/canhao/head_4.png'));
+    this.load.image('intro-obuseiro-barrel',assetUrl('assets/canhao/barrel_4.png'));
   }
   create(){
     this.music=bindSceneMusic(this,null);
@@ -192,9 +194,17 @@ export class IntroScene extends Phaser.Scene {
       fontFamily:CUBO_FONT,fontSize:'17px',color:'#edf2f5',
       wordWrap:{width:492},lineSpacing:5,
     });
-    this.label(219,407,'MECÂNICO DE CARROS (AGORA DE CANHÕES)',{
-      fontFamily:CUBO_FONT,fontSize:'11px',color:'#9fb6c4',
+    this.label(219,397,'MECÂNICO DE CARROS',{
+      fontFamily:CUBO_FONT,fontSize:'12px',color:'#9fb6c4',
     }).setOrigin(0.5);
+    // Miniatura do obuseiro real do jogo, reaproveitando seus sprites.
+    // O jogador vê a arma que Zeca está tentando explicar.
+    this.keep(this.add.image(219,446,'intro-obuseiro-base')
+      .setDisplaySize(90,37).setDepth(11));
+    this.keep(this.add.image(219,420,'intro-obuseiro-barrel')
+      .setDisplaySize(42,69).setDepth(12));
+    this.keep(this.add.image(219,427,'intro-obuseiro-head')
+      .setDisplaySize(52,52).setDepth(13));
   }
   beginTyping(target,text,field){
     this.typeTimer?.remove();this.typeTimer=null;

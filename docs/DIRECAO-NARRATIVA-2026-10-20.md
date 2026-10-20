@@ -1,7 +1,7 @@
 # Direção narrativa — revisão de 20/10/2026
 
 **Projeto:** Soberania  
-**Estado:** decisões autorais registradas. Abertura/Zeca/alienígenas permanecem em planejamento; **apenas os textos do personagem Victor McDollar foram atualizados no código**, sem mudança de mecânicas, arte, áudio ou duração.  
+**Estado atualizado em 20/10/2026, v0.868:** abertura e apresentação de Zeca implementadas em `IntroScene.js` com e-mails digitados, notícias intermediárias, revelação do asterisco após promoção, sons de tecla e retrato do mecânico. As regras de silêncio alienígena até a onda 10 continuam vigentes. As demais decisões narrativas seguem conforme cada seção.  
 **Precedência:** estas decisões mais recentes substituem o material anterior que lhes for incompatível em `docs/GDD.md`, `src/gameplay/introScript.js`, `src/scenes/IntroScene.js` e demais diálogos/cenas.
 
 ## 1. Silêncio alienígena até a onda 10 — decisão aprovada
@@ -22,11 +22,11 @@
 A abertura será **simples**, com texto aparecendo **letra por letra**, em uma interface mínima de e-mail (não a antiga cena interativa do computador), sem a antiga sequência inicial de seis quadros da Cubo News e sem narração do comandante alienígena. **Não haverá tela de login nem solicitação do nome do jogador na introdução.**
 
 **Ordem narrativa obrigatória:**
-1. A pessoa abre um e-mail de convocação para atuar como **mesário(a)** nas eleições.
-2. **Imediatamente depois**, um segundo e-mail chega (notificação ou chegada visual clara).
-3. O segundo e-mail informa que **as eleições foram canceladas devido à invasão alienígena**.
-4. Informa também que **todos os mesários foram promovidos a generais de guerra**, com efeito imediato.
-5. Após os dois e-mails, o jogador **conhece Zeca Carrara** numa apresentação breve (ver seção 3), antes de assumir o obuseiro e iniciar o primeiro combate. Manter apresentação curta, legível, com humor burocrático e sem revelar ainda o motivo da invasão.
+1. A pessoa recebe o e-mail de convocação para atuar como **MESÁRIO*** nas eleições. **O asterisco não deve ser explicado nesta tela.**
+2. **Corte para a Cubo News**, anunciando primeiro a invasão alienígena e depois o cancelamento das eleições.
+3. Um segundo e-mail informa que a convocação permanece válida e que o mesário foi **promovido a GENERAL DE GUERRA**, com efeito imediato e aceite automático.
+4. **Só depois da promoção**, o asterisco revela, por escrito e letra por letra, a cláusula que prevê conversão extraordinária da função eleitoral em função militar sem consentimento.
+5. O jogador conhece Zeca Carrara e vê o obuseiro, antes de iniciar a primeira onda. Não revelar o motivo da invasão; o noticiário é inteiramente humano.
 
 ### Texto provisório para revisão editorial (ainda não aprovado palavra por palavra)
 
@@ -126,3 +126,5 @@ Os textos acima são um **rascunho sugerido**, não frases autoralmente aprovada
 ## Fonte da decisão
 
 Conversa de direção narrativa e revisão textual do projeto em **20/10/2026**.
+
+**Registro de implementação v0.868:** o segundo e-mail não chega imediatamente após o primeiro: a interrupção explícita pelo plantão jornalístico foi aprovada posteriormente. Este novo encadeamento prevalece sobre o rascunho anterior. A intro não requer login ou nome; o painel HTML antigo permanece oculto e sem uso.
