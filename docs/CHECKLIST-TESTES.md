@@ -275,3 +275,11 @@
 - [ ] RESTAURAR NÍVEL volta aos padrões do tipo/nível sem alterar configurações publicadas.
 - [ ] Rascunhos do Enemy Maker não modificam estatísticas reais de inimigos ou campanha nesta versão.
 - [ ] Executar `npm test` e `npm run build`; validar visualmente 960×540 no navegador antes de marcar a versão como estável.
+
+## v0.65 — cutscene da traição / submissão
+- [ ] Abrir onda 11 com país traidor: a cutscene apresenta RESISTIR À TRAIÇÃO e ACEITAR SUBMISSÃO antes do combate.
+- [ ] Escolher RESISTIR: ambos os botões, labels e a sobreposição da cutscene desaparecem antes da contagem regressiva; nenhum botão de submissão aparece durante a luta.
+- [ ] Escolher ACEITAR SUBMISSÃO: abre o final de colonização sem entrar no combate.
+- [ ] Rota Full Brazil não oferece submissão.
+- [ ] Testar retorno/derrota/repetição da onda 11 e verificar ausência de botões residuais.
+- [ ] Rodar `npm test` e `npm run build` e verificar visualmente no navegador; pendente.
