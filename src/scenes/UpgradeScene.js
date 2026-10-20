@@ -29,7 +29,7 @@ function portrait(scene,option,index){
   frame.lineStyle(3,color,1).strokeRoundedRect(-56,-67,112,133,8);
   const portraitKey='leader-'+id+'-full';
   const loaded=scene.textures.exists(portraitKey);
-  const image=loaded?scene.add.image(0,-1,portraitKey).setDisplaySize(106,125):null;
+  const image=loaded?scene.add.image(0,-10,portraitKey).setDisplaySize(106,106):null;
   if(!image){
     frame.fillStyle(color,0.72).fillCircle(0,-27,23);
     frame.fillStyle(color,0.72).fillRoundedRect(-39,-3,78,36,14);
@@ -76,6 +76,14 @@ export class UpgradeScene extends Phaser.Scene {
     }
   }
   create(){
+    // As ilustrações são 384×384, com detalhes menores que um pixel de tela.
+    // Filtragem linear apenas nestas texturas evita aliasing/granulação no downscale.
+    for(const id of ['br','us','jp','ru','cn']){
+      for(const kind of ['full','cutout']){
+        const key='leader-'+id+'-'+kind;
+        if(this.textures.exists(key))this.textures.get(key).setFilter(Phaser.Textures.FilterMode.LINEAR);
+      }
+    }
     bindSceneMusic(this,'upgrades');
     this.add.image(W/2,H/2,'boteco-dia').setDisplaySize(W,H).setDepth(1);
     // A arte diurna é central: cabeçalho discreto, sem cobrir a janela do Rio.
@@ -167,7 +175,7 @@ export class UpgradeScene extends Phaser.Scene {
     const portraitFrame=this.add.rectangle(196,250,144,160,0x101d2b,1)
       .setStrokeStyle(2,COLOR.amber);
     this.botecoPortrait=this.add.image(196,245,'boteco-dia')
-      .setDisplaySize(136,150).setVisible(false);
+      .setDisplaySize(136,136).setVisible(false);
     this.botecoPortraitFrame=portraitFrame.setVisible(false);
     this.botecoSpeaker=makeText(this,W/2,174,'',22,'#ffe0a6').setOrigin(0.5);
     this.botecoLine=makeText(this,620,256,'',18,'#f4f5ff',530,{align:'center'}).setOrigin(0.5);
