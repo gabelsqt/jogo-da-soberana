@@ -2,7 +2,7 @@
 import {countryColor} from '../config/countryIdentity.js';
 export const REPRESENTATIVES = Object.freeze({
   br: { name: 'Zeca Carrara', label: 'BRASIL', emblem: 'BR', offer: 'Meu consagrado, deixa comigo que eu conheço um rapaz que resolve isso aí!', accepted: 'Aí, sim! Sabia que você era fechamento!', tint: countryColor('br') },
-  us: { name: 'Victor McDollar', label: 'EUA', emblem: 'US', offer: 'O Rio já foi grande. Muito grande. Mas comigo, vamos tornar o Rio grande novamente!', accepted: 'Escolha fantástica! A melhor escolha. Todo mundo está dizendo!', tint: countryColor('us') },
+  us: { name: 'Victor McDollar', label: 'EUA', emblem: 'US', offer: 'Victor McDollar, representante dos Estados Unidos! Vim porque quis. Vou ajudar vocês a vencer. Maior canhão, maior defesa, a melhor vitória! E vamos construir um muro!', accepted: 'Escolha fantástica, general! A melhor escolha. Vamos fazer isso grande, como nos velhos tempos!', tint: countryColor('us') },
   jp: { name: 'Kim Lin Doo', label: 'COREIA DO SUL', emblem: 'KR', offer: 'Annyeong, Brasil! Sou Kim Lin Doo, comandante do BTS: Batalhão Tático de Seul! O quê? Por que vocês estão cantando?', accepted: 'Saranghae, Brasil! O BTS, Batalhão Tático de Seul, protege vocês! Pare de pedir autógrafo, isso é artilharia!', tint: countryColor('jp') },
   ru: { name: 'Kátia Strófika', label: 'RÚSSIA', emblem: 'RU', offer: 'Camarada! Trouxe artilharia. É pesada, mas a conta podemos dividir depois.', accepted: 'À nossa parceria! Agora vamos derrubar umas naves!', tint: countryColor('ru') },
   cn: { name: 'Ming Da', label: 'CHINA', emblem: 'CN', offer: 'Você pediu um tiro? Mandei dois! Queria mandar vinte, mas a Receita Federal não deixou.', accepted: 'Excelente compra! Quer dizer... excelente parceria! Frete grátis para o Brasil!', tint: countryColor('cn') },
@@ -23,11 +23,11 @@ export const REPRESENTATIVE_STORIES=Object.freeze({
     'Agora me chamam de especialista em tecnologia de ponta. Ponta de rojão.',
   ]),
   us:Object.freeze([
-    'Disseram que a vaga tinha upgrade VIP. Eu só queria usar minhas milhas.',
-    'A passagem oferecia “Comando Internacional” por cinquenta mil pontos.',
-    'Confundi patente militar com acesso à sala VIP de um aeroporto.',
-    'Ainda não descobri onde cancela a assinatura premium do exército.',
-    'Estão me cobrando comando estratégico e taxa de bagagem extra.',
+    'Eu quis esse cargo. Fiz questão de representar os Estados Unidos. Um país grande precisa dos melhores. E eu sou o melhor!',
+    'Nos velhos tempos, a América fazia tudo maior. Quero aqueles tempos de volta. Começando pelo seu canhão!',
+    'Minha solução? Um muro. Enorme, magnífico! As naves voam? Então fazemos o muro mais alto ainda.',
+    'Eu faço os melhores acordos. Você pede um canhão, eu ofereço um maior. É ajuda de verdade, pode confiar!',
+    'Vamos vencer com as maiores armas, os melhores aliados e o maior muro que o mundo já viu. Vai ser histórico!',
   ]),
   jp:Object.freeze([
     'Eu cantava K-pop. Agora sou general porque o serviço militar me convocou.',
