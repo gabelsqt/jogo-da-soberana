@@ -1,6 +1,6 @@
 // Inverno Eterno (nível 10): o tiro principal vira um jato contínuo em cone.
 // Colisões calculadas a cada tick, não a cada partícula de fumaça.
-export const ICE_BREATH_RANGE=265;
+export const ICE_BREATH_RANGE=530;
 export const ICE_BREATH_HALF_ANGLE=0.32;
 export const ICE_BREATH_TICK_MS=110;
 
@@ -14,7 +14,7 @@ export function insideIceBreathCone(ox,oy,angle,x,y,collisionRadius=0,
     across<=Math.max(8,along)*Math.tan(halfAngle)+r;
 }
 
-export function iceBreathMotes(angle,elapsed,count=32){
+export function iceBreathMotes(angle,elapsed,count=44){
   // Posições determinísticas e móveis, sem criar objetos/tweens por frame.
   // f ∈ [0,1] é o avanço de cada nuvem ao longo do cone.
   const particles=[];
