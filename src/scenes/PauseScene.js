@@ -37,8 +37,16 @@ export class PauseScene extends Phaser.Scene{
     };
     addMenuButton(this,{x:W/2,y:250,text:'▶  Retomar transmissão',
       onClick:resumeGame,primary:true,depth:30,width:346});
-    addMenuButton(this,{x:W/2,y:322,text:'↻  Reiniciar onda',
-      onClick:restartGame,depth:30,width:328});
+    // A onda 11 tem somente uma revanche narrativa: não permitir
+    // reinícios ilimitados por meio do menu de pausa.
+    if(this.scene.get('GameScene').mode!=='wave11'){
+      addMenuButton(this,{x:W/2,y:322,text:'↻  Reiniciar onda',
+        onClick:restartGame,depth:30,width:328});
+    } else {
+      this.add.text(W/2,322,'ONDA FINAL • REINÍCIO INDISPONÍVEL',{
+        fontFamily:'monospace',fontSize:'14px',color:'#e2a45e',
+      }).setOrigin(0.5).setDepth(30);
+    }
     addMenuButton(this,{x:W/2,y:394,text:'⌂  Menu principal',
       onClick:returnToMenu,depth:30,width:328});
     this.add.text(W/2,466,'ESC ou P: voltar ao jogo',{
