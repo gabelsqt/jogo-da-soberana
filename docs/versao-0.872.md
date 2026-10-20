@@ -5,4 +5,5 @@
 - O intervalo comum está definido em `BASE_CANNON_INTERVAL_MS` dentro de `src/gameplay/upgrades.js` e é reutilizado por `v1CombatStats`.
 - Não adiciona bônus específico à onda 0, não altera spawn, velocidade dos inimigos, vida, dano-base ou tiros especiais.
 - Multiplicadores próprios de cada país continuam funcionando. Transformações de ritmo próprio, como o laser contínuo coreano, mantêm sua configuração particular.
-- Testes verificam explicitamente que campanha, upgrades e laboratório derivam do mesmo novo valor.
+- A vida escalada do chefe final agora considera o intervalo fixo do **sopro russo** quando a transformação Inverno Eterno está ativa, em vez de tratá-lo como bala física cada vez mais rápida. Assim a aceleração-base não aumenta artificialmente o HP de Tipo 6 para uma arma que não usa esse intervalo.
+- Testes verificam explicitamente que campanha, upgrades e laboratório derivam do mesmo novo valor, com regressão do duelo Inverno Eterno × Tipo 6.

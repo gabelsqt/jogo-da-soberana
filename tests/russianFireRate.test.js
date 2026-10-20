@@ -7,11 +7,11 @@ const stats=level=>v1CombatStats({choices:Array(level).fill('ru')});
 
 test('Rússia acelera projéteis e disparos nos níveis primários 1, 3, 5 e 7',()=>{
   const checkpoints=[
-    [0,400,480],
-    [1,336,528],
-    [3,276,591.36],
-    [5,223,662.3232],
-    [7,183,741.802],
+    [0,300,480],
+    [1,252,528],
+    [3,207,591.36],
+    [5,167,662.3232],
+    [7,137,741.802],
   ];
   for(const [level,interval,speed] of checkpoints){
     const current=stats(level);

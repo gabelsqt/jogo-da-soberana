@@ -4,10 +4,10 @@ import { combatStatsFor, combatStatsForLoadout } from '../src/gameplay/upgrades.
 import { PLASMA_DAMAGE, PLASMA_EVERY_SHOTS, PLASMA_HALF_WIDTH } from '../src/gameplay/weaponEffects.js';
 import { enemyStats } from '../src/gameplay/enemies.js';
 
-test('cadência inicial aumenta 25% de 2 para 2,5 tiros por segundo', () => {
-  assert.equal(combatStatsFor(null).basicInterval, 400);
-  assert.equal(combatStatsForLoadout([]).basicInterval, 400);
-  assert.equal(combatStatsForLoadout(['br']).basicInterval, 267);
+test('cadência inicial padrão é 3,33 tiros por segundo, também no laboratório', () => {
+  assert.equal(combatStatsFor(null).basicInterval, 300);
+  assert.equal(combatStatsForLoadout([]).basicInterval, 300);
+  assert.equal(combatStatsForLoadout(['br']).basicInterval, 200);
 });
 test('Lightstick de nível 1 tem menor dano, largura e frequência', () => {
   assert.equal(PLASMA_EVERY_SHOTS, 4);

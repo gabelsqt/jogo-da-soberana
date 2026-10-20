@@ -3,9 +3,20 @@
 // Durante a resistência da onda 11, a vida do chefe fica fixada no arsenal
 // sobrevivente original — os upgrades brasileiros extras devem ajudar de fato.
 import { coalitionHpFactor } from './wave11Rules.js';
+import { BASE_CANNON_INTERVAL_MS } from './upgrades.js';
+import { ICE_BREATH_TICK_MS, iceBreathTickDamage } from './iceBreath.js';
 
 export function estimatedBossDps(stats = {}) {
-  const interval=Math.max(32,Number(stats.basicInterval)||400);
+  // Inverno Eterno troca os projéteis físicos por sopro a cada 110ms.
+  // O HP do chefe não deve aumentar quando a cadência-base do CANHÃO
+  // acelera: esse intervalo não controla a frequência do sopro russo.
+  if(stats.transformed==='ru'){
+    const sustained=iceBreathTickDamage(stats.basicDamage,true)*1000/
+      ICE_BREATH_TICK_MS;
+    // Tempo útil entre barreira, troca de módulo e exposição do núcleo.
+    return Math.min(180,Math.max(7,sustained*0.43));
+  }
+  const interval=Math.max(32,Number(stats.basicInterval)||BASE_CANNON_INTERVAL_MS);
   const damage=Math.max(0.5,Number(stats.basicDamage)||1);
   const shots=Math.max(1,Math.min(10,Number(stats.bulletsPerShot)||1));
   const bullets=damage*1000/interval*(1+(shots-1)*0.65);

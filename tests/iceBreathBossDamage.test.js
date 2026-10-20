@@ -5,12 +5,19 @@ import {
   iceBreathType6Target,
 } from '../src/gameplay/iceBreath.js';
 import {v1CombatStats} from '../src/gameplay/v1Upgrades.js';
-import {finaleBossHp} from '../src/gameplay/finaleBalance.js';
+import {finaleBossHp,estimatedBossDps} from '../src/gameplay/finaleBalance.js';
 import {
   createType6State,type6FinishBarrierCharge,type6TargetRects,type6Damage,
 } from '../src/gameplay/type6Boss.js';
 
 const russian=v1CombatStats({choices:Array(10).fill('ru')});
+
+test('HP do Tipo 6 avalia cadência própria do sopro, não a nova cadência de bala',()=>{
+  const baseline=estimatedBossDps(russian);
+  assert.ok(baseline>100&&baseline<150);
+  assert.equal(estimatedBossDps({...russian,basicInterval:400}),baseline);
+  assert.equal(estimatedBossDps({...russian,basicInterval:32}),baseline);
+});
 
 test('sopro contínuo tem dano mínimo próprio, somado ao componente escalável',()=>{
   assert.equal(iceBreathTickDamage(0),4);
