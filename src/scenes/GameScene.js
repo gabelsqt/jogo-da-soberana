@@ -2984,6 +2984,17 @@ export class GameScene extends Phaser.Scene {
     if(!active)return;
     const {x,y}=this.russianBreathMuzzle(angle);
     const c=Math.cos(angle),sn=Math.sin(angle);
+    // Duas camadas translúcidas dão continuidade ao sopro; as partículas
+    // escorrem sobre a névoa, em vez de parecerem disparos individuais.
+    const makeFan=(widthFraction,color,opacity)=>{
+      const spread=ICE_BREATH_RANGE*Math.tan(0.32)*widthFraction;
+      const tipX=x+c*ICE_BREATH_RANGE,tipY=y+sn*ICE_BREATH_RANGE;
+      gfx.fillStyle(color,opacity);
+      gfx.fillTriangle(x,y,tipX-sn*spread,tipY+c*spread,
+        tipX+sn*spread,tipY-c*spread);
+    };
+    makeFan(0.90,0x8fdaf7,0.055);
+    makeFan(0.45,0xe8ffff,0.052);
     // Nuvem contínua de geada com bordas difusas e cristais em movimento.
     for(const [i,mote] of iceBreathMotes(angle,this.elapsed).entries()){
       const px=x+mote.x,py=y+mote.y;
@@ -5082,6 +5093,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time, delta) {
+    if(this.deathSequence||this.tutorialComplete||this.boss6Victory)
+      this.iceBreathGraphics?.clear();
     if (this.deathSequence) {
       this.deathSequence.update(delta, this.input.activePointer);
       return;
