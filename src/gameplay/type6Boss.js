@@ -1,11 +1,12 @@
 // Motor puro da Fortaleza de Cerco — regras aprovadas, sem dependências do Phaser.
 // 'jp' é a chave legada para a Coreia do Sul.
+import {countryColor,countryGlow} from '../config/countryIdentity.js';
 export const TYPE6_PALETTES = Object.freeze({
   alien: {name:'FORTALEZA ORBITAL', metal:0x19252e,edge:0x798d95,light:0xff4059,glow:0xffa8a8,barrier:0x56baff},
-  us: {name:'PORTA-AVIÕES VOADOR',metal:0x273044,edge:0x9cafa9,light:0xffad52,glow:0xffffff,barrier:0x56baff},
-  ru: {name:'COURAÇADO DO ÁRTICO',metal:0x252c3b,edge:0x8794ab,light:0x8fd9ff,glow:0xff536c,barrier:0x56baff},
-  cn: {name:'MEGAFÁBRICA AÉREA',metal:0x30282e,edge:0xb88a66,light:0xffcf5c,glow:0xf65a47,barrier:0x56baff},
-  jp: {name:'FORTALEZA NEON',metal:0x24213b,edge:0xe0a9ef,light:0xf4a6ff,glow:0x7ff4ef,barrier:0x9853f8},
+  us: {name:'PORTA-AVIÕES VOADOR',metal:0x273044,edge:0x9cafa9,light:countryColor('us'),glow:countryGlow('us'),barrier:0x56baff},
+  ru: {name:'COURAÇADO DO ÁRTICO',metal:0x252c3b,edge:0x8794ab,light:countryColor('ru'),glow:countryGlow('ru'),barrier:0x56baff},
+  cn: {name:'MEGAFÁBRICA AÉREA',metal:0x30282e,edge:0xb88a66,light:countryColor('cn'),glow:countryGlow('cn'),barrier:0x56baff},
+  jp: {name:'FORTALEZA NEON',metal:0x24213b,edge:0xe0a9ef,light:countryColor('jp'),glow:countryGlow('jp'),barrier:0x9853f8},
 });
 // À esquerda: bombardeio, laser; à direita: hangar, gerador.
 export const TYPE6_ROLES=Object.freeze(['bombardment','laser','hangar','generator']);
