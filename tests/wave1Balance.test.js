@@ -61,7 +61,7 @@ test('cadência, dano e trajeto especiais se aplicam somente à onda 1',()=>{
   assert.ok(WAVE1_PACING.bulletSpeedMultiplier<1);
   assert.ok(WAVE1_PACING.impactDamageMultiplier<1);
   const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
-  assert.match(scene,/this\.mode==='wave1'\?WAVE1_PACING\.bulletSpeedMultiplier/);
+  assert.match(scene,/this\.mode==='wave1'&&enemy\.type<=2\?WAVE1_PACING\.bulletSpeedMultiplier/);
   assert.match(scene,/this\.mode==='wave1'\?WAVE1_PACING\.impactDamageMultiplier/);
   assert.match(scene,/this\.mode!=='wave1'/);
   assert.match(scene,/wave1FormationShooter\('swarm'/);
