@@ -50,12 +50,25 @@ export function iceBreathTickDamage(basicDamage=1,isType6=false){
 }
 
 /**
- * O Tipo 6 ocupa uma barra larga: testar apenas o centro da nave perde os
- * quatro módulos. Cada retângulo colidível é testado individualmente; a
- * barreira continua absorvendo apenas UM hit por ciclo de sopro.
- * `rects` vem de type6TargetRects (só módulos vivos/núcleo aberto).
+ * O Tipo 6 ocupa uma barra larga: a mira deve detectar módulos laterais,
+ * mas o jato aplica somente UM hit direto por ciclo à fortaleza inteira.
+ * A área do cone é mantida para congelar grupos de naves normais.
+ * `rects` vem de type6TargetRects (módulos vivos/núcleo aberto).
  */
 export function iceBreathType6Targets(ox,oy,angle,rects){
   return rects.filter(rect=>insideIceBreathCone(ox,oy,angle,
     rect.x,rect.y,Math.min(rect.halfWidth,rect.halfHeight)));
+}
+
+// Escolhe o módulo mais próximo do eixo central do sopro, não o primeiro
+// da lista. Assim, apontar para o gerador ou núcleo continua intencional.
+export function iceBreathType6Target(ox,oy,angle,rects){
+  const targets=iceBreathType6Targets(ox,oy,angle,rects);
+  const sine=Math.sin(angle),cosine=Math.cos(angle);
+  let best=null,bestOffset=Infinity;
+  for(const rect of targets){
+    const offset=Math.abs((rect.x-ox)*(-sine)+(rect.y-oy)*cosine);
+    if(offset<bestOffset){best=rect;bestOffset=offset;}
+  }
+  return best;
 }
