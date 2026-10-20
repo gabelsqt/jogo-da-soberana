@@ -213,7 +213,8 @@ export function addMenuMusicControl(scene,{x=91,y=518,depth=40}={}){
   const refresh=()=>{
     const vol=Math.max(0,Math.min(1,music.volume));
     thumb.setPosition(left+(right-left)*vol,trackY);
-    fill.setDisplaySize(Math.max(1,(right-left)*vol),7);
+    // Rectangle é um Shape; escalar o traço de 1px evita depender de setDisplaySize.
+    fill.setScale(Math.max(1,(right-left)*vol),1);
     percent.setText(Math.round(vol*100)+'%');
     muteLabel.setText(music.muted?'LIGAR':'MUDO');
   };
