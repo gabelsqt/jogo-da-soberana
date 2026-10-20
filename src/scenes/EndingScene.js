@@ -1,4 +1,4 @@
-import { bindSceneMusic } from '../audio/music.js';
+import { bindSceneMusic, endingMusic } from '../audio/music.js';
 import Phaser from 'phaser';
 import { finaleEnding } from '../gameplay/campaignFinale.js';
 import { addMenuButton } from '../ui/menuButton.js';
@@ -19,8 +19,9 @@ export class EndingScene extends Phaser.Scene {
   }
 
   create() {
-    bindSceneMusic(this, null);
     const {ending}=this;
+    const theme=endingMusic(ending);
+    bindSceneMusic(this,theme,{loop:theme!=='gameOver'});
     this.add.rectangle(W/2,H/2,W,H,0x070e20).setDepth(0);
     const g=this.add.graphics().setDepth(1);
     g.fillStyle(ending.won?0x0d2c31:0x351925).fillRect(0,0,W,H);

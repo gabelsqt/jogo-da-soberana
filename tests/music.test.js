@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { MusicPlayer, MUSIC, waveMusic } from '../src/audio/music.js';
+import { MusicPlayer, MUSIC, waveMusic, endingMusic } from '../src/audio/music.js';
+import {readFileSync} from 'node:fs';
 
 test('todas as trilhas existem; ondas e adversários escolhem a música correta', () => {
   for (const file of Object.values(MUSIC)) assert.ok(existsSync(new URL('../public/assets/musicas/' + file, import.meta.url)), file);
   assert.deepEqual(Array.from({ length: 11 }, (_, i) => waveMusic('wave' + i)),
-    ['early','early','early','early2','early2','middle','middle','middle','middle','middle','boss']);
+    ['early','early','early','early2','early3','middle','middle','middle','middle','middle','boss']);
   for (const id of ['us','ru','cn','jp']) assert.equal(waveMusic('wave11', { choices: [id] }), id);
   assert.equal(waveMusic('wave11', { choices: ['br'] }), 'boss');
 });
@@ -76,4 +77,39 @@ test('fade da destruição não sobrescreve volume salvo; próxima faixa volta a
   const saved = new MusicPlayer({ storage }); assert.equal(saved.volume, 0.7);
   p.play('menu'); assert.equal(audios[1].volume, 0.7);
   saved.destroy(); p.destroy();
+});
+
+// v0.855: o tema de batalha da onda 11 não deve substituir o de colonização.
+test('epílogos tocam a trilha de colonização correspondente; vitórias ficam sem música provisoriamente',()=>{
+  for(const [country,key] of Object.entries({us:'colonUs',ru:'colonRu',cn:'colonCn',jp:'jp',br:'gameOver'})){
+    assert.equal(endingMusic({country,won:false}),key,country);
+    assert.equal(endingMusic({country,won:true}),null,country);
+  }
+  assert.equal(endingMusic({country:'alien',won:false}),'gameOver');
+  const ending=readFileSync(new URL('../src/scenes/EndingScene.js',import.meta.url),'utf8');
+  assert.match(ending,/const theme=endingMusic\(ending\)/);
+  assert.match(ending,/bindSceneMusic\(this,theme,\{loop:theme!=='gameOver'\}\)/);
+});
+
+test('derrota toca Game Over sem loop após a destruição; o epílogo mantém a escolha por país',()=>{
+  const game=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
+  const finale=game.slice(game.indexOf("  showFinaleDefeat(reason='cannon') {"),game.indexOf("  showDefeat(reason='cannon') {"));
+  const begin=game.indexOf("  finishDefeat(reason='cannon') {");
+  const end=game.indexOf("  showWaveComplete(outcome",begin);
+  assert.ok(begin>=0&&end>begin,'trecho de derrota encontrado');
+  const common=game.slice(begin,end);
+  assert.match(finale,/this\.music\.play\('gameOver',\{loop:false\}\)/);
+  assert.match(common,/this\.music\.play\('gameOver',\{loop:false\}\)/);
+  assert.match(game,/this\.music\.stop\(\)/);
+});
+
+test('Game Over é uma vinheta sem loop, sem reiniciar após terminar', async()=>{
+  const {player:p,audios,doc}=fixture();
+  p.play('gameOver',{loop:false}); await settle();
+  assert.equal(audios[0].loop,false);
+  assert.match(audios[0].src,/Game Over\.mp3$/);
+  audios[0].ended=true;audios[0].paused=true;
+  doc.dispatchEvent(new Event('pointerdown'));
+  assert.equal(audios[0].plays,1);
+  p.destroy();
 });

@@ -4843,7 +4843,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   showFinaleDefeat(reason='cannon') {
-    this.music.stop();
+    this.music.play('gameOver',{loop:false});
     this.tutorialComplete=true;
     this.gameOver=true;
     const available=canOfferZecaRecovery(
@@ -4940,6 +4940,9 @@ export class GameScene extends Phaser.Scene {
     this.clearDiscoGlobes();
     this.music.stop();
     if (this.mode==='wave11' && !this.waveMakerTest) {this.showFinaleDefeat(reason);return;}
+    // O efeito da destruição termina primeiro; o tema curto entra
+    // ao abrir a tela de Game Over, sem misturar com música de combate.
+    this.music.play('gameOver',{loop:false});
     if(this.waveMakerTest)this.saveWaveMakerReport('derrota');
     this.tutorialComplete = true;
     this.gameOver = true;

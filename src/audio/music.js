@@ -7,6 +7,7 @@ export const MUSIC = Object.freeze({
   upgrades: 'Menu do bar - upgrades.mp3',
   early: 'Ondas Iniciais.mp3',
   early2: 'Ondas Iniciais 2.mp3',
+  early3: 'Ondas Iniciais 3.mp3',
   middle: 'Ondas Intermediárias.mp3',
   boss: 'Chefão Alien - onda 10.mp3',
   news: 'plantão cubo news Brasil.mp3',
@@ -14,6 +15,10 @@ export const MUSIC = Object.freeze({
   us: 'traição americana.mp3',
   cn: 'traição china.mp3',
   jp: 'traição coreana.mp3',
+  gameOver: 'Game Over.mp3',
+  colonUs: 'Colonização Americana.mp3',
+  colonRu: 'Colonização Russa- frozen expedition.mp3',
+  colonCn: 'Colonização Chinesa - 快遞旋律.mp3',
 });
 
 export function waveMusic(mode, campaign = {}) {
@@ -25,7 +30,22 @@ export function waveMusic(mode, campaign = {}) {
   }
   if (+wave >= 10) return 'boss';
   if (+wave >= 5) return 'middle';
-  return +wave >= 3 ? 'early2' : 'early';
+  if (+wave === 4) return 'early3';
+  return +wave === 3 ? 'early2' : 'early';
+}
+
+// O epílogo distingue TRAIÇÃO (trilha de combate) de COLONIZAÇÃO
+// (resultado narrativo após perder). Coreia ainda aguarda trilha de
+// colonização e reutiliza a faixa de traição sem silenciar o final.
+export function endingMusic(ending = {}) {
+  if (ending.won) return null;
+  switch (ending.country) {
+    case 'us': return 'colonUs';
+    case 'ru': return 'colonRu';
+    case 'cn': return 'colonCn';
+    case 'jp': return 'jp';
+    default: return 'gameOver'; // derrota alienígena Full Brazil
+  }
 }
 
 const STORAGE_KEY = 'soberania-music-v1';

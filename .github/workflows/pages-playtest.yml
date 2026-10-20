@@ -56,6 +56,7 @@ jobs:
           tests/type5SpriteSheet.test.js
           tests/type6HullSprite.test.js
           tests/type6ModuleSprite.test.js
+          tests/music.test.js
       - name: Gerar HTML único do jogo
         run: npm run build:itch
       - name: Preparar página

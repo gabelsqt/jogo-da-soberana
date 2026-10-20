@@ -9,16 +9,25 @@ Arquivos originais em `public/assets/musicas/`; mapeamento em `src/audio/music.j
 | Mesa de negociações | Menu do bar - upgrades.mp3 |
 | Abertura da campanha e anúncio da onda 11 | plantão cubo news Brasil.mp3 (uma vez, até entrar na batalha) |
 | Ondas 0–2 / arena livre | Ondas Iniciais.mp3 |
-| Ondas 3–4 | Ondas Iniciais 2.mp3 |
+| Onda 3 | Ondas Iniciais 2.mp3 |
+| Onda 4 | Ondas Iniciais 3.mp3 |
 | Ondas 5–9 | Ondas Intermediárias.mp3 |
 | Onda 10 / última ofensiva Full Brazil | Chefão Alien - onda 10.mp3 |
 | Onda 11 contra EUA / Rússia / China / Coreia | traição americana / Russa / china / coreana.mp3 |
+| Tela de Game Over (derrotas comuns ou no chefe final) | Game Over.mp3 (uma vez, sem loop) |
+| Epílogo: colonização EUA | Colonização Americana.mp3 |
+| Epílogo: colonização Rússia | Colonização Russa- frozen expedition.mp3 |
+| Epílogo: colonização China | Colonização Chinesa - 快遞旋律.mp3 |
+| Epílogo: colonização Coreia | **Pendente**; usa temporariamente traição coreana.mp3 |
+| Epílogo: derrota Full Brazil | Game Over.mp3 (uma vez, sem loop) |
 
-Em coalizões, usa a faixa do adversário principal retornado pelas regras da
-campanha. A Coreia mantém o identificador interno legado `jp`.
+Na onda 11 há um único traidor sorteado; usa sua faixa específica. A Coreia mantém o identificador interno legado `jp`.
 
-As trilhas de batalha e menus repetem em loop. A vinheta não repete. Vitória e
-derrota encerram a trilha de batalha; os epílogos aguardam músicas próprias.
+As trilhas de batalha e menus repetem em loop. A vinheta de notícias e Game Over
+não repetem. O Game Over entra quando a tela de derrota surge (após a animação
+de destruição do canhão). Os epílogos de colonização usam músicas próprias onde
+disponíveis; a Coreia usa temporariamente a faixa de traição. Epílogos de vitória
+continuam sem tema próprio até receberem arte musical aprovada.
 
 No menu e na pausa, `−` e `+` ajustam o volume em 10 pontos percentuais; clicar
 no texto MÚSICA liga/desliga. Preferências são salvas localmente, quando o
