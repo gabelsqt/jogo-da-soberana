@@ -1,5 +1,8 @@
 export const DISCO_DURATION_MS = 4000;
 export const DISCO_RADIUS = 28;
+// 180 ms entre salvas, mesmo com disparos rápidos do nível 10.
+// Apenas uma salva que encontra alvos consome o intervalo.
+export const DISCO_REFLECTION_COOLDOWN_MS = 180;
 
 // Primeira interseção no segmento: não perde balas rápidas entre dois frames.
 export function hitDiscoGlobe(globes = [], x1, y1, x2, y2, now, padding = 0) {

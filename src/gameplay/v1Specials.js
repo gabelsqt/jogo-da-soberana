@@ -30,6 +30,9 @@ export function v1SpecialConfig(state = {}) {
   const loadout=v1SpecialLoadout(state);
   const {stages}=loadout;
   const br=stages.br,us=stages.us,ru=stages.ru,cn=stages.cn,jp=stages.jp;
+  // O dano por salva NÃO é multiplicado pelo número de raios.
+  const krReflections=at(jp,[3,6,12,24]);
+  const krSalvoDamage=at(jp,[3,5,7.5,10]);
   return {
     ...loadout,
     // Brasil preserva as contagens e o turbo aprovados.
@@ -56,9 +59,10 @@ export function v1SpecialConfig(state = {}) {
     cnDropRadius:at(cn,[40,55,75,105]),
     cnPayloads:at(cn,[1,2,3,4]),
     cnDamage:at(cn,[3,4,5,7]),
-    // Coreia: cada tiro recebido pelo globo de 4 s gera esta quantidade de raios.
-    krReflections:at(jp,[3,6,12,24]),
-    krReflectDamage:at(jp,[1.8,2.6,3.5,4.5]),
+    // Coreia: um orçamento total limitado dividido entre 3/6/12/24 raios.
+    krReflections,
+    krSalvoDamage,
+    krReflectDamage:krReflections ? krSalvoDamage/krReflections : 0,
   };
 }
 
