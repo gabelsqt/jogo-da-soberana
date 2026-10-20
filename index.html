@@ -377,7 +377,8 @@
       }
       #cubo-news-overlay.cubo-warning .cubo-crawl{background:#442b32}
       #cubo-news-overlay.cubo-warning .cubo-label{background:#7c3440}
-      #cubo-news-overlay.cubo-intro-running #cubo-time-reader{opacity:0}
+      /* A opacidade do relógio durante a entrada é controlada no próprio #cubo-time.
+         Esconder também o reader causava um salto/piscar no fim da transição. */
       /* Computador velho do expediente: login e clique no navegador fictício. */
       #player-name-panel{
         position:absolute;inset:0 0 auto;width:100%;height:92.46%;
