@@ -29,3 +29,14 @@ export function addMenuButton(scene,{
   background.cuboDecoration={shadow,bar};
   return background;
 }
+
+
+// Um botão Cubo News é composto de quatro GameObjects independentes.
+// destroy() no retângulo principal NÃO remove as outras peças.
+export function destroyMenuButton(button) {
+  if (!button) return;
+  button.label?.destroy();
+  button.cuboDecoration?.bar?.destroy();
+  button.cuboDecoration?.shadow?.destroy();
+  button.destroy();
+}
