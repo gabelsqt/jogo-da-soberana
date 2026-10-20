@@ -331,13 +331,11 @@ export class GameScene extends Phaser.Scene {
     this.input.mouse?.disableContextMenu();
 
     drawRioBackdrop(this);
-    // Quatro imagens completas: a mais escura fica visível durante a noite.
-    // As seguintes surgem por sobreposição progressiva nos cinco segundos finais.
+    // O cenário noturno original permanece até os 10 segundos finais.
+    // As quatro imagens surgem sequencialmente por cima dele.
     this.dawnLayers=this.mode.startsWith('wave')?DAWN_KEYS.map(key=>
       this.textures.exists(key)?this.add.image(W/2,H/2,key)
         .setDisplaySize(W,H).setDepth(0.5).setAlpha(0):null):[];
-    if(this.dawnLayers.every(Boolean)&&this.dawnLayers.length===4)
-      this.dawnLayers[0].setAlpha(1);
     // Iluminação de amanhecer nos últimos 5 segundos das noites.
     // Camada atrás dos alvos/defesas e acima do cenário.
     this.sunriseOverlay = this.mode.startsWith('wave')
@@ -4959,7 +4957,7 @@ export class GameScene extends Phaser.Scene {
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += this.boss6IntroPaused?0:delta;
     this.updateDiscoGlobes();
-    // Amanhecer gradual apenas no relógio ativo da onda; o Supremo congela a imagem.
+    // Amanhecer nos dez segundos finais; o Supremo congela o relógio e a imagem.
     if(this.dawnLayers?.length===4&&this.dawnLayers.every(Boolean)){
       const alphas=dawnLayerAlphas(this.waveDurationMs-this.elapsed);
       this.dawnLayers.forEach((layer,i)=>layer.setAlpha(alphas[i]));
