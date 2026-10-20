@@ -32,12 +32,12 @@ export function mountPauseHudButton(scene, onPause, {
     left:'50%',
     transform:'translateX(-50%)',
     boxSizing:'border-box',
-    minWidth:'148px',
-    height:'40px',
+    width:'clamp(148px, 16vw, 244px)',
+    height:'clamp(40px, 3vw, 52px)',
     padding:'7px 18px',
     fontFamily:"'IBM Plex Sans',system-ui,sans-serif",
     fontWeight:'700',
-    fontSize:'14px',
+    fontSize:'clamp(13px, 1.2vw, 19px)',
     lineHeight:'20px',
     letterSpacing:'0.02em',
     color:'#e9f5ff',
@@ -59,6 +59,17 @@ export function mountPauseHudButton(scene, onPause, {
       broadcastTop:br.top,safeTop,
     })+'px';
   };
+  // A rotina responsiva da página ajusta a composição no próximo frame.
+  // Esperar esse layout evita calcular a posição usando dimensões antigas.
+  let positionFrame=null;
+  const schedulePosition=()=>{
+    if(!win?.requestAnimationFrame){refreshPosition();return;}
+    if(positionFrame!==null)return;
+    positionFrame=win.requestAnimationFrame(()=>{
+      positionFrame=null;
+      refreshPosition();
+    });
+  };
   const onClick=(event)=>{
     event.stopPropagation();
     event.preventDefault();
@@ -73,20 +84,21 @@ export function mountPauseHudButton(scene, onPause, {
   root.appendChild(button);
   scene.events.on('pause',hide);
   scene.events.on('resume',show);
-  scene.game.events.on('cubo-layout-change',refreshPosition);
-  win?.addEventListener?.('resize',refreshPosition);
-  win?.visualViewport?.addEventListener?.('resize',refreshPosition);
-  scene.scale?.on?.('resize',refreshPosition);
+  scene.game.events.on('cubo-layout-change',schedulePosition);
+  win?.addEventListener?.('resize',schedulePosition);
+  win?.visualViewport?.addEventListener?.('resize',schedulePosition);
+  scene.scale?.on?.('resize',schedulePosition);
   refreshPosition();
   scene.events.once('shutdown',()=>{
     button.removeEventListener('click',onClick);
     button.removeEventListener('pointerdown',shieldPointer);
     scene.events.off('pause',hide);
     scene.events.off('resume',show);
-    scene.game.events.off('cubo-layout-change',refreshPosition);
-    win?.removeEventListener?.('resize',refreshPosition);
-    win?.visualViewport?.removeEventListener?.('resize',refreshPosition);
-    scene.scale?.off?.('resize',refreshPosition);
+    scene.game.events.off('cubo-layout-change',schedulePosition);
+    win?.removeEventListener?.('resize',schedulePosition);
+    win?.visualViewport?.removeEventListener?.('resize',schedulePosition);
+    scene.scale?.off?.('resize',schedulePosition);
+    if(positionFrame!==null)win?.cancelAnimationFrame?.(positionFrame);
     button.remove();
   });
   return button;
