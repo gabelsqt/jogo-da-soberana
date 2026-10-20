@@ -1,8 +1,9 @@
 // Frases-base derivadas da seção 34.2 do GDD. A Rússia ainda tem texto provisório.
+import {countryColor} from '../config/countryIdentity.js';
 export const REPRESENTATIVES = Object.freeze({
-  br: { name: 'Zeca Carrara', label: 'BRASIL', emblem: 'BR', offer: 'Meu consagrado, deixa comigo que eu conheço um rapaz que resolve isso aí!', accepted: 'Aí, sim! Sabia que você era fechamento!', tint: 0x2a9c65 },
-  us: { name: 'Victor McDollar', label: 'EUA', emblem: 'US', offer: 'O Rio já foi grande. Muito grande. Mas comigo, vamos tornar o Rio grande novamente!', accepted: 'Escolha fantástica! A melhor escolha. Todo mundo está dizendo!', tint: 0x477dc4 },
-  jp: { name: 'Kim Lin Doo', label: 'COREIA DO SUL', emblem: 'KR', offer: 'Annyeong, Brasil! Sou Kim Lin Doo, comandante do BTS: Batalhão Tático de Seul! O quê? Por que vocês estão cantando?', accepted: 'Saranghae, Brasil! O BTS, Batalhão Tático de Seul, protege vocês! Pare de pedir autógrafo, isso é artilharia!', tint: 0xd85c78 },
+  br: { name: 'Zeca Carrara', label: 'BRASIL', emblem: 'BR', offer: 'Meu consagrado, deixa comigo que eu conheço um rapaz que resolve isso aí!', accepted: 'Aí, sim! Sabia que você era fechamento!', tint: countryColor('br') },
+  us: { name: 'Victor McDollar', label: 'EUA', emblem: 'US', offer: 'O Rio já foi grande. Muito grande. Mas comigo, vamos tornar o Rio grande novamente!', accepted: 'Escolha fantástica! A melhor escolha. Todo mundo está dizendo!', tint: countryColor('us') },
+  jp: { name: 'Kim Lin Doo', label: 'COREIA DO SUL', emblem: 'KR', offer: 'Annyeong, Brasil! Sou Kim Lin Doo, comandante do BTS: Batalhão Tático de Seul! O quê? Por que vocês estão cantando?', accepted: 'Saranghae, Brasil! O BTS, Batalhão Tático de Seul, protege vocês! Pare de pedir autógrafo, isso é artilharia!', tint: countryColor('jp') },
   ru: { name: 'Kátia Strófika', label: 'RÚSSIA', emblem: 'RU', offer: 'Camarada! Trouxe artilharia. É pesada, mas a conta podemos dividir depois.', accepted: 'À nossa parceria! Agora vamos derrubar umas naves!', tint: 0xc94d4d },
   cn: { name: 'Ming Da', label: 'CHINA', emblem: 'CN', offer: 'Você pediu um tiro? Mandei dois! Queria mandar vinte, mas a Receita Federal não deixou.', accepted: 'Excelente compra! Quer dizer... excelente parceria! Frete grátis para o Brasil!', tint: 0xdfa84c },
 });
