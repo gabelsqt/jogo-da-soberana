@@ -199,8 +199,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 2,
-      "title": "Matryoshka de Estilhaços",
-      "description": "Matryoshka estilhaça congelados com 8 fragmentos; recarga 25% menor.",
+      "title": "Sputnik Criogênico",
+      "description": "Satélite congela e cristaliza por contato durante 4 s. Alvos marcados levam mais dano do tiro russo.",
       "kind": "secondary"
     },
     {
@@ -211,8 +211,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 4,
-      "title": "Boneca Matryoshka",
-      "description": "Especial solta 12 estilhaços e provoca reações ofensivas em cadeia.",
+      "title": "Órbita Fria",
+      "description": "Sputnik permanece por 5 s e aumenta a área de contato congelante.",
       "kind": "secondary"
     },
     {
@@ -223,8 +223,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 6,
-      "title": "Frente Fria",
-      "description": "Especial solta 16 estilhaços em trajetórias congelantes.",
+      "title": "Reator de Permafrost",
+      "description": "Cristalizados geram explosões de gelo com dano e raio ampliados.",
       "kind": "secondary"
     },
     {
@@ -235,8 +235,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 8,
-      "title": "Tempestade de Estilhaços",
-      "description": "Especial solta 24 estilhaços de longo alcance.",
+      "title": "Zero Absoluto Orbital",
+      "description": "Sputnik emite pulsos de congelamento e libera uma última onda criogênica ao desaparecer.",
       "kind": "secondary"
     },
     {
