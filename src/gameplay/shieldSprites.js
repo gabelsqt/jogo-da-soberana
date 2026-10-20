@@ -72,6 +72,10 @@ export function updateShieldSprites(scene,cannonX,cannonY,towers){
 // Quebra somente quando o escudo sai da faixa vermelha e atinge zero.
 export function shatterShieldSprite(scene,x,y,radius,color=0xf04a52){
   if(!scene.shieldSpriteKeys)return;
+  // Ocultar no próprio frame do dano, inclusive se a cena entrar em game over.
+  if(Math.abs(x-480)<1&&Math.abs(y-504)<1)scene.cannonDomeSprite?.setVisible(false);
+  for(const [tower,sprite] of scene.towerDomeSprites??[])
+    if(Math.abs(tower.x-x)<1&&Math.abs(tower.y+10-y)<1)sprite.setVisible(false);
   const count=10;
   for(let i=0;i<count;i++){
     const angle=Math.PI+(i+0.5)*Math.PI/count;
