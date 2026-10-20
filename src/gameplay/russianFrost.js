@@ -29,19 +29,24 @@ export function russianShatterTargets(source,enemies,now,radius){
 
 // Somente visual: cristais disparados radialmente no abate de um alvo congelado.
 // O dano continua calculado pelo raio de shatter, sem projetéis adicionais.
-export function russianShardVisuals(radius,count=10,random=Math.random){
+// Os cristais ficam mais largos e facetados conforme os níveis russos sobem.
+// A progressão é visual: o dano continua controlado por russianShatterDamage.
+export function russianShardVisuals(radius,count=10,random=Math.random,level=1){
   if(!(radius>0)||!(count>0))return [];
   const n=Math.min(12,Math.floor(count));
+  const growth=1+Math.max(0,Math.min(9,level-1))*0.115;
   return Array.from({length:n},(_,i)=>{
-    const angle=(i+(random()-0.5)*0.2)*Math.PI*2/n;
-    const distance=radius*(0.65+random()*0.33);
+    const angle=(i+(random()-0.5)*0.24)*Math.PI*2/n;
+    const distance=radius*(0.60+random()*0.38);
     return {
       angle,
       dx:Math.cos(angle)*distance,
       dy:Math.sin(angle)*distance,
-      width:3+Math.round(random()*3),
-      length:9+Math.round(random()*8),
-      duration:230+Math.round(random()*110),
+      width:(3+random()*2.2)*growth,
+      length:(10+random()*6)*growth,
+      duration:260+Math.round(random()*130),
+      spin:(random()>0.5?1:-1)*(1.3+random()*2.8),
+      growth,
     };
   });
 }
