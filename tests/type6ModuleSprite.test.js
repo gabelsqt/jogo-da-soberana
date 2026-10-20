@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createType6State} from '../src/gameplay/type6Boss.js';
-import {TYPE6_MODULE_SHEET,type6ModuleFrame,type6ModuleUsesSheet,type6ModuleDamageFrame}
+import {TYPE6_MODULE_SHEET,type6ModuleFrame,type6ModuleUsesSheet,type6ModuleDamageFrame,
+ type6ModuleEnergyActive,type6CoreEnergyActive,type6ModuleWhiteFlash,
+ TYPE6_MODULE_WHITE_FLASH_MS,TYPE6_MODULE_FLASH_RETRIGGER_MS}
   from '../src/gameplay/type6ModuleSprite.js';
 const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
 const encounter=readFileSync(new URL('../src/gameplay/type6Encounter.js',import.meta.url),'utf8');
@@ -64,4 +66,60 @@ test('carregamento, atividade e barreira selecionam os estados correspondentes',
  assert.equal(type6ModuleFrame(s,s.modules[0],600),0);
  s.barrier.active=true;
  assert.equal(type6ModuleFrame(s,s.modules[3]),23);
+});
+
+// v0.854: sucção apenas na ativação e flash no PNG (não na hitbox).
+test('módulos em repouso, com barreira pronta ou durante a entrada não sugam energia',()=>{
+ const s=createType6State('alien'),[bomb,laser,hangar,generator]=s.modules;
+ assert.ok(s.modules.every(m=>!type6ModuleEnergyActive(s,m,100)));
+ s.introComplete=true;
+ assert.ok(s.modules.every(m=>!type6ModuleEnergyActive(s,m,100)));
+ s.barrier.active=true;s.barrier.hp=s.barrier.maxHp;
+ assert.equal(type6ModuleEnergyActive(s,generator,100),false,
+   'gerador não suga energia ininterruptamente enquanto barreira estiver ligada');
+ assert.equal(type6CoreEnergyActive(s),false);
+ s.action={kind:'laserCharge',moduleId:laser.id,elapsed:0};
+ assert.equal(type6ModuleEnergyActive(s,laser,100),true);
+ for(const m of [bomb,hangar,generator])assert.equal(type6ModuleEnergyActive(s,m,100),false);
+ s.action.kind='laserFire';
+ assert.equal(type6ModuleEnergyActive(s,laser,100),true);
+ s.action=null;
+ assert.equal(type6ModuleEnergyActive(s,laser,100),false);
+});
+test('absorção ativa durante bomba, lançamento, recarga de barreira e breve pós-disparo',()=>{
+ const s=createType6State('alien');
+ s.introComplete=true;
+ for(const [id,kind] of [[0,'bomb'],[2,'hangar'],[3,'barrier']]){
+   s.action={kind,moduleId:id,elapsed:0};
+   assert.equal(type6ModuleEnergyActive(s,s.modules[id],100),true,kind);
+   s.action=null;
+ }
+ const bomb=s.modules[0];
+ bomb.activeUntil=480;
+ assert.equal(type6ModuleEnergyActive(s,bomb,400),true);
+ assert.equal(type6ModuleEnergyActive(s,bomb,480),false);
+ bomb.broken=true;
+ assert.equal(type6ModuleEnergyActive(s,bomb,400),false);
+ s.coreExposed=true;s.charging=true;
+ assert.equal(type6CoreEnergyActive(s),true);
+ assert.equal(type6ModuleEnergyActive(s,s.modules[2],400),false);
+ s.defeated=true;
+ assert.equal(type6CoreEnergyActive(s),false);
+});
+test('flash branco usa somente o sprite, dura 90 ms e respeita descanso sob tiros rápidos',()=>{
+ const s=createType6State('alien'),m=s.modules[0];
+ assert.equal(type6ModuleWhiteFlash(m,100),false);
+ m.spriteFlashStartedAt=200;
+ assert.equal(type6ModuleWhiteFlash(m,199),false);
+ assert.equal(type6ModuleWhiteFlash(m,200),true);
+ assert.equal(type6ModuleWhiteFlash(m,200+TYPE6_MODULE_WHITE_FLASH_MS-1),true);
+ assert.equal(type6ModuleWhiteFlash(m,200+TYPE6_MODULE_WHITE_FLASH_MS),false);
+ assert.ok(TYPE6_MODULE_FLASH_RETRIGGER_MS>=TYPE6_MODULE_WHITE_FLASH_MS*2);
+ assert.match(encounter,/art\.setTintFill\(0xffffff\)/);
+ assert.match(encounter,/else art\.clearTint\(\)/);
+ assert.match(encounter,/module\.spriteFlashStartedAt=scene\.time\.now/);
+ assert.doesNotMatch(visual,/fillRoundedRect\(x-54,y-39,108,78,5\).*flash/);
+ assert.match(visual,/if\(!useModuleSprites\)\{/);
+ assert.match(visual,/type6ModuleEnergyActive\(state,module,ageMs\)/);
+ assert.match(visual,/if\(type6CoreEnergyActive\(state\)\)/);
 });

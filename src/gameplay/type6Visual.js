@@ -2,6 +2,7 @@ import {
   TYPE6_PALETTES, TYPE6_WIDTH, TYPE6_HEIGHT,
   type6ModuleVisualState,
 } from './type6Boss.js';
+import {type6ModuleEnergyActive,type6CoreEnergyActive} from './type6ModuleSprite.js';
 
 // Órbitas de energia puramente cosméticas: partículas convergem para a
 // eletrônica da fortaleza sem interagir com disparos nem causar colisões.
@@ -202,26 +203,31 @@ export function drawType6Ship(g,state,ageMs=0,useHullSprite=false,useModuleSprit
       g.strokeRoundedRect(x-65,y-50,130,100,12);
     }
   }
-  // Cada módulo atrai energia visualmente; o laser de cerco possui
-  // campo maior. A região central mantém sua própria convergência ampla.
+  // A absorção só aparece para o módulo executando a sua ação.
+  // O gerador com barreira JÁ ATIVA não suga energia continuamente.
   for(const module of state.modules){
-    if(module.broken)continue;
+    if(!type6ModuleEnergyActive(state,module,ageMs))continue;
     drawEnergyIntake(g,module.offsetX,module.offsetY,ageMs,
       module.role==='laser'?99:58,
       module.role==='laser'?p.glow:p.light,
       module.role==='laser'?15:9,module.role==='laser'?0.9:0.65);
   }
-  drawEnergyIntake(g,0,0,ageMs,116,p.glow,18,
-    state.coreExposed?0.95:0.53);
+  // O núcleo atrai energia apenas nos cinco segundos finais da superarma.
+  if(type6CoreEnergyActive(state))
+    drawEnergyIntake(g,0,0,ageMs,116,p.glow,18,0.95);
 
-  // Flash de dano por módulo: não é afetado pela posição da hitbox.
-  for(const module of state.modules){
-    const flash=module.broken?0:flashFor(module.hitAt);
-    if(flash<=0)continue;
-    const x=module.offsetX,y=module.offsetY;
-    g.fillStyle(0xffffff,0.13+0.43*flash).fillRoundedRect(x-54,y-39,108,78,5);
-    g.lineStyle(3,module.shield>0?0x71cfff:0xffffff,0.38+0.6*flash)
-      .strokeRoundedRect(x-58,y-43,116,86,7);
+  // O PNG pisca em branco usando setTintFill, aplicado ao PRÓPRIO sprite
+  // em type6Encounter. Não desenhar caixas por cima das artes.
+  // Nos chefões nacionais que ainda não têm PNG, só faíscas discretas.
+  if(!useModuleSprites){
+    for(const module of state.modules){
+      const flash=module.broken?0:flashFor(module.hitAt);
+      if(flash<=0)continue;
+      const x=module.offsetX,y=module.offsetY;
+      g.lineStyle(2,0xffffff,0.48+0.4*flash);
+      g.lineBetween(x-10,y-7,x+10,y+7);
+      g.lineBetween(x-10,y+7,x+10,y-7);
+    }
   }
   // Barreira frontal completa: azul ou roxo coreano, progredindo ao vermelho.
   const b=state.barrier;

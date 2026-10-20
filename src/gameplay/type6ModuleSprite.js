@@ -35,3 +35,25 @@ export function type6ModuleFrame(state,module,nowMs=0){
    return row*7+2;
  return row*7;
 }
+
+// O efeito de sucção é exclusivamente visual: só existe durante
+// carregamento, disparo ou a curtíssima ativação pós-disparo.
+const ENERGY_ACTIONS=new Set(['laserCharge','laserFire','barrier','hangar','bomb']);
+export function type6ModuleEnergyActive(state,module,nowMs=0){
+ if(!state?.introComplete||state.defeated||state.charging||!module||module.broken)return false;
+ const action=state.action;
+ if(action?.moduleId===module.id&&ENERGY_ACTIONS.has(action.kind))return true;
+ return Number.isFinite(module.activeUntil)&&module.activeUntil>nowMs;
+}
+export function type6CoreEnergyActive(state){
+ return !!state?.introComplete&&!!state.coreExposed&&!!state.charging&&!state.defeated;
+}
+// Pisca o PNG original, não uma caixa desenhada na hitbox.
+// 90 ms branco + pelo menos 90 ms de descanso, mesmo sob metralhadora.
+export const TYPE6_MODULE_WHITE_FLASH_MS=90;
+export const TYPE6_MODULE_FLASH_RETRIGGER_MS=180;
+export function type6ModuleWhiteFlash(module,nowMs){
+ const start=module?.spriteFlashStartedAt;
+ return Number.isFinite(start)&&nowMs>=start&&
+   nowMs-start<TYPE6_MODULE_WHITE_FLASH_MS;
+}

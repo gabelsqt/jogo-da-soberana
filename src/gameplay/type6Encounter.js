@@ -8,7 +8,8 @@ import {
 } from './type6Boss.js';
 import {drawType6Ship} from './type6Visual.js';
 import {TYPE6_HULL_SHEET,type6HullFrame,type6HullUsesSheet} from './type6HullSprite.js';
-import {TYPE6_MODULE_SHEET,type6ModuleFrame,type6ModuleUsesSheet} from './type6ModuleSprite.js';
+import {TYPE6_MODULE_SHEET,type6ModuleFrame,type6ModuleUsesSheet,
+  type6ModuleWhiteFlash,TYPE6_MODULE_FLASH_RETRIGGER_MS} from './type6ModuleSprite.js';
 
 const W=960,H=540,CANNON={x:480,y:494};
 const COLOR={alien:0xff304c,us:0xffa34e,ru:0x88e4ff,jp:0xe6a1ff,cn:0xffd66c};
@@ -238,6 +239,8 @@ export function updateType6Encounter(scene,enemy,dt){
     art.setVisible(!s.defeated);
     const frame=type6ModuleFrame(s,m,scene.time.now);
     if(Number(art.frame.name)!==frame)art.setFrame(frame);
+    if(type6ModuleWhiteFlash(m,scene.time.now))art.setTintFill(0xffffff);
+    else art.clearTint();
   }
   // Chefões chineses e coreanos produzem muitos objetos/efeitos. Renderizar o
   // casco a até 30 fps mantém TODOS os passos de física/dano em 60 fps.
@@ -267,7 +270,12 @@ function hitTarget(scene,enemy,id,damage){
   }else if(result.moduleDestroyed||result.defeated||scene.time.now-(module?.hitAt??s.hitAt)>130){
     burst(scene,x,y,p.light,result.moduleDestroyed?50:id==='core'?19:15);
   }
-  if(module)module.hitAt=scene.time.now;else s.hitAt=scene.time.now;
+  if(module&&result.targetId===module.id){
+    module.hitAt=scene.time.now;
+    // Tiros em alta cadência não devem deixar a nave permanentemente branca.
+    if(scene.time.now-(module.spriteFlashStartedAt??-Infinity)>=TYPE6_MODULE_FLASH_RETRIGGER_MS)
+      module.spriteFlashStartedAt=scene.time.now;
+  }else if(!module)s.hitAt=scene.time.now;
   // Interrupção do laser durante a carga: 25% do HP máximo no carregamento atual.
   const a=s.action;
   if(a?.kind==='laserCharge'&&a.moduleId===id&&!module.broken){
