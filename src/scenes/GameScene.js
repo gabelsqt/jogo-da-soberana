@@ -5466,7 +5466,11 @@ export class GameScene extends Phaser.Scene {
       const ready=americanJulyReady(this.usJulyHits,this.combat.usJulyHitsRequired);
       const message=ready?'★ 4 JULHO PRONTO!':
         '★ 4 JULHO '+this.usJulyHits+'/'+this.combat.usJulyHitsRequired;
-      this.usJulyStatusLabel.setColor(ready?'#ffdae0':'#c4e3ff');
+      const color=ready?'#ffdae0':'#c4e3ff';
+      // Phaser redesenha a textura de textos sempre que setColor é chamado.
+      // Não recriar o canvas 60 vezes/s quando a carga não mudou.
+      if(this.usJulyStatusLabel.style.color!==color)
+        this.usJulyStatusLabel.setColor(color);
       this.updateHudText(this.usJulyStatusLabel,message);
     }
     if(this.supremeReadyHint){
