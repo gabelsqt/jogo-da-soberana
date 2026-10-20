@@ -20,13 +20,13 @@ test('quatro módulos compartilhados e vida igual; núcleo permanece fechado',()
     assert.equal(s.modules[0].maxHp,360);
     assert.equal(s.coreMaxHp,160);
     assert.ok(s.modules[0].maxHp>s.coreMaxHp);
-    assert.equal(s.barrier.maxHp,s.modules[0].maxHp*0.30);
+    assert.equal(s.barrier.maxHp,s.modules[0].maxHp*0.85);
     assert.equal(s.barrier.active,false);
-    assert.ok(s.modules.every(m=>m.shield>0));
+    assert.ok(s.modules.every(m=>m.shield===m.maxHp*0.42));
     assert.equal(type6PointTarget(s,480,125,480,125),null);
   }
   assert.equal(type6HullContains(480,125,480,125),true);
-  assert.equal(TYPE6_OPENING_SECONDS,4);
+  assert.equal(TYPE6_OPENING_SECONDS,2);
   assert.equal(TYPE6_REBUILD_SECONDS,6);
   assert.equal(TYPE6_LASER_CHARGE_SECONDS,10);
   assert.equal(TYPE6_LASER_FIRE_SECONDS,3);
