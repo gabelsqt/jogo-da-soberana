@@ -1,4 +1,4 @@
-import { russianFrostSpreadRadius } from './russianFrost.js';
+import { russianShatterRadius, russianShatterDamage } from './russianFrost.js';
 
 // Versão 1 — catálogo aprovado nas decisões 53–68. Animais antigos ficam arquivados.
 // 'jp' continua sendo o identificador técnico legado da COREIA DO SUL.
@@ -192,8 +192,8 @@ export const V1_UPGRADES = {
   "ru": [
     {
       "level": 1,
-      "title": "Vórtice Siberiano",
-      "description": "Sopro de névoa gelada: congela, atrai e contagia inimigos próximos com uma onda de frio limitada.",
+      "title": "Geada Siberiana",
+      "description": "Tiros congelam o alvo. Se morrer congelado, estilhaça e causa dano nos inimigos ao redor.",
       "kind": "primary"
     },
     {
@@ -205,7 +205,7 @@ export const V1_UPGRADES = {
     {
       "level": 3,
       "title": "Inverno Russo",
-      "description": "Congelamento dura mais e vórtices atraem de mais longe.",
+      "description": "Congelamento mais longo e explosões de gelo maiores e mais fortes.",
       "kind": "primary"
     },
     {
@@ -216,8 +216,8 @@ export const V1_UPGRADES = {
     },
     {
       "level": 5,
-      "title": "Gravidade Siberiana",
-      "description": "Congelamento e atração aumentam; campos congelados combinam força.",
+      "title": "Estilhaço Siberiano",
+      "description": "Fragmentos de inimigos congelados atingem uma área maior com dano elevado.",
       "kind": "primary"
     },
     {
@@ -229,7 +229,7 @@ export const V1_UPGRADES = {
     {
       "level": 7,
       "title": "Zero Absoluto",
-      "description": "Congelamento e atração maiores no disparo principal.",
+      "description": "Gelo mais persistente e explosão de fragmentos ainda mais ampla.",
       "kind": "primary"
     },
     {
@@ -247,7 +247,7 @@ export const V1_UPGRADES = {
     {
       "level": 10,
       "title": "Inverno Eterno",
-      "description": "Transformação: cada tiro congela por 3 s e reúne os inimigos em vórtices siberianos de até 160 px.",
+      "description": "Transformação: tiros congelam por 3 s; inimigos congelados estilhaçam em explosões de 120 px ao morrer.",
       "kind": "transformation"
     }
   ],
@@ -368,7 +368,7 @@ export function v1CombatStats(state = {}, base = {}) {
     laserDamage:3, shockRadius:0, slowShot:false, specialAmplifier:1,
     shieldIntercept:false, shieldPulse:false, brazilTurboMultiplier:1, brazilFireworkCount:0, brazilHeatPeak:0, ultimate:v1SupremeFor(state),
     usGrowthMax:1, usHoming:0, russianFreezeMs:0, russianAttractRadius:0,
-    russianSpreadRadius:0,
+    russianShatterRadius:0,russianShatterDamage:0,
     chinaSplitCount:1, koreaContinuous:false, transformed:null};
   // Brasil: metralhadora potente desde o nível 1; picos de calor cíclicos.
   if(n.br>=1){stats.basicInterval/=2;stats.heat=true;stats.brazilHeatPeak=0.65;stats.horizontalSpread=6;}
@@ -398,10 +398,10 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.jp>=6){stats.specialCooldown*=0.86;}
   if(n.jp>=7){stats.plasmaEvery=1;stats.laserDamage+=1;}
   if(n.jp>=8){stats.specialAmplifier+=0.45;}
-  if(n.ru>=1){stats.basicDamage*=1.75;stats.knockback=0.12;stats.russianFreezeMs=1000;stats.russianAttractRadius=40;}
-  if(n.ru>=3){stats.russianFreezeMs=1500;stats.russianAttractRadius=60;}
-  if(n.ru>=5){stats.russianFreezeMs=2000;stats.russianAttractRadius=90;}
-  if(n.ru>=7){stats.russianFreezeMs=2500;stats.russianAttractRadius=120;}
+  if(n.ru>=1){stats.basicDamage*=1.75;stats.knockback=0.12;stats.russianFreezeMs=1000;}
+  if(n.ru>=3){stats.russianFreezeMs=1500;}
+  if(n.ru>=5){stats.russianFreezeMs=2000;}
+  if(n.ru>=7){stats.russianFreezeMs=2500;}
   if(n.ru>=2){
     // Matryoshka recarrega 25% mais depressa; acumulável com bônus coreanos.
     stats.specialCooldown*=0.75;
@@ -432,9 +432,10 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.ru>=10){
     stats.transformed='ru';stats.basicDamage*=2.6;stats.basicInterval*=0.5;
     stats.basicSpeed*=1.35;stats.russianFreezeMs=3000;
-    stats.russianAttractRadius=160;stats.shockRadius=Math.max(stats.shockRadius,85);
+    stats.shockRadius=Math.max(stats.shockRadius,85);
   }
-  stats.russianSpreadRadius=russianFrostSpreadRadius(n.ru);
+  stats.russianShatterRadius=russianShatterRadius(n.ru);
+  stats.russianShatterDamage=russianShatterDamage(n.ru);
   if(n.cn>=10){
     stats.transformed='cn';stats.basicDamage*=2;stats.basicInterval*=0.42;
     stats.basicSpeed*=1.35;stats.bulletsPerShot=10;
