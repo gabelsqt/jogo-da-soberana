@@ -1,6 +1,7 @@
 import { appendWaveResult } from '../gameplay/waveTestResults.js';
 import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS } from '../gameplay/discoGlobe.js';
 import { animateDiscoReflectionArcs, DISCO_REFLECTION_MAX_VISUAL_RAYS } from '../gameplay/discoReflectionVfx.js';
+import { destroyMenuButton } from '../ui/menuButton.js';
 import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
@@ -710,7 +711,7 @@ export class GameScene extends Phaser.Scene {
     const info=finalePrelude(this.finaleCampaign);
     const panel=this.add.rectangle(W/2,H/2,W,H,0x071021,0.96)
       .setInteractive().setDepth(210);
-    addCuboBroadcastFrame(this,{
+    const frameItems=addCuboBroadcastFrame(this,{
       section:'Plantão • Momento decisivo',
       headline:'Boletim extraordinário: destino do Brasil em jogo',
       footer:'A cobertura segue após o início da próxima onda',
@@ -727,8 +728,10 @@ export class GameScene extends Phaser.Scene {
     let fightButton;
     let surrenderButton;
     const dismissPrelude = () => {
-      [panel,title,lines,fightButton,fightButton?.label,surrenderButton,surrenderButton?.label]
-        .forEach(item=>item?.destroy());
+      // Botões têm fundo, texto, barra e sombra; a moldura também é temporária.
+      destroyMenuButton(fightButton);
+      destroyMenuButton(surrenderButton);
+      [panel,title,lines,...frameItems].forEach(item=>item?.destroy());
     };
     fightButton=addMenuButton(this,{x:W/2,y:393,width:370,height:48,
       text:'▶  RESISTIR À TRAIÇÃO',primary:true,depth:215,onClick:()=>{
@@ -765,7 +768,8 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(212);
     const advance=()=>{
       if(page<script.length){body.setText(script[page++]);button.label?.setText(page===script.length?'▶  ENFRENTAR NAVE-MÃE':'▶  CONTINUAR');return;}
-      [panel,body,title,button,button.label].forEach(item=>item?.destroy());
+      destroyMenuButton(button);
+      [panel,body,title].forEach(item=>item?.destroy());
       this.startWaveCountdown();
     };
     const button=addMenuButton(this,{x:W/2,y:433,width:370,height:51,
