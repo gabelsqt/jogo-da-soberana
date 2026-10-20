@@ -111,6 +111,18 @@ Os textos acima são um **rascunho sugerido**, não frases autoralmente aprovada
 
 **Estado:** regra de escrita aprovada e registrada; conteúdo das notícias ainda será revisado. Nenhum texto do noticiário ou mecânica alterado no jogo nesta decisão.
 
+## 7. Textos do jogador: sem referência a torres nem animais (20/10/2026)
+
+**Nova regra de linguagem aprovada:** em **manchetes, subtítulos, diálogos, histórias, títulos e descrições de upgrades, alertas e rótulos da interface voltados ao jogador**, não mencionar **torres, animais, nomes de animais associados ao armamento ou unidades mecanizadas com nomes de animais**.
+
+- Preferir descrições de função/efeito: **apoio**, **reforço**, **sistema automático**, **rajadas**, **mísseis**, **feixes**, **artilharia pesada**, **drones** etc.
+- O jogo **mantém todos os sprites, personagens, unidades de suporte e mecânicas existentes**; isto é uma revisão **exclusivamente textual**, não uma decisão para removê-los visual ou mecanicamente.
+- **Não renomear** identificadores internos, arquivos de sprite, funções, nomes de assets, diretórios ou chaves de dados vinculadas à lógica do jogo. A regra vale para os **textos legíveis pelo jogador**, incluindo `label`, `title`, `description` e comentários diegéticos.
+- Na rodada de 20/10/2026, não havia referências a torres/animais nas **54 notícias do banco principal** `src/gameplay/cuboNews.js`. Foram revisados diálogos de upgrades, descrições e títulos de progressão, rótulos dos reforços e avisos/contadores de interfaces.
+- Esta regra se aplica também a futuros textos de imprensa da Cubo News e substitui nomes antigos de animais no copy. Não muda os textos históricos já registrados como decisões técnicas de versões anteriores.
+
+**Estado:** ajustes textuais implementados na branch de trabalho; demais mudanças narrativas anteriores continuam documentadas conforme seu próprio estado.
+
 ## Fonte da decisão
 
 Conversa de direção narrativa e revisão textual do projeto em **20/10/2026**.
