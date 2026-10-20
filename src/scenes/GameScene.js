@@ -4145,13 +4145,15 @@ export class GameScene extends Phaser.Scene {
       : vfx?.cryogenic
         ? this.add.circle(x, y, style.width * 0.6, style.color, 0.30)
           .setStrokeStyle(1,0xf0ffff,0.34).setDepth(35)
-        : this.add.rectangle(x, y, style.width,
-          koreanLaserPulse ? Math.max(20,style.length) : style.length,
-          koreanLaserPulse ? 0xb96aff : style.color)
-          .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff,
-            koreanLaserPulse ? 0.98 : centerGlow ? 0.95 : 0.65)
+        : this.add.rectangle(x, y, style.width, style.length, style.color)
+          .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff, centerGlow ? 0.95 : 0.65)
           .setRotation(angle + Math.PI / 2)
           .setDepth(35);
+    if(koreanLaserPulse && visible && !vfx?.cryogenic){
+      // Mesma forma base para não afetar os outros países; mudança visual local.
+      dot.setFillStyle(0xb96aff).setScale(1,Math.max(1,20/style.length))
+        .setStrokeStyle(centerGlow ? 2 : 1,0xffffff,0.98);
+    }
     const speed = special ? 300 : this.combat.basicSpeed;
     // Uma única Graphics por bala, redesenhada enquanto ela se move.
     // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
