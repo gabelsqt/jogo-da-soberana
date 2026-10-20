@@ -83,6 +83,8 @@ test('cena: salvo único, alvos diretos, efeito visual sem crescimento nem homin
   assert.match(src,/this\.detonateAmericanJuly\(/);
   assert.match(src,/this\.combat\.usJulyShards/);
   assert.match(src,/4 JULHO:/);
+  assert.match(src,/this\.usJulyStatusLabel=this\.add\.text/);
+  assert.match(src,/4 JULHO PRONTO!/);
   assert.doesNotMatch(src,/bullet\.usGrowthMax>1/);
   assert.doesNotMatch(src,/this\.combat\.usHoming\*dt/);
   // Disparos especiais continuam com correção angular e escala gigante.

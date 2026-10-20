@@ -535,6 +535,15 @@ export class GameScene extends Phaser.Scene {
         color:'#e9f6ff',backgroundColor:'#142030dd',padding:{x:5,y:4},
       }).setDepth(105);
     }
+    if (this.isV1Campaign && this.combat.usJulyHitsRequired) {
+      // O HUD tradicional das ondas fica oculto pela transmissão da Cubo News.
+      // Medidor mínimo ao lado do canhão; exibe carga e a próxima salva pronta.
+      this.usJulyStatusLabel=this.add.text(CANNON.x-190,CANNON.y-77,'',{
+        fontFamily:'monospace',fontSize:'12px',fontStyle:'bold',
+        color:'#ecf5ff',backgroundColor:'#10283bc9',
+        padding:{x:7,y:5},stroke:'#11233f',strokeThickness:2,
+      }).setDepth(105);
+    }
     if (this.isV1Campaign && this.combat.ultimate) {
       // O indicador anterior ficava invisível durante a campanha, junto
       // dos textos de HUD antigos. Dar aviso explícito nos 5 s finais.
@@ -5452,6 +5461,13 @@ export class GameScene extends Phaser.Scene {
         cn:'ENTREGA',jp:'DISCOTECA'};
       const base=titles[this.specialBuild.primary] || 'ESPECIAL';
       this.updateHudText(this.specialLabel,`DIR. ${base} — ${remaining?remaining.toFixed(1)+'s':'PRONTO'}`);
+    }
+    if(this.usJulyStatusLabel){
+      const ready=americanJulyReady(this.usJulyHits,this.combat.usJulyHitsRequired);
+      const message=ready?'★ 4 JULHO PRONTO!':
+        '★ 4 JULHO '+this.usJulyHits+'/'+this.combat.usJulyHitsRequired;
+      this.usJulyStatusLabel.setColor(ready?'#ffdae0':'#c4e3ff');
+      this.updateHudText(this.usJulyStatusLabel,message);
     }
     if(this.supremeReadyHint){
       this.supremeReadyHint.setVisible(!this.ultimateUsed && !this.supremeTyping &&
