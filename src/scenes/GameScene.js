@@ -444,6 +444,13 @@ export class GameScene extends Phaser.Scene {
       }).setDepth(105);
     }
     if (this.isV1Campaign && this.combat.ultimate) {
+      // O indicador anterior ficava invisível durante a campanha, junto
+      // dos textos de HUD antigos. Dar aviso explícito nos 5 s finais.
+      this.supremeReadyHint=this.add.text(W/2,96,'★  SUPREMO PRONTO — ESPAÇO',{
+        fontFamily:'monospace',fontSize:'18px',fontStyle:'bold',
+        color:'#fff0ae',backgroundColor:'#192536ed',
+        padding:{x:12,y:8},stroke:'#091324',strokeThickness:2,
+      }).setOrigin(0.5).setDepth(112).setVisible(false);
       this.ultimateLabel = this.add.text(CANNON.x + 75, CANNON.y - 61, '', {
         fontFamily: 'monospace', fontSize: '11px', fontStyle: 'bold',
         color: '#fff2b8', backgroundColor: '#132b39da', padding: {x:6,y:4},
@@ -1354,7 +1361,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   pauseGame() {
-    if (this.tutorialComplete || this.scene.isActive('PauseScene') ||
+    if (this.supremeTyping || this.supremeCinematic || this.tutorialComplete ||
+        this.scene.isActive('PauseScene') ||
         this.scene.isActive('UpgradeLabScene')) return;
     this.scene.pause();
     this.scene.launch('PauseScene');
@@ -3259,9 +3267,9 @@ export class GameScene extends Phaser.Scene {
       this.activateUltimate();
       return true;
     }
-    const feedback=result.invalid?'\\nLETRA INCORRETA — BACKSPACE PARA CORRIGIR':'';
+    const feedback=result.invalid?'\nLETRA INCORRETA — BACKSPACE PARA CORRIGIR':'';
     this.supremePrompt?.setText(
-      `PROTOCOLO SUPREMO: ${expected}\\nDIGITE: ${this.supremeCode}_${feedback}\\nBACKSPACE corrige • ESC cancela`
+      `PROTOCOLO SUPREMO: ${expected}\nDIGITE: ${this.supremeCode}_${feedback}\nBACKSPACE corrige • ESC cancela`
     );
     this.supremePrompt?.setColor(result.invalid?'#ffd4aa':'#ffeded');
     return true;
@@ -3295,6 +3303,7 @@ export class GameScene extends Phaser.Scene {
     if(!expected)return false;
     this.supremeTyping=true;
     this.supremeCode='';
+    this.supremeReadyHint?.setVisible(false);
     // A batalha e o cronômetro param por completo enquanto a palavra é
     // digitada. Antes o tempo ainda avançava a 10%, encerrando o Supremo.
     this.supremeTimeScales={
@@ -3304,7 +3313,7 @@ export class GameScene extends Phaser.Scene {
     this.tweens.timeScale=0;
     this.supremePrompt?.destroy();
     this.supremePrompt=this.add.text(W/2,H/2,
-      `PROTOCOLO SUPREMO: ${expected}\\nDIGITE: _\\nBACKSPACE corrige • ESC cancela`,{
+      `PROTOCOLO SUPREMO: ${expected}\nDIGITE: _\nBACKSPACE corrige • ESC cancela`,{
         fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',
         color:'#ffeded',backgroundColor:'#690b19',
         align:'center',padding:{x:22,y:18},
@@ -4834,6 +4843,11 @@ export class GameScene extends Phaser.Scene {
         cn:'ENTREGA',jp:'DISCOTECA'};
       const base=titles[this.specialBuild.primary] || 'ESPECIAL';
       this.updateHudText(this.specialLabel,`DIR. ${base} — ${remaining?remaining.toFixed(1)+'s':'PRONTO'}`);
+    }
+    if(this.supremeReadyHint){
+      this.supremeReadyHint.setVisible(!this.ultimateUsed && !this.supremeTyping &&
+        !this.supremeCinematic && !this.tutorialComplete && !this.countdownActive &&
+        this.elapsed>=this.waveDurationMs-5000);
     }
     if (this.ultimateLabel) {
       const title = V1_SUPREMES[this.combat.ultimate]?.title ?? 'SUPREMA';
