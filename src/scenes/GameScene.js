@@ -3,6 +3,7 @@ import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS } from '../gameplay/disc
 import { animateDiscoReflectionArcs, DISCO_REFLECTION_MAX_VISUAL_RAYS } from '../gameplay/discoReflectionVfx.js';
 import { destroyMenuButton } from '../ui/menuButton.js';
 import { mountPauseHudButton } from '../ui/pauseHudButton.js';
+import { supremeCodeFor, advanceSupremeCode } from '../gameplay/supremeCodeInput.js';
 import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
@@ -394,6 +395,8 @@ export class GameScene extends Phaser.Scene {
     this.ultimateUsed = false;
     this.supremeTyping = false;
     this.supremeCode = '';
+    this.supremeTimeScales = null;
+    this.lastSupremeNotReadyAt = -Infinity;
     this.supremeCinematic = false;
     this.cannonFrozenUntil=0;
     this.lastFinaleWarningAt=-Infinity;
@@ -471,27 +474,27 @@ export class GameScene extends Phaser.Scene {
       this.specialAimActive = true;
       if (pointer.rightButtonDown()) this.shootSpecial(pointer);
     });
-    // No confronto final a derrota é definitiva ou leva à única oferta de Zeca.
-    // O atalho R não pode gerar revanches ilimitadas fora do fluxo narrativo.
-    this.input.keyboard.on('keydown-R', () => {
-      if(this.mode!=='wave11')this.scene.restart(this.getRunOptions());
-    });
-    this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
-    this.input.keyboard.on('keydown-P', () => this.pauseGame());
-    this.input.keyboard.addCapture('SPACE');
-    this.input.keyboard.on('keydown-SPACE', (event) => {
-      event.preventDefault();
-      if (this.scene.isActive('GameScene') && !this.scene.isPaused('GameScene')) this.openSupremeCode();
-    });
+    // Um único despachante de teclado: letras NUNCA reiniciam a batalha.
+    // A digitação do Supremo tem prioridade sobre PAUSAR e os atalhos
+    // de teste. R e F não têm nenhuma ação em combate.
+    this.input.keyboard.addCapture(['SPACE','BACKSPACE']);
     this.input.keyboard.on('keydown', (event) => {
-      if (!this.supremeTyping) return;
-      if (event.key === 'Escape') { this.closeSupremeCode(); return; }
-      if (event.key === 'Backspace') this.supremeCode = this.supremeCode.slice(0,-1);
-      else if (/^[a-z]$/i.test(event.key)) this.supremeCode += event.key.toUpperCase();
-      const expected = this.supremeExpectedCode();
-      if (this.supremeCode === expected) { this.closeSupremeCode(); this.activateUltimate(); return; }
-      if (this.supremeCode.length > expected.length) this.supremeCode = this.supremeCode.slice(-expected.length);
-      if (this.supremePrompt) this.supremePrompt.setText(`PROTOCOLO SUPREMO: ${expected}\nDIGITE: ${this.supremeCode}_\nBACKSPACE corrige • ESC cancela`);
+      if(!this.scene.isActive('GameScene')||this.scene.isPaused('GameScene'))return;
+      if(event.ctrlKey||event.metaKey||event.altKey)return;
+      if(event.target?.isContentEditable||
+        /^(INPUT|TEXTAREA)$/.test(event.target?.tagName??''))return;
+      if(this.supremeTyping) {
+        this.handleSupremeCodeKey(event);
+        return;
+      }
+      if(event.repeat)return;
+      if(event.code==='Space'){
+        event.preventDefault();
+        this.openSupremeCode();
+      }else if(event.code==='Escape'||event.code==='KeyP'){
+        event.preventDefault();
+        this.pauseGame();
+      }
     });
 
     if (import.meta.env.DEV && this.mode.startsWith('wave')) {
@@ -501,7 +504,7 @@ export class GameScene extends Phaser.Scene {
       // Se entrar antes da terceira escolha, usa Brasil III como equipamento
       // padrão apenas no salto de testes, sem sobrescrever a campanha.
       this.input.keyboard.on('keydown', (event) => {
-        if (!event.shiftKey) return;
+        if (this.supremeTyping || this.supremeCinematic || !event.shiftKey) return;
         const choice = /^Digit([0-9])$/.exec(event.code ?? '');
         if (!choice || Number(choice[1])<5&&choice[1]!=='0'&&choice[1]!=='1') return;
         event.preventDefault();
@@ -3236,23 +3239,77 @@ export class GameScene extends Phaser.Scene {
   }
 
   supremeExpectedCode() {
-    return {br:'REVEILLON',us:'FREEDOM',ru:'SPUTNIK',cn:'ENTREGA',kr:'ENCORE',jp:'ENCORE'}[this.combat.ultimate] || 'REVEILLON';
+    return supremeCodeFor(this.combat.ultimate);
+  }
+
+  handleSupremeCodeKey(event) {
+    if(!this.supremeTyping)return false;
+    if(event.ctrlKey||event.altKey||event.metaKey)return true;
+    if(event.code==='Space')event.preventDefault();
+    if(event.key==='Backspace'||event.key==='Escape'||/^[a-z]$/i.test(event.key))
+      event.preventDefault();
+    if(event.repeat)return true;
+    const expected=this.supremeExpectedCode();
+    const result=advanceSupremeCode(this.supremeCode,event.key,expected);
+    if(result.cancelled){this.closeSupremeCode();return true;}
+    if(result.ignored)return true;
+    this.supremeCode=result.code;
+    if(result.completed){
+      this.closeSupremeCode();
+      this.activateUltimate();
+      return true;
+    }
+    const feedback=result.invalid?'\\nLETRA INCORRETA — BACKSPACE PARA CORRIGIR':'';
+    this.supremePrompt?.setText(
+      `PROTOCOLO SUPREMO: ${expected}\\nDIGITE: ${this.supremeCode}_${feedback}\\nBACKSPACE corrige • ESC cancela`
+    );
+    this.supremePrompt?.setColor(result.invalid?'#ffd4aa':'#ffeded');
+    return true;
   }
 
   closeSupremeCode() {
-    this.supremeTyping = false;
+    this.supremeTyping=false;
+    this.supremeCode='';
     this.supremePrompt?.destroy();
-    this.supremePrompt = null;
+    this.supremePrompt=null;
+    if(this.supremeTimeScales){
+      this.time.timeScale=this.supremeTimeScales.time;
+      this.tweens.timeScale=this.supremeTimeScales.tweens;
+      this.supremeTimeScales=null;
+    }
   }
 
   openSupremeCode() {
-    if (!this.isV1Campaign || !this.combat.ultimate || this.ultimateUsed || this.tutorialComplete || this.countdownActive || this.supremeCinematic || this.elapsed < this.waveDurationMs - 5000) return;
-    this.supremeTyping = true;
-    this.supremeCode = '';
+    if(this.supremeTyping||!this.isV1Campaign||!this.combat.ultimate||
+      this.ultimateUsed||this.tutorialComplete||this.countdownActive||
+      this.supremeCinematic)return false;
+    // Preserva a regra aprovada: o Supremo pode ser usado nos 5 s finais.
+    if(this.elapsed<this.waveDurationMs-5000){
+      if(this.time.now-this.lastSupremeNotReadyAt>2200){
+        this.lastSupremeNotReadyAt=this.time.now;
+        this.showAttackWarning('SUPREMO: DISPONÍVEL NOS ÚLTIMOS 5 SEGUNDOS');
+      }
+      return false;
+    }
+    const expected=this.supremeExpectedCode();
+    if(!expected)return false;
+    this.supremeTyping=true;
+    this.supremeCode='';
+    // A batalha e o cronômetro param por completo enquanto a palavra é
+    // digitada. Antes o tempo ainda avançava a 10%, encerrando o Supremo.
+    this.supremeTimeScales={
+      time:this.time.timeScale,tweens:this.tweens.timeScale,
+    };
+    this.time.timeScale=0;
+    this.tweens.timeScale=0;
     this.supremePrompt?.destroy();
-    this.supremePrompt = this.add.text(W/2, H/2, `PROTOCOLO SUPREMO: ${this.supremeExpectedCode()}\\nDIGITE: _\\nBACKSPACE corrige • ESC cancela`, {
-      fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',color:'#ffeded',backgroundColor:'#690b19',align:'center',padding:{x:22,y:18}
-    }).setOrigin(0.5).setDepth(300);
+    this.supremePrompt=this.add.text(W/2,H/2,
+      `PROTOCOLO SUPREMO: ${expected}\\nDIGITE: _\\nBACKSPACE corrige • ESC cancela`,{
+        fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',
+        color:'#ffeded',backgroundColor:'#690b19',
+        align:'center',padding:{x:22,y:18},
+      }).setOrigin(0.5).setDepth(300);
+    return true;
   }
 
   // Storyboards temporários: painéis estáticos, substituíveis por arte final.
@@ -4856,7 +4913,7 @@ export class GameScene extends Phaser.Scene {
     // Sem disparos, movimentação ou cronômetro de onda antes do "1".
     if (this.countdownActive) return;
     if (this.supremeCinematic) return;
-    if (this.supremeTyping) delta *= 0.1;
+    if (this.supremeTyping) return;
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += this.boss6IntroPaused?0:delta;
     this.updateDiscoGlobes();
