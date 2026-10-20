@@ -148,7 +148,7 @@ export class UpgradeLabScene extends Phaser.Scene {
   toggleTower(id) {
     const gameScene = this.scene.get('GameScene');
     if (!gameScene.toggleLabTower(id)) {
-      this.statsPreview.setText('MÁXIMO 2 TORRES • DESATIVE UMA PARA INSTALAR OUTRA');
+      this.statsPreview.setText('MÁXIMO 2 APOIOS • DESATIVE UM PARA INSTALAR OUTRO');
       return;
     }
     this.selectedTowerIds = [...gameScene.labTowerIds];
@@ -170,8 +170,8 @@ export class UpgradeLabScene extends Phaser.Scene {
       status.setText(active ? '[ ATIVO ]' : '[ ATIVAR ]');
       status.setColor(active ? '#a4ffe0' : '#9abfd5');
       const installed = this.selectedTowerIds.includes(upgrade.id);
-      towerStatus.setText(installed ? 'TORRE INSTALADA' : 'SHIFT+' +
-        (FIRST_UPGRADES.indexOf(upgrade) + 1) + ': TORRE');
+      towerStatus.setText(installed ? 'APOIO INSTALADO' : 'SHIFT+' +
+        (FIRST_UPGRADES.indexOf(upgrade) + 1) + ': APOIO');
       towerStatus.setColor(installed ? '#a4ffe0' : '#86b7d3');
     }
     const stats = this.scene.get('GameScene').combat;
@@ -183,7 +183,7 @@ export class UpgradeLabScene extends Phaser.Scene {
       '   LIGHTSTICK ' + (stats.plasmaEvery ? 'A CADA 3 TIROS' : 'NÃO') +
       '   N2 ' + (this.selectedSecondIds.length
         ? this.selectedSecondIds.map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join('+') : 'NÃO') +
-      '   TORRES ' + this.selectedTowerIds.length + '/2',
+      '   APOIOS ' + this.selectedTowerIds.length + '/2',
     );
   }
 
