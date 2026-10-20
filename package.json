@@ -1,6 +1,6 @@
 {
   "name": "jogo-da-soberana",
-  "version": "0.869.0",
+  "version": "0.870.0",
   "private": true,
   "type": "module",
   "description": "Jogo arcade brasileiro de defesa antiaérea para a Soberana Game Jam.",
@@ -11,7 +11,7 @@
     "build": "vite build --base=./",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test",
-    "build:itch": "npm run build && node scripts/build-itch.mjs"
+    "build:itch": "npm run build && node scripts/build-itch.mjs && node scripts/build-itch-zip.mjs"
   },
   "dependencies": {
     "phaser": "^3.90.0"

@@ -64,6 +64,12 @@ jobs:
           tests/discoReflectionVfx.test.js
       - name: Gerar HTML único do jogo
         run: npm run build:itch
+      - name: Disponibilizar ZIP pronto para itch.io
+        uses: actions/upload-artifact@v4
+        with:
+          name: operacao-soberania-itch
+          path: itch-build/operacao-soberania-itch.zip
+          retention-days: 14
       - name: Preparar página
         run: |
           mkdir -p pages-site
