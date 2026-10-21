@@ -1,10 +1,10 @@
 // Rota mundial Full Brazil: placeholders editáveis, nunca cidades definitivas.
 // Substituir city/statue/backgroundKey conforme o usuário fornecer os cenários.
 export const VOYAGE_STOPS=Object.freeze([
-  {id:'parada-1',city:'CIDADE 1 • A DEFINIR',statue:'ESTÁTUA DE BRAÇOS ABERTOS',backgroundKey:'voyage-city-1',accent:0x3574a0,events:13},
-  {id:'parada-2',city:'CIDADE 2 • A DEFINIR',statue:'ESTÁTUA DE BRAÇOS ABERTOS',backgroundKey:'voyage-city-2',accent:0x5475ac,events:15},
-  {id:'parada-3',city:'CIDADE 3 • A DEFINIR',statue:'ESTÁTUA DE BRAÇOS ABERTOS',backgroundKey:'voyage-city-3',accent:0x705ea6,events:17},
-  {id:'parada-4',city:'CIDADE 4 • A DEFINIR',statue:'ESTÁTUA DE BRAÇOS ABERTOS',backgroundKey:'voyage-city-4',accent:0x94609b,events:19},
+  {id:'parada-1',city:'CIDADE 1 • A DEFINIR',statue:'ESTÁTUA DE BRAÇOS ABERTOS',backgroundKey:'voyage-city-1',accent:0x3574a0,events:24},
+  {id:'parada-2',city:'CIDADE 2 • A DEFINIR',statue:'ESTÁTUA DE BRAÇOS ABERTOS',backgroundKey:'voyage-city-2',accent:0x5475ac,events:28},
+  {id:'parada-3',city:'CIDADE 3 • A DEFINIR',statue:'ESTÁTUA DE BRAÇOS ABERTOS',backgroundKey:'voyage-city-3',accent:0x705ea6,events:32},
+  {id:'parada-4',city:'CIDADE 4 • A DEFINIR',statue:'ESTÁTUA DE BRAÇOS ABERTOS',backgroundKey:'voyage-city-4',accent:0x94609b,events:36},
 ].map(stop=>Object.freeze(stop)));
 export function fullBrazilVoyageEligible(mode,campaign,{lab=false,waveMaker=false}={}){
   // A opção v1Playtest pode continuar ativa após a Onda 10. Ela NÃO deve
@@ -19,14 +19,15 @@ export function voyageStop(index){
 export function voyageEvents(index){
   const stop=voyageStop(index),rank=VOYAGE_STOPS.indexOf(stop);
   const kinds=[
-    {type:1,pattern:'swarm',count:5},{type:2,pattern:'tactical',count:3},
-    {type:1,pattern:'spread',count:5},{type:4,pattern:'pincer'},
-    {type:3,pattern:'bomberFan',count:2},{type:1,pattern:'swarm',count:6},
-    {type:2,pattern:'tactical',count:4},{type:5},
+    {type:1,pattern:'swarm',count:8},{type:2,pattern:'tactical',count:4},
+    {type:1,pattern:'spread',count:8},{type:4,pattern:'pincer'},
+    {type:3,pattern:'bomberFan',count:3},{type:1,pattern:'swarm',count:9},
+    {type:2,pattern:'tactical',count:5},{type:5},
   ];
   return Array.from({length:stop.events},(_,i)=>{
     const pattern=kinds[(i+rank)%kinds.length];
-    const at=1500+i*Math.max(3000,3800-rank*200);
+    // Reforços quase constantes, mas sem criar centenas no mesmo quadro.
+    const at=1500+i*Math.max(2200,2650-rank*120);
     return {...pattern,at,level:Math.min(10,6+rank+Math.floor(i/6)),
       ...(i===0?{warning:'ESTÁTUA SOB ATAQUE • REFORÇOS ALIENÍGENAS!'}:{})};
   });

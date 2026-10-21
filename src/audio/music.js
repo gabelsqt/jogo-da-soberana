@@ -62,6 +62,8 @@ export class MusicPlayer {
     this.gain = 1;
     this.muted = false;
     this.paused = false;
+    this.status='parada';
+    this.lastError=null;
     try {
       const saved = JSON.parse(storage?.getItem(STORAGE_KEY) ?? 'null');
       if (Number.isFinite(saved?.volume)) this.volume = Math.max(0, Math.min(1, saved.volume));
@@ -80,14 +82,31 @@ export class MusicPlayer {
     this.stop();
     this.key = key;
     this.gain = 1;
+    this.status='carregando';
+    this.lastError=null;
     const audio = this.audio = this.createAudio();
-    audio.preload = 'none';
+    // MP3s no Pages são arquivos externos; reservar buffer inicial
+    // evita uma faixa aparentemente muda enquanto o browser busca os bytes.
+    audio.preload = 'auto';
     audio.src = assetUrl('assets/musicas/' + MUSIC[key]);
     audio.loop = loop;
     audio.volume = this.volume * this.gain;
     audio.addEventListener('error', () => {
-      if (this.audio === audio) console.warn('Não foi possível carregar a música:', MUSIC[key]);
+      if (this.audio !== audio)return;
+      this.status='erro';
+      this.lastError='Arquivo indisponível: '+MUSIC[key];
+      console.warn('Não foi possível carregar a música:', MUSIC[key],audio.error?.code);
     });
+    audio.addEventListener('playing',()=>{
+      if(this.audio===audio){this.status='tocando';this.lastError=null;}
+    });
+    audio.addEventListener('waiting',()=>{
+      if(this.audio===audio&&!this.paused&&!this.muted)this.status='carregando';
+    });
+    audio.addEventListener('canplay',()=>{
+      if(this.audio===audio&&!this.paused)this.tryPlay();
+    });
+    audio.load?.();
     this.sync();
   }
 
@@ -98,10 +117,19 @@ export class MusicPlayer {
     this.pending = audio;
     // Autoplay pode ser negado. O próximo clique/tecla tenta novamente.
     try {
-      Promise.resolve(audio.play()).catch(() => {}).finally(() => {
+      Promise.resolve(audio.play()).then(()=>{
+        if(this.audio===audio){this.status='tocando';this.lastError=null;}
+      }).catch(error=>{
+        if(this.audio!==audio)return;
+        this.status=error?.name==='NotAllowedError'?'bloqueada':'erro';
+        this.lastError=error?.message??String(error);
+      }).finally(() => {
         if (this.pending === audio) this.pending = null;
       });
-    } catch { this.pending = null; }
+    } catch(error){
+      this.pending=null;
+      this.status='erro';this.lastError=error?.message??String(error);
+    }
   }
 
   sync() {
@@ -123,6 +151,15 @@ export class MusicPlayer {
     this.save(); this.sync();
   }
   toggleMute() { this.muted = !this.muted; this.save(); this.sync(); }
+  restoreAudible(){
+    // Ação EXPLÍCITA do jogador. Não sobrescrever preferências em silêncio.
+    if(this.muted)this.muted=false;
+    if(this.volume<=0)this.volume=.4;
+    this.paused=false;
+    this.save();
+    this.sync();
+    this.tryPlay();
+  }
   save() {
     try { this.storage?.setItem(STORAGE_KEY, JSON.stringify({ volume: this.volume, muted: this.muted })); }
     catch { /* Preferências continuam válidas nesta sessão. */ }
@@ -136,6 +173,8 @@ export class MusicPlayer {
     this.audio = null;
     this.pending = null;
     this.key = null;
+    this.status='parada';
+    this.lastError=null;
   }
   destroy() {
     this.stop();
@@ -213,6 +252,9 @@ export function addMenuMusicControl(scene,{x=91,y=518,depth=40}={}){
   const add=(obj)=>{objects.push(obj);return obj;};
   add(scene.add.rectangle(px,py,330,65,0x0b1621,0.96)
     .setStrokeStyle(1,0x67869b,0.82).setDepth(depth+2));
+  const audioStatus=add(scene.add.text(px-148,py-35,'',{
+    fontFamily:font,fontSize:'10px',fontStyle:'bold',color:'#aadce7',
+  }).setDepth(depth+4));
   add(scene.add.text(px-148,py-20,'VOLUME',{
     fontFamily:font,fontSize:'12px',fontStyle:'bold',color:'#dce8ee',
   }).setDepth(depth+3));
@@ -230,6 +272,10 @@ export function addMenuMusicControl(scene,{x=91,y=518,depth=40}={}){
   const muteLabel=add(scene.add.text(px+115,py+11,'',{
     fontFamily:font,fontSize:'11px',fontStyle:'bold',color:'#f2f5f7',
   }).setOrigin(0.5).setDepth(depth+5));
+  const recover=add(scene.add.text(px+115,py-21,'▶ TESTAR',{
+    fontFamily:font,fontSize:'11px',fontStyle:'bold',color:'#f9e7a3',
+    backgroundColor:'#173752',padding:{x:6,y:3},
+  }).setOrigin(.5).setDepth(depth+5).setInteractive({useHandCursor:true}));
   let expanded=false,dragging=false;
   const refresh=()=>{
     const vol=Math.max(0,Math.min(1,music.volume));
@@ -238,6 +284,14 @@ export function addMenuMusicControl(scene,{x=91,y=518,depth=40}={}){
     fill.setScale(Math.max(1,(right-left)*vol),1);
     percent.setText(Math.round(vol*100)+'%');
     muteLabel.setText(music.muted?'LIGAR':'MUDO');
+    dockLabel.setText(music.muted?'♫ MÚSICA: MUDO':
+      vol===0?'♫ MÚSICA: 0%':'♫ MÚSICA');
+    const status=music.muted?'MUDO':vol===0?'VOLUME 0%':
+      music.status==='erro'?'ERRO DE ÁUDIO':
+      music.status==='bloqueada'?'CLIQUE EM TESTAR':
+      music.status==='tocando'?'REPRODUZINDO':
+      music.status==='carregando'?'CARREGANDO MP3':'PRONTO';
+    audioStatus.setText(status);
   };
   const show=value=>{
     expanded=value;
@@ -263,11 +317,20 @@ export function addMenuMusicControl(scene,{x=91,y=518,depth=40}={}){
   const up=()=>{dragging=false;};
   scene.input.on('pointermove',move);
   scene.input.on('pointerup',up);
+  recover.on('pointerdown',(pointer,_x,_y,event)=>{
+    if(!pointer.leftButtonDown())return;
+    event?.stopPropagation();
+    music.restoreAudible();refresh();
+  });
   mute.on('pointerdown',(pointer,_x,_y,event)=>{
     if(!pointer.leftButtonDown())return;
     event?.stopPropagation();music.toggleMute();refresh();
   });
+  const statusTick=scene.time.addEvent({delay:600,loop:true,callback:()=>{
+    if(expanded)refresh();
+  }});
   scene.events.once('shutdown',()=>{
+    statusTick.remove();
     scene.input.off('pointermove',move);
     scene.input.off('pointerup',up);
   });

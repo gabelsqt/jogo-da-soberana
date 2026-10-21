@@ -969,6 +969,7 @@ export class GameScene extends Phaser.Scene {
     this.hexShieldTransition='disabling';
     this.hexShieldTransitionAt=this.time.now;
     this.hexShieldFlashUntil=0;
+    this.lastHexShieldDrawAt=-Infinity;
     this.statusText.setText(this.mode==='wave11'&&this.finale&&!this.finale.fullBrazil
       ?'TEMPO ATÉ O BRASIL VIRAR COLÔNIA':'TEMPO ATÉ O AMANHECER');
     let combatStarted=false;
@@ -1581,16 +1582,16 @@ export class GameScene extends Phaser.Scene {
       starGraphics.clear();skyline.clear();
       if(pose.phase==='prepare'){
         darkness.setAlpha(.18);
-        title.setText('DESLIGANDO ESCUDO • PROPULSORES');
+        this.updateHudText(title,'DESLIGANDO ESCUDO • PROPULSORES');
         flame.setAlpha(.06);
       }else if(pose.phase==='launch'){
         darkness.setAlpha(Math.min(.96,.24+
           .72*(elapsed-VOYAGE_PREPARE_MS)/
             (VOYAGE_LAUNCH_MS-VOYAGE_PREPARE_MS)));
-        title.setText('DECOLAGEM VERTICAL!');
+        this.updateHudText(title,'DECOLAGEM VERTICAL!');
       }else if(pose.phase==='space'){
         darkness.setAlpha(.98);
-        title.setText('VOO ESPACIAL • '+
+        this.updateHudText(title,'VOO ESPACIAL • '+
           Math.ceil((VOYAGE_SPACE_MS-(elapsed-VOYAGE_LAUNCH_MS))/1000)+' s');
         for(const star of stars){
           const pos=voyageStarAt(star,elapsed-VOYAGE_LAUNCH_MS,H);
@@ -1608,7 +1609,7 @@ export class GameScene extends Phaser.Scene {
         }
       }else if(pose.phase==='landing'){
         darkness.setAlpha(.92);
-        title.setText('POUSO VERTICAL • '+stop.city);
+        this.updateHudText(title,'POUSO VERTICAL • '+stop.city);
         const p=Math.min(1,Math.max(0,(elapsed-
           VOYAGE_LAUNCH_MS-VOYAGE_SPACE_MS)/VOYAGE_LANDING_MS));
         skyline.fillStyle(stop.accent,.55*p).fillEllipse(W/2,560,1100,260);
@@ -3414,8 +3415,12 @@ export class GameScene extends Phaser.Scene {
 
   showMuzzleFlash(angle, effects = shotVfxFor(this.activeUpgradeIds())) {
     const style = shotVisualFor(this.activeUpgradeIds());
-    const x = CANNON.x + Math.cos(angle) * 34;
-    const y = CANNON.y + Math.sin(angle) * 34;
+    // A luz deve sair da boca REAL do sprite, não da base do canhão.
+    const muzzle=this.cannonBarrelArt
+      ?cannonSpritePose(angle,CANNON.x,CANNON.y-11,this.cannonRecoil)
+      :null;
+    const x = muzzle?.muzzleX ?? CANNON.x + Math.cos(angle)*40;
+    const y = muzzle?.muzzleY ?? CANNON.y + Math.sin(angle)*40;
     const flash = this.add.circle(
       x, y, effects.heavy ? 12 : effects.multiple ? 8 : 7,
       effects.cryogenic ? 0xb5f1ff : style.color,
@@ -5537,6 +5542,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   drawShield() {
+    // Malha holográfica não precisa recalcular dezenas de hexágonos 60×/s.
+    // Máximo 30 FPS visuais; ataques e colisões seguem na taxa normal.
+    if(this.hexShieldTransition==='active' &&
+       this.time.now-(this.lastHexShieldDrawAt??-Infinity)<33)return;
+    this.lastHexShieldDrawAt=this.time.now;
     const graphics=this.shieldGraphics;
     graphics.clear();
     // Escudo hexagonal é uma cúpula translúcida sobre o canhão real.
@@ -6053,11 +6063,11 @@ export class GameScene extends Phaser.Scene {
     );
     if (this.mode === 'wave0') {
       if (this.elapsed < 6500) {
-        this.tutorialText.setText('Mova o mouse e segure o botão esquerdo para atirar');
+        this.updateHudText(this.tutorialText,'Mova o mouse e segure o botão esquerdo para atirar');
       } else if (this.elapsed < 15000) {
-        this.tutorialText.setText('Mira azul = explosão do especial • Botão direito: dispara');
+        this.updateHudText(this.tutorialText,'Mira azul = explosão do especial • Botão direito: dispara');
       } else {
-        this.tutorialText.setText('Proteja o canhão! Escudos regeneram sem dano.');
+        this.updateHudText(this.tutorialText,'Proteja o canhão! Escudos regeneram sem dano.');
       }
     } else if (this.mode.startsWith('wave')) {
       const history = this.combatCampaign.choices.map((id) =>
@@ -6076,7 +6086,7 @@ export class GameScene extends Phaser.Scene {
         ? ' | TRAIDORES: '+this.finale.coalition
           .map(id=>FINALE_COUNTRIES[id].name).join('+') : '';
       const recovery=this.zecaRevenge?' | CARGA RECUPERADA': '';
-      this.tutorialText.setText(
+      this.updateHudText(this.tutorialText,
         'ALIADOS: ' + (history || 'NENHUM') +
         (levelTwo ? ' | N2: ' + levelTwo : '') +
         (towerLabel ? ' | APOIO: ' + towerLabel : '') +

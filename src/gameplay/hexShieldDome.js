@@ -26,7 +26,10 @@ export function hexShieldCellOpacity(cell,index,now=0,radius=CANNON_DOME_RADIUS)
   return .055+.945*fade*fade;
 }
 
+const cellCache=new Map();
 export function hexShieldCells(radius=CANNON_DOME_RADIUS,cellRadius=HEX_SHIELD_CELL_RADIUS){
+  const key=radius+':'+cellRadius;
+  if(cellCache.has(key))return cellCache.get(key);
   const cells=[];
   // Pontas para cima, malha quase contínua. Todo o hexágono deve caber
   // na cúpula superior; a borda externa é desenhada separadamente.
@@ -45,7 +48,13 @@ export function hexShieldCells(radius=CANNON_DOME_RADIUS,cellRadius=HEX_SHIELD_C
     }
   }
   // A malha é revelada COLUNA a COLUNA, da esquerda para a direita.
-  return cells.sort((a,b)=>a.x-b.x||a.y-b.y);
+  cells.sort((a,b)=>a.x-b.x||a.y-b.y);
+  // Geometria imutável: refazer só os alphas durante os pulsos.
+  const frozen=Object.freeze(cells.map(cell=>Object.freeze({
+    ...cell,points:Object.freeze(cell.points.map(p=>Object.freeze(p))),
+  })));
+  cellCache.set(key,frozen);
+  return frozen;
 }
 export function hexShieldOpacity({shield=80,maxShield=80,progress=1,mode='active'}={}){
   const life=clamp01(maxShield>0?shield/maxShield:0);
