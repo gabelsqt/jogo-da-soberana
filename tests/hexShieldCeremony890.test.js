@@ -100,11 +100,11 @@ test('novo UOM grave está registrado e é um WAV PCM reproduzível de mais de 1
   assert.equal(bytes.toString('ascii',12,16),'fmt ');
   assert.equal(bytes.readUInt16LE(20),1);
   assert.equal(bytes.readUInt16LE(22),1);
-  assert.equal(bytes.readUInt32LE(24),22050);
+  assert.equal(bytes.readUInt32LE(24),16000);
   assert.equal(bytes.readUInt16LE(34),16);
   const dataBytes=bytes.readUInt32LE(40);
   assert.equal(dataBytes,bytes.length-44);
-  assert.ok(dataBytes/2/22050>1.2);
+  assert.ok(dataBytes/2/16000>1.2);
   assert.ok(bytes.length>50000&&bytes.length<150000);
 });
 

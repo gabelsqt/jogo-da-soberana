@@ -14,7 +14,7 @@
 
 ## Novo UOM eletrônico grave
 - Novo som sintetizado de **1,24 s**, com frequência principal descendente de aproximadamente **176 Hz a 55 Hz**, harmônicos de corpo e eco curto; mais grave que o anterior.
-- Arquivo `public/assets/sons/35_escudo_hexagonal_uom_grave.wav`: WAV PCM mono, 16 bit, 22.050 Hz.
+- Arquivo `public/assets/sons/35_escudo_hexagonal_uom_grave.wav`: WAV PCM mono, 16 bit, 16.000 Hz.
 - `shieldReady` agora seleciona o novo arquivo; o áudio anterior é preservado para comparação.
 - A reprodução dispara **uma vez por formação**, no início do flash branco, respeitando o volume de efeitos.
 - Sem mudanças nas músicas.
