@@ -50,7 +50,7 @@ test('estrelas se movem com parallax, e a cidade seguinte só carrega após o po
  assert.doesNotMatch(scene,/createVoyageRocket\(\)/);
  assert.match(scene,/startVoyageTransition\(nextIndex,\{initial=false\}=\{\}\)/);
  assert.match(scene,/this\.time\.delayedCall\(VOYAGE_TOTAL_MS/);
- assert.match(scene,/voyageStarAt\(star,flight,H\)/);
+ assert.match(scene,/voyageStarAt\(star,elapsed-VOYAGE_LAUNCH_MS,H\)/);
  assert.match(scene,/this\.textures\.exists\(stop\.backgroundKey\)/);
  assert.match(scene,/arrivedFromVoyage:true/);
  assert.match(scene,/this\.startWaveCountdown\(\)/);

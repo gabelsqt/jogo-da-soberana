@@ -3,7 +3,7 @@
 import {CANNON_DOME_RADIUS,cannonShieldColor} from './shieldDome049.js';
 const SQRT3=Math.sqrt(3);
 const clamp01=value=>Math.max(0,Math.min(1,Number(value)||0));
-export const HEX_SHIELD_CELL_RADIUS=11;
+export const HEX_SHIELD_CELL_RADIUS=9;
 export const HEX_SHIELD_FORM_MS=780;
 export const HEX_SHIELD_COLLAPSE_MS=380;
 
