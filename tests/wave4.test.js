@@ -56,8 +56,8 @@ test('pinças têm caças nos dois lados e atrasos exatos de 1,5 s', () => {
 });
 
 test('novos inimigos têm HP aumentado, mesmo tamanho e velocidade estabilizada', () => {
-  const expected = { 1: 2, 2: 4, 3: 10, 4: 6 };
-  const next = { 1: 3, 2: 5, 3: 12, 4: 7 };
+  const expected = { 1: 2, 2: 4, 3: 10, 4: 10 };
+  const next = { 1: 3, 2: 5, 3: 12, 4: 11 };
   for (let type = 1; type <= 4; type += 1) {
     const base = enemyDefinition(type);
     const prior = enemyStats(type, 2);
