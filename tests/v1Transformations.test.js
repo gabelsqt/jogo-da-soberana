@@ -18,15 +18,14 @@ test('Brasil: nível 10 é metralhadora física com pico de calor e varredura la
   assert.equal(s.horizontalSpread,16);
   assert.equal(s.koreaContinuous,false);
 });
-test('EUA: Quatro de Julho sem perseguição e sem tiros gigantes', () => {
-  const expected=[[1,0,0],[2,0,0],[3,5,78],[5,5,92],[7,5,104],[10,3,118]];
-  for(const [level,hits,radius] of expected){
+test('EUA: foguete aumenta apenas com upgrades e mantém voo reto',()=>{
+  const expected=[[1,9],[2,9],[3,13],[5,17],[7,22],[10,29]];
+  for(const [level,radius] of expected){
     const s=v1CombatStats(countryAt('us',level));
     assert.equal(s.usGrowthMax,1);
     assert.equal(s.usHoming,0);
-    assert.equal(s.usJulyHitsRequired,hits);
-    assert.equal(s.usJulyBlastRadius,radius);
-    assert.equal(s.usJulyShards,level>=7);
+    assert.equal(s.usRocketRadius,radius);
+    assert.equal(s.usJulyHitsRequired,0);
   }
   assert.ok(v1CombatStats(countryAt('us',10)).basicInterval<
     v1CombatStats(countryAt('us',7)).basicInterval);

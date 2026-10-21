@@ -3297,6 +3297,8 @@ export class GameScene extends Phaser.Scene {
       playSfx('krBasicShot',{throttle:70,volumeScale:0.72});
     else if(this.isV1Campaign&&this.combat.russianFreezeMs>0)
       playSfx('ruBasicShot',{throttle:88,volumeScale:0.56});
+    else if(this.isV1Campaign&&this.combat.usRocketRadius>0)
+      playSfx('usMissileLaunch',{throttle:190,volumeScale:0.30});
     else playSfx('cannon',{throttle:95,volumeScale:0.48});
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     const nextShot = this.basicShotCount + 1;
@@ -3876,7 +3878,7 @@ export class GameScene extends Phaser.Scene {
       const color=specialPalette(build.primary);
       if(shot.visual) {
         // Silhuetas simplificadas enquanto as sprites finais não existem.
-        const markers={br:'🎈',us:'🚀',ru:'✧',cn:'▣',jp:'✦'};
+        const markers={br:'🎈',ru:'✧',cn:'▣',jp:'✦'};
         shot.specialMarker=this.add.text(shot.sprite.x,shot.sprite.y,
           markers[build.primary]||'✦',{
           fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',
@@ -3884,15 +3886,10 @@ export class GameScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(36);
         shot.sprite.setFillStyle(color);
         shot.sprite.setStrokeStyle(3,0xffffff,0.95);
-        // Formato principal depende do PRIMEIRO país com especial desbloqueado.
-        // EUA: a escala é literalmente 1×/2×/4×/8× do mesmo míssil enorme.
-        // Como só existe um projétil especial, não precisamos limitar seu tamanho.
-        const scale=build.primary==='us'?1.6*build.usMissileScale:
-          build.primary==='cn'?1.7*build.cnDropScale:
+        // Grande Muro nasce antes desse ramo, sem criar míssil americano.
+        const scale=build.primary==='cn'?1.7*build.cnDropScale:
           build.primary==='ru'?1.8:build.primary==='jp'?2:1.5;
-        shot.sprite.setScale(build.primary==='us'?scale:Math.min(6,scale));
-        if(build.primary==='us')shot.specialMarker.setScale(
-          Math.min(5,Math.max(1,build.usMissileScale*0.7)));
+        shot.sprite.setScale(Math.min(6,scale));
       }
     }
     // Caminho do laboratório legado: não interferir nas árvores antigas.
@@ -4880,29 +4877,8 @@ export class GameScene extends Phaser.Scene {
   updatePlayerProjectiles(dt) {
     for (let i = this.projectiles.length - 1; i >= 0; i -= 1) {
       const bullet = this.projectiles[i];
-      if(bullet.special && bullet.hybridConfig?.primary==='us' && this.enemies.length) {
-        // Choque e Pavor: míssil guiado procura uma nave perto do ponto visado.
-        const candidates=this.enemies.filter(e=>
-          Math.hypot(e.sprite.x-bullet.hybridDestination.x,
-            e.sprite.y-bullet.hybridDestination.y)<230);
-        const tracked=candidates.reduce((best,e)=>{
-          const d=Math.hypot(e.sprite.x-bullet.sprite.x,e.sprite.y-bullet.sprite.y);
-          return !best||d<best.d?{enemy:e,d}:best;
-        },null);
-        if(tracked){
-          const target=tracked.enemy;
-          bullet.tx=target.sprite.x;
-          bullet.ty=target.sprite.y;
-          const angle=Math.atan2(bullet.ty-bullet.sprite.y,bullet.tx-bullet.sprite.x);
-          const current=Math.atan2(bullet.vy,bullet.vx);
-          const turn=Phaser.Math.Clamp(Phaser.Math.Angle.Wrap(angle-current),-4*dt,4*dt);
-          const speed=Math.hypot(bullet.vx,bullet.vy);
-          bullet.vx=Math.cos(current+turn)*speed;
-          bullet.vy=Math.sin(current+turn)*speed;
-        }
-      }
-      // Apenas o MÍSSIL SECUNDÁRIO acima continua guiado.
-      // O tiro principal americano não altera direção nem tamanho durante o voo.
+      // Os foguetes americanos não usam guiagem.
+      // O tamanho do foguete é fixado na criação. Não há mudança de direção no ar.
       bullet.distanceTravelled+=Math.hypot(bullet.vx,bullet.vy)*dt;
       const previousX=bullet.sprite.x,previousY=bullet.sprite.y;
       bullet.sprite.x += bullet.vx * dt;

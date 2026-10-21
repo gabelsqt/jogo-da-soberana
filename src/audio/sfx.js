@@ -43,6 +43,7 @@ export const SFX_VARIATIONS=Object.freeze({
   ruBasicShot:Object.freeze({pitch:Object.freeze([0.96,1.04]),volume:Object.freeze([0.95,1.05])}),
   // Laser coreano: variação audível de tom, com viés grave e volume controlado.
   krBasicShot:Object.freeze({pitch:Object.freeze([0.84,1.16]),volume:Object.freeze([0.94,1.06])}),
+  usMissileLaunch:Object.freeze({pitch:Object.freeze([0.92,1.08]),volume:Object.freeze([0.94,1.06])}),
   introKey:Object.freeze({pitch:Object.freeze([0.88,1.14]),volume:Object.freeze([0.89,1.05])}),
   explosion:Object.freeze({pitch:Object.freeze([0.75,1.25]),volume:Object.freeze([0.94,1.06])}),
   boss:Object.freeze({pitch:Object.freeze([0.85,1.15]),volume:Object.freeze([0.97,1.03])}),
@@ -88,7 +89,7 @@ export function playSfx(id,{throttle=0,volumeScale=1}={}){
   if(throttle&&now-(lastPlayed.get(id)??-Infinity)<throttle)return;
   lastPlayed.set(id,now);
   const sound=source.cloneNode();
-  if(id==='cannon'||id==='ruBasicShot'||id==='krBasicShot'){
+  if(id==='cannon'||id==='ruBasicShot'||id==='krBasicShot'||id==='usMissileLaunch'){
     // Limita vozes simultâneas em builds de cadência extrema.
     for(let i=activeCannonVoices.length-1;i>=0;i--){
       if(activeCannonVoices[i].ended||activeCannonVoices[i].paused)activeCannonVoices.splice(i,1);
