@@ -92,6 +92,7 @@ import {createBattleBanterState,enqueueBattleBanter,currentBattleBanter} from '.
 import {createDialogueTypewriter} from '../ui/dialogueTypewriter.js';
 import {VOYAGE_PREPARE_MS,VOYAGE_LAUNCH_MS,VOYAGE_SPACE_MS,VOYAGE_LANDING_MS,
   VOYAGE_TOTAL_MS,voyageRocketPose,voyageStarfield,voyageStarAt} from '../gameplay/voyageTravel.js';
+import {drawHexShieldDome,HEX_SHIELD_FORM_MS,HEX_SHIELD_COLLAPSE_MS} from '../gameplay/hexShieldDome.js';
 import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
 import {MAX_ACTIVE_SPUTNIKS,sputnikTouchesEnemy,crystallizeSputnikEnemy,isSputnikCrystalized,sputnikShatterStats,sputnikPrimaryDamage} from '../gameplay/russianSputnik.js';
 import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,ICE_BREATH_BOMB_SPEED_FACTOR,chillType6Bomb,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Target} from '../gameplay/iceBreath.js';
@@ -553,6 +554,11 @@ export class GameScene extends Phaser.Scene {
     this.createTurret();
     this.shieldGraphics = this.add.graphics().setDepth(23);
     installShieldSprites(this);
+    // A proteção hexagonal é inteiramente desenhada no Phaser, sem texturas externas.
+    this.hexShieldGraphics=this.add.graphics().setDepth(25);
+    this.hexShieldTransition=this.voyageArrived?'forming':'active';
+    this.hexShieldTransitionAt=this.time.now;
+    this.hexShieldFlashUntil=0;
     this.enemyHealthGraphics = this.add.graphics().setDepth(27);
     this.frostGraphics = this.add.graphics().setDepth(46);
     this.iceBreathGraphics=this.combat.transformed==='ru'?
@@ -1452,6 +1458,9 @@ export class GameScene extends Phaser.Scene {
     this.barrel=this.add.rectangle(x,y-20,11,47,0x9daeb6)
       .setStrokeStyle(2,0xe0edec).setOrigin(0.5,0.85).setDepth(21);
     const pivot=this.add.circle(x,y-1,12,0x314f62).setStrokeStyle(2,0xc4d7dc).setDepth(23);
+    // Reutilizar EXATAMENTE os mesmos objetos na viagem: nada de
+    // duplicar sprites com dimensões diferentes e deformar o canhão.
+    this.cannonVisualParts=[base,middle,this.barrel,pivot];
     if(spriteReady){
       for(const part of [base,middle,this.barrel,pivot])part.setVisible(false);
       this.cannonBaseArt=this.add.image(x,y+7,'cannon-base')
@@ -1480,6 +1489,8 @@ export class GameScene extends Phaser.Scene {
         .setRotation(startPose.rotation).setDepth(22);
       this.cannonArtwork=this.add.image(x,y-19,'cannon-pivot-4')
         .setDisplaySize(70,68).setDepth(24);
+      this.cannonVisualParts.push(this.cannonBaseArt,this.cannonBarrelArt,
+        this.cannonArtwork);
     }
   }
 
@@ -1511,162 +1522,117 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  // Prédio-base e canhão permanecem dentro da MESMA nave durante decolagem,
-  // cruzeiro e pouso. Os sprites definitivos poderão substituir apenas o corpo.
-  createVoyageRocket(){
-    const ship=this.add.container(CANNON.x,CANNON.y-40).setDepth(322);
-    const body=this.textures.exists('voyage-building')
-      ?this.add.image(0,2,'voyage-building').setDisplaySize(112,155)
-      :this.add.container(0,0);
-    if(body.type==='Container'){
-      // Enquanto não há PNG isolado do prédio no repositório, manter a
-      // base ORIGINAL do canhão (sprite separado) visível na nave.
-      body.add([
-        this.add.rectangle(0,0,95,125,0x556c85)
-          .setStrokeStyle(3,0x9bb6ce),
-        this.add.image(0,37,'cannon-base').setDisplaySize(111,53),
-        this.add.rectangle(-40,-22,16,24,0x91b3ce),
-        this.add.rectangle(8,-22,16,24,0x91b3ce),
-        this.add.rectangle(-51,21,17,62,0x657991),
-        this.add.rectangle(51,21,17,62,0x657991),
-      ]);
-    }
-    const turret=this.add.image(0,-70,'cannon-head-4').setDisplaySize(85,83);
-    const barrel=this.add.image(0,-123,'cannon-barrel-4')
-      .setDisplaySize(25,108);
-    const flame=this.add.triangle(0,105,-23,0,23,0,0,85,0xffbb55,.9);
-    const engine=this.add.rectangle(0,69,48,22,0x4f687f)
-      .setStrokeStyle(2,0x9ebed4);
-    ship.add([body,flame,engine,turret,barrel]);
-    return {ship,flame};
-  }
-
-  // Decola, cruza o espaço por QUATRO SEGUNDOS reais e pousa na cidade.
-  // Durante toda a viagem, o canhão e o prédio compartilham um container.
+  // A viagem manipula os OBJETOS REAIS da cena, sem fabricar outro canhão.
+  // A batalha fica pausada durante 6 s; mira e disparos são bloqueados por
+  // countdownActive até o canhão voltar à posição original.
   startVoyageTransition(nextIndex,{initial=false}={}){
     if(!this.voyageActive||this.tutorialComplete)return;
     this.voyageTransitioning=true;
     this.countdownActive=true;
-    // O HUD HTML deve ceder espaço à cutscene na tela inteira.
     this.cuboNewsHud?.destroy();
     this.banterWriter?.cancel();
     for(const part of [this.banterBackground,this.banterPortrait,
       this.banterName,this.banterText])part?.setVisible(false);
-    const next=voyageStop(nextIndex),started=this.time.now;
+    const stop=voyageStop(nextIndex),started=this.time.now;
+    // Registrar posições atuais dos próprios sprites, inclusive a origem
+    // do barrel; deslocar todos pelo mesmo delta Y, sem esticar/rotacionar.
+    const originals=(this.cannonVisualParts??[]).filter(Boolean)
+      .map(item=>({item,x:item.x,y:item.y}));
     const objects=[],keep=obj=>{objects.push(obj);return obj;};
-    const veil=keep(this.add.rectangle(W/2,H/2,W,H,0x010514,0.96)
-      .setDepth(315));
-    const starGraphics=keep(this.add.graphics().setDepth(316));
-    const skyline=keep(this.add.graphics().setDepth(317));
-    const heading=keep(this.add.text(W/2,97,'DECOLAGEM • OPERAÇÃO SOBERANIA',{
-      fontFamily:'monospace',fontSize:'25px',fontStyle:'bold',
-      color:'#ffe8ac',align:'center',
-    }).setOrigin(0.5).setDepth(324));
-    const caption=keep(this.add.text(W/2,142,
-      'PRÓXIMO DESTINO: '+next.city,{
-        fontFamily:'monospace',fontSize:'14px',color:'#d6e9ff',
-        align:'center',
-      }).setOrigin(0.5).setDepth(324));
-    const {ship,flame}=this.createVoyageRocket();
-    keep(ship);
+    // Céu espacial fica ATRÁS do canhão real e do escudo.
+    const darkness=keep(this.add.rectangle(W/2,H/2,W,H,0x02071b,.02)
+      .setDepth(12));
+    const starGraphics=keep(this.add.graphics().setDepth(15));
+    const skyline=keep(this.add.graphics().setDepth(17));
+    const flame=keep(this.add.triangle(CANNON.x,CANNON.y+72,
+      -14,0,14,0,0,56,0xffae54,.76).setDepth(20));
+    const title=keep(this.add.text(W/2,66,'PREPARANDO DECOLAGEM',{
+      fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',color:'#ffe8b8',
+    }).setOrigin(0.5).setDepth(108));
+    const destination=keep(this.add.text(W/2,105,'PRÓXIMA PARADA • '+stop.city,{
+      fontFamily:'monospace',fontSize:'12px',color:'#d1e8ff',
+    }).setOrigin(0.5).setDepth(108));
     const stars=voyageStarfield(108,W,H);
+    this.hexShieldTransition='disabling';
+    this.hexShieldTransitionAt=this.time.now;
+    this.hexShieldFlashUntil=0;
     const tick=this.time.addEvent({delay:33,loop:true,callback:()=>{
       if(!this.scene.isActive('GameScene'))return;
       const elapsed=Math.max(0,this.time.now-started);
       const pose=voyageRocketPose(elapsed,{x:CANNON.x,
         startY:CANNON.y-40,groundY:CANNON.y-40});
-      const phase=pose.phase;
+      const deltaY=pose.y-(CANNON.y-40);
+      // Move apenas no eixo vertical e retorna sem deformar o sprite.
+      for(const {item,x,y} of originals)item.setPosition(x,y+deltaY);
+      flame.setPosition(CANNON.x,CANNON.y+72+deltaY)
+        .setScale(1,Math.max(.03,pose.thrust))
+        .setAlpha(Math.max(0,Math.min(1,pose.flare)));
       starGraphics.clear();skyline.clear();
-      // O canhão permanece na coluna original, em escala constante.
-      // Só sobe para revelar a estrutura do prédio-foguete e depois desce.
-      ship.x=pose.x;
-      ship.y=pose.y;
-      ship.setScale(pose.scale);
-      flame.scaleY=Math.max(.01,pose.thrust*
-        (1+.13*Math.sin(elapsed*.052)));
-      if(phase==='prepare'){
-        veil.setAlpha(.48);
-        heading.setText('PREPARANDO DECOLAGEM • PROPULSORES');
-        // Contagem de carga e ar quente sob o prédio, ainda no solo.
-        const charge=elapsed/VOYAGE_PREPARE_MS;
-        for(let i=0;i<5;i++){
-          const y=CANNON.y+63+i*14;
-          starGraphics.lineStyle(1.5+i*.3,0xffb65a,charge*.60)
-            .lineBetween(CANNON.x-26-i*7,y,CANNON.x+26+i*7,y);
-        }
-      }else if(phase==='launch'){
-        const p=(elapsed-VOYAGE_PREPARE_MS)/
-          (VOYAGE_LAUNCH_MS-VOYAGE_PREPARE_MS);
-        veil.setAlpha(.48+.52*Math.min(1,p*p));
-        heading.setText('IGNIÇÃO! • DECOLAGEM VERTICAL');
-        // Rastros compridos para transmitir a aceleração violentíssima.
-        for(let i=0;i<20;i++){
-          const x=(i*103+19)%W;
-          const y=(i*67+elapsed*1.5)%H;
-          starGraphics.lineStyle(1+i%3,0xd4eaff,.25+p*.58)
-            .lineBetween(x,y-26-120*p,x,y);
-        }
-      }else if(phase==='space'){
-        const travel=elapsed-VOYAGE_LAUNCH_MS;
-        veil.setAlpha(1);
-        heading.setText('VOO ESPACIAL • '+Math.ceil((VOYAGE_SPACE_MS-travel)/1000)+' s');
-      }else if(phase==='landing'){
-        veil.setAlpha(1);
-        heading.setText('POUSO VERTICAL • '+next.city);
-      }
-      // Foguete SUBINDO: estrelas descem velozmente, em parallax vertical.
-      if(phase==='space'){
-        const flight=elapsed-VOYAGE_LAUNCH_MS;
+      if(pose.phase==='prepare'){
+        darkness.setAlpha(.18);
+        title.setText('DESLIGANDO ESCUDO • PROPULSORES');
+        flame.setAlpha(.06);
+      }else if(pose.phase==='launch'){
+        darkness.setAlpha(Math.min(.96,.24+
+          .72*(elapsed-VOYAGE_PREPARE_MS)/
+            (VOYAGE_LAUNCH_MS-VOYAGE_PREPARE_MS)));
+        title.setText('DECOLAGEM VERTICAL!');
+      }else if(pose.phase==='space'){
+        darkness.setAlpha(.98);
+        title.setText('VOO ESPACIAL • '+
+          Math.ceil((VOYAGE_SPACE_MS-(elapsed-VOYAGE_LAUNCH_MS))/1000)+' s');
         for(const star of stars){
-          const pos=voyageStarAt(star,flight,H);
-          const tail=Math.min(92,9+star.speed*.048+star.size*2.4);
-          const glimmer=.75+.25*Math.sin(flight*.004+star.twinklePhase);
-          const alpha=Math.min(1,star.alpha*glimmer);
-          // Cada estrela mantém seu matiz e seu tamanho próprios.
-          starGraphics.lineStyle(Math.max(1,star.size*.58),star.color,
-            alpha*.64);
-          starGraphics.lineBetween(pos.x,pos.y-tail,pos.x,pos.y);
+          const pos=voyageStarAt(star,elapsed-VOYAGE_LAUNCH_MS,H);
+          const trail=Math.min(92,9+star.speed*.048+star.size*2.4);
+          const alpha=star.alpha*(.8+.2*Math.sin(
+            elapsed*.004+star.twinklePhase));
+          starGraphics.lineStyle(Math.max(1,star.size*.58),star.color,alpha*.64)
+            .lineBetween(pos.x,pos.y-trail,pos.x,pos.y);
           if(star.size>=4){
-            starGraphics.fillStyle(star.color,alpha*.14);
-            starGraphics.fillCircle(pos.x,pos.y,star.size*2.2);
+            starGraphics.fillStyle(star.color,alpha*.14)
+              .fillCircle(pos.x,pos.y,star.size*2.2);
           }
-          starGraphics.fillStyle(star.color,alpha);
-          starGraphics.fillRect(pos.x,pos.y,star.size,star.size);
+          starGraphics.fillStyle(star.color,alpha)
+            .fillRect(pos.x,pos.y,star.size,star.size);
         }
-      }else if(phase==='landing'){
-        const p=Math.min(1,(elapsed-VOYAGE_LAUNCH_MS-VOYAGE_SPACE_MS)/
-          VOYAGE_LANDING_MS);
-        // Substituir por PNG da cidade quando a arte for fornecida.
-        skyline.fillStyle(next.accent,.25+p*.5).fillEllipse(W/2,560,1100,260);
+      }else if(pose.phase==='landing'){
+        darkness.setAlpha(.92);
+        title.setText('POUSO VERTICAL • '+stop.city);
+        const p=Math.min(1,Math.max(0,(elapsed-
+          VOYAGE_LAUNCH_MS-VOYAGE_SPACE_MS)/VOYAGE_LANDING_MS));
+        skyline.fillStyle(stop.accent,.55*p).fillEllipse(W/2,560,1100,260);
         for(let i=0;i<22;i++){
           const h=45+(i*41+nextIndex*17)%110;
-          skyline.fillStyle(0x344b67,p*.92).fillRect(i*48-12,H-h,45,h);
+          skyline.fillStyle(0x344b67,.89*p)
+            .fillRect(i*48-12,H-h,45,h);
         }
-        if(this.textures.exists(next.backgroundKey)){
-          // A próxima cidade terá a imagem definitiva assim que carregada.
-          if(!this.voyageLandingCity){
-            this.voyageLandingCity=keep(this.add.image(W/2,H/2,
-              next.backgroundKey).setDisplaySize(W,H).setDepth(317)
-              .setAlpha(0));
-          }
+        if(this.textures.exists(stop.backgroundKey)){
+          if(!this.voyageLandingCity)this.voyageLandingCity=keep(
+            this.add.image(W/2,H/2,stop.backgroundKey)
+              .setDisplaySize(W,H).setDepth(14).setAlpha(0));
           this.voyageLandingCity.setAlpha(p*.95);
         }
       }
+      this.drawShield(); // formação/desligamento também anima sem combate
     }});
     this.events.once('shutdown',()=>tick.remove());
     this.time.delayedCall(VOYAGE_TOTAL_MS,()=>{
       tick.remove();
       if(!this.scene.isActive('GameScene')||this.tutorialComplete)return;
-      objects.forEach(obj=>obj.destroy());
+      // Restaurar todas as posições originais ANTES de retomar o combate.
+      for(const {item,x,y} of originals)item.setPosition(x,y);
+      objects.forEach(item=>item.destroy());
       this.voyageLandingCity=null;
       this.voyageTransitioning=false;
       if(initial){
         this.drawVoyageBackdrop();
+        this.hexShieldTransition='forming';
+        this.hexShieldTransitionAt=this.time.now;
         this.cuboNewsHud=createCuboNewsHud(this);
         this.cuboNewsHud.update(0,this.waveDurationMs,null,{
           frozen:false,voyageProgress:this.waveEvents.length,
         });
-        this.cameras.main.shake(160,.002);
+        this.cameras.main.shake(140,.002);
         this.startWaveCountdown();
       }else{
         this.scene.start('GameScene',{
@@ -5562,8 +5528,26 @@ export class GameScene extends Phaser.Scene {
   drawShield() {
     const graphics=this.shieldGraphics;
     graphics.clear();
-    // Cúpulas desenhadas por sprites de pixel art; colisões inalteradas.
+    // Escudo hexagonal é uma cúpula translúcida sobre o canhão real.
+    // Os escudos das torres continuam usando os sprites atuais.
     updateShieldSprites(this,CANNON.x,CANNON.y+10,this.supportTowers);
+    this.cannonDomeSprite?.setVisible(false);
+    let phase=this.hexShieldTransition??'active',progress=1;
+    const elapsed=this.time.now-(this.hexShieldTransitionAt??this.time.now);
+    if(phase==='disabling'){
+      progress=Math.min(1,Math.max(0,elapsed/HEX_SHIELD_COLLAPSE_MS));
+    }else if(phase==='forming'){
+      progress=Math.min(1,Math.max(0,elapsed/HEX_SHIELD_FORM_MS));
+      if(progress>=1){
+        phase='active';this.hexShieldTransition='active';
+        this.hexShieldFlashUntil=this.time.now+450;
+      }
+    }
+    drawHexShieldDome(this.hexShieldGraphics,{
+      cx:CANNON.x,cy:CANNON.y+10,shield:this.shield,maxShield:this.shieldMax,
+      progress,mode:phase,now:this.time.now,
+      flash:Math.max(0,(this.hexShieldFlashUntil-this.time.now)/450),
+    });
     // Congelamento russo: cristal gigante envolve o canhão por 2 segundos.
     if(this.elapsed<this.cannonFrozenUntil){
       const x=CANNON.x,y=CANNON.y-14;
@@ -6136,7 +6120,10 @@ export class GameScene extends Phaser.Scene {
       stopRussianSfxLoops();
       stopNationalSpecialSfxLoops();
     }
-    if (this.countdownActive) return;
+    if (this.countdownActive){
+      this.drawShield(); // escudo se desliga e se forma com o jogo pausado
+      return;
+    }
     if (this.supremeCinematic) return;
     if (this.supremeTyping) return;
     const dt = Math.min(delta / 1000, 0.05);

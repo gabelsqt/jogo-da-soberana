@@ -47,14 +47,11 @@ test('estrelas se movem com parallax, e a cidade seguinte só carrega após o po
  assert.notEqual(voyageStarAt(stars[1],2000).y,stars[1].y);
  assert.equal(voyageStarAt(stars[1],2000).x,stars[1].x);
  assert.deepEqual(voyageStarAt(stars[1],0),stars[1]);
- assert.match(scene,/createVoyageRocket\(\)/);
- assert.match(scene,/this\.add\.image\(0,37,'cannon-base'\)/);
- assert.match(scene,/this\.add\.image\(0,-70,'cannon-head-4'\)/);
- assert.match(scene,/this\.add\.image\(0,-123,'cannon-barrel-4'\)/);
+ assert.doesNotMatch(scene,/createVoyageRocket\(\)/);
  assert.match(scene,/startVoyageTransition\(nextIndex,\{initial=false\}=\{\}\)/);
  assert.match(scene,/this\.time\.delayedCall\(VOYAGE_TOTAL_MS/);
  assert.match(scene,/voyageStarAt\(star,flight,H\)/);
- assert.match(scene,/this\.textures\.exists\(next\.backgroundKey\)/);
+ assert.match(scene,/this\.textures\.exists\(stop\.backgroundKey\)/);
  assert.match(scene,/arrivedFromVoyage:true/);
  assert.match(scene,/this\.startWaveCountdown\(\)/);
  assert.equal(VOYAGE_STOPS.length,4);

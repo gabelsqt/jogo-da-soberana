@@ -54,6 +54,7 @@ jobs:
           tests/voyageFlight882.test.js
           tests/verticalVoyageType2Orbit883.test.js
           tests/balanceVoyage884.test.js
+          tests/hexShieldVoyage885.test.js
           tests/sputnikRework.test.js
           tests/v1Specials.test.js
           tests/cuboNewsDomHud.test.js

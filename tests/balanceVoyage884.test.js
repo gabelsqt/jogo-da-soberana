@@ -53,8 +53,8 @@ test('foguete/canhão conservam posição X, escala e altitude de origem após 6
   assert.ok(poses[13].y>poses[12].y);
   assert.equal(VOYAGE_SPACE_MS,4000);
   assert.match(game,/startY:CANNON\.y-40,groundY:CANNON\.y-40/);
-  assert.match(game,/ship\.x=pose\.x/);
-  assert.match(game,/ship\.setScale\(pose\.scale\)/);
+  assert.match(game,/for\(const \{item,x,y\} of originals\)item\.setPosition\(x,y\+deltaY\)/);
+  assert.match(game,/for\(const \{item,x,y\} of originals\)item\.setPosition\(x,y\);/);
 });
 test('estrelas variam tamanhos, cores frias/quentes, luminosidade e rapidez',()=>{
   const stars=voyageStarfield(108,960,540);
@@ -80,6 +80,6 @@ test('estrelas variam tamanhos, cores frias/quentes, luminosidade e rapidez',()=
   }
   assert.match(game,/starGraphics\.lineStyle\(Math\.max\(1,star\.size\*\.58\),star\.color/);
   assert.match(game,/starGraphics\.fillStyle\(star\.color,alpha\)/);
-  assert.match(game,/starGraphics\.fillCircle\(pos\.x,pos\.y,star\.size\*2\.2\)/);
+  assert.match(game,/\.fillCircle\(pos\.x,pos\.y,star\.size\*2\.2\)/);
   assert.match(game,/voyageStarfield\(108,W,H\)/);
 });

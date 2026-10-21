@@ -67,9 +67,9 @@ test('as estrelas atravessam verticalmente a tela, nunca da esquerda para a dire
  }
  assert.notEqual(voyageStarAt(sample,900).y,sample.y);
  assert.match(scene,/const pose=voyageRocketPose\(elapsed/);
- assert.match(scene,/ship\.x=pose\.x/);
- assert.match(scene,/ship\.y=pose\.y/);
- assert.match(scene,/starGraphics\.lineBetween\(pos\.x,pos\.y-tail,pos\.x,pos\.y\)/);
+ assert.match(scene,/const deltaY=pose\.y-\(CANNON\.y-40\)/);
+ assert.match(scene,/for\(const \{item,x,y\} of originals\)item\.setPosition\(x,y\+deltaY\)/);
+ assert.match(scene,/\.lineBetween\(pos\.x,pos\.y-trail,pos\.x,pos\.y\)/);
  assert.doesNotMatch(scene,/ship\.x=W\/2\+Math\.sin\(/);
  assert.doesNotMatch(scene,/ship\.y=245\+Math\.sin\(/);
 });
