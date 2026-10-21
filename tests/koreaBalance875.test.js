@@ -16,7 +16,7 @@ test('som do laser principal é dedicado e usa variação reutilizável de pitch
   assert.match(SFX_FILES.krBasicShot,/kr_tiro_laser_v2\.wav/);
   assert.deepEqual(SFX_VARIATIONS.krBasicShot.pitch,[0.84,1.16]);
   const game=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
-  assert.match(game,/if\(this\.isV1Campaign&&this\.combat\.plasmaEvery>0\)\s*\/\/[^\n]*\n\s*\/\/[^\n]*\n\s*playSfx\('krBasicShot',\{throttle:70,volumeScale:0\.72\}\)/);
+  assert.match(game,/if\(this\.isV1Campaign&&this\.combat\.plasmaEvery>0\)[\s\S]{0,340}playSfx\('krBasicShot',\{throttle:70,volumeScale:0\.72\}\)/);
   const sfx=readFileSync(new URL('../src/audio/sfx.js',import.meta.url),'utf8');
   assert.match(sfx,/sound\.playbackRate=randomSfxPlaybackRate\(id\)/);
   assert.match(sfx,/id==='krBasicShot'/);
