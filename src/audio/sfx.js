@@ -42,7 +42,7 @@ export const SFX_VARIATIONS=Object.freeze({
   cannon:Object.freeze({pitch:Object.freeze([0.78,1.22]),volume:Object.freeze([0.90,1.10])}),
   ruBasicShot:Object.freeze({pitch:Object.freeze([0.96,1.04]),volume:Object.freeze([0.95,1.05])}),
   // Laser coreano: variação audível de tom, com viés grave e volume controlado.
-  krBasicShot:Object.freeze({pitch:Object.freeze([0.86,1.10]),volume:Object.freeze([0.94,1.06])}),
+  krBasicShot:Object.freeze({pitch:Object.freeze([0.84,1.16]),volume:Object.freeze([0.94,1.06])}),
   introKey:Object.freeze({pitch:Object.freeze([0.88,1.14]),volume:Object.freeze([0.89,1.05])}),
   explosion:Object.freeze({pitch:Object.freeze([0.75,1.25]),volume:Object.freeze([0.94,1.06])}),
   boss:Object.freeze({pitch:Object.freeze([0.85,1.15]),volume:Object.freeze([0.97,1.03])}),

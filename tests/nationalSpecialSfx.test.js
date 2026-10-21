@@ -57,7 +57,7 @@ test('ganchos reproduzem cada som na ação e nunca em todos os frames',()=>{
  assert.match(scene,/this\.events\.on\('pause',stopNationalSpecialSfxLoops\)/);
  assert.match(scene,/if\(visualTargets\.length\)\{[\s\S]*?playSfx\('krLaserRicochet'/);
  assert.match(scene,/if\(this\.isV1Campaign&&this\.combat\.plasmaEvery>0\)/);
- assert.match(scene,/playSfx\('krBasicShot',\{throttle:95,volumeScale:0\.46\}\)/);
+ assert.match(scene,/playSfx\('krBasicShot',\{throttle:70,volumeScale:0\.72\}\)/);
  assert.match(scene,/const specialCountry=this\.isV1Campaign\?this\.specialBuild\?\.primary:null/);
  assert.match(scene,/else if\(!\['ru','jp'\]\.includes\(specialCountry\)\)/);
  assert.match(scene,/playSfx\('brFireworkBurst',\{throttle:95/);

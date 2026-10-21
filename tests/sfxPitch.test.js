@@ -10,9 +10,9 @@ test('pitch variation remains within configured bounds',()=>{
   }
   assert.equal(randomSfxPlaybackRate('ruBasicShot',()=>0),0.96);
   assert.equal(randomSfxPlaybackRate('ruBasicShot',()=>1),1.04);
-  assert.equal(randomSfxPlaybackRate('krBasicShot',()=>0),0.86);
-  assert.equal(randomSfxPlaybackRate('krBasicShot',()=>1),1.10);
-  assert.equal(randomSfxPlaybackRate('krBasicShot',()=>0.5),0.98);
+  assert.equal(randomSfxPlaybackRate('krBasicShot',()=>0),0.84);
+  assert.equal(randomSfxPlaybackRate('krBasicShot',()=>1),1.16);
+  assert.equal(randomSfxPlaybackRate('krBasicShot',()=>0.5),1);
   assert.equal(randomSfxPlaybackRate('introKey',()=>0),0.88);
   assert.equal(randomSfxPlaybackRate('introKey',()=>1),1.14);
   assert.equal(randomSfxPlaybackRate('upgrade',()=>0),1);

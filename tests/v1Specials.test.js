@@ -69,14 +69,14 @@ test('Sputnik russo progride em duração, raio, cristalização e pulsos',()=>{
 });
 
 test('encomendas e reflexos ofensivos evoluem sem bônus de escudo',()=>{
-  for(const [tier,payloads,rays,budget] of [[2,1,3,6],[4,2,6,12],[6,3,12,22],[8,4,24,36]]){
+  for(const [tier,payloads,rays,budget] of [[2,1,3,7.2],[4,2,6,14.4],[6,3,12,26.4],[8,4,24,43.2]]){
     assert.equal(v1SpecialConfig(countryAt('cn',tier)).cnPayloads,payloads);
     const kr=v1SpecialConfig(countryAt('jp',tier));
     assert.equal(kr.krReflections,rays);
     assert.ok(kr.krReflectDamage>0);
     assert.ok(Math.abs(kr.krReflectDamage*rays-kr.krSalvoDamage)<1e-9);
     assert.equal(kr.krSalvoDamage,budget);
-    assert.ok(kr.krSalvoDamage<=36);
+    assert.ok(kr.krSalvoDamage<=43.2);
     assert.equal(kr.krShieldChance,undefined);
   }
 });

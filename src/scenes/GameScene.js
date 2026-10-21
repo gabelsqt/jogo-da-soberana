@@ -3281,7 +3281,10 @@ export class GameScene extends Phaser.Scene {
     // Coreia usa laser de arcade mesmo em builds híbridas; se não houver
     // upgrades coreanos, preservar gelo russo e metralhadora dos outros países.
     if(this.isV1Campaign&&this.combat.plasmaEvery>0)
-      playSfx('krBasicShot',{throttle:95,volumeScale:0.46});
+      // Laser principal coreano usa o áudio dedicado, cuja afinação é
+      // variada por SFX_VARIATIONS.krBasicShot em playSfx().
+      // Volume anterior (0.46) tornava o disparo difícil de ouvir.
+      playSfx('krBasicShot',{throttle:70,volumeScale:0.72});
     else if(this.isV1Campaign&&this.combat.russianFreezeMs>0)
       playSfx('ruBasicShot',{throttle:88,volumeScale:0.56});
     else playSfx('cannon',{throttle:95,volumeScale:0.48});

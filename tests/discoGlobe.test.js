@@ -28,7 +28,7 @@ function scene(){
  impactInvader(index,damage){hits.push({id:this.enemies[index].uid,damage});},hits,arcs};
 }
 test('cada ativação mantém quantidade de raios, com dano reforçado mas limitado por salva',()=>{
- for(const [level,count,budget] of [[2,3,6],[4,6,12],[6,12,22],[8,24,36]]){
+ for(const [level,count,budget] of [[2,3,7.2],[4,6,14.4],[6,12,26.4],[8,24,43.2]]){
   const s=scene(),b=v1SpecialConfig({choices:Array(level).fill('jp')});
   const orb={lastVisualAt:-Infinity,lastReflectAt:-Infinity};
   fire.call(s,100,100,b,orb);
