@@ -110,5 +110,5 @@ test('controle mostra situação do áudio e permite testar/reabilitar música',
  assert.match(hud,/ERRO DE ÁUDIO/);
  assert.match(hud,/REPRODUZINDO/);
  assert.match(hud,/MÚSICA: MUDO/);
- assert.match(hud,/statusTick\.remove\(\)/);
+ assert.match(hud,/statusTick\?\.remove\?\.\(\)/);
 });
