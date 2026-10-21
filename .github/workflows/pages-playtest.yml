@@ -44,6 +44,8 @@ jobs:
       - name: Testar mecânicas e HUD do playtest
         run: >
           node --test
+          tests/americanArsenal876.test.js
+          tests/americanWallDeployment877.test.js
           tests/sputnikRework.test.js
           tests/v1Specials.test.js
           tests/cuboNewsDomHud.test.js

@@ -15,8 +15,9 @@ import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
 import {registerAmericanJulyHit,americanJulyReady,consumeAmericanJulyShot} from '../gameplay/usJuly.js';
-import {americanWallPlacement,americanWallTouches,americanWallIntersects,
-  AMERICAN_WALL_COOLDOWN_MS} from '../gameplay/americanArsenal.js';
+import {americanWallPlacement,americanWallArcCenter,americanWallTravelDuration,
+  americanWallAnimation,americanWallTouches,americanWallIntersects,
+  AMERICAN_WALL_COOLDOWN_MS,AMERICAN_WALL_OPEN_MS} from '../gameplay/americanArsenal.js';
 import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame, firePulseRadius } from '../gameplay/arraialBrasil2.js';
 import {
   normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout,
@@ -3658,7 +3659,8 @@ export class GameScene extends Phaser.Scene {
       const radius=this.specialBuild.usWall.radius;
       const angle=Math.atan2(y-CANNON.y,x-CANNON.x);
       gfx.lineStyle(3,0x7bbdff,ready?0.66:0.25);
-      gfx.beginPath();gfx.arc(x,y,radius,angle-Math.PI/3,
+      const center=americanWallArcCenter(x,y,angle,radius);
+      gfx.beginPath();gfx.arc(center.x,center.y,radius,angle-Math.PI/3,
         angle+Math.PI/3,false);gfx.strokePath();
     }
     const alpha = ready ? 0.65 : 0.25;
@@ -4209,26 +4211,48 @@ export class GameScene extends Phaser.Scene {
     const cfg=build?.usWall;
     if(!cfg)return;
     const point=americanWallPlacement(x,y,CANNON.x,CANNON.y,W,H);
-    // Uma barreira por vez: sem acumular proteção em builds híbridas.
+    const center=americanWallArcCenter(point.x,point.y,point.angle,cfg.radius);
+    const muzzle=this.cannonBarrelArt
+      ?cannonSpritePose(point.angle,CANNON.x,CANNON.y-11,this.cannonRecoil)
+      :null;
+    const muzzleX=muzzle?.muzzleX??CANNON.x+Math.cos(point.angle)*40;
+    const muzzleY=muzzle?.muzzleY??CANNON.y+Math.sin(point.angle)*40;
+    const travelMs=americanWallTravelDuration(muzzleX,muzzleY,point.x,point.y);
+    // Uma barreira por vez: o lançamento anterior também é substituído.
     for(const old of this.americanWalls)old.graphics?.destroy();
     this.americanWalls=[];
-    const wall={...point,...cfg,hp:cfg.maxHp,
-      expiresAt:this.time.now+cfg.durationMs,lastPush:new Map(),
-      graphics:this.add.graphics().setDepth(56)};
+    const wall={...point,...center,...cfg,hp:cfg.maxHp,
+      targetX:point.x,targetY:point.y,muzzleX,muzzleY,
+      startedAt:this.time.now,travelMs,currentArc:0,arrived:false,
+      expiresAt:this.time.now+travelMs+AMERICAN_WALL_OPEN_MS+cfg.durationMs,
+      lastPush:new Map(),graphics:this.add.graphics().setDepth(56)};
     this.americanWalls.push(wall);
-    playSfx('shieldOn',{throttle:250,volumeScale:.92});
+    playSfx('specialShot',{throttle:180,volumeScale:.60});
     this.paintAmericanWall(wall);
   }
 
-  paintAmericanWall(wall){
+  paintAmericanWall(wall,animation=americanWallAnimation(wall,this.time.now)){
     const g=wall.graphics;
     g.clear();
+    wall.currentArc=animation.arc;
+    if(animation.phase==='travel'){
+      const dx=animation.x-wall.muzzleX,dy=animation.y-wall.muzzleY;
+      const distance=Math.max(1,Math.hypot(dx,dy));
+      const tail=Math.min(42,distance);
+      g.lineStyle(5,0x2077e4,.70);
+      g.lineBetween(animation.x-dx/distance*tail,animation.y-dy/distance*tail,
+        animation.x,animation.y);
+      g.fillStyle(0x2b75ec,.25);g.fillCircle(animation.x,animation.y,13);
+      g.fillStyle(0xdaf4ff,.98);g.fillCircle(animation.x,animation.y,5);
+      g.fillStyle(0xffffff,.96);g.fillCircle(animation.x,animation.y,2);
+      return;
+    }
     const remaining=Math.max(0,(wall.expiresAt-this.time.now)/wall.durationMs);
     // Mantém o desenho legível até os últimos ~0,85 s de duração.
     const visibility=Math.min(1,remaining*7);
     const integrity=Math.max(0,wall.hp/wall.maxHp);
     const pulse=.90+.10*Math.sin(this.time.now*.007);
-    const a=wall.angle-wall.arc/2,b=wall.angle+wall.arc/2;
+    const a=wall.angle-animation.arc/2,b=wall.angle+animation.arc/2;
     const draw=(radius,width,color,alpha)=>{
       g.lineStyle(width,color,alpha*visibility*pulse);
       g.beginPath();g.arc(wall.x,wall.y,radius,a,b,false);g.strokePath();
@@ -4241,7 +4265,7 @@ export class GameScene extends Phaser.Scene {
     draw(wall.radius-4,4,0xee475c,.90);
     draw(wall.radius-10,3,0xbde8ff,.96);
     for(let k=0;k<9;k++){
-      const ang=a+(k+.5)*wall.arc/9;
+      const ang=a+(k+.5)*animation.arc/9;
       const px=wall.x+Math.cos(ang)*(wall.radius-1);
       const py=wall.y+Math.sin(ang)*(wall.radius-1);
       g.fillStyle(0xffffff,.86*visibility);
@@ -4252,12 +4276,19 @@ export class GameScene extends Phaser.Scene {
     if(integrity<.70){
       const cracks=Math.ceil((1-integrity)*9);
       for(let j=0;j<cracks;j++){
-        const ang=a+(j+.55)*wall.arc/(cracks+1);
+        const ang=a+(j+.55)*animation.arc/(cracks+1);
         const r=wall.radius+(j%2?7:-7);
         const px=wall.x+Math.cos(ang)*r,py=wall.y+Math.sin(ang)*r;
         g.lineStyle(2,integrity<.25?0xf45d72:0xa3dbff,.85*visibility);
         g.lineBetween(px-7,py-4,px+6,py+5);
       }
+    }
+    if(animation.phase==='deploy'){
+      const spark=1-animation.progress;
+      g.lineStyle(3,0xeaf8ff,.85*spark);
+      g.strokeCircle(wall.targetX,wall.targetY,5+17*spark);
+      g.fillStyle(0xffffff,.75*spark);
+      g.fillCircle(wall.targetX,wall.targetY,3+3*spark);
     }
     if(integrity<.25&&Math.sin(this.time.now*.038)>.15)
       draw(wall.radius,24,0xffffff,.35);
@@ -4285,6 +4316,15 @@ export class GameScene extends Phaser.Scene {
       if(this.time.now>=wall.expiresAt||wall.hp<=0){
         this.destroyAmericanWall(wall,wall.hp<=0);continue;
       }
+      const animation=americanWallAnimation(wall,this.time.now);
+      wall.currentArc=animation.arc;
+      if(animation.phase==='travel'){
+        this.paintAmericanWall(wall,animation);continue;
+      }
+      if(!wall.arrived){
+        wall.arrived=true;
+        playSfx('shieldOn',{throttle:250,volumeScale:.92});
+      }
       for(const enemy of this.enemies){
         if(enemy.type===6||!enemy.sprite?.active)continue;
         if(!americanWallTouches(wall,enemy.sprite.x,enemy.sprite.y,
@@ -4300,12 +4340,13 @@ export class GameScene extends Phaser.Scene {
         if(wall.hp<=0)break;
       }
       if(wall.hp<=0)this.destroyAmericanWall(wall,true);
-      else this.paintAmericanWall(wall);
+      else this.paintAmericanWall(wall,animation);
     }
   }
 
   hitAmericanWallWithBullet(shot,x1,y1){
     for(const wall of [...this.americanWalls]){
+      if(!wall.currentArc)continue; // Projétil do muro ainda em voo.
       if(!americanWallIntersects(wall,x1,y1,shot.sprite.x,shot.sprite.y,
         shot.radius??8))continue;
       wall.hp-=shot.damage??14;
