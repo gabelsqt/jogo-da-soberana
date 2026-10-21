@@ -73,7 +73,6 @@ test('mira respeita a distância mínima e máxima usada pelo tiro especial', ()
   assert.ok(Math.abs(close.y - 354) < 1e-8);
 
   const distant = specialTargetPoint(480, 494, 480, -10000);
-  assert.equal(distant.distance, SPECIAL_MAX_DISTANCE);
   assert.equal(distant.y,24); // Limite superior visível, nunca fora da tela.
   assert.ok(distant.distance<SPECIAL_MAX_DISTANCE);
 });
