@@ -90,7 +90,7 @@ export const V1_UPGRADES = {
     {
       "level": 4,
       "title": "Obra Superfaturada™",
-      "description": "Grande Muro cresce em raio e resistência; ângulo fixo em 120°.",
+      "description": "Grande Muro fica mais amplo; invulnerável a tiros comuns, com arco fixo de 120°.",
       "kind": "secondary"
     },
     {
@@ -102,7 +102,7 @@ export const V1_UPGRADES = {
     {
       "level": 6,
       "title": "Segurança Nacional™",
-      "description": "Grande Muro mais largo e resistente, com bandeira americana na curvatura.",
+      "description": "Grande Muro mais largo, com bandeira americana na curvatura; só feixes de cerco pesado podem rompê-lo.",
       "kind": "secondary"
     },
     {
@@ -114,7 +114,7 @@ export const V1_UPGRADES = {
     {
       "level": 8,
       "title": "O Maior Muro do Mundo™",
-      "description": "Grande Muro com raio e resistência máximos.",
+      "description": "Grande Muro atinge seu raio máximo; lasers de cerco e superarma do Tipo 6 ainda podem destruí-lo.",
       "kind": "secondary"
     },
     {

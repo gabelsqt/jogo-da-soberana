@@ -161,8 +161,12 @@ function updateModuleAction(scene,enemy,dt){
       scene.showAttackWarning('LASER DE CERCO — IMPACTO!');
     }
   }else if(a.kind==='laserFire'){
-    // Feixe contínuo por três segundos; destruir o módulo o encerra.
-    scene.damageCannon(45*dt);
+    // O laser pesado de cerco pode romper o Grande Muro ao atravessá-lo.
+    const fromX=enemy.sprite.x+m.offsetX,fromY=enemy.sprite.y+36;
+    const wallBroken=scene.breakAmericanWallsWithType6Beam?.(
+      fromX,fromY,CANNON.x,CANNON.y,'siegeLaser',7);
+    // A barreira absorve o primeiro contato; se já rompeu, o feixe continua.
+    if(!wallBroken)scene.damageCannon(45*dt);
     if(a.elapsed>=TYPE6_LASER_FIRE_SECONDS){s.action=null;s.attackClock=0;}
   }else if(a.kind==='hangar'){
     if(a.elapsed>=2){m.activeUntil=scene.time.now+480;launchHangar(scene,enemy,m);s.action=null;s.attackClock=0;}
@@ -437,6 +441,9 @@ export function fireType6Doom(scene,enemy){
   scene.boss6DoomFired=true;scene.countdownActive=true;
   const g=scene.add.graphics().setDepth(180),x=enemy.sprite.x,y=enemy.sprite.y;
   const color=COLOR[enemy.bossCountry];
+  // O feixe terminal do núcleo atravessa e despedaça o Grande Muro em seu caminho.
+  // Isso NÃO cancela o ataque final do Tipo 6.
+  scene.breakAmericanWallsWithType6Beam?.(x,y,CANNON.x,CANNON.y,'coreDoom',58);
   g.lineStyle(116,color,0.25).lineBetween(x,y,CANNON.x,CANNON.y);
   g.lineStyle(54,color,0.86).lineBetween(x,y,CANNON.x,CANNON.y);
   g.lineStyle(18,0xffffff,1).lineBetween(x,y,CANNON.x,CANNON.y);

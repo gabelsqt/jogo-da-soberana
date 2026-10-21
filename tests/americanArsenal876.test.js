@@ -21,7 +21,7 @@ test('foguetes crescem só por upgrades: o raio físico, a explosão e o dano',(
  assert.equal(v1CombatStats(state(7)).usJulyHitsRequired,0);
  assert.equal(v1CombatStats(state(1)).fragmentation,false);
 });
-test('Grande Muro: 120 graus constantes, 6 s, 14 s; raio e HP crescem',()=>{
+test('Grande Muro: 120 graus constantes, 6 s, 14 s; raio cresce sem HP',()=>{
  const c=[2,4,6,8].map(americanWallConfig);
  assert.equal(americanWallConfig(1),null);
  assert.equal(AMERICAN_WALL_ARC,Math.PI*2/3);
@@ -30,7 +30,7 @@ test('Grande Muro: 120 graus constantes, 6 s, 14 s; raio e HP crescem',()=>{
  for(const x of c)assert.equal(x.arc,AMERICAN_WALL_ARC);
  for(let i=1;i<c.length;i++){
   assert.ok(c[i].radius>c[i-1].radius);
-  assert.ok(c[i].maxHp>c[i-1].maxHp);
+  assert.equal(c[i].maxHp,undefined);
  }
  assert.equal(v1SpecialConfig(state(8)).usWall.radius,125);
 });
@@ -49,7 +49,7 @@ test('arco intercepta tiros velozes na curva e não acerta atrás ou no vazio',(
  assert.equal(americanWallIntersects(w,200,230,200,300,3),false);
  assert.equal(americanWallIntersects(w,0,0,10,10,3),false);
 });
-test('arma, botão direito, HP, repulsão e visual da bandeira integrados',()=>{
+test('arma, botão direito, invulnerabilidade, repulsão e bandeira integrados',()=>{
  const src=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
  for(const part of ['createAmericanWall(target.x,target.y','hitAmericanWallWithBullet',
   'updateAmericanWalls();','createAmericanRocketSprite','detonateAmericanRocket',
@@ -57,7 +57,8 @@ test('arma, botão direito, HP, repulsão e visual da bandeira integrados',()=>{
   '0xef4865','0xffffff'])assert.ok(src.includes(part),part);
  assert.match(src,/if\(enemy.type===6\|\|!enemy.sprite\?\.active\)continue/);
  assert.match(src,/enemy.shockOffset.vy\+=Math.sin\(angle\)\*260/);
- assert.match(src,/wall.hp-=enemy.type<=2\?9:18/);
+ assert.doesNotMatch(src,/wall\.hp\s*[-+]?=/);
+ assert.match(src,/wall\.flashUntil=this\.time\.now\+130/);
  assert.match(src,/if\(bullet.usRocket\)/);
  assert.doesNotMatch(src,/build\.primary==='us'\?1\.6\*build\.usMissileScale/);
  assert.match(V1_UPGRADES.us[1].description,/120°/);

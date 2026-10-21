@@ -17,7 +17,7 @@ export function americanRocketConfig(level=0){
 export function americanWallConfig(level=0){
   if(level<2)return null;
   const stage=level>=8?3:level>=6?2:level>=4?1:0;
-  return {radius:[60,79,101,125][stage],maxHp:[88,135,195,275][stage],
+  return {radius:[60,79,101,125][stage],
     durationMs:AMERICAN_WALL_DURATION_MS,
     cooldownMs:AMERICAN_WALL_COOLDOWN_MS,arc:AMERICAN_WALL_ARC};
 }
@@ -80,4 +80,12 @@ export function americanWallIntersects(wall,x1,y1,x2,y2,projectileRadius=0){
     if(Math.hypot(x1+dx*t-px,y1+dy*t-py)<=12+projectileRadius)return true;
   }
   return false;
+}
+
+// Apenas os feixes de energia pesada do Tipo 6 podem quebrar o muro.
+// Projéteis comuns e contatos físicos são interceptados sem desgaste.
+export function americanWallBreaksFromBeam(wall,source,x1,y1,x2,y2,halfWidth=0){
+  if(source!=='siegeLaser'&&source!=='coreDoom')return false;
+  if(!(wall.currentArc>0))return false; // Lançamento não materializado.
+  return americanWallIntersects(wall,x1,y1,x2,y2,halfWidth);
 }

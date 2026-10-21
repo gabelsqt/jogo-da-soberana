@@ -17,7 +17,7 @@ import Phaser from 'phaser';
 import {registerAmericanJulyHit,americanJulyReady,consumeAmericanJulyShot} from '../gameplay/usJuly.js';
 import {americanWallPlacement,americanWallArcCenter,americanWallTravelDuration,
   americanWallAnimation,americanWallTouches,americanWallIntersects,
-  AMERICAN_WALL_COOLDOWN_MS,AMERICAN_WALL_OPEN_MS} from '../gameplay/americanArsenal.js';
+  americanWallBreaksFromBeam,AMERICAN_WALL_COOLDOWN_MS,AMERICAN_WALL_OPEN_MS} from '../gameplay/americanArsenal.js';
 import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame, firePulseRadius } from '../gameplay/arraialBrasil2.js';
 import {
   normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout,
@@ -4221,7 +4221,7 @@ export class GameScene extends Phaser.Scene {
     // Uma barreira por vez: o lançamento anterior também é substituído.
     for(const old of this.americanWalls)old.graphics?.destroy();
     this.americanWalls=[];
-    const wall={...point,...center,...cfg,hp:cfg.maxHp,
+    const wall={...point,...center,...cfg,flashUntil:0,
       targetX:point.x,targetY:point.y,muzzleX,muzzleY,
       startedAt:this.time.now,travelMs,currentArc:0,arrived:false,
       expiresAt:this.time.now+travelMs+AMERICAN_WALL_OPEN_MS+cfg.durationMs,
@@ -4250,7 +4250,6 @@ export class GameScene extends Phaser.Scene {
     const remaining=Math.max(0,(wall.expiresAt-this.time.now)/wall.durationMs);
     // Mantém o desenho legível até os últimos ~0,85 s de duração.
     const visibility=Math.min(1,remaining*7);
-    const integrity=Math.max(0,wall.hp/wall.maxHp);
     const pulse=.90+.10*Math.sin(this.time.now*.007);
     const a=wall.angle-animation.arc/2,b=wall.angle+animation.arc/2;
     const draw=(radius,width,color,alpha)=>{
@@ -4273,16 +4272,9 @@ export class GameScene extends Phaser.Scene {
       g.fillRect(px-2.5,py-.5,5,1);
       g.fillRect(px-.5,py-2.5,1,5);
     }
-    if(integrity<.70){
-      const cracks=Math.ceil((1-integrity)*9);
-      for(let j=0;j<cracks;j++){
-        const ang=a+(j+.55)*animation.arc/(cracks+1);
-        const r=wall.radius+(j%2?7:-7);
-        const px=wall.x+Math.cos(ang)*r,py=wall.y+Math.sin(ang)*r;
-        g.lineStyle(2,integrity<.25?0xf45d72:0xa3dbff,.85*visibility);
-        g.lineBetween(px-7,py-4,px+6,py+5);
-      }
-    }
+    // Impactos normais fazem a barreira cintilar, mas não a danificam.
+    if(this.time.now<wall.flashUntil)
+      draw(wall.radius,26,0xffffff,.40*((wall.flashUntil-this.time.now)/130));
     if(animation.phase==='deploy'){
       const spark=1-animation.progress;
       g.lineStyle(3,0xeaf8ff,.85*spark);
@@ -4290,8 +4282,6 @@ export class GameScene extends Phaser.Scene {
       g.fillStyle(0xffffff,.75*spark);
       g.fillCircle(wall.targetX,wall.targetY,3+3*spark);
     }
-    if(integrity<.25&&Math.sin(this.time.now*.038)>.15)
-      draw(wall.radius,24,0xffffff,.35);
   }
 
   destroyAmericanWall(wall,shattered=false){
@@ -4313,8 +4303,8 @@ export class GameScene extends Phaser.Scene {
 
   updateAmericanWalls(){
     for(const wall of [...this.americanWalls]){
-      if(this.time.now>=wall.expiresAt||wall.hp<=0){
-        this.destroyAmericanWall(wall,wall.hp<=0);continue;
+      if(this.time.now>=wall.expiresAt){
+        this.destroyAmericanWall(wall);continue; // Prazo natural, sem estilhaços.
       }
       const animation=americanWallAnimation(wall,this.time.now);
       wall.currentArc=animation.arc;
@@ -4335,12 +4325,10 @@ export class GameScene extends Phaser.Scene {
         const angle=Math.atan2(enemy.sprite.y-wall.y,enemy.sprite.x-wall.x);
         enemy.shockOffset.vx+=Math.cos(angle)*260;
         enemy.shockOffset.vy+=Math.sin(angle)*260;
-        wall.hp-=enemy.type<=2?9:18;
+        wall.flashUntil=this.time.now+130;
         playSfx('shieldHit',{throttle:140,volumeScale:.52});
-        if(wall.hp<=0)break;
       }
-      if(wall.hp<=0)this.destroyAmericanWall(wall,true);
-      else this.paintAmericanWall(wall,animation);
+      this.paintAmericanWall(wall,animation);
     }
   }
 
@@ -4349,13 +4337,25 @@ export class GameScene extends Phaser.Scene {
       if(!wall.currentArc)continue; // Projétil do muro ainda em voo.
       if(!americanWallIntersects(wall,x1,y1,shot.sprite.x,shot.sprite.y,
         shot.radius??8))continue;
-      wall.hp-=shot.damage??14;
+      wall.flashUntil=this.time.now+130;
       playSfx('shieldHit',{throttle:130,volumeScale:.57});
-      if(wall.hp<=0)this.destroyAmericanWall(wall,true);
-      else this.paintAmericanWall(wall);
-      return true;
+      this.paintAmericanWall(wall);
+      return true; // Qualquer tiro comum é absorvido, sem perder resistência.
     }
     return false;
+  }
+
+  // Laser de Cerco e feixe final do núcleo Tipo 6: únicas exceções.
+  breakAmericanWallsWithType6Beam(x1,y1,x2,y2,source,halfWidth=0){
+    let broke=false;
+    for(const wall of [...this.americanWalls]){
+      wall.currentArc=americanWallAnimation(wall,this.time.now).arc;
+      if(!americanWallBreaksFromBeam(wall,source,x1,y1,x2,y2,halfWidth))
+        continue;
+      this.destroyAmericanWall(wall,true);
+      broke=true;
+    }
+    return broke;
   }
 
   createProjectile(angle, special, distance = 0, effects = null, centerGlow = false, offsetX = 0, generation = 0, origin = null, patriotic = false) {
