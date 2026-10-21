@@ -65,6 +65,6 @@ test('Tipo 6 tem domo invertido e energia visual sem alterar colisões',()=>{
  const visual=readFileSync(new URL('../src/gameplay/type6Visual.js',import.meta.url),'utf8');
  assert.match(visual,/function drawEnergyIntake\(/);
  assert.match(visual,/drawEnergyIntake\(g,0,0/);
- assert.match(visual,/module\.role==='laser'\?99:58/);
+ assert.match(visual,/module\.role==='laser'\?118:94/);
  assert.match(visual,/21\+77\*\(1-nx\*nx\)/);
 });
