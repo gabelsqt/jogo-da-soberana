@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import {bindSceneMusic} from '../audio/music.js';
 import {playSfx} from '../audio/sfx.js';
 import {assetUrl} from '../config/assetUrl.js';
+import {createWavyWord} from '../ui/introTextWave.js';
 import {
   GAME_WIDTH as W,GAME_HEIGHT as H,preloadRioBackdrop,drawRioBackdrop,
 } from '../config/scenery.js';
@@ -26,10 +27,16 @@ export class IntroScene extends Phaser.Scene {
     this.segmentTimer=null;
     this.phase='idle';
     this.promotionShown=false;
+    this.highlightWord=null;
+    this.promotionWave=null;
   }
   preload(){
     preloadRioBackdrop(this);
     this.load.image('intro-zeca',assetUrl('assets/lideres/br_retrato.png'));
+    this.load.svg('intro-invasion',assetUrl('assets/intro/invasao-cristo.svg'),
+      {width:720,height:168});
+    this.load.svg('intro-elections',assetUrl('assets/intro/urna-cancelado.svg'),
+      {width:720,height:168});
     this.load.image('intro-obuseiro-base',assetUrl('assets/canhao/base.png'));
     this.load.image('intro-obuseiro-head',assetUrl('assets/canhao/head_4.png'));
     this.load.image('intro-obuseiro-barrel',assetUrl('assets/canhao/barrel_4.png'));
@@ -81,6 +88,12 @@ export class IntroScene extends Phaser.Scene {
     this.objects=[];
     this.body=null;this.footnote=null;
     this.promotionLabel=null;this.statusLabel=null;
+    this.highlightWord=null;this.promotionWave=null;
+  }
+  // Ondulação de letras reutilizável: a cor e amplitude vêm de cada destaque.
+  update(time){
+    this.highlightWord?.tick(time);
+    this.promotionWave?.tick(time);
   }
   box(...args){return this.keep(this.add.rectangle(...args));}
   label(x,y,value,style,depth=22){
@@ -130,16 +143,34 @@ export class IntroScene extends Phaser.Scene {
       fontFamily:CUBO_FONT,fontSize:'21px',color:'#e4eff4',lineSpacing:6,
       wordWrap:{width:750},
     });
+    if(slide.id==='convocation'){
+      // O destaque acompanha os caracteres revelados, em vez de antecipar
+      // a palavra no meio da digitação. O asterisco continua sem efeito.
+      const word='MESÁRIO';
+      const before=slide.body.split('\n').find(line=>line.includes(word))
+        ?.split(word)[0]??'';
+      const x=this.body.x+this.body.context.measureText(before).width;
+      const lineHeight=(this.body.style.metrics?.fontSize||21)+6;
+      const y=this.body.y+2*lineHeight;
+      const width=this.body.context.measureText(word).width;
+      this.box(x+width/2,y+12,width+4,26,0x132638).setDepth(29);
+      this.highlightWord=createWavyWord(this,{
+        word,x,y,fontFamily:CUBO_FONT,fontSize:21,color:'#f7a547',
+        stroke:'#513021',strokeThickness:1,amplitude:1.7,depth:30,
+      });
+      this.highlightWord.glyphs.forEach(item=>this.keep(item));
+      this.highlightWord.setRevealed(0);
+    }
     if(slide.promotion){
-      this.promotionLabel=this.label(W/2,345,'',{
-        fontFamily:CUBO_FONT,fontSize:'29px',fontStyle:'bold',
-        color:'#ffbb83',stroke:'#5b2437',strokeThickness:3,
+      this.promotionLabel=this.label(W/2,341,'',{
+        fontFamily:CUBO_FONT,fontSize:'43px',fontStyle:'bold',
+        color:'#ff634d',stroke:'#542637',strokeThickness:3,
       }).setOrigin(0.5).setAlpha(0).setDepth(30);
-      this.footnote=this.label(102,389,'',{
+      this.footnote=this.label(102,406,'',{
         fontFamily:CUBO_FONT,fontSize:'13px',color:'#b6c6d1',lineSpacing:3,
         wordWrap:{width:755},
       });
-      this.statusLabel=this.label(104,370,'',{
+      this.statusLabel=this.label(104,383,'',{
         fontFamily:CUBO_FONT,fontSize:'13px',fontStyle:'bold',color:'#85e5ae',
       });
     }
@@ -152,25 +183,28 @@ export class IntroScene extends Phaser.Scene {
       footer:'A crise atinge as principais cidades brasileiras',
       depth:34,
     }))this.keep(object);
-    this.box(W/2,140,780,68,CUBO_COLORS.red,0.92).setDepth(10);
-    this.label(W/2,140,slide.tag,{
-      fontFamily:CUBO_FONT,fontSize:'30px',fontStyle:'bold',
+    this.box(W/2,120,780,54,CUBO_COLORS.red,0.92).setDepth(10);
+    this.label(W/2,120,slide.tag,{
+      fontFamily:CUBO_FONT,fontSize:'27px',fontStyle:'bold',
       color:'#ffffff',
     },12).setOrigin(0.5);
-    this.label(W/2,234,slide.headline,{
-      fontFamily:CUBO_FONT,fontSize:'33px',fontStyle:'bold',align:'center',
+    this.label(W/2,205,slide.headline,{
+      fontFamily:CUBO_FONT,fontSize:'31px',fontStyle:'bold',align:'center',
       color:'#f0f3f2',wordWrap:{width:815},
     }).setOrigin(0.5);
-    this.label(W/2,340,slide.body,{
-      fontFamily:CUBO_FONT,fontSize:'19px',align:'center',
-      color:'#bfd8e4',wordWrap:{width:800},lineSpacing:5,
+    this.label(W/2,292,slide.body,{
+      fontFamily:CUBO_FONT,fontSize:'18px',align:'center',
+      color:'#bfd8e4',wordWrap:{width:810},lineSpacing:3,
     }).setOrigin(0.5);
-    // Pequeno gráfico de naves sem diálogo/capções alienígenas.
-    const g=this.keep(this.add.graphics().setDepth(18));
-    for(const [x,y,scale] of [[290,432,1],[490,417,1.3],[677,436,0.8]]){
-      g.fillStyle(0x6b879a,0.9).fillEllipse(x,y,54*scale,18*scale);
-      g.fillStyle(0x293e57).fillEllipse(x,y-7*scale,20*scale,16*scale);
-      g.fillStyle(0xe25768).fillCircle(x,y+2*scale,4*scale);
+    const key=slide.art==='invasion'?'intro-invasion':'intro-elections';
+    // As imagens narram sem legendas: selfie → ataque → vítimas;
+    // urna brasileira estampada CANCELADO na notícia seguinte.
+    this.box(W/2,412,734,180,0x080f1b).setDepth(16)
+      .setStrokeStyle(3,0x7392a4);
+    if(this.textures.exists(key)){
+      const art=this.keep(this.add.image(W/2,412,key)
+        .setDisplaySize(720,168).setDepth(18));
+      art.texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
     }
   }
   drawZeca(slide){
@@ -187,14 +221,14 @@ export class IntroScene extends Phaser.Scene {
     this.label(362,135,slide.tag,{
       fontFamily:CUBO_FONT,fontSize:'13px',color:'#a6c9d7',
     });
-    this.label(362,170,'GENERAL, ESTE É O OBUSEIRO.',{
+    this.label(362,170,'OFICINA DE EMERGÊNCIA', {
       fontFamily:CUBO_FONT,fontSize:'21px',fontStyle:'bold',color:'#f7d59a',
     });
     this.body=this.label(362,209,'',{
       fontFamily:CUBO_FONT,fontSize:'17px',color:'#edf2f5',
       wordWrap:{width:492},lineSpacing:5,
     });
-    this.label(219,397,'MECÂNICO DE CARROS',{
+    this.label(219,397,'MECÂNICO DE ÔNIBUS',{
       fontFamily:CUBO_FONT,fontSize:'12px',color:'#9fb6c4',
     }).setOrigin(0.5);
     // Miniatura do obuseiro real do jogo, reaproveitando seus sprites.
@@ -220,12 +254,19 @@ export class IntroScene extends Phaser.Scene {
     if(this.finished||this.phase!=='typing')return;
     const char=this.characters[this.characterIndex++];
     this.typeTarget.setText(this.characters.slice(0,this.characterIndex).join(''));
+    this.refreshConvocationHighlight();
     if(char&&/[^\s]/u.test(char))
       playSfx('introKey',{throttle:24,volumeScale:0.27});
     if(this.characterIndex>=this.characters.length){
       this.typeTimer?.remove();this.typeTimer=null;
       this.completeSegment();
     }
+  }
+  refreshConvocationHighlight(){
+    if(!this.highlightWord)return;
+    const start=this.slides[this.page].body.indexOf('MESÁRIO');
+    this.highlightWord.setRevealed(
+      Math.max(0,this.characterIndex-start));
   }
   completeSegment(){
     const slide=this.slides[this.page];
@@ -244,7 +285,14 @@ export class IntroScene extends Phaser.Scene {
     if(this.promotionShown)return;
     const slide=this.slides[this.page];
     this.promotionShown=true;
-    this.promotionLabel.setText(slide.promotion).setAlpha(1);
+    // A promoção aparece de uma vez: palavra enorme, ondulação em cada letra.
+    this.promotionWave=createWavyWord(this,{
+      word:slide.promotion,x:W/2,y:323,fontFamily:CUBO_FONT,
+      fontSize:43,color:'#ff634d',stroke:'#542637',strokeThickness:3,
+      amplitude:3.6,center:true,depth:31,
+    });
+    this.promotionWave.glyphs.forEach(item=>this.keep(item));
+    this.promotionWave.setRevealed(Array.from(slide.promotion).length);
     playSfx('introNotice',{throttle:180,volumeScale:0.75});
     this.phase='footnotePending';
     this.segmentTimer=this.time.delayedCall(
@@ -260,6 +308,8 @@ export class IntroScene extends Phaser.Scene {
     if(this.finished)return;
     if(this.phase==='typing'){
       this.typeTarget.setText(this.characters.join(''));
+      this.characterIndex=this.characters.length;
+      this.refreshConvocationHighlight();
       this.typeTimer?.remove();this.typeTimer=null;
       this.completeSegment();return;
     }
