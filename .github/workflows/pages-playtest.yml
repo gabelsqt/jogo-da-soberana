@@ -84,11 +84,14 @@ jobs:
           name: operacao-soberania-itch
           path: itch-build/operacao-soberania-itch.zip
           retention-days: 14
-      - name: Preparar página
+      # O Pages serve os arquivos estáticos e MP3s do Vite diretamente.
+      # Não reutilizar HTML único de 97 MB com MP3 em data URIs.
+      - name: Preparar página com músicas em arquivos separados
         run: |
           mkdir -p pages-site
-          cp itch-build/index.html pages-site/index.html
+          cp -a dist/. pages-site/
           touch pages-site/.nojekyll
+          node scripts/verify-pages-audio.mjs pages-site
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Carregar site
