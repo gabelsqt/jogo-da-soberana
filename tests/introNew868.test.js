@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {
   introductionSlides,INTRO_CHAR_DELAY_MS,INTRO_PAGE_MS,INTRO_NEWS_HOLD_MS,
-  INTRO_FOOTNOTE_DELAY_MS,
+  INTRO_CONVOCATION_HOLD_MS,INTRO_ZECA_HOLD_MS,INTRO_FOOTNOTE_DELAY_MS,
 } from '../src/gameplay/introScript.js';
 
 test('ordem: convocação com asterisco, invasão, cancelamento, promoção e Zeca',()=>{
@@ -38,7 +38,9 @@ test('sem personagem alienígena falando nem login no computador',()=>{
 });
 test('efeito letra por letra usa áudio de tecla, intervalos, avanço e revelação tardia',()=>{
  assert.ok(INTRO_CHAR_DELAY_MS>=22&&INTRO_CHAR_DELAY_MS<=55);
- assert.ok(INTRO_PAGE_MS>=1000&&INTRO_NEWS_HOLD_MS>=5000);
+ assert.ok(INTRO_PAGE_MS>=2500&&INTRO_NEWS_HOLD_MS>=5000);
+ assert.ok(INTRO_CONVOCATION_HOLD_MS>=5000);
+ assert.ok(INTRO_ZECA_HOLD_MS>=3000);
  assert.ok(INTRO_FOOTNOTE_DELAY_MS>=500);
  const scene=readFileSync(new URL('../src/scenes/IntroScene.js',import.meta.url),'utf8');
  assert.match(scene,/this\.time\.addEvent\(\{/);

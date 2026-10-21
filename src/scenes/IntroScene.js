@@ -8,7 +8,7 @@ import {
 } from '../config/scenery.js';
 import {addCuboBroadcastFrame,CUBO_FONT,CUBO_COLORS} from '../ui/cuboNewsTheme.js';
 import {
-  introductionSlides,INTRO_CHAR_DELAY_MS,INTRO_PAGE_MS,
+  introductionSlides,INTRO_CHAR_DELAY_MS,introHoldForSlide,
   INTRO_NEWS_HOLD_MS,INTRO_FOOTNOTE_DELAY_MS,
 } from '../gameplay/introScript.js';
 
@@ -278,7 +278,7 @@ export class IntroScene extends Phaser.Scene {
     this.phase='hold';
     if(slide.status)this.statusLabel.setText(slide.status);
     this.holdTimer=this.time.delayedCall(
-      slide.kind==='zeca'?2400:INTRO_PAGE_MS,()=>this.advance());
+      introHoldForSlide(slide),()=>this.advance());
   }
   revealPromotion(){
     this.segmentTimer?.remove();this.segmentTimer=null;

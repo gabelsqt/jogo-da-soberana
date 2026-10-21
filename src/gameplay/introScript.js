@@ -1,9 +1,19 @@
 // Operação Soberania — abertura por e-mails, plantão e apresentação do Zeca.
 // Antes da onda 10, invasores não falam nem explicam suas intenções.
 export const INTRO_CHAR_DELAY_MS=32;
-export const INTRO_PAGE_MS=1900; // pausa de leitura após digitação
+export const INTRO_PAGE_MS=2900; // pausa de leitura após digitação nas demais páginas
+export const INTRO_CONVOCATION_HOLD_MS=5500; // silêncio antes do primeiro plantão
+export const INTRO_ZECA_HOLD_MS=3200; // uma fala por vez, sem pressa
 export const INTRO_NEWS_HOLD_MS=5200; // tempo para ler a sequência visual da notícia
 export const INTRO_FOOTNOTE_DELAY_MS=850;
+
+// Relógio de leitura só começa depois da digitação. Cliques/toques continuam
+// permitindo completar a fala e avançar sem esperar o contador automático.
+export function introHoldForSlide(slide){
+  if(slide?.id==='convocation')return INTRO_CONVOCATION_HOLD_MS;
+  if(slide?.kind==='zeca')return INTRO_ZECA_HOLD_MS;
+  return INTRO_PAGE_MS;
+}
 
 export function introductionSlides(){
   return [
