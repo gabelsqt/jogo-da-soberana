@@ -42,7 +42,7 @@ export function americanWallAnimation(wall,now){
     return {phase:'travel',x:wall.muzzleX+(wall.targetX-wall.muzzleX)*ease,
       y:wall.muzzleY+(wall.targetY-wall.muzzleY)*ease,arc:0,progress:t};
   }
-  const progress=clamp((elapsed-flight)/AMERICAN_WALL_OPEN_MS,0,1);
+  const progress=clamp((elapsed-flight+1e-7)/AMERICAN_WALL_OPEN_MS,0,1);
   return {phase:progress<1?'deploy':'active',x:wall.targetX,y:wall.targetY,
     arc:wall.arc*(1-Math.pow(1-progress,3)),progress};
 }
