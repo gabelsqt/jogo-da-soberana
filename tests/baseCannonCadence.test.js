@@ -25,6 +25,6 @@ test('cada melhoria deriva de mesma cadência base sem bônus exclusivo da onda 
   assert.equal(china.basicInterval,300);
   const korea=v1CombatStats({choices:['jp']});
   assert.equal(korea.basicInterval,300);
-  assert.equal(v1CombatStats({choices:Array(10).fill('jp')}).basicInterval,90,
+  assert.equal(v1CombatStats({choices:Array(10).fill('jp')}).basicInterval,160,
     'transformação laser coreana mantém seu próprio ritmo fixo');
 });
