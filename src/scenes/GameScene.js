@@ -4177,6 +4177,145 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  createAmericanRocketSprite(x,y,angle,radius){
+    // Sprite procedural de foguete 16/32-bit: uma única Graphics por bala.
+    const g=this.add.graphics({x,y}).setDepth(35);
+    const w=radius*0.65,len=radius*2.7;
+    g.fillStyle(0x12365a).fillTriangle(0,-len*.63,-w,-len*.22,w,-len*.22);
+    g.fillStyle(0xf2f8ff).fillTriangle(0,-len*.56,-w*.77,-len*.18,w*.77,-len*.18);
+    g.fillStyle(0xf3f6ff).fillRect(-w,-len*.18,w*2,len*.82);
+    g.fillStyle(0xd93650).fillRect(-w,-len*.07,w*2,len*.23);
+    g.fillStyle(0x2768c8).fillRect(-w,len*.25,w*2,len*.22);
+    g.fillStyle(0x2454a1).fillTriangle(-w,len*.31,-w*1.8,len*.69,-w,len*.62);
+    g.fillStyle(0xd93650).fillTriangle(w,len*.31,w*1.8,len*.69,w,len*.62);
+    g.fillStyle(0xffca58).fillTriangle(-w*.5,len*.64,w*.5,len*.64,0,len*1.04);
+    g.lineStyle(Math.max(1,radius*.11),0xfafcff,.86);
+    g.strokeRect(-w,-len*.18,w*2,len*.82);
+    return g.setRotation(angle+Math.PI/2);
+  }
+
+  detonateAmericanRocket(x,y,directId,radius){
+    // O alvo direto já foi atingido: o raio prejudica os vizinhos apenas uma vez.
+    this.explodeAmericanPrimary(x,y,directId,
+      this.combat.usRocketBlastDamage*2,radius);
+    playSfx('usShockwave',{throttle:120,volumeScale:0.52});
+    const colors=[0xe34a62,0xf7faff,0x3579e5];
+    for(let i=0;i<3;i++){
+      const ring=this.add.circle(x,y,radius*(.43+i*.25),colors[i],.16)
+        .setStrokeStyle(3+i%2,colors[i],.94).setDepth(53);
+      this.tweens.add({targets:ring,scale:1.25,alpha:0,duration:260+i*55,
+        onComplete:()=>ring.destroy()});
+    }
+  }
+
+  createAmericanWall(x,y,build){
+    const cfg=build?.usWall;
+    if(!cfg)return;
+    const point=americanWallPlacement(x,y,CANNON.x,CANNON.y,W,H);
+    // Uma barreira por vez: sem acumular proteção em builds híbridas.
+    for(const old of this.americanWalls)old.graphics?.destroy();
+    this.americanWalls=[];
+    const wall={...point,...cfg,hp:cfg.maxHp,
+      expiresAt:this.time.now+cfg.durationMs,lastPush:new Map(),
+      graphics:this.add.graphics().setDepth(56)};
+    this.americanWalls.push(wall);
+    playSfx('shieldOn',{throttle:250,volumeScale:.92});
+    this.paintAmericanWall(wall);
+  }
+
+  paintAmericanWall(wall){
+    const g=wall.graphics;
+    g.clear();
+    const remaining=Math.max(0,(wall.expiresAt-this.time.now)/wall.durationMs);
+    const integrity=Math.max(0,wall.hp/wall.maxHp);
+    const pulse=.90+.10*Math.sin(this.time.now*.007);
+    const a=wall.angle-wall.arc/2,b=wall.angle+wall.arc/2;
+    const draw=(radius,width,color,alpha)=>{
+      g.lineStyle(width,color,alpha*remaining*pulse);
+      g.beginPath();g.arc(wall.x,wall.y,radius,a,b,false);g.strokePath();
+    };
+    // Faixa azul, estrelas brancas e listras seguem A CURVATURA de 120°.
+    draw(wall.radius,31,0x123675,.34);
+    draw(wall.radius,24,0x1974eb,.75);
+    draw(wall.radius+10,5,0xef4865,.96);
+    draw(wall.radius+4,4,0xffffff,.91);
+    draw(wall.radius-4,4,0xee475c,.90);
+    draw(wall.radius-10,3,0xbde8ff,.96);
+    for(let k=0;k<9;k++){
+      const ang=a+(k+.5)*wall.arc/9;
+      const px=wall.x+Math.cos(ang)*(wall.radius-1);
+      const py=wall.y+Math.sin(ang)*(wall.radius-1);
+      g.fillStyle(0xffffff,.86*remaining);
+      g.fillRect(px-1.5,py-1.5,3,3);
+    }
+    if(integrity<.70){
+      const cracks=Math.ceil((1-integrity)*9);
+      for(let j=0;j<cracks;j++){
+        const ang=a+(j+.55)*wall.arc/(cracks+1);
+        const r=wall.radius+(j%2?7:-7);
+        const px=wall.x+Math.cos(ang)*r,py=wall.y+Math.sin(ang)*r;
+        g.lineStyle(2,integrity<.25?0xf45d72:0xa3dbff,.85*remaining);
+        g.lineBetween(px-7,py-4,px+6,py+5);
+      }
+    }
+    if(integrity<.25&&Math.sin(this.time.now*.038)>.15)
+      draw(wall.radius,24,0xffffff,.35);
+  }
+
+  destroyAmericanWall(wall,shattered=false){
+    wall.graphics?.destroy();
+    this.americanWalls=this.americanWalls.filter(item=>item!==wall);
+    if(!shattered)return;
+    playSfx('shieldBreak',{throttle:210,volumeScale:.75});
+    const fx=this.add.graphics().setDepth(58);
+    for(let i=0;i<17;i++){
+      const angle=wall.angle-wall.arc/2+i*wall.arc/16;
+      const x=wall.x+Math.cos(angle)*wall.radius;
+      const y=wall.y+Math.sin(angle)*wall.radius;
+      fx.lineStyle(3,[0xe94660,0xe8f7ff,0x347bdf][i%3],.86);
+      fx.lineBetween(x,y,x+Math.cos(angle)*17,y+Math.sin(angle)*17);
+    }
+    this.tweens.add({targets:fx,alpha:0,scale:1.18,duration:290,
+      onComplete:()=>fx.destroy()});
+  }
+
+  updateAmericanWalls(){
+    for(const wall of [...this.americanWalls]){
+      if(this.time.now>=wall.expiresAt||wall.hp<=0){
+        this.destroyAmericanWall(wall,wall.hp<=0);continue;
+      }
+      for(const enemy of this.enemies){
+        if(enemy.type===6||!enemy.sprite?.active)continue;
+        if(!americanWallTouches(wall,enemy.sprite.x,enemy.sprite.y,
+          enemyContactRadius(enemy.type)))continue;
+        if(this.time.now-(wall.lastPush.get(enemy.uid)??-Infinity)<500)continue;
+        wall.lastPush.set(enemy.uid,this.time.now);
+        // Só empurra; NÃO chama impactInvader nem reduz HP inimigo.
+        const angle=Math.atan2(enemy.sprite.y-wall.y,enemy.sprite.x-wall.x);
+        enemy.shockOffset.vx+=Math.cos(angle)*260;
+        enemy.shockOffset.vy+=Math.sin(angle)*260;
+        wall.hp-=enemy.type<=2?9:18;
+        playSfx('shieldHit',{throttle:140,volumeScale:.52});
+        if(wall.hp<=0)break;
+      }
+      if(wall.hp<=0)this.destroyAmericanWall(wall,true);
+      else this.paintAmericanWall(wall);
+    }
+  }
+
+  hitAmericanWallWithBullet(shot,x1,y1){
+    for(const wall of [...this.americanWalls]){
+      if(!americanWallIntersects(wall,x1,y1,shot.sprite.x,shot.sprite.y,
+        shot.radius??8))continue;
+      wall.hp-=shot.damage??14;
+      playSfx('shieldHit',{throttle:130,volumeScale:.57});
+      if(wall.hp<=0)this.destroyAmericanWall(wall,true);
+      else this.paintAmericanWall(wall);
+      return true;
+    }
+    return false;
+  }
+
   createProjectile(angle, special, distance = 0, effects = null, centerGlow = false, offsetX = 0, generation = 0, origin = null, patriotic = false) {
     const vx = Math.cos(angle);
     const vy = Math.sin(angle);
