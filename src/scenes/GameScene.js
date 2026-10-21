@@ -89,6 +89,9 @@ import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import {fullBrazilVoyageEligible,voyageEvents,voyageStop,voyageNext,
   voyageCanDepart,VOYAGE_STOPS} from '../gameplay/fullBrazilVoyage.js';
 import {createBattleBanterState,enqueueBattleBanter,currentBattleBanter} from '../gameplay/battleBanter.js';
+import {createDialogueTypewriter} from '../ui/dialogueTypewriter.js';
+import {VOYAGE_LAUNCH_MS,VOYAGE_SPACE_MS,VOYAGE_LANDING_MS,
+  VOYAGE_TOTAL_MS,voyageTravelPhase,voyageStarfield,voyageStarAt} from '../gameplay/voyageTravel.js';
 import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
 import {MAX_ACTIVE_SPUTNIKS,sputnikTouchesEnemy,crystallizeSputnikEnemy,isSputnikCrystalized,sputnikShatterStats,sputnikPrimaryDamage} from '../gameplay/russianSputnik.js';
 import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,ICE_BREATH_BOMB_SPEED_FACTOR,chillType6Bomb,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Target} from '../gameplay/iceBreath.js';
@@ -178,6 +181,7 @@ export class GameScene extends Phaser.Scene {
     this.voyageIndex=this.voyageActive
       ?Math.max(0,Math.min(VOYAGE_STOPS.length-1,Math.trunc(data.voyageIndex)||0)):0;
     this.voyageTransitioning=false; // Phaser reutiliza a instância da cena.
+    this.voyageArrived=Boolean(data.arrivedFromVoyage);
     this.finaleBossesNeeded=this.voyageActive?0:this.mode==='wave11'?1:0;
     this.finaleBossesKilled=0;
     this.supremeFinishing=false;
@@ -411,7 +415,8 @@ export class GameScene extends Phaser.Scene {
     this.input.mouse?.disableContextMenu();
 
     drawRioBackdrop(this);
-    if(this.voyageActive)this.drawVoyageBackdrop();
+    if(this.voyageActive&&(this.voyageArrived||this.voyageIndex>0))
+      this.drawVoyageBackdrop();
     // O cenário noturno original permanece até os 10 segundos finais.
     // As quatro imagens surgem sequencialmente por cima dele.
     this.dawnLayers=this.mode.startsWith('wave')?DAWN_KEYS.map(key=>
@@ -672,7 +677,8 @@ export class GameScene extends Phaser.Scene {
       // Arena livre: nenhum spawn agendado e nenhuma duração limite.
       this.waveEvents = [];
     } else if(this.voyageActive){
-      this.showVoyageArrival();
+      if(this.voyageArrived)this.startWaveCountdown();
+      else this.startVoyageTransition(this.voyageIndex,{initial:true});
     } else if (this.mode === 'wave11' && !this.zecaRevenge && !this.v1Playtest && !this.waveMakerTest) {
       this.showFinalePrelude();
     } else if (this.mode === 'wave10' && !this.v1Playtest && !this.waveMakerTest) {
@@ -1505,40 +1511,145 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  showVoyageArrival(){
-    this.countdownActive=true;
-    const stop=voyageStop(this.voyageIndex),objects=[];
-    const add=obj=>{objects.push(obj);return obj;};
-    add(this.add.rectangle(W/2,H/2,W,H,0x060d20,.97).setDepth(210));
-    const stars=add(this.add.graphics().setDepth(211));
-    for(let i=0;i<90;i++){
-      stars.fillStyle(i%4?0x94bbf4:0xffffff,0.24+(i%5)*.13);
-      stars.fillRect((i*181+17)%W,(i*97+9)%H,2,2);
+  // Prédio-base e canhão permanecem dentro da MESMA nave durante decolagem,
+  // cruzeiro e pouso. Os sprites definitivos poderão substituir apenas o corpo.
+  createVoyageRocket(){
+    const ship=this.add.container(CANNON.x,CANNON.y-40).setDepth(322);
+    const body=this.textures.exists('voyage-building')
+      ?this.add.image(0,2,'voyage-building').setDisplaySize(112,155)
+      :this.add.container(0,0);
+    if(body.type==='Container'){
+      // Enquanto não há PNG isolado do prédio no repositório, manter a
+      // base ORIGINAL do canhão (sprite separado) visível na nave.
+      body.add([
+        this.add.rectangle(0,0,95,125,0x556c85)
+          .setStrokeStyle(3,0x9bb6ce),
+        this.add.image(0,37,'cannon-base').setDisplaySize(111,53),
+        this.add.rectangle(-40,-22,16,24,0x91b3ce),
+        this.add.rectangle(8,-22,16,24,0x91b3ce),
+        this.add.rectangle(-51,21,17,62,0x657991),
+        this.add.rectangle(51,21,17,62,0x657991),
+      ]);
     }
-    const building=add(this.add.container(W/2,H+110).setDepth(214));
-    // Nave-foguete vetorial TEMPORÁRIA: sprite do edifício vem depois.
-    building.add([
-      this.add.rectangle(0,-30,80,145,0x62758c).setStrokeStyle(3,0xd7e7f7),
-      this.add.triangle(0,-119,0,80,45,0,-45,0,0xa0b8d8),
-      this.add.rectangle(-49,5,18,70,0x6d7c93),
-      this.add.rectangle(49,5,18,70,0x6d7c93),
-      this.add.triangle(0,70,0,72,22,128,-22,128,0xffb74f),
-    ]);
-    const title=add(this.add.text(W/2,96,
-      this.voyageIndex===0?'PRÉDIO-FOGUETE • DECOLAGEM':'VOO ESPACIAL • NOVA PARADA',{
-        fontFamily:'monospace',fontSize:'27px',fontStyle:'bold',color:'#fce7ae',
-      }).setOrigin(0.5).setDepth(216));
-    add(this.add.text(W/2,161,stop.city,{
-      fontFamily:'monospace',fontSize:'24px',fontStyle:'bold',color:'#e8f3ff',
-    }).setOrigin(0.5).setDepth(216));
-    add(this.add.text(W/2,202,stop.statue+'  •  CENÁRIO PROVISÓRIO',{
-      fontFamily:'monospace',fontSize:'14px',color:'#accae5',
-    }).setOrigin(0.5).setDepth(216));
-    this.tweens.add({targets:building,y:245,duration:2350,ease:'Cubic.Out'});
-    this.time.delayedCall(3000,()=>{
+    const turret=this.add.image(0,-70,'cannon-head-4').setDisplaySize(85,83);
+    const barrel=this.add.image(0,-123,'cannon-barrel-4')
+      .setDisplaySize(25,108);
+    const flame=this.add.triangle(0,105,-23,0,23,0,0,85,0xffbb55,.9);
+    const engine=this.add.rectangle(0,69,48,22,0x4f687f)
+      .setStrokeStyle(2,0x9ebed4);
+    ship.add([body,flame,engine,turret,barrel]);
+    return {ship,flame};
+  }
+
+  // Decola, cruza o espaço por QUATRO SEGUNDOS reais e pousa na cidade.
+  // Durante toda a viagem, o canhão e o prédio compartilham um container.
+  startVoyageTransition(nextIndex,{initial=false}={}){
+    if(!this.voyageActive||this.tutorialComplete)return;
+    this.voyageTransitioning=true;
+    this.countdownActive=true;
+    // O HUD HTML deve ceder espaço à cutscene na tela inteira.
+    this.cuboNewsHud?.destroy();
+    this.banterWriter?.cancel();
+    for(const part of [this.banterBackground,this.banterPortrait,
+      this.banterName,this.banterText])part?.setVisible(false);
+    const next=voyageStop(nextIndex),started=this.time.now;
+    const objects=[],keep=obj=>{objects.push(obj);return obj;};
+    const veil=keep(this.add.rectangle(W/2,H/2,W,H,0x010514,0.96)
+      .setDepth(315));
+    const starGraphics=keep(this.add.graphics().setDepth(316));
+    const skyline=keep(this.add.graphics().setDepth(317));
+    const heading=keep(this.add.text(W/2,97,'DECOLAGEM • OPERAÇÃO SOBERANIA',{
+      fontFamily:'monospace',fontSize:'25px',fontStyle:'bold',
+      color:'#ffe8ac',align:'center',
+    }).setOrigin(0.5).setDepth(324));
+    const caption=keep(this.add.text(W/2,142,
+      'PRÓXIMO DESTINO: '+next.city,{
+        fontFamily:'monospace',fontSize:'14px',color:'#d6e9ff',
+        align:'center',
+      }).setOrigin(0.5).setDepth(324));
+    const {ship,flame}=this.createVoyageRocket();
+    keep(ship);
+    const stars=voyageStarfield(92,W,H);
+    const tick=this.time.addEvent({delay:33,loop:true,callback:()=>{
+      if(!this.scene.isActive('GameScene'))return;
+      const elapsed=Math.max(0,this.time.now-started);
+      const phase=voyageTravelPhase(elapsed);
+      starGraphics.clear();skyline.clear();
+      if(phase==='launch'){
+        const p=Math.min(1,elapsed/VOYAGE_LAUNCH_MS);
+        ship.y=CANNON.y-40-p*225;
+        ship.scale=1-p*.27;
+        flame.scaleY=.7+Math.sin(elapsed*.044)*.23;
+        veil.setAlpha(.45+p*.55);
+        heading.setText('DECOLAGEM • PRÉDIO E CANHÃO');
+      }else if(phase==='space'){
+        const travel=elapsed-VOYAGE_LAUNCH_MS;
+        ship.y=245+Math.sin(travel*.004)*7;
+        ship.x=W/2+Math.sin(travel*.0018)*14;
+        ship.setScale(.73);
+        flame.scaleY=1+Math.sin(travel*.03)*.16;
+        heading.setText('VOO ESPACIAL • '+Math.ceil((VOYAGE_SPACE_MS-travel)/1000)+' s');
+      }else{
+        const p=Math.min(1,Math.max(0,
+          (elapsed-VOYAGE_LAUNCH_MS-VOYAGE_SPACE_MS)/VOYAGE_LANDING_MS));
+        ship.x=W/2;
+        ship.y=245+p*145;
+        ship.setScale(.73+p*.27);
+        flame.scaleY=1-p;
+        heading.setText('POUSO • '+next.city);
+      }
+      // Movimento real com parallax: estrelas passam rapidamente pelo foguete.
+      if(phase==='space'){
+        const flight=elapsed-VOYAGE_LAUNCH_MS;
+        for(const star of stars){
+          const pos=voyageStarAt(star,flight,W);
+          starGraphics.lineStyle(star.size,0xd8eaff,.35+star.size*.16);
+          starGraphics.lineBetween(pos.x,pos.y,
+            Math.min(W,pos.x+star.speed*.09),pos.y);
+          starGraphics.fillStyle(0xffffff,.48+star.size*.12);
+          starGraphics.fillRect(pos.x,pos.y,star.size,star.size);
+        }
+      }else if(phase==='landing'){
+        const p=Math.min(1,(elapsed-VOYAGE_LAUNCH_MS-VOYAGE_SPACE_MS)/
+          VOYAGE_LANDING_MS);
+        // Substituir por PNG da cidade quando a arte for fornecida.
+        skyline.fillStyle(next.accent,.25+p*.5).fillEllipse(W/2,560,1100,260);
+        for(let i=0;i<22;i++){
+          const h=45+(i*41+nextIndex*17)%110;
+          skyline.fillStyle(0x344b67,p*.92).fillRect(i*48-12,H-h,45,h);
+        }
+        if(this.textures.exists(next.backgroundKey)){
+          // A próxima cidade terá a imagem definitiva assim que carregada.
+          if(!this.voyageLandingCity){
+            this.voyageLandingCity=keep(this.add.image(W/2,H/2,
+              next.backgroundKey).setDisplaySize(W,H).setDepth(317)
+              .setAlpha(0));
+          }
+          this.voyageLandingCity.setAlpha(p*.95);
+        }
+      }
+    }});
+    this.events.once('shutdown',()=>tick.remove());
+    this.time.delayedCall(VOYAGE_TOTAL_MS,()=>{
+      tick.remove();
       if(!this.scene.isActive('GameScene')||this.tutorialComplete)return;
-      objects.forEach(object=>object.destroy());
-      this.startWaveCountdown();
+      objects.forEach(obj=>obj.destroy());
+      this.voyageLandingCity=null;
+      this.voyageTransitioning=false;
+      if(initial){
+        this.drawVoyageBackdrop();
+        this.cuboNewsHud=createCuboNewsHud(this);
+        this.cuboNewsHud.update(0,this.waveDurationMs,null,{
+          frozen:false,voyageProgress:this.waveEvents.length,
+        });
+        this.cameras.main.shake(160,.002);
+        this.startWaveCountdown();
+      }else{
+        this.scene.start('GameScene',{
+          mode:'wave11',campaign:this.campaign,voyageIndex:nextIndex,
+          v1Playtest:this.v1Playtest,arrivedFromVoyage:true,
+        });
+      }
     });
   }
 
@@ -1548,14 +1659,13 @@ export class GameScene extends Phaser.Scene {
     this.voyageTransitioning=true;
     this.countdownActive=true;
     this.showAttackWarning('ESTÁTUA DEFENDIDA • PRÓXIMO DESTINO!');
-    this.time.delayedCall(1650,()=>{
+    this.time.delayedCall(1200,()=>{
       if(!this.scene.isActive('GameScene')||this.tutorialComplete)return;
       const next=voyageNext(this.voyageIndex);
       if(next!==null){
-        this.scene.start('GameScene',{
-          mode:'wave11',campaign:this.campaign,voyageIndex:next,
-        });
+        this.startVoyageTransition(next);
       }else{
+        this.voyageTransitioning=false;
         this.countdownActive=false;
         this.showWaveComplete('cleared');
       }
@@ -1564,18 +1674,23 @@ export class GameScene extends Phaser.Scene {
 
   createBattleBanterPanel(){
     // Zona morta inferior esquerda: HUD não-interativo, um recado por vez.
-    this.banterBackground=this.add.rectangle(168,421,326,100,0x0b1a2d,0.88)
+    this.banterBackground=this.add.rectangle(139,421,268,96,0x0b1a2d,0.88)
       .setStrokeStyle(2,0x608ca8).setDepth(104).setVisible(false);
-    this.banterPortrait=this.add.image(49,422,'battle-portrait-br')
-      .setDisplaySize(71,88).setDepth(105).setVisible(false);
-    this.banterName=this.add.text(91,380,'',{
+    this.banterPortrait=this.add.image(39,421,'battle-portrait-br')
+      .setDisplaySize(58,78).setDepth(105).setVisible(false);
+    this.banterName=this.add.text(74,382,'',{
       fontFamily:'monospace',fontSize:'12px',fontStyle:'bold',color:'#ffe2ad',
     }).setDepth(105).setVisible(false);
-    this.banterText=this.add.text(91,400,'',{
+    this.banterText=this.add.text(74,403,'',{
       fontFamily:'monospace',fontSize:'11px',color:'#ecf4ff',
-      wordWrap:{width:226},lineSpacing:3,
+      wordWrap:{width:194},lineSpacing:3,
     }).setDepth(105).setVisible(false);
     this.lastBanterKey=null;
+    this.banterWriter=createDialogueTypewriter(this,{
+      delay:28,
+      onCharacter:()=>playSfx('introKey',{throttle:44,volumeScale:.09}),
+    });
+    this.events.once('shutdown',()=>this.banterWriter?.cancel());
   }
 
   queueBattleBanter(event){
@@ -1592,12 +1707,18 @@ export class GameScene extends Phaser.Scene {
     const show=Boolean(line);
     for(const part of [this.banterBackground,this.banterPortrait,this.banterName,this.banterText])
       part?.setVisible(show);
-    if(!line)return;
-    const key=line.name+':'+line.text;
+    if(!line){
+      if(this.lastBanterKey!==null){
+        this.banterWriter?.cancel();
+        this.lastBanterKey=null;
+      }
+      return;
+    }
+    const key=line.name+':'+line.text+':'+line.until;
     if(this.lastBanterKey===key)return;
     this.lastBanterKey=key;
     this.banterName.setText(line.name);
-    this.banterText.setText(line.text);
+    this.banterWriter.start(this.banterText,line.text,{delay:28});
     this.banterBackground.setStrokeStyle(2,line.color);
     if(this.textures.exists('battle-portrait-'+line.speaker))
       this.banterPortrait.setTexture('battle-portrait-'+line.speaker);

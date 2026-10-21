@@ -31,9 +31,12 @@ test('falas são curtas, sem spam e desaparecem sozinhas',()=>{
 test('UI de diálogo usa retratos existentes e região esquerda sem bloquear o mouse',()=>{
  assert.match(game,/assetUrl\('assets\/lideres\/'\+id\+'_personagem\.png'\)/);
  assert.match(game,/createBattleBanterPanel\(\)/);
- assert.match(game,/this\.add\.rectangle\(168,421,326,100/);
- assert.match(game,/this\.banterPortrait=this\.add\.image\(49,422/);
+ assert.match(game,/this\.add\.rectangle\(139,421,268,96/);
+ assert.match(game,/this\.banterPortrait=this\.add\.image\(39,421/);
  assert.match(game,/updateBattleBanterPanel\(\)/);
+ assert.match(game,/createDialogueTypewriter\(this,\{/);
+ assert.match(game,/this\.banterWriter\.start\(this\.banterText,line\.text/);
+ assert.match(game,/delay:28/);
  assert.match(game,/this\.queueBattleBanter\('danger'\)/);
  assert.match(game,/this\.queueBattleBanter\(this\.voyageActive\?'arrival':'start'\)/);
  assert.doesNotMatch(game,/text:'ZECA • PEDIR AJUDA'/);

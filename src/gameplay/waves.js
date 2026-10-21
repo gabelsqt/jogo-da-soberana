@@ -1,5 +1,6 @@
 import { ADVANCED_WAVE_METADATA, getAdvancedWaveEvents } from './advancedWaves.js';
 import { hostileBosses } from './wave11Rules.js';
+import {fullBrazilVoyageEligible,voyageEvents} from './fullBrazilVoyage.js';
 
 // Ondas 0–3: três escolhas de aliado. Ondas 4–9 seguem automaticamente,
 // conservando as 3 escolhas, até que os upgrades intermediários sejam criados.
@@ -73,6 +74,9 @@ export function getFinalWaveEvents(mode, state = {}) {
     {at:42000,type:3,level:9,warning:'REFORÇOS FINAIS DA FORTALEZA!'},
   ];
   if(mode==='wave11'){
+    // Proteção adicional: até o gerador padrão de agendas proíbe repetir
+    // o Tipo 6 quando todas as escolhas da campanha são brasileiras.
+    if(fullBrazilVoyageEligible(mode,state))return voyageEvents(0);
     const coalition=hostileBosses(state?.choices??[],state?.selectedBetrayer);
     const invaders=coalition.length===0;
     const bosses=invaders?[{country:'alien',level:10}]:coalition;

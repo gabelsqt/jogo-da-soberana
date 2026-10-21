@@ -6,12 +6,13 @@ import {fullBrazilVoyageEligible,VOYAGE_STOPS,voyageEvents,voyageStop,
 const allBrazil={choices:Array(10).fill('br')};
 const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
 
-test('rota espacial só existe em Onda 11, full Brazil puro e campanha real',()=>{
+test('rota espacial existe na Onda 11 com Full Brazil, inclusive no playtest',()=>{
  assert.equal(fullBrazilVoyageEligible('wave11',allBrazil),true);
  for(const mode of ['wave10','wave0','lab'])
    assert.equal(fullBrazilVoyageEligible(mode,allBrazil),false);
- for(const flag of [{lab:true},{playtest:true},{waveMaker:true}])
+ for(const flag of [{lab:true},{waveMaker:true}])
    assert.equal(fullBrazilVoyageEligible('wave11',allBrazil,flag),false);
+ assert.equal(fullBrazilVoyageEligible('wave11',allBrazil,{playtest:true}),true);
  assert.equal(fullBrazilVoyageEligible('wave11',{choices:[...Array(9).fill('br'),'us']}),false);
  assert.equal(fullBrazilVoyageEligible('wave11',{choices:['br','br']}),false);
 });
@@ -49,10 +50,10 @@ test('GameScene isola a rota do Tipo 6, tem decolagem e conclusão intermunicipa
  assert.match(scene,/this\.voyageActive=fullBrazilVoyageEligible\(/);
  assert.match(scene,/this\.waveEvents = this\.voyageActive[\s\S]*?voyageEvents\(this\.voyageIndex\)/);
  assert.match(scene,/if\(this\.voyageActive\)return null; \/\/ Nenhuma repetição do chefe alienígena/);
- assert.match(scene,/this\.showVoyageArrival\(\)/);
+ assert.match(scene,/this\.startVoyageTransition\(this\.voyageIndex,\{initial:true\}\)/);
  assert.match(scene,/finishVoyageDestination\(\)/);
  assert.match(scene,/const next=voyageNext\(this\.voyageIndex\)/);
- assert.match(scene,/mode:'wave11',campaign:this\.campaign,voyageIndex:next/);
+ assert.match(scene,/mode:'wave11',campaign:this\.campaign,voyageIndex:nextIndex/);
  assert.match(scene,/if\(this\.voyageActive\)\{/);
  assert.match(scene,/voyageCanDepart\(\{/);
  assert.match(scene,/!this\.voyageActive&&!this\.tutorialComplete/);

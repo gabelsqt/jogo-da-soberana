@@ -6,8 +6,10 @@ export const VOYAGE_STOPS=Object.freeze([
   {id:'parada-3',city:'CIDADE 3 • A DEFINIR',statue:'ESTÁTUA DE BRAÇOS ABERTOS',backgroundKey:'voyage-city-3',accent:0x705ea6,events:17},
   {id:'parada-4',city:'CIDADE 4 • A DEFINIR',statue:'ESTÁTUA DE BRAÇOS ABERTOS',backgroundKey:'voyage-city-4',accent:0x94609b,events:19},
 ].map(stop=>Object.freeze(stop)));
-export function fullBrazilVoyageEligible(mode,campaign,{lab=false,playtest=false,waveMaker=false}={}){
-  return mode==='wave11'&&!lab&&!playtest&&!waveMaker&&
+export function fullBrazilVoyageEligible(mode,campaign,{lab=false,waveMaker=false}={}){
+  // A opção v1Playtest pode continuar ativa após a Onda 10. Ela NÃO deve
+  // cancelar a rota Full Brazil, pois é assim que o jogo avança entre cenas.
+  return mode==='wave11'&&!lab&&!waveMaker&&
     Array.isArray(campaign?.choices)&&campaign.choices.length===10&&
     campaign.choices.every(country=>country==='br');
 }

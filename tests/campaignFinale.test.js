@@ -11,18 +11,20 @@ import { v1SpecialLoadout } from '../src/gameplay/v1Specials.js';
 const state=choices=>({choices});
 const pure=state(Array(10).fill('br'));
 
-test('ondas 10 e 11 duram 60s e usam Tipo 6 em vez do Tipo 5',()=>{
+test('onda 10 tem Tipo 6; onda 11 com traição tem outro Tipo 6, sem chefe na Full Brazil',()=>{
   assert.equal(FINAL_WAVE_DURATION_MS,60000);
   for(const mode of ['wave10','wave11']){
     assert.equal(MODES[mode].minDuration,60000);
     assert.equal(waveOutcome({mode,elapsed:70000,spawned:3,scheduled:3,
       enemies:0,hostileShots:0}),null);
-    const events=getFinalWaveEvents(mode,pure);
+    const events=getFinalWaveEvents(mode,
+      mode==='wave10'?pure:{choices:['br','us'],selectedBetrayer:'us'});
     assert.equal(events.filter(e=>e.finalBoss).length,1);
     assert.equal(events.find(e=>e.finalBoss).type,6);
     assert.ok(events.some(e=>e.type===3));
     assert.ok(events.every(e=>e.at>=0&&e.at<60000));
   }
+  assert.equal(getFinalWaveEvents('wave11',pure).some(e=>e.type===6),false);
 });
 
 test('onda 11 invoca exatamente um traidor escolhido, não uma coalizão',()=>{
@@ -38,11 +40,11 @@ test('onda 11 invoca exatamente um traidor escolhido, não uma coalizão',()=>{
   assert.equal(pickBetrayer(choices,()=>0.99),'cn');
 });
 
-test('Full Brazil enfrenta alienígena; traidor sorteado dita o roteiro',()=>{
+test('Full Brazil segue a rota mundial sem repetir chefão; traições continuam',()=>{
   assert.equal(resolveFinalOpponent(pure).country,'br');
   assert.deepEqual(resolveFinalOpponent(pure).coalition,[]);
   assert.match(finalePrelude(pure).title,/SOBERANIA TOTAL/);
-  assert.equal(getWaveEvents('wave11',pure).filter(e=>e.finalBoss)[0].bossCountry,'alien');
+  assert.ok(getWaveEvents('wave11',pure).every(e=>e.type<=5&&!e.finalBoss));
   const mixed={choices:['cn','us','cn','us','br'],selectedBetrayer:'us'};
   assert.equal(resolveFinalOpponent(mixed).country,'us');
   assert.deepEqual(resolveFinalOpponent(mixed).coalition,['us']);
@@ -85,7 +87,8 @@ test('cena continua ligada aos epílogos da campanha',()=>{
 
 test('ondas finais mantêm escoltas e distribuição temporal',()=>{
   for(const mode of ['wave10','wave11']){
-    const events=getFinalWaveEvents(mode,pure);
+    const events=getFinalWaveEvents(mode,
+      mode==='wave10'?pure:{choices:['br','us'],selectedBetrayer:'us'});
     assert.ok(events.length>=11);
     assert.ok(events.some(e=>e.type===2&&e.at<=6500));
     assert.ok(events.some(e=>e.type===4&&e.at<=10000));
