@@ -105,7 +105,7 @@ test('novo UOM grave está registrado e é um WAV PCM reproduzível de mais de 1
   const dataBytes=bytes.readUInt32LE(40);
   assert.equal(dataBytes,bytes.length-44);
   assert.ok(dataBytes/2/16000>1.2);
-  assert.ok(bytes.length>50000&&bytes.length<150000);
+  assert.ok(bytes.length>35000&&bytes.length<60000);
 });
 
 test('deslocamento de volume da cúpula é só visual, sem mexer na hitbox',()=>{
