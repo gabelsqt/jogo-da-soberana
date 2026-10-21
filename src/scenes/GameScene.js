@@ -154,6 +154,9 @@ export class GameScene extends Phaser.Scene {
     this.v1Playtest = Boolean(data.v1Playtest);
     this.previewDestruction = Boolean(data.previewDestruction);
     this.zecaRevenge = this.mode === 'wave11' && Boolean(data.zecaRevenge);
+    // Cena Phaser reutilizada entre partidas: não conservar a trava de
+    // clique da proposta anterior (especialmente entre traições EUA/Rússia).
+    this.zecaProposalOpened=false;
     this.deathSequence = null;
     this.unifiedLab = Boolean(data.labConfig);
     this.labConfig = this.unifiedLab ? normalizeLabConfig(data.labConfig) : null;
@@ -3310,8 +3313,10 @@ export class GameScene extends Phaser.Scene {
       // variada por SFX_VARIATIONS.krBasicShot em playSfx().
       // Volume anterior (0.46) tornava o disparo difícil de ouvir.
       playSfx('krBasicShot',{throttle:70,volumeScale:0.72});
-    else if(this.isV1Campaign&&this.combat.russianFreezeMs>0)
-      playSfx('ruBasicShot',{throttle:88,volumeScale:0.56});
+    else if(this.isV1Campaign&&this.combat.russianFreezeMs>0){
+      // O sopro russo é um loop enquanto dispara, nunca um som de tiro por projétil.
+      // Ativado em update(), inclusive antes do nível 10.
+    }
     else if(this.isV1Campaign&&this.combat.usRocketRadius>0)
       playSfx('usMissileLaunch',{throttle:190,volumeScale:0.30});
     else playSfx('cannon',{throttle:95,volumeScale:0.48});
@@ -5344,6 +5349,7 @@ export class GameScene extends Phaser.Scene {
 
     if(available){
       const px=747,py=393;
+      const talkToZeca=()=>this.showZecaProposal();
       // Retrato pixelado provisório, sem substituir a arte que o usuário criará.
       const portrait=this.add.rectangle(px,py,72,76,0x244052,1)
         .setStrokeStyle(3,0xffd69f).setDepth(240)
@@ -5363,7 +5369,21 @@ export class GameScene extends Phaser.Scene {
       portrait.on('pointerdown',(pointer,_x,_y,event)=>{
         if(!pointer.leftButtonDown())return;
         event?.stopPropagation();
-        this.showZecaProposal();
+        talkToZeca();
+      });
+      // Clicar no desenho, na legenda ou no botão deve abrir a proposta.
+      // Hitbox acima dos textos decorativos, mas fora do botão de rendição.
+      this.add.rectangle(px+13,py+16,118,132,0x244052,0.001)
+        .setDepth(245).setInteractive({useHandCursor:true})
+        .on('pointerdown',(pointer,_x,_y,event)=>{
+          if(!pointer.leftButtonDown())return;
+          event?.stopPropagation();
+          talkToZeca();
+        });
+      addMenuButton(this,{
+        x:747,y:474,width:220,height:38,depth:250,
+        text:'ZECA • PEDIR AJUDA',primary:true,fontSize:'16px',
+        onClick:talkToZeca,
       });
     }
   }
@@ -5813,6 +5833,9 @@ export class GameScene extends Phaser.Scene {
     if (this.supremeTyping) return;
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += this.boss6IntroPaused?0:delta;
+    // Tipo 6 é uma corrida até 00:00: nunca deixa o tempo ultrapassar zero.
+    if(this.mode==='wave10'||this.mode==='wave11')
+      this.elapsed=Math.min(this.elapsed,this.waveDurationMs);
     this.updateDiscoGlobes();
     this.updateRussianSputniks();
     setSfxLoopActive('ruSputnikHum',(this.russianSputniks?.length??0)>0,{volumeScale:0.30});
@@ -5828,9 +5851,12 @@ export class GameScene extends Phaser.Scene {
     // À meia-noite de 30 segundos, sobreviver basta — mesmo com inimigos vivos.
     // A verificação vem ANTES das atualizações hostis do quadro final.
     if(this.mode==='wave10'||this.mode==='wave11'){
+      // O mostrador precisa mostrar 00:00 ANTES da animação fatal.
+      if(this.elapsed>=this.waveDurationMs)this.updateHud();
       type6NextDeadline(this);
-      if(this.boss6DoomFired)return;
+      if(this.boss6DoomFired)return; // Núcleo ativo: aguarda o laser, não vitória automática.
       if(this.elapsed>=this.waveDurationMs){
+        // Só há timeout direto como fallback se não existe mais uma fortaleza.
         this.showDefeat('timeout');
         return;
       }
@@ -5855,8 +5881,8 @@ export class GameScene extends Phaser.Scene {
       this.drawEncoreContinuousBeam(this.aimAngle,
         pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer));
     const firing=pointer.leftButtonDown()&&!this.pointerOverEnemyLabControls(pointer);
-    const breathActive=!!this.iceBreathGraphics&&firing&&
-      this.elapsed>=this.cannonFrozenUntil;
+    const breathActive=this.isV1Campaign&&this.combat.russianFreezeMs>0&&
+      firing&&this.elapsed>=this.cannonFrozenUntil;
     if(this.iceBreathGraphics)this.drawRussianBreath(this.aimAngle,breathActive);
     setSfxLoopActive('ruIceBreath',breathActive,{volumeScale:0.43});
     if(firing)this.shootBasic(pointer);

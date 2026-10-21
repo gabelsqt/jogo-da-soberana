@@ -74,11 +74,12 @@ test('regressão: ausência de Sputnik nunca interrompe partida de outros paíse
  assert.equal(([{}]?.length??0)>0,true);
 });
 
-test('áudio russo v2 grave: som exclusivo de tiro, congelamento só na transição',()=>{
+test('áudio russo v2: sopro contínuo substitui tiros avulsos; congelamento só na transição',()=>{
  const game=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
  const sfx=readFileSync(new URL('../src/audio/sfx.js',import.meta.url),'utf8');
  assert.match(game,/if\(this\.isV1Campaign&&this\.combat\.russianFreezeMs>0\)/);
- assert.match(game,/playSfx\('ruBasicShot',\{throttle:88,volumeScale:0\.56\}\)/);
+ assert.doesNotMatch(game,/playSfx\('ruBasicShot'/);
+ assert.match(game,/const breathActive=this\.isV1Campaign&&this\.combat\.russianFreezeMs>0&&/);
  assert.match(game,/else if\(this\.isV1Campaign&&this\.combat\.russianFreezeMs>0\)/);
  assert.match(game,/else playSfx\('cannon',\{throttle:95,volumeScale:0\.48\}\)/);
  assert.match(game,/const firstFreeze=!!enemy&&enemy\.type!==6/);

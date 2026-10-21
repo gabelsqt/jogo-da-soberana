@@ -443,7 +443,9 @@ export function chargeType6Superweapon(scene,enemy){
   scene.cameras.main.shake(350,0.003);
 }
 export function fireType6Doom(scene,enemy){
-  if(scene.boss6DoomFired||enemy.type6.defeated)return;
+  // Não antecipar o disparo final, nem mesmo durante o pré-carregamento.
+  if(scene.elapsed<scene.waveDurationMs ||
+    scene.boss6DoomFired||enemy.type6.defeated)return;
   scene.boss6DoomFired=true;scene.countdownActive=true;
   const g=scene.add.graphics().setDepth(180),x=enemy.sprite.x,y=enemy.sprite.y;
   const color=COLOR[enemy.bossCountry];
@@ -467,11 +469,17 @@ export function type6AimPosition(enemy){
   const m=type6AliveModules(s)[0];
   return {x:enemy.sprite.x+(m?.offsetX??0),y:enemy.sprite.y};
 }
+export function type6DoomAtZero(remainingMs){
+  return Number.isFinite(remainingMs)&&remainingMs<=0;
+}
 export function type6NextDeadline(scene){
   const enemy=scene.enemies.find(e=>e.type===6&&e.type6&&!e.type6.defeated);
-  if(!enemy||!enemy.type6.introComplete)return false;
+  if(!enemy)return false;
   const remaining=scene.waveDurationMs-scene.elapsed;
-  if(remaining<=TYPE6_CHARGE_MS)chargeType6Superweapon(scene,enemy);
-  if(remaining<=0)fireType6Doom(scene,enemy);
+  // Somente o canhão final decide o resultado: relógio zerado = laser e derrota.
+  enemy.type6.chargeRemainingMs=Math.max(0,remaining);
+  if(enemy.type6.introComplete&&remaining<=TYPE6_CHARGE_MS)
+    chargeType6Superweapon(scene,enemy);
+  if(type6DoomAtZero(remaining))fireType6Doom(scene,enemy);
   return true;
 }

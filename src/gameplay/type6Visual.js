@@ -2,26 +2,46 @@ import {
   TYPE6_PALETTES, TYPE6_WIDTH, TYPE6_HEIGHT,
   type6ModuleVisualState,
 } from './type6Boss.js';
-import {type6ModuleEnergyActive,type6CoreEnergyActive} from './type6ModuleSprite.js';
+import {type6ModuleEnergyActive,type6CoreEnergyActive,type6IntakeProgress} from './type6ModuleSprite.js';
 
 // Órbitas de energia puramente cosméticas: partículas convergem para a
 // eletrônica da fortaleza sem interagir com disparos nem causar colisões.
-function drawEnergyIntake(g,x,y,time,radius,color,count=9,strength=1){
-  const phase=time*0.00068;
-  g.lineStyle(1.5,color,0.18*strength).strokeCircle(x,y,radius*.54);
-  g.lineStyle(1,color,0.12*strength).strokeCircle(x,y,radius*.93);
-  for(let i=0;i<count;i++){
-    const progress=(phase*(0.8+(i%3)*0.11)+i/count)%1;
-    const a=i*Math.PI*2/count+time*0.00048+(1-progress)*1.4;
-    const r=8+(radius-8)*(1-progress);
+function drawEnergyIntake(g,x,y,time,radius,color,count=9,strength=1,charge=0){
+  const intensity=Math.max(0,Math.min(1,charge));
+  const surge=intensity*intensity;
+  // A área de sucção se expande até quase o dobro e fica cada vez mais
+  // luminosa/rápida conforme o módulo se aproxima do disparo.
+  const reach=radius*(1+0.72*surge);
+  const speed=1+2.9*surge,phase=time*0.00068*speed;
+  const glow=Math.min(1,strength*(0.42+0.80*surge));
+  g.lineStyle(2+2*surge,color,Math.min(1,0.25*glow))
+    .strokeCircle(x,y,reach*.57);
+  g.lineStyle(2+3*surge,color,Math.min(1,0.26*glow))
+    .strokeCircle(x,y,reach*.97);
+  g.lineStyle(1.5+1.5*surge,0xffffff,0.08+0.22*surge)
+    .strokeCircle(x,y,reach*.78);
+  const particles=count+Math.floor(18*surge);
+  for(let i=0;i<particles;i++){
+    const progress=(phase*(0.8+(i%3)*0.11)+i/particles)%1;
+    const a=i*Math.PI*2/particles+time*0.00048*speed+(1-progress)*1.4;
+    const r=8+(reach-8)*(1-progress);
     const px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;
-    const vx=-Math.cos(a)*Math.min(9,r*.22),vy=-Math.sin(a)*Math.min(9,r*.22);
-    const alpha=(0.23+progress*0.57)*strength;
-    g.lineStyle(i%3===0?2:1.5,i%4===0?0xffffff:color,alpha)
+    const tail=Math.min(32,r*(.20+.23*surge));
+    const vx=-Math.cos(a)*tail,vy=-Math.sin(a)*tail;
+    const alpha=Math.min(1,(0.20+progress*0.55)*glow*(1+0.50*surge));
+    g.lineStyle(i%3===0?2.5+surge:1.8+surge,
+      i%4===0?0xffffff:color,alpha)
       .lineBetween(px,py,px+vx,py+vy);
-    g.fillStyle(color,alpha).fillRect(px-1.5,py-1.5,3,3);
+    g.fillStyle(i%5===0?0xffffff:color,alpha)
+      .fillRect(px-2,py-2,4,4);
   }
-  g.fillStyle(color,0.09*strength).fillCircle(x,y,Math.max(9,radius*.2));
+  const flash=0.74+0.26*Math.sin(time*(0.010+0.012*surge));
+  g.fillStyle(color,(0.10+0.32*surge)*strength*flash)
+    .fillCircle(x,y,Math.max(12,reach*(.20+.10*surge)));
+  if(surge>.42){
+    g.lineStyle(3,0xffffff,(surge-.42)*0.75*flash)
+      .strokeCircle(x,y,reach*.40);
+  }
 }
 
 // Visual vetorial provisório desenhado em blocos, pronto para futura sprite sheet.
@@ -207,14 +227,16 @@ export function drawType6Ship(g,state,ageMs=0,useHullSprite=false,useModuleSprit
   // O gerador com barreira JÁ ATIVA não suga energia continuamente.
   for(const module of state.modules){
     if(!type6ModuleEnergyActive(state,module,ageMs))continue;
+    const charge=type6IntakeProgress(state,module,ageMs);
     drawEnergyIntake(g,module.offsetX,module.offsetY,ageMs,
-      module.role==='laser'?99:58,
+      module.role==='laser'?118:94,
       module.role==='laser'?p.glow:p.light,
-      module.role==='laser'?15:9,module.role==='laser'?0.9:0.65);
+      module.role==='laser'?24:18,module.role==='laser'?1:0.88,charge);
   }
   // O núcleo atrai energia apenas nos cinco segundos finais da superarma.
   if(type6CoreEnergyActive(state))
-    drawEnergyIntake(g,0,0,ageMs,116,p.glow,18,0.95);
+    drawEnergyIntake(g,0,0,ageMs,150,p.glow,22,1,
+      1-Math.max(0,Math.min(1,(state.chargeRemainingMs??5000)/5000)));
 
   // O PNG pisca em branco usando setTintFill, aplicado ao PRÓPRIO sprite
   // em type6Encounter. Não desenhar caixas por cima das artes.

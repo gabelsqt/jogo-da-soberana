@@ -48,6 +48,19 @@ export function type6ModuleEnergyActive(state,module,nowMs=0){
 export function type6CoreEnergyActive(state){
  return !!state?.introComplete&&!!state.coreExposed&&!!state.charging&&!state.defeated;
 }
+// Rampa de intensidade visual até a liberação do ataque. Nenhum efeito
+// adicional de dano/hitbox e nenhum bônus depois de destruir o módulo.
+export function type6IntakeProgress(state,module,nowMs=0){
+  if(!type6ModuleEnergyActive(state,module,nowMs))return 0;
+  const action=state.action;
+  if(action?.moduleId!==module.id)return 0.25; // Resíduo curto pós-disparo.
+  if(action.kind==='laserFire')return 1;
+  const duration={
+    laserCharge:10,barrier:6,hangar:2,bomb:0.65,
+  }[action.kind]??1;
+  return Math.max(0,Math.min(1,(Number(action.elapsed)||0)/duration));
+}
+
 // Pisca o PNG original, não uma caixa desenhada na hitbox.
 // 90 ms branco + pelo menos 90 ms de descanso, mesmo sob metralhadora.
 export const TYPE6_MODULE_WHITE_FLASH_MS=90;

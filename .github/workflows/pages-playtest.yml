@@ -48,6 +48,7 @@ jobs:
           tests/americanWallDeployment877.test.js
           tests/americanWallInvulnerable878.test.js
           tests/balanceAndSiege879.test.js
+          tests/fixes880.test.js
           tests/sputnikRework.test.js
           tests/v1Specials.test.js
           tests/cuboNewsDomHud.test.js
