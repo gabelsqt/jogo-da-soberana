@@ -39,12 +39,12 @@ test('fogos brasileiros e turbo têm progressões aprovadas',()=>{
   }
 });
 
-test('míssil dos EUA escala 1/2/4/8, e ondas superam o raio da explosão',()=>{
-  for(const [tier,scale] of [[2,1],[4,2],[6,4],[8,8]]){
+test('Grande Muro dos EUA cresce a cada nível par, mantendo 120°',()=>{
+  for(const [tier,radius] of [[2,60],[4,79],[6,101],[8,125]]){
     const b=v1SpecialConfig(countryAt('us',tier));
-    assert.equal(b.usMissileScale,scale);
-    assert.ok(b.usShockRadius>b.usBlastRadius);
-    assert.ok(b.usPush>0);
+    assert.equal(b.usWall.radius,radius);
+    assert.equal(b.usWall.arc,Math.PI*2/3);
+    assert.equal(b.usWall.durationMs,6000);
   }
 });
 

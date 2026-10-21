@@ -36,7 +36,7 @@ test('a country advances to its next immediate upgrade without towers', () => {
   assert.equal(options.find(x=>x.id==='br').level,3);
   assert.equal(options.find(x=>x.id==='br').title,'Motor Esquentando');
   assert.equal(options.find(x=>x.id==='us').level,2);
-  assert.equal(options.find(x=>x.id==='us').title,'Choque Inicial™');
+  assert.equal(options.find(x=>x.id==='us').title,'O Grande Muro™');
   assert.ok(options.every(x=>x.tower===false && !x.locked));
   assert.deepEqual(chooseV1Upgrade(state,'cn').choices,['br','us','br','cn']);
 });
@@ -44,9 +44,9 @@ test('hybrid combinations retain independent offensive effects without country s
   const stats=v1CombatStats({choices:['br','br','br','us','us','us','cn','cn','cn']});
   assert.ok(stats.basicInterval<400);
   assert.equal(stats.heat,true);
-  assert.equal(stats.fragmentation,true);
+  assert.equal(stats.fragmentation,false);
   assert.equal(stats.collateral,false);
-  assert.equal(stats.usJulyHitsRequired,5);
+  assert.equal(stats.usRocketRadius,13);
   assert.equal(stats.bulletsPerShot,3);
   assert.equal(stats.shieldRegen,3.5);
   assert.equal(stats.shieldBonus,0);
