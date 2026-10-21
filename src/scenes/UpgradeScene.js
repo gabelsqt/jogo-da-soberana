@@ -178,16 +178,18 @@ export class UpgradeScene extends Phaser.Scene {
     // Esta sobreposição escurece TODO o boteco, inclusive os retratos
     // não selecionados. O escolhido sobe acima dela por animação.
     this.focusDim=this.add.rectangle(W/2,H/2,W,H,0x030b15,0.83)
-      .setDepth(33).setVisible(false).setInteractive();
+      .setDepth(33).setVisible(false);
     // Toque fora dos botões completa a frase, mas nunca aceita o upgrade.
     this.focusDim.on('pointerdown',pointer=>{
       if(pointer.leftButtonDown())this.dialogueTyper?.complete();
     });
-    this.focusPanel.setInteractive().on('pointerdown',pointer=>{
-      if(pointer.leftButtonDown())this.dialogueTyper?.complete();
-    });
     this.focusPanel=this.add.rectangle(632,164,612,202,COLOR.panel,0.97)
       .setStrokeStyle(2,COLOR.amber).setDepth(43).setVisible(false);
+    // O painel precisa existir ANTES de registrar seu handler.
+    // Deixá-lo interativo, mas invisível, também bloqueava os retratos.
+    this.focusPanel.on('pointerdown',pointer=>{
+      if(pointer.leftButtonDown())this.dialogueTyper?.complete();
+    });
     this.countryTag=makeText(this,348,74,'',13,'#e2a45e',555,
       {fontStyle:'bold'}).setDepth(46).setVisible(false);
     this.characterName=makeText(this,348,96,'',20,'#ffffff',555,
@@ -207,6 +209,8 @@ export class UpgradeScene extends Phaser.Scene {
       ()=>this.focused&&this.selectUpgrade(this.focused)).setVisible(false);
     this.backButton=this.createButton(393,448,215,'Voltar [ESC]',false,
       ()=>this.unfocus()).setVisible(false);
+    this.acceptButton.disableInteractive();
+    this.backButton.disableInteractive();
     this.overlayItems=[
       this.focusPanel,this.countryTag,this.characterName,this.flavorText,
       this.upgradeTitle,this.upgradeDescription,this.previewBox,
@@ -306,7 +310,11 @@ export class UpgradeScene extends Phaser.Scene {
     if(this.botecoPage>=this.botecoPages.length){
       this.introDialogueActive=false;
       this.dialogueTyper?.cancel();
-      this.botecoOverlay.destroy(true);this.botecoOverlay=null;
+      this.botecoOverlay?.destroy(true);this.botecoOverlay=null;
+      // Fim da conversa: liberar imediatamente os cinco retratos.
+      // Paineis de foco só recebem cliques enquanto o foco está aberto.
+      this.focusDim.disableInteractive().setVisible(false);
+      this.focusPanel.disableInteractive().setVisible(false);
       return;
     }
     this.renderBotecoDialogue();
@@ -332,8 +340,11 @@ export class UpgradeScene extends Phaser.Scene {
     const current=this.portraits.find(x=>x.option.id===id);
     if(!current||current.option.locked)return;
     this.focused=id;
-    this.focusDim.setVisible(true);
+    this.focusDim.setVisible(true).setInteractive();
     this.overlayItems.forEach(item=>item.setVisible(true));
+    this.focusPanel.setInteractive();
+    this.acceptButton.setInteractive({useHandCursor:true});
+    this.backButton.setInteractive({useHandCursor:true});
     for(const tile of this.portraits){
       const active=tile.option.id===id;
       this.tweens.killTweensOf(tile.node);
@@ -356,7 +367,10 @@ export class UpgradeScene extends Phaser.Scene {
   unfocus(){
     if(this.chosen||!this.focused)return;
     this.dialogueTyper?.cancel();
-    this.focused=null;this.focusDim.setVisible(false);
+    this.focused=null;this.focusDim.disableInteractive().setVisible(false);
+    this.focusPanel.disableInteractive();
+    this.acceptButton.disableInteractive();
+    this.backButton.disableInteractive();
     this.overlayItems.forEach(item=>item.setVisible(false));
     for(const tile of this.portraits){
       this.tweens.killTweensOf(tile.node);

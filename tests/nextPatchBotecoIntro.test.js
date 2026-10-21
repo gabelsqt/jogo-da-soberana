@@ -56,10 +56,10 @@ test('nova abertura substitui login, preserva notícias e apresenta Zeca',()=>{
   assert.match(scene,/assetUrl\('assets\/lideres\/br_retrato\.png'\)/);
   assert.match(scene,/this\.music\.play\('news'\)/);
   assert.match(scene,/playSfx\('introKey'/);
-  assert.equal(introductionSlides().length,5);
+  assert.equal(introductionSlides().length,7);
   assert.ok(INTRO_PAGE_MS>0);
   assert.equal(introductionSlides()[1].kind,'news');
-  assert.equal(introductionSlides().at(-1).id,'zeca');
+  assert.equal(introductionSlides().at(-1).id,'zeca-3');
 });
 test('telejornal sóbrio: paleta azul-noturno e cronômetro IBM Plex Mono',()=>{
   assert.equal(CUBO_COLORS.navy,0x0b1621);

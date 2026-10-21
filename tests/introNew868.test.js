@@ -9,7 +9,7 @@ import {
 test('ordem: convocação com asterisco, invasão, cancelamento, promoção e Zeca',()=>{
  const scenes=introductionSlides();
  assert.deepEqual(scenes.map(s=>s.id),
-   ['convocation','invasion','elections','promotion','zeca']);
+   ['convocation','invasion','elections','promotion','zeca-1','zeca-2','zeca-3']);
  assert.equal(scenes[0].kind,'email');
  assert.match(scenes[0].body,/MESÁRIO\*/);
  assert.doesNotMatch(scenes[0].body,/situações excepcionais|cláusula|guerra/i);
@@ -20,9 +20,12 @@ test('ordem: convocação com asterisco, invasão, cancelamento, promoção e Ze
  assert.match(scenes[3].footnote,/^\*Em situações excepcionais/);
  assert.match(scenes[3].footnote,/consentimento/);
  assert.match(scenes[3].status,/AUTOMATICAMENTE/);
- assert.match(scenes[4].body,/Zeca Carrara/);
- assert.match(scenes[4].body,/mecânico de carros/);
- assert.match(scenes[4].body,/Obuseiro é esse canhão/);
+ assert.match(scenes[4].body,/até ontem você era mesário/);
+ assert.match(scenes[5].body,/mecânico de obuseiro/);
+ assert.match(scenes[5].body,/Mexia com ônibus/);
+ assert.match(scenes[6].body,/não entendo nada/);
+ assert.equal(scenes[1].art,'invasion');
+ assert.equal(scenes[2].art,'elections');
 });
 test('sem personagem alienígena falando nem login no computador',()=>{
  const sequence=introductionSlides();
@@ -34,7 +37,7 @@ test('sem personagem alienígena falando nem login no computador',()=>{
 });
 test('efeito letra por letra usa áudio de tecla, intervalos, avanço e revelação tardia',()=>{
  assert.ok(INTRO_CHAR_DELAY_MS>=22&&INTRO_CHAR_DELAY_MS<=55);
- assert.ok(INTRO_PAGE_MS>=1000&&INTRO_NEWS_HOLD_MS>=1800);
+ assert.ok(INTRO_PAGE_MS>=1000&&INTRO_NEWS_HOLD_MS>=5000);
  assert.ok(INTRO_FOOTNOTE_DELAY_MS>=500);
  const scene=readFileSync(new URL('../src/scenes/IntroScene.js',import.meta.url),'utf8');
  assert.match(scene,/this\.time\.addEvent\(\{/);
