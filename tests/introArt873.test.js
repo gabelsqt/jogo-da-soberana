@@ -50,7 +50,7 @@ test('Zeca fala em três caixas, com uma frase por página e um texto por vez',(
   assert.match(zeca[0].body,/até ontem você era mesário/);
   assert.match(zeca[1].body,/Mexia com ônibus/);
   assert.match(zeca[1].body,/mecânico de obuseiro/);
-  assert.match(zeca[2].body,/esse canhão tá funcionando/);
+  assert.match(zeca[2].body,/obuseiro — o canhão aí — tá funcionando/);
   assert.match(intro,/this\.clearSlide\(\)/);
   assert.match(intro,/this\.beginTyping\(this\.body,slide\.body,'body'\)/);
 });

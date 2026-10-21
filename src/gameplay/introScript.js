@@ -45,7 +45,7 @@ export function introductionSlides(){
     {
       kind:'zeca',id:'zeca-3',tag:'PRIMEIRO CONTATO • EQUIPE DE MANUTENÇÃO',
       headline:'ZECA CARRARA',
-      body:'Ó, de nave alienígena eu não entendo nada. Mas esse canhão tá funcionando. Já é um começo, né?',
+      body:'Ó, de nave alienígena eu não entendo nada. Mas esse obuseiro — o canhão aí — tá funcionando. Já é um começo, né?',
     },
   ];
 }

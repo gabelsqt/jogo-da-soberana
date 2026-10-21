@@ -13,6 +13,8 @@
 - O painel de foco e os botões de aceite/voltar começam não interativos enquanto ocultos, são ativados após selecionar um representante e desativados ao fechar.
 - Encerrar o diálogo inicial destrói a sobreposição e libera os retratos.
 - Textos continuam com digitação e aceite só após confirmação explícita.
+- Clique primário e toque na tela são aceitos pelas propostas, botões e avanço das falas, sem depender de flags exclusivas do mouse desktop.
+- A terceira fala do Zeca mantém a explicação de que `obuseiro` é o canhão do jogador.
 
 ## Testes
 - Atualizados testes de roteiro e introdução para 7 telas totais (três do Zeca).

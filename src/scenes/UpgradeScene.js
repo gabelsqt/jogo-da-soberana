@@ -12,6 +12,7 @@ import {addCuboBroadcastFrame,CUBO_FONT} from '../ui/cuboNewsTheme.js';
 import {assetUrl} from '../config/assetUrl.js';
 import {INTRO_CHAR_DELAY_MS} from '../gameplay/introScript.js';
 import {createDialogueTypewriter} from '../ui/dialogueTypewriter.js';
+import {botecoPrimaryPress} from '../ui/pointerPrimary.js';
 
 export const BOTECO_CHAIR_X=Object.freeze([116,298,480,662,844]);
 export const BOTECO_PORTRAIT_Y=263;
@@ -24,6 +25,8 @@ const makeText=(scene,x,y,str,size=16,color='#dce8ee',width=null,opts={})=>
     lineSpacing:3,...opts,
   });
 
+// Phaser registra cliques e toques de forma ligeiramente diferente em
+// navegadores móveis. Ambos devem permitir avançar falas e aceitar propostas.
 // Pré-reduz os PNGs densos antes de entregá-los ao Phaser.
 // Evita amostragem direta de 384 detalhes em apenas ~106 pixels.
 function preparePortraitTextures(scene){
@@ -181,14 +184,14 @@ export class UpgradeScene extends Phaser.Scene {
       .setDepth(33).setVisible(false);
     // Toque fora dos botões completa a frase, mas nunca aceita o upgrade.
     this.focusDim.on('pointerdown',pointer=>{
-      if(pointer.leftButtonDown())this.dialogueTyper?.complete();
+      if(botecoPrimaryPress(pointer))this.dialogueTyper?.complete();
     });
     this.focusPanel=this.add.rectangle(632,164,612,202,COLOR.panel,0.97)
       .setStrokeStyle(2,COLOR.amber).setDepth(43).setVisible(false);
     // O painel precisa existir ANTES de registrar seu handler.
     // Deixá-lo interativo, mas invisível, também bloqueava os retratos.
     this.focusPanel.on('pointerdown',pointer=>{
-      if(pointer.leftButtonDown())this.dialogueTyper?.complete();
+      if(botecoPrimaryPress(pointer))this.dialogueTyper?.complete();
     });
     this.countryTag=makeText(this,348,74,'',13,'#e2a45e',555,
       {fontStyle:'bold'}).setDepth(46).setVisible(false);
@@ -222,7 +225,7 @@ export class UpgradeScene extends Phaser.Scene {
       tile.node.on('pointerout',()=>{if(!this.focused)tile.node.setScale(1);});
       tile.node.on('pointerdown',(pointer,_x,_y,event)=>{
         event?.stopPropagation();
-        if(pointer.leftButtonDown()&&!this.chosen&&!this.introDialogueActive)this.focusCountry(tile.option.id);
+        if(botecoPrimaryPress(pointer)&&!this.chosen&&!this.introDialogueActive)this.focusCountry(tile.option.id);
       });
     }
     this.input.keyboard.on('keydown',(event)=>{
@@ -330,7 +333,7 @@ export class UpgradeScene extends Phaser.Scene {
     node.on('pointerover',()=>bg.setFillStyle(primary?0xf1bf7a:0x315470));
     node.on('pointerout',()=>bg.setFillStyle(fill));
     node.on('pointerdown',(pointer,_x,_y,event)=>{
-      event?.stopPropagation();if(pointer.leftButtonDown()&&!this.chosen)callback();
+      event?.stopPropagation();if(botecoPrimaryPress(pointer)&&!this.chosen)callback();
     });
     node.label=txt;
     return node;

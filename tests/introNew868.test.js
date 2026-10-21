@@ -24,6 +24,7 @@ test('ordem: convocação com asterisco, invasão, cancelamento, promoção e Ze
  assert.match(scenes[5].body,/mecânico de obuseiro/);
  assert.match(scenes[5].body,/Mexia com ônibus/);
  assert.match(scenes[6].body,/não entendo nada/);
+ assert.match(scenes[6].body,/obuseiro — o canhão/);
  assert.equal(scenes[1].art,'invasion');
  assert.equal(scenes[2].art,'elections');
 });
