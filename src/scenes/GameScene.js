@@ -15,6 +15,8 @@ import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
 import {registerAmericanJulyHit,americanJulyReady,consumeAmericanJulyShot} from '../gameplay/usJuly.js';
+import {americanWallPlacement,americanWallTouches,americanWallIntersects,
+  AMERICAN_WALL_COOLDOWN_MS} from '../gameplay/americanArsenal.js';
 import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame, firePulseRadius } from '../gameplay/arraialBrasil2.js';
 import {
   normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout,
@@ -210,6 +212,8 @@ export class GameScene extends Phaser.Scene {
     if (this.isV1Campaign) {
       this.combat = v1CombatStats(this.combatCampaign);
       this.specialBuild = v1SpecialConfig(this.combatCampaign);
+      if(this.specialBuild.primary==='us')
+        this.combat.specialCooldown=AMERICAN_WALL_COOLDOWN_MS;
       // Legado de torres e especiais das árvores antigas fica disponível somente no laboratório.
       this.thirdIds = [];
       this.fourthIds = [];
@@ -280,6 +284,8 @@ export class GameScene extends Phaser.Scene {
     this.discoGlobes = [];
     for(const sat of this.russianSputniks??[])sat.graphics?.destroy();
     this.russianSputniks=[];
+    for(const wall of this.americanWalls??[])wall.graphics?.destroy();
+    this.americanWalls=[];
     stopRussianSfxLoops();
     stopNationalSpecialSfxLoops();
   }
@@ -456,6 +462,7 @@ export class GameScene extends Phaser.Scene {
     // Inicializar em TODAS as partidas, mesmo sem upgrades russos.
     // O Phaser reutiliza a cena ao reiniciar: nunca herdar Sputniks anteriores.
     this.russianSputniks = [];
+    this.americanWalls = [];
     this.enemies = [];
     this.projectiles = [];
     this.visibleProjectileCount = 0;
@@ -2736,6 +2743,9 @@ export class GameScene extends Phaser.Scene {
       const previousX=shot.sprite.x,previousY=shot.sprite.y;
       shot.sprite.x += shot.vx * dt;
       shot.sprite.y += shot.vy * dt;
+      if(this.hitAmericanWallWithBullet(shot,previousX,previousY)){
+        this.removeEnemyBullet(i,true);continue;
+      }
       if (this.specialBlasts.some((blast) => blastCatchesTarget(
         blast.x, blast.y, this.time.now - blast.bornAt,
         shot.sprite.x, shot.sprite.y, shot.radius??8,
@@ -3637,8 +3647,18 @@ export class GameScene extends Phaser.Scene {
 
     // Exibe o ponto exato do disparo, não só a coordenada crua do cursor.
     // Isto também cobre o ângulo limitado e os alcances mínimo/máximo.
-    const { x, y } = specialTargetPoint(CANNON.x, CANNON.y, pointer.x, pointer.y);
+    const isWall=this.isV1Campaign&&this.specialBuild?.primary==='us';
+    const {x,y}=isWall
+      ?americanWallPlacement(pointer.x,pointer.y,CANNON.x,CANNON.y,W,H)
+      :specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
     const ready = this.time.now - this.lastSpecialFire >= this.combat.specialCooldown;
+    if(isWall&&this.specialBuild.usWall){
+      const radius=this.specialBuild.usWall.radius;
+      const angle=Math.atan2(y-CANNON.y,x-CANNON.x);
+      gfx.lineStyle(3,0x7bbdff,ready?0.66:0.25);
+      gfx.beginPath();gfx.arc(x,y,radius,angle-Math.PI/3,
+        angle+Math.PI/3,false);gfx.strokePath();
+    }
     const alpha = ready ? 0.65 : 0.25;
     gfx.fillStyle(0x37ddfb, ready ? 0.10 : 0.04);
     gfx.fillCircle(x, y, 14);
@@ -3821,15 +3841,27 @@ export class GameScene extends Phaser.Scene {
     if (this.tutorialComplete || this.countdownActive || this.supremeTyping ||
       this.supremeCinematic || this.elapsed<this.cannonFrozenUntil)return;
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
-    const target=specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
+    const country=this.isV1Campaign?this.specialBuild?.primary:null;
+    const target=country==='us'
+      ?americanWallPlacement(pointer.x,pointer.y,CANNON.x,CANNON.y,W,H)
+      :specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
     this.lastSpecialFire=this.time.now;
+    if(country==='us'){
+      this.createAmericanWall(target.x,target.y,this.specialBuild);
+      // Misturas com Rússia/China/Coreia/Brasil preservam seus componentes,
+      // mas o antigo dano de míssil americano não é reativado.
+      const build=this.specialBuild;
+      if(build.stages.br||build.stages.ru||build.stages.cn||build.stages.jp)
+        this.detonateV1HybridSpecial(target.x,target.y,{
+          ...build,stages:{...build.stages,us:0},
+        });
+      return;
+    }
     // Som de lançamento por país. Som genérico apenas nos especiais legados.
     // O impacto/suporte híbrido de outros países ocorre em detonateV1HybridSpecial.
     const specialCountry=this.isV1Campaign?this.specialBuild?.primary:null;
     if(specialCountry==='br')
       playSfx('brFireworkLaunch',{throttle:190,volumeScale:0.70});
-    else if(specialCountry==='us')
-      playSfx('usMissileLaunch',{throttle:220,volumeScale:0.83});
     else if(specialCountry==='cn')
       playSfx('cnCargoDeploy',{throttle:200,volumeScale:0.68});
     else if(!['ru','jp'].includes(specialCountry))
@@ -3887,28 +3919,14 @@ export class GameScene extends Phaser.Scene {
       // Uma pancada por conjunto: não uma por subcarga.
       playSfx('cnContainerImpact',{throttle:240,volumeScale:0.77});
     }
-    // 3. Explosão-base, fogos e estilhaços — cada país mantém seu dano próprio.
+    // O componente americano cria proteção em arco, não explosão.
+    if(us)this.createAmericanWall(x,y,build);
     if(br)this.createArraial(x,y);
-    // Os combos russos dependem do tiro principal, não de detonação imediata.
-    if(us) {
-      const blastRadius=build.usBlastRadius,shockRadius=build.usShockRadius;
-      for(let i=this.enemies.length-1;i>=0;i--){
-        const enemy=this.enemies[i];
-        const d=Math.max(0,Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y)-enemyContactRadius(enemy.type));
-        // O anel de choque só causa 50% do dano FORA da explosão principal.
-        if(d<=blastRadius)this.impactInvader(i,build.usDamage,0,'#ffcc88');
-        else if(d<=shockRadius)this.impactInvader(i,build.usDamage*0.5,0,'#ffca83');
-      }
-      this.drawV1SpecialPulse(x,y,blastRadius,0xffa54d);
-      // O impacto principal e a onda secundária formam um único evento sonoro.
-      playSfx('usShockwave',{throttle:210,volumeScale:0.90});
-    }
     // Sem componentes estrangeiros nem Arraial, preserva dano-base do especial.
     if(!br&&!us&&!ru&&!cn&&!jp)this.pulseV1Area(x,y,70,3,0x80e8ff);
     // 4. Coreia deixa um globo estacionário: cada tiro recebido gera uma salva.
     if(jp)this.createDiscoGlobe(x,y,build);
-    // 5. Empurrão americano acontece por último e nunca causa dano adicional.
-    if(us)this.pushV1EnemiesUp(x,y,build.usShockRadius,build.usPush);
+    // Repulsão americana ocorre somente no contato físico com o arco.
   }
 
   drawV1SpecialPulse(x,y,radius,color) {
@@ -4177,11 +4195,13 @@ export class GameScene extends Phaser.Scene {
     const julyShot=!special&&patriotic;
     // Identidade coreana: pulso laser visual em cada tiro físico, sem mudar física.
     const koreanLaserPulse=!special&&this.isV1Campaign&&this.combat.plasmaEvery>0;
+    const usRocket=!special&&this.isV1Campaign&&this.combat.usRocketRadius>0;
     // Somente a representação gráfica é limitada. Balas invisíveis continuam com física e dano.
     const visible = special || this.visibleProjectileCount < MAX_VISUAL_PROJECTILES;
     if (visible) this.visibleProjectileCount += 1;
     const dot = !visible ? {x, y, destroy(){}} : special
       ? this.add.circle(x, y, 8, 0x72eaf8).setDepth(35)
+      : usRocket ? this.createAmericanRocketSprite(x,y,angle,this.combat.usRocketRadius)
       : julyShot
         ? this.add.circle(x,y,9,0xf5f8ff)
           .setStrokeStyle(3,0x427ee3,0.96).setDepth(36)
@@ -4192,7 +4212,7 @@ export class GameScene extends Phaser.Scene {
           .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff, centerGlow ? 0.95 : 0.65)
           .setRotation(angle + Math.PI / 2)
           .setDepth(35);
-    if(koreanLaserPulse && visible && !vfx?.cryogenic && !julyShot){
+    if(koreanLaserPulse && visible && !vfx?.cryogenic && !julyShot && !usRocket){
       // Mesma forma base para não afetar os outros países; mudança visual local.
       dot.setFillStyle(0xb96aff).setScale(1,Math.max(1,20/style.length))
         .setStrokeStyle(centerGlow ? 2 : 1,0xffffff,0.98);
@@ -4200,7 +4220,7 @@ export class GameScene extends Phaser.Scene {
     const speed = special ? 300 : this.combat.basicSpeed;
     // Uma única Graphics por bala, redesenhada enquanto ela se move.
     // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
-    const trail = visible && vfx && (vfx.heavy || vfx.multiple || koreanLaserPulse || julyShot)
+    const trail = visible && vfx && (vfx.heavy || vfx.multiple || koreanLaserPulse || julyShot || usRocket)
       ? this.add.graphics().setDepth(34) : null;
     const bullet = {
       sprite: dot,
@@ -4211,6 +4231,8 @@ export class GameScene extends Phaser.Scene {
       centerGlow,
       koreanLaserPulse,
       patriotic:julyShot,
+      usRocket,
+      usBlastRadius:usRocket?this.combat.usRocketBlastRadius:0,
       vx: vx * speed,
       vy: vy * speed,
       special,
@@ -4219,11 +4241,11 @@ export class GameScene extends Phaser.Scene {
       damage: special ? 0 : this.combat.basicDamage,
       pierceLeft: special ? 0 : this.combat.pierce,
       knockback: special ? 0 : this.combat.knockback,
-      fragmentation: !special && this.combat.fragmentation,
+      fragmentation: !special && !usRocket && this.combat.fragmentation,
       impactColor: style.impactColor,
       hitEnemyIds: new Set(),
       distanceTravelled:0,
-      usRadius:julyShot?10:7,
+      usRadius:usRocket?this.combat.usRocketRadius:julyShot?10:7,
       chinaSplit:!special && !julyShot && generation===0 &&
         this.combat.chinaSplitCount>1,
     };
@@ -4240,6 +4262,17 @@ export class GameScene extends Phaser.Scene {
     const dx = bullet.vx / length;
     const dy = bullet.vy / length;
     gfx.clear();
+    if(bullet.usRocket){
+      // Chama de foguete tricolor, sem criar objetos a cada quadro.
+      const r=Math.max(4,bullet.usRadius);
+      gfx.lineStyle(r*1.05,0x2366c8,0.28);
+      gfx.lineBetween(x-dx*r*4,y-dy*r*4,x-dx*r,y-dy*r);
+      gfx.lineStyle(r*0.60,0xe8505b,0.70);
+      gfx.lineBetween(x-dx*r*3.2,y-dy*r*3.2,x-dx*r,y-dy*r);
+      gfx.lineStyle(r*0.26,0xffffff,0.92);
+      gfx.lineBetween(x-dx*r*2.2,y-dy*r*2.2,x-dx*r,y-dy*r);
+      return;
+    }
     if(bullet.patriotic){
       // Feixe de três cores: espetáculo patriótico, não fogos de São João.
       gfx.lineStyle(10,0x316bb9,0.25);
@@ -4249,7 +4282,7 @@ export class GameScene extends Phaser.Scene {
       gfx.lineStyle(2,0xffffff,0.98);
       gfx.lineBetween(x-dx*23,y-dy*23,x,y);
     }
-    if (bullet.vfx.cryogenic) {
+    if (bullet.vfx?.cryogenic) {
       // 5 volutas por projétil; nenhuma partícula nova por frame.
       const sidewaysX=-dy,sidewaysY=dx;
       for(let i=0;i<5;i++){
@@ -4275,7 +4308,7 @@ export class GameScene extends Phaser.Scene {
       gfx.lineStyle(1,0xffffff,0.92);
       gfx.lineBetween(x-dx*26,y-dy*26,x,y);
     }
-    if (bullet.vfx.multiple) {
+    if (bullet.vfx?.multiple) {
       // Destaque independente dos dois/três tiros da China. Pode coexistir
       // com o rastro russo sem perder o brilho vermelho/dourado.
       gfx.lineStyle(bullet.centerGlow ? 11 : 8, 0xffa52c,
@@ -4801,6 +4834,12 @@ export class GameScene extends Phaser.Scene {
             if(hit.target!==null&&hit.target!=='barrier')
               this.usJulyHits=registerAmericanJulyHit(this.usJulyHits,
                 this.combat.usJulyHitsRequired,bullet);
+            if(bullet.usRocket){
+              if(hit.target!==null&&hit.target!=='barrier')
+                this.detonateAmericanRocket(bullet.sprite.x,bullet.sprite.y,
+                  enemy.uid,bullet.usBlastRadius);
+              remove=true;break;
+            }
             if(bullet.patriotic){
               if(hit.target!==null&&hit.target!=='barrier')
                 this.detonateAmericanJuly(bullet.sprite.x,bullet.sprite.y,enemy.uid,bullet.damage);
@@ -4839,6 +4878,9 @@ export class GameScene extends Phaser.Scene {
           );
           this.usJulyHits=registerAmericanJulyHit(this.usJulyHits,
             this.combat.usJulyHitsRequired,bullet);
+          if(bullet.usRocket)
+            this.detonateAmericanRocket(deathPosition.x,deathPosition.y,
+              directTargetId,bullet.usBlastRadius);
           if(bullet.patriotic)
             this.detonateAmericanJuly(deathPosition.x,deathPosition.y,directTargetId,bullet.damage);
           if (bullet.knockback > 0) {
@@ -4854,7 +4896,7 @@ export class GameScene extends Phaser.Scene {
               bullet.generation + 1, {x:deathPosition.x+8,y:deathPosition.y-8});
             replica?.hitEnemyIds.add(directTargetId);
           }
-          if (bullet.fragmentation || bullet.patriotic) {
+          if (bullet.fragmentation || bullet.patriotic || bullet.usRocket) {
             if(!bullet.patriotic)this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
               destroyed ? deathPosition : null);
             remove = true;
@@ -5460,7 +5502,7 @@ export class GameScene extends Phaser.Scene {
     this.updateHudText(this.statusText,clock + (remaining
       ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO'));
     if(this.specialLabel) {
-      const titles={br:'ARRAIAL',us:'CHOQUE E PAVOR',ru:'SPUTNIK',
+      const titles={br:'ARRAIAL',us:'GRANDE MURO',ru:'SPUTNIK',
         cn:'ENTREGA',jp:'DISCOTECA'};
       const base=titles[this.specialBuild.primary] || 'ESPECIAL';
       this.updateHudText(this.specialLabel,`DIR. ${base} — ${remaining?remaining.toFixed(1)+'s':'PRONTO'}`);
@@ -5506,7 +5548,8 @@ export class GameScene extends Phaser.Scene {
           ? 'PRONTO!' : this.usJulyHits+'/'+this.combat.usJulyHitsRequired)
         : this.combat.plasmaEvery ? ' | LIGHTSTICK: ' +
           (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/' + PLASMA_EVERY_SHOTS
-        : this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
+        : this.combat.usRocketRadius ? ' | FOGUETES EUA' :
+          this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
       const towerLabel = this.supportTowers.map((tower) => tower.definition.label).join(' + ');
       const levelTwo = unlockedSecondUpgrades(this.combatCampaign)
         .map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' + ');
@@ -5640,6 +5683,7 @@ export class GameScene extends Phaser.Scene {
 
     this.updateEnemies(dt);
     if (this.gameOver) return;
+    this.updateAmericanWalls();
     this.updateEnemyBullets(dt);
     if (this.gameOver) return;
     this.updatePlayerProjectiles(dt);
