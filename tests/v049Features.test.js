@@ -25,7 +25,7 @@ test('nome: 40 opções brasileiras, gênero não requerido e persistência segu
 });
 test('intro nova revela cláusula só depois da promoção e apresenta Zeca',()=>{
   const slides=introductionSlides();
-  assert.equal(slides.length,5);
+  assert.equal(slides.length,7);
   assert.ok(INTRO_PAGE_MS>=1400);
   assert.equal(slides[0].kind,'email');
   assert.match(slides[0].body,/MESÁRIO\*/);
@@ -34,7 +34,9 @@ test('intro nova revela cláusula só depois da promoção e apresenta Zeca',()=
   assert.match(slides[2].headline,/ELEIÇÕES SÃO CANCELADAS/);
   assert.equal(slides[3].promotion,'GENERAL DE GUERRA');
   assert.match(slides[3].footnote,/^\*/);
-  assert.match(slides[4].body,/Obuseiro é esse canhão/);
+  assert.match(slides[4].body,/até ontem você era mesário/);
+  assert.match(slides[5].body,/mecânico de obuseiro/);
+  assert.match(slides[6].body,/canhão tá funcionando/);
   const intro=readFileSync(new URL('../src/scenes/IntroScene.js',import.meta.url),'utf8');
   assert.match(intro,/this\.beginTyping/);
   assert.match(intro,/this\.revealPromotion\(\)/);
