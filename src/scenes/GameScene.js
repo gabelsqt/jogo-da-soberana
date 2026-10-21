@@ -92,7 +92,8 @@ import {createBattleBanterState,enqueueBattleBanter,currentBattleBanter} from '.
 import {createDialogueTypewriter} from '../ui/dialogueTypewriter.js';
 import {VOYAGE_PREPARE_MS,VOYAGE_LAUNCH_MS,VOYAGE_SPACE_MS,VOYAGE_LANDING_MS,
   VOYAGE_TOTAL_MS,voyageRocketPose,voyageStarfield,voyageStarAt} from '../gameplay/voyageTravel.js';
-import {drawHexShieldDome,HEX_SHIELD_FORM_MS,HEX_SHIELD_COLLAPSE_MS} from '../gameplay/hexShieldDome.js';
+import {drawHexShieldDome,HEX_SHIELD_FORM_MS,HEX_SHIELD_COLLAPSE_MS,
+  HEX_SHIELD_WHITE_FLASH_MS} from '../gameplay/hexShieldDome.js';
 import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
 import {MAX_ACTIVE_SPUTNIKS,sputnikTouchesEnemy,crystallizeSputnikEnemy,isSputnikCrystalized,sputnikShatterStats,sputnikPrimaryDamage} from '../gameplay/russianSputnik.js';
 import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,ICE_BREATH_BOMB_SPEED_FACTOR,chillType6Bomb,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Target} from '../gameplay/iceBreath.js';
@@ -5550,13 +5551,15 @@ export class GameScene extends Phaser.Scene {
       progress=Math.min(1,Math.max(0,elapsed/HEX_SHIELD_FORM_MS));
       if(progress>=1){
         phase='active';this.hexShieldTransition='active';
-        this.hexShieldFlashUntil=this.time.now+450;
+        this.hexShieldFlashUntil=this.time.now+HEX_SHIELD_WHITE_FLASH_MS;
+        if(this.shield>0)playSfx('shieldReady',{throttle:250,volumeScale:.84});
       }
     }
     drawHexShieldDome(this.hexShieldGraphics,{
       cx:CANNON.x,cy:CANNON.y+10,shield:this.shield,maxShield:this.shieldMax,
       progress,mode:phase,now:this.time.now,
-      flash:Math.max(0,(this.hexShieldFlashUntil-this.time.now)/450),
+      flash:Math.max(0,(this.hexShieldFlashUntil-this.time.now)/
+        HEX_SHIELD_WHITE_FLASH_MS),
     });
     // Congelamento russo: cristal gigante envolve o canhão por 2 segundos.
     if(this.elapsed<this.cannonFrozenUntil){

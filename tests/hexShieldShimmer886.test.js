@@ -23,7 +23,7 @@ test('hexágonos centrais piscam de forma suave e chegam quase a apagar',()=>{
     'interpolação de alpha deve ser suave, sem piscar bruscamente');
 });
 
-test('pulsos independentes e borda estável sem apagar a cúpula inteira',()=>{
+test('pulsos independentes em toda a cúpula, inclusive na borda',()=>{
   const cells=hexShieldCells();
   const inside=cells.map((cell,index)=>({cell,index}))
     .filter(({cell})=>Math.hypot(cell.x,cell.y)<CANNON_DOME_RADIUS*.65);
@@ -38,9 +38,10 @@ test('pulsos independentes e borda estável sem apagar a cúpula inteira',()=>{
   const border=cells.map((cell,index)=>({cell,index}))
     .find(({cell})=>Math.hypot(cell.x,cell.y)>CANNON_DOME_RADIUS*.82);
   assert.ok(border,'deve existir ao menos uma célula perto da borda');
-  for(const now of [0,480,970,1350,2120,3300]){
-    assert.ok(hexShieldCellOpacity(border.cell,border.index,now)>.88);
-  }
+  const borderLevels=Array.from({length:120},(_,i)=>
+    hexShieldCellOpacity(border.cell,border.index,i*50));
+  assert.ok(Math.min(...borderLevels)<.15,'o hexágono da borda também apaga');
+  assert.ok(Math.max(...borderLevels)>.9,'o hexágono da borda reacende');
   assert.match(visual,/hexShieldCellOpacity\(cell,i,now,radius\)/);
   assert.match(visual,/graphics\.lineStyle\(8,rim/);
   assert.match(visual,/graphics\.lineStyle\(3,rim/);
@@ -58,7 +59,8 @@ test('formação acontece no início de todas as ondas, inclusive fora da rota e
   assert.match(start,/this\.hexShieldTransition='forming'/);
   assert.match(start,/this\.hexShieldTransitionAt=this\.time\.now/);
   assert.match(start,/this\.hexShieldFlashUntil=0/);
-  assert.match(scene,/this\.hexShieldFlashUntil=this\.time\.now\+450/);
+  assert.match(scene,/this\.hexShieldFlashUntil=this\.time\.now\+HEX_SHIELD_WHITE_FLASH_MS/);
+  assert.match(scene,/playSfx\('shieldReady'/);
   assert.equal(HEX_SHIELD_COLLAPSE_MS,380);
   assert.equal(HEX_SHIELD_FORM_MS,780);
 });

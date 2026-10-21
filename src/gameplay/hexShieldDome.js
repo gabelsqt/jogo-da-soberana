@@ -6,20 +6,24 @@ const clamp01=value=>Math.max(0,Math.min(1,Number(value)||0));
 export const HEX_SHIELD_CELL_RADIUS=9;
 export const HEX_SHIELD_FORM_MS=780;
 export const HEX_SHIELD_COLLAPSE_MS=380;
+export const HEX_SHIELD_ARC_FRACTION=.36; // Primeiro desenha o contorno.
+export const HEX_SHIELD_WHITE_FLASH_MS=340;
+export function hexShieldFormationStage(progress){
+  const p=clamp01(progress);
+  return {
+    arc:clamp01(p/HEX_SHIELD_ARC_FRACTION),
+    cells:clamp01((p-HEX_SHIELD_ARC_FRACTION)/(1-HEX_SHIELD_ARC_FRACTION)),
+  };
+}
 
-// Cada célula central pulsa em um momento diferente. Alterar somente
-// alpha mantém a malha, a cúpula e sua colisão exatamente onde estavam.
-// Células da borda ficam mais estáveis, preservando a silhueta luminosa.
+// TODOS os hexágonos têm a mesma aparência, e cada um pulsa em alpha
+// num ritmo diferente. Sem alteração na resistência nem nas hitboxes.
 export function hexShieldCellOpacity(cell,index,now=0,radius=CANNON_DOME_RADIUS){
-  const distance=Math.hypot(cell.x,cell.y);
-  const innerStrength=clamp01((radius-distance-14)/(radius*.56));
-  const speed=.0037+(index%7)*.00043;
+  const speed=.0031+(index%7)*.00037;
   const phase=index*2.39996+cell.x*.093+cell.y*.071;
   const wave=.5+.5*Math.sin(Math.max(0,now)*speed+phase);
-  // ~25% do ciclo praticamente apagado. Sem apagão sincronizado.
-  const visible=clamp01((wave-.28)/.72);
-  const dim=.035+.965*visible*visible;
-  return 1-innerStrength*.96*(1-dim);
+  const fade=clamp01((wave-.23)/.77);
+  return .055+.945*fade*fade;
 }
 
 export function hexShieldCells(radius=CANNON_DOME_RADIUS,cellRadius=HEX_SHIELD_CELL_RADIUS){
@@ -36,11 +40,12 @@ export function hexShieldCells(radius=CANNON_DOME_RADIUS,cellRadius=HEX_SHIELD_C
         return {x:x+cellRadius*Math.cos(a),y:y+cellRadius*Math.sin(a)};
       });
       if(points.every(p=>p.y<=.25&&p.x*p.x+p.y*p.y<(radius-1)**2)){
-        cells.push({x,y,points,glow:(row*11+Math.round(x*3))%9===0});
+        cells.push({x,y,points});
       }
     }
   }
-  return cells.sort((a,b)=>b.y-a.y||a.x-b.x);
+  // A malha é revelada COLUNA a COLUNA, da esquerda para a direita.
+  return cells.sort((a,b)=>a.x-b.x||a.y-b.y);
 }
 export function hexShieldOpacity({shield=80,maxShield=80,progress=1,mode='active'}={}){
   const life=clamp01(maxShield>0?shield/maxShield:0);
@@ -55,52 +60,70 @@ export function drawHexShieldDome(graphics,{
   const opacity=hexShieldOpacity({shield,maxShield,progress,mode});
   if(opacity<=0.001)return;
   const cells=hexShieldCells(radius);
-  const total=Math.max(1,cells.length),life=clamp01(shield/Math.max(1,maxShield));
-  const activationFlash=mode==='forming'&&progress>=.94
-    ?(1-clamp01((progress-.94)/.06))*.22:0;
-  const pulse=mode==='active'?.045*(1+Math.sin(now*.0043)):.015;
-  const rim=0x5cd8ff;
-  const status=cannonShieldColor(shield,maxShield);
-  // Superfície azul translúcida: o sprite do canhão permanece visível.
+  const total=Math.max(1,cells.length);
+  const stage=mode==='forming'?hexShieldFormationStage(progress):{arc:1,cells:1};
   const arc=Array.from({length:65},(_,i)=>{
-    const a=Math.PI+i*Math.PI/64;
-    return {x:cx+Math.cos(a)*radius,y:cy+Math.sin(a)*radius};
+    const angle=Math.PI+i*Math.PI/64;
+    return {x:cx+Math.cos(angle)*radius,y:cy+Math.sin(angle)*radius};
   });
-  graphics.fillStyle(0x1588c5,.030*opacity);
+  const arcCount=Math.min(arc.length,1+Math.floor(stage.arc*(arc.length-1)));
+  const currentArc=arc.slice(0,arcCount);
+  const rim=0x5cd8ff, status=cannonShieldColor(shield,maxShield);
+  const pulse=mode==='active'?.045*(1+Math.sin(now*.0043)):.015;
+  const whiteFlash=clamp01(flash);
+
+  // Primeira fase: o arco azul é traçado da ESQUERDA para a DIREITA.
+  // Não exibir preenchimento nem hexágonos antes do contorno completar.
+  if(arcCount>=2){
+    const rimOpacity=Math.max(.40,opacity)*(.52+pulse);
+    graphics.lineStyle(8,rim,rimOpacity*.13);
+    graphics.strokePoints(currentArc,false);
+    graphics.lineStyle(3,rim,rimOpacity*.94);
+    graphics.strokePoints(currentArc,false);
+    graphics.lineStyle(1.2,0xc8f9ff,rimOpacity*.72);
+    graphics.strokePoints(currentArc,false);
+  }
+
+  if(stage.cells<=0)return;
+  // Preenchimento mínimo para mostrar o canhão ATRÁS da cúpula.
+  graphics.fillStyle(0x1588c5,.024*opacity*stage.cells);
   graphics.fillPoints([{x:cx-radius,y:cy},...arc,{x:cx+radius,y:cy}],true);
-  const reveal=mode==='forming'?clamp01(progress):1;
-  for(let i=0;i<cells.length;i++){
-    if(mode==='forming'&&i/total>reveal)break; // forma de baixo para cima
+
+  // Segunda fase: linhas, preenchimento e ponto central idênticos em
+  // cada hexágono, aparecendo da ESQUERDA para a DIREITA.
+  const visibleCount=Math.min(total,Math.ceil(stage.cells*total));
+  for(let i=0;i<visibleCount;i++){
     const cell=cells[i];
-    const localOpacity=(mode==='forming'
-      ?opacity*(.65+.35*Math.min(1,(reveal-i/total)*total*.25))
-      :opacity)*hexShieldCellOpacity(cell,i,now,radius);
+    const localOpacity=opacity*hexShieldCellOpacity(cell,i,now,radius);
     const vertices=cell.points.map(p=>({x:cx+p.x,y:cy+p.y}));
-    graphics.fillStyle(cell.glow?0x78dafb:0x1c81b9,
-      localOpacity*(cell.glow?.085:.036));
+    graphics.fillStyle(0x1c81b9,localOpacity*.049);
     graphics.fillPoints(vertices,true);
-    graphics.lineStyle(cell.glow?1.6:1,cell.glow?0x99edff:0x55bce8,
-      localOpacity*(cell.glow?.47:.23));
+    graphics.lineStyle(1,0x71d1f1,localOpacity*.46);
     graphics.strokePoints(vertices,true);
-    if(cell.glow){
-      graphics.fillStyle(0xe5ffff,localOpacity*.46);
-      graphics.fillCircle(cx+cell.x,cy+cell.y,1.5);
+    // Pequena bolinha EM TODOS os centros, com a mesma pulsação.
+    graphics.fillStyle(0xcef7ff,localOpacity*.69);
+    graphics.fillCircle(cx+cell.x,cy+cell.y,1.8);
+    graphics.fillStyle(0xf1ffff,localOpacity*.24);
+    graphics.fillCircle(cx+cell.x,cy+cell.y,.75);
+    if(whiteFlash>0){
+      graphics.lineStyle(1.6,0xffffff,whiteFlash*.85);
+      graphics.strokePoints(vertices,true);
+      graphics.fillStyle(0xffffff,whiteFlash*.95);
+      graphics.fillCircle(cx+cell.x,cy+cell.y,2.1);
     }
   }
-  const rimStrength=opacity*(.52+pulse+activationFlash+clamp01(flash)*.72);
-  graphics.lineStyle(8,rim,rimStrength*.12);
-  graphics.strokePoints(arc,false);
-  graphics.lineStyle(3,rim,rimStrength*.93);
-  graphics.strokePoints(arc,false);
-  graphics.lineStyle(1.2,0xc8f9ff,rimStrength*.70);
-  graphics.strokePoints(arc,false);
-  // Faixa de dano nas laterais, mantendo indicação verde/amarelo/vermelho.
   graphics.lineStyle(2,status,opacity*.55);
   graphics.lineBetween(cx-radius,cy,cx-radius+16,cy);
   graphics.lineBetween(cx+radius-16,cy,cx+radius,cy);
-  if((mode==='forming'&&progress>=.95)||flash>0){
-    const shine=Math.max(clamp01(flash),1-clamp01((progress-.95)/.05));
-    graphics.lineStyle(5,0xcfffff,opacity*shine*.72);
+
+  // Terceira fase: uma única descarga BRANCA de fechamento da cúpula.
+  // O flash dura poucos frames e deixa o domo azul novamente.
+  if(whiteFlash>0){
+    graphics.lineStyle(7,0xffffff,whiteFlash*.24);
     graphics.strokePoints(arc,false);
+    graphics.lineStyle(3,0xffffff,whiteFlash*.98);
+    graphics.strokePoints(arc,false);
+    graphics.fillStyle(0xffffff,whiteFlash*.055);
+    graphics.fillPoints([{x:cx-radius,y:cy},...arc,{x:cx+radius,y:cy}],true);
   }
 }

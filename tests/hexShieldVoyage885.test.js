@@ -38,7 +38,8 @@ test('escudo começa translúcido, desaparece e se reconstrói por progressão',
  assert.match(shield,/graphics\.fillPoints\(vertices,true\)/);
  assert.match(shield,/graphics\.strokePoints\(vertices,true\)/);
  assert.match(shield,/graphics\.strokePoints\(arc,false\)/);
- assert.match(shield,/const rimStrength=opacity\*/);
+ assert.match(shield,/graphics\.strokePoints\(currentArc,false\)/);
+ assert.match(shield,/graphics\.lineStyle\(3,0xffffff,whiteFlash\*\.98\)/);
 });
 
 test('viajar anima os sprites do canhão original, nunca desenha segundo canhão',()=>{
@@ -65,7 +66,7 @@ test('escudo fecha ao decolar, reaparece no pouso e mantém colisão existente',
  assert.match(game,/this\.hexShieldTransition='active'/);
  assert.match(game,/this\.cannonDomeSprite\?\.setVisible\(false\)/);
  assert.match(game,/drawHexShieldDome\(this\.hexShieldGraphics,\{/);
- assert.match(game,/this\.hexShieldFlashUntil=this\.time\.now\+450/);
+ assert.match(game,/this\.hexShieldFlashUntil=this\.time\.now\+HEX_SHIELD_WHITE_FLASH_MS/);
  assert.match(game,/this\.drawShield\(\); \/\/ formação\/desligamento também anima sem combate/);
  assert.match(game,/this\.drawShield\(\); \/\/ escudo se desliga e se forma com o jogo pausado/);
  assert.match(game,/updateShieldSprites\(this,CANNON\.x,CANNON\.y\+10,this\.supportTowers\)/);
