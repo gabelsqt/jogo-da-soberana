@@ -464,8 +464,8 @@ export function v1CombatStats(state = {}, base = {}) {
     stats.chinaSplitCount=2;stats.duplicateChance=0;
   }
   if(n.jp>=10){
-    stats.transformed='jp';stats.basicInterval=90;stats.basicDamage*=2;
-    stats.laserDamage*=1.8;stats.koreaContinuous=true;
+    stats.transformed='jp';stats.basicInterval=160;
+    stats.laserDamage*=0.92;stats.koreaContinuous=true;
   }
   stats.basicInterval=Math.max(stats.transformed==='br'?32:55,Math.round(stats.basicInterval));
   stats.specialCooldown=Math.max(1800,Math.round(stats.specialCooldown));

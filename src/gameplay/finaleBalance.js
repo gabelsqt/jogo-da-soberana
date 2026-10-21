@@ -14,7 +14,12 @@ export function estimatedBossDps(stats = {}) {
     const sustained=iceBreathTickDamage(stats.basicDamage,true)*1000/
       ICE_BREATH_TICK_MS;
     // Tempo útil entre barreira, troca de módulo e exposição do núcleo.
-    return Math.min(180,Math.max(7,sustained*0.43));
+    return Math.min(180,Math.max(7,sustained*0.85));
+  }
+  // Encore Infinito não produz balas físicas; só o pulso contínuo conta.
+  if(stats.transformed==='jp'){
+    const interval=Math.max(100,Number(stats.basicInterval)||160);
+    return Math.min(120,Math.max(12,(Number(stats.laserDamage)||0)*1000/interval*0.55));
   }
   const interval=Math.max(32,Number(stats.basicInterval)||BASE_CANNON_INTERVAL_MS);
   const damage=Math.max(0.5,Number(stats.basicDamage)||1);

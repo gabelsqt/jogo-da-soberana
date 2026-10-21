@@ -8,7 +8,7 @@ export const SPECIAL_BLAST_SHRINK_DURATION = 500; // retração final
 export const SPECIAL_BLAST_MAX_RADIUS = 110;
 export const SPECIAL_BLAST_START_RADIUS = 12;
 
-export function specialBlastRadius(ageMs) {
+function unscaledSpecialBlastRadius(ageMs) {
   if (ageMs < 0 || ageMs >= SPECIAL_BLAST_DURATION) return 0;
   if (ageMs < SPECIAL_BLAST_EXPAND_DURATION) {
     const t = ageMs / SPECIAL_BLAST_EXPAND_DURATION;
@@ -21,9 +21,12 @@ export function specialBlastRadius(ageMs) {
     (SPECIAL_BLAST_DURATION - ageMs) / SPECIAL_BLAST_SHRINK_DURATION;
 }
 
-export function blastCatchesTarget(blastX, blastY, ageMs, targetX, targetY, targetRadius = 0) {
+export function specialBlastRadius(ageMs,scale=1) {
+  return unscaledSpecialBlastRadius(ageMs)*Math.max(0,scale);
+}
+export function blastCatchesTarget(blastX, blastY, ageMs, targetX, targetY, targetRadius = 0, scale=1) {
   if (ageMs < 0 || ageMs >= SPECIAL_BLAST_DURATION) return false;
-  const radius = specialBlastRadius(ageMs) + targetRadius;
+  const radius = specialBlastRadius(ageMs,scale) + targetRadius;
   return Math.hypot(targetX - blastX, targetY - blastY) <= radius;
 }
 

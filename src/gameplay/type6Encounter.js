@@ -7,6 +7,7 @@ import {
   type6HullContains,TYPE6_OFFSETS,
 } from './type6Boss.js';
 import {drawType6Ship} from './type6Visual.js';
+import {TYPE6_BOMB_OFFSETS,TYPE6_HANGAR_COUNT,type6HangarDue} from './type6Salvos.js';
 import {TYPE6_HULL_SHEET,type6HullFrame,type6HullUsesSheet} from './type6HullSprite.js';
 import {TYPE6_MODULE_SHEET,type6ModuleFrame,type6ModuleUsesSheet,
   type6ModuleWhiteFlash,TYPE6_MODULE_FLASH_RETRIGGER_MS} from './type6ModuleSprite.js';
@@ -84,38 +85,37 @@ function warning(scene,enemy,module,color){
   scene.tweens.add({targets:line,alpha:0,duration:360,onComplete:()=>line.destroy()});
 }
 function fireBomb(scene,enemy,module){
-  const s=enemy.type6,p=TYPE6_PALETTES[s.country];
-  const x=enemy.sprite.x+module.offsetX,y=enemy.sprite.y+46;
-  const target={kind:'cannon',x:CANNON.x,y:CANNON.y};
-  const dx=target.x-x,dy=target.y-y;
-  const speed=Math.hypot(dx,dy)/7;
-  const us=s.country==='us',ru=s.country==='ru',cn=s.country==='cn';
+  const s=enemy.type6,p=TYPE6_PALETTES[s.country],ru=s.country==='ru',
+    us=s.country==='us',cn=s.country==='cn';
+  const originX=enemy.sprite.x+module.offsetX,y=enemy.sprite.y+46;
   const size=us?58:cn?43:38;
-  // Bomba interceptável circular; lógica de impacto continua sem alteração.
-  const sprite=scene.add.circle(x,y,size*0.5,ru?0x8bdcff:us?0xd8e0e6:p.light)
-    .setStrokeStyle(3,ru?0xffffff:p.glow).setDepth(33);
-  scene.enemyBullets.push({
-    sprite,target,vx:dx/7,vy:dy/7,damage:us?999:65,
-    hp:module.maxHp*0.25,colossal:true,sourceBossId:enemy.uid,
-    sourceModuleId:module.id,frostMs:ru?2000:0,cryoImpact:ru,
-    instantUnshielded:us,droneContainer:cn,
-  });
-  scene.showAttackWarning(us?'MÍSSIL COLOSSAL! INTERCEPTE!':
-    ru?'BOMBA CRIOGÊNICA!':cn?'DRONE-CONTÊINER!':'BOMBA COLOSSAL!');
-}
-function launchHangar(scene,enemy,module){
-  const s=enemy.type6,n=s.country==='cn'?10:3,cap=s.country==='cn'?30:6;
-  const active=scene.enemies.filter(e=>e.sourceBossId===enemy.uid&&e.type===3).length;
-  if(active+n>cap)return;
-  for(let i=0;i<n;i++){
-    const spread=s.country==='cn'?(i-(n-1)/2)*43:(i-1)*66;
-    const x=Math.max(56,Math.min(W-56,enemy.sprite.x+module.offsetX+spread));
-    scene.spawnEnemy(3,{level:9,x,y:enemy.sprite.y+64,
-      sourceBossId:enemy.uid,skipPortal:true});
+  const target={kind:'cannon',x:CANNON.x,y:CANNON.y};
+  // Três bombas de uma só vez, em trajetórias convergentes.
+  for(const offset of TYPE6_BOMB_OFFSETS){
+    const x=originX+offset,dx=target.x-x,dy=target.y-y;
+    const sprite=scene.add.circle(x,y,size*0.5,ru?0x8bdcff:us?0xd8e0e6:p.light)
+      .setStrokeStyle(3,ru?0xffffff:p.glow).setDepth(33);
+    scene.enemyBullets.push({
+      sprite,target,vx:dx/7,vy:dy/7,damage:us?999:32,
+      hp:module.maxHp*0.18,colossal:true,sourceBossId:enemy.uid,
+      sourceModuleId:module.id,frostMs:ru?2000:0,cryoImpact:ru,
+      instantUnshielded:us,droneContainer:cn,
+    });
   }
-  s.summons+=n;
+  scene.showAttackWarning(us?'TRÊS MÍSSEIS COLOSSAIS!':
+    ru?'TRÊS BOMBAS CRIOGÊNICAS!':cn?'TRÊS DRONES-CONTÊINER!':'TRÊS BOMBAS COLOSSAIS!');
+}
+function launchHangarUnit(scene,enemy,module,index){
+  const active=scene.enemies.filter(e=>e.sourceBossId===enemy.uid&&e.type===3).length;
+  const cap=enemy.bossCountry==='cn'?24:16;
+  if(active>=cap)return;
+  const spread=(index-(TYPE6_HANGAR_COUNT-1)/2)*39;
+  const x=Math.max(56,Math.min(W-56,enemy.sprite.x+module.offsetX+spread));
+  scene.spawnEnemy(3,{level:9,x,y:enemy.sprite.y+64,
+    sourceBossId:enemy.uid,skipPortal:true});
+  enemy.type6.summons++;
   burst(scene,enemy.sprite.x+module.offsetX,enemy.sprite.y+40,
-    TYPE6_PALETTES[s.country].light,22);
+    TYPE6_PALETTES[enemy.type6.country].light,11);
 }
 function beginModuleAction(scene,enemy,module){
   const s=enemy.type6,role=module.role;
@@ -128,8 +128,8 @@ function beginModuleAction(scene,enemy,module){
     s.action={kind:'laserCharge',moduleId:module.id,elapsed:0,interruptDamage:0};
     scene.showAttackWarning('LASER DE CERCO — 10 SEGUNDOS!');
   }else if(role==='hangar'){
-    s.action={kind:'hangar',moduleId:module.id,elapsed:0};
-    scene.showAttackWarning('HANGAR ABERTO — TRÊS INVASORES!');
+    s.action={kind:'hangar',moduleId:module.id,elapsed:0,spawned:0};
+    scene.showAttackWarning('HANGAR ABERTO — OITO INVASORES EM SEQUÊNCIA!');
   }else{
     s.action={kind:'bomb',moduleId:module.id,elapsed:0};
   }
@@ -169,7 +169,13 @@ function updateModuleAction(scene,enemy,dt){
     if(!wallBroken)scene.damageCannon(45*dt);
     if(a.elapsed>=TYPE6_LASER_FIRE_SECONDS){s.action=null;s.attackClock=0;}
   }else if(a.kind==='hangar'){
-    if(a.elapsed>=2){m.activeUntil=scene.time.now+480;launchHangar(scene,enemy,m);s.action=null;s.attackClock=0;}
+    const due=type6HangarDue(a.elapsed);
+    while(a.spawned<due){
+      m.activeUntil=scene.time.now+330;
+      launchHangarUnit(scene,enemy,m,a.spawned);
+      a.spawned++;
+    }
+    if(a.spawned>=TYPE6_HANGAR_COUNT){s.action=null;s.attackClock=0;}
   }else if(a.kind==='bomb'){
     if(a.elapsed>=0.65){m.activeUntil=scene.time.now+380;fireBomb(scene,enemy,m);s.action=null;s.attackClock=0;}
   }

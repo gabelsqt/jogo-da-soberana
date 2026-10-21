@@ -88,7 +88,7 @@ import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
 import {MAX_ACTIVE_SPUTNIKS,sputnikTouchesEnemy,crystallizeSputnikEnemy,isSputnikCrystalized,sputnikShatterStats,sputnikPrimaryDamage} from '../gameplay/russianSputnik.js';
-import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Target} from '../gameplay/iceBreath.js';
+import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,ICE_BREATH_BOMB_SPEED_FACTOR,chillType6Bomb,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Target} from '../gameplay/iceBreath.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
@@ -2742,14 +2742,16 @@ export class GameScene extends Phaser.Scene {
         shot.hitFlashUntil=0;
       }
       const previousX=shot.sprite.x,previousY=shot.sprite.y;
-      shot.sprite.x += shot.vx * dt;
-      shot.sprite.y += shot.vy * dt;
+      const freezeFactor=(shot.iceChilledUntil??0)>this.time.now
+        ?ICE_BREATH_BOMB_SPEED_FACTOR:1;
+      shot.sprite.x += shot.vx * dt * freezeFactor;
+      shot.sprite.y += shot.vy * dt * freezeFactor;
       if(this.hitAmericanWallWithBullet(shot,previousX,previousY)){
         this.removeEnemyBullet(i,true);continue;
       }
       if (this.specialBlasts.some((blast) => blastCatchesTarget(
         blast.x, blast.y, this.time.now - blast.bornAt,
-        shot.sprite.x, shot.sprite.y, shot.radius??8,
+        shot.sprite.x, shot.sprite.y, shot.radius??8,blast.radiusScale??1,
       ))) {
         if(shot.colossal)detonateType6Bomb(this,shot);
         else this.removeEnemyBullet(i,true);
@@ -3243,6 +3245,18 @@ export class GameScene extends Phaser.Scene {
 
   fireRussianBreath(angle){
     const {x,y}=this.russianBreathMuzzle(angle);
+    // O sopro atinge e desacelera bombas colossais do Tipo 6.
+    for(let j=this.enemyBullets.length-1;j>=0;j--){
+      const shot=this.enemyBullets[j];
+      if(!shot?.colossal||!shot?.sprite?.active)continue;
+      if(!insideIceBreathCone(x,y,angle,shot.sprite.x,shot.sprite.y,
+        shot.sprite.radius??20))continue;
+      const chill=chillType6Bomb(shot.hp,this.time.now);
+      shot.hp=chill.hp;
+      shot.iceChilledUntil=chill.chilledUntil;
+      shot.sprite.setStrokeStyle?.(3,0xb4f4ff,0.97);
+      if(shot.hp<=0)detonateType6Bomb(this,shot);
+    }
     const regularDamage=iceBreathTickDamage(this.combat.basicDamage);
     const bossDamage=iceBreathTickDamage(this.combat.basicDamage,true);
     // Dano periódico independe da quantidade de partículas da névoa.
@@ -3370,7 +3384,7 @@ export class GameScene extends Phaser.Scene {
       const enemy = this.enemies[i];
       if(enemy.type===6){
         hitType6Segment(this,enemy,startX,startY,endX,endY,
-          this.isV1Campaign ? this.combat.laserDamage : PLASMA_DAMAGE,PLASMA_HALF_WIDTH);
+          this.isV1Campaign ? this.combat.laserDamage*(this.combat.koreaContinuous?0.65:1) : PLASMA_DAMAGE,PLASMA_HALF_WIDTH);
         continue;
       }
       if (laserHitsTarget(
@@ -3436,12 +3450,31 @@ export class GameScene extends Phaser.Scene {
     let tx=x+Math.cos(angle)*PLASMA_RANGE,ty=y+Math.sin(angle)*PLASMA_RANGE;
     const hit=hitDiscoGlobe(this.discoGlobes,x,y,tx,ty,this.elapsed,PLASMA_HALF_WIDTH);
     if(hit){tx=hit.x;ty=hit.y;}
-    beam.lineStyle(24,0xa851ee,0.22);
+    const dx=tx-x,dy=ty-y,length=Math.max(1,Math.hypot(dx,dy));
+    const nx=-dy/length,ny=dx/length;
+    // Coluna contínua presa à boca do canhão.
+    beam.lineStyle(19,0x5727bb,0.22);
     beam.lineBetween(x,y,tx,ty);
-    beam.lineStyle(9,0xdc90ff,0.85);
+    beam.lineStyle(10,0xa963fb,0.66);
     beam.lineBetween(x,y,tx,ty);
-    beam.lineStyle(3,0xffffff,1);
+    beam.lineStyle(3,0xffffff,0.85);
     beam.lineBetween(x,y,tx,ty);
+    // Energia flui sem interrupção do canhão até o alvo.
+    const flow=this.time.now*0.00105;
+    for(let i=0;i<15;i++){
+      const t=((flow+i/15)%1+1)%1;
+      const prev=Math.max(0,t-0.07);
+      const side=(i%2?1:-1)*(1.5+Math.sin(this.time.now*.011+i)*1.1);
+      const color=i%3===0?0xffffff:i%3===1?0xdca9ff:0x84dcff;
+      beam.lineStyle(i%3===0?3:2.2,color,0.30+0.63*(1-t));
+      beam.lineBetween(x+dx*prev+nx*side,y+dy*prev+ny*side,
+        x+dx*t+nx*side,y+dy*t+ny*side);
+    }
+    const muzzlePulse=0.55+0.25*Math.sin(this.time.now*0.017);
+    beam.fillStyle(0xdcbbff,muzzlePulse);
+    beam.fillCircle(x,y,6.5);
+    beam.fillStyle(0xffffff,0.9);
+    beam.fillCircle(x,y,2.5);
   }
 
   createResidualSlash(x1, y1, x2, y2, initialHitIds = new Set()) {
@@ -4381,7 +4414,7 @@ export class GameScene extends Phaser.Scene {
     const visible = special || this.visibleProjectileCount < MAX_VISUAL_PROJECTILES;
     if (visible) this.visibleProjectileCount += 1;
     const dot = !visible ? {x, y, destroy(){}} : special
-      ? this.add.circle(x, y, 8, 0x72eaf8).setDepth(35)
+      ? this.add.circle(x, y, 5, 0x72eaf8).setDepth(35)
       : usRocket ? this.createAmericanRocketSprite(x,y,angle,this.combat.usRocketRadius)
       : julyShot
         ? this.add.circle(x,y,9,0xf5f8ff)
@@ -4511,6 +4544,7 @@ export class GameScene extends Phaser.Scene {
     this.specialBlasts.push({
       id: this.nextBlastId++,
       x, y, bornAt: this.time.now,
+      radiusScale:0.58,damageScale:0.40, // Especial neutro é menor que os nacionais.
       hits: new Set(),
       graphics: this.add.graphics().setDepth(39),
     });
@@ -4699,7 +4733,7 @@ export class GameScene extends Phaser.Scene {
     if (!enemy) return;
     if(enemy.type===6){
       for(const blast of this.specialBlasts){
-        const radius=specialBlastRadius(this.time.now-blast.bornAt);
+        const radius=specialBlastRadius(this.time.now-blast.bornAt,blast.radiusScale??1);
         const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
         const targets=type6AreaTargets(enemy.type6,enemy.sprite.x,enemy.sprite.y,
           blast.x,blast.y,radius);
@@ -4710,7 +4744,7 @@ export class GameScene extends Phaser.Scene {
           if(!rect)continue;
           blast.hits.add(key);
           hitType6At(this,enemy,rect.x,rect.y,
-            4*(this.isV1Campaign?this.combat.specialAmplifier:1),0,true);
+            4*(blast.damageScale??1)*(this.isV1Campaign?this.combat.specialAmplifier:1),0,true);
         }
       }
       return;
@@ -4719,12 +4753,12 @@ export class GameScene extends Phaser.Scene {
       if (blast.hits.has(enemy.uid)) continue;
       if (!blastCatchesTarget(
         blast.x, blast.y, this.time.now - blast.bornAt,
-        enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type),
+        enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type),blast.radiusScale??1,
       )) continue;
       blast.hits.add(enemy.uid);
       // Cada explosão pode atingir o mesmo alvo uma única vez.
       // Naves grandes recebem dano, não morrem instantaneamente.
-      this.impactInvader(index, (enemy.type === 5 ? 4 : 3) * (this.isV1Campaign ? this.combat.specialAmplifier : 1), 0, '#a8faff');
+      this.impactInvader(index, (enemy.type === 5 ? 4 : 3) * (blast.damageScale??1) * (this.isV1Campaign ? this.combat.specialAmplifier : 1), 0, '#a8faff');
       break;
     }
   }
@@ -4738,7 +4772,7 @@ export class GameScene extends Phaser.Scene {
         this.specialBlasts.splice(i, 1);
         continue;
       }
-      const radius = specialBlastRadius(age);
+      const radius = specialBlastRadius(age,blast.radiusScale??1);
       const pulse = 0.5 + 0.5 * Math.sin(age / 105);
       const fade = Math.min(1, (SPECIAL_BLAST_DURATION - age) / 500);
       const gfx = blast.graphics;

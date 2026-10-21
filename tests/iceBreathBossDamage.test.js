@@ -20,10 +20,10 @@ test('HP do Tipo 6 avalia cadência própria do sopro, não a nova cadência de 
 });
 
 test('sopro contínuo tem dano mínimo próprio, somado ao componente escalável',()=>{
-  assert.equal(iceBreathTickDamage(0),4);
-  assert.equal(iceBreathTickDamage(0,true),28);
-  assert.ok(Math.abs(iceBreathTickDamage(russian.basicDamage)-9.616)<1e-7);
-  assert.ok(Math.abs(iceBreathTickDamage(russian.basicDamage,true)-33.616)<1e-7);
+  assert.equal(iceBreathTickDamage(0),3);
+  assert.equal(iceBreathTickDamage(0,true),12);
+  assert.ok(Math.abs(iceBreathTickDamage(russian.basicDamage)-7.368)<1e-7);
+  assert.ok(Math.abs(iceBreathTickDamage(russian.basicDamage,true)-16.368)<1e-7);
   assert.equal(ICE_BREATH_TICK_MS,110);
 });
 
@@ -65,7 +65,7 @@ test('mira escolhe o módulo mais alinhado, e não o primeiro listado',()=>{
 });
 
 for(const mode of ['wave10','wave11']){
-  test('Rússia nível 10 pode destruir barreira, módulos e núcleo Tipo 6 em 30 s ('+mode+')',()=>{
+  test('Rússia nível 10 enfrenta barreira, módulos e núcleo Tipo 6 em até 58 s ('+mode+')',()=>{
     const baseHp=finaleBossHp(mode,russian,1);
     const boss=createType6State('alien',baseHp);
     boss.introComplete=true;type6FinishBarrierCharge(boss);
@@ -73,7 +73,7 @@ for(const mode of ['wave10','wave11']){
     const d=iceBreathTickDamage(russian.basicDamage,true);
     let revealTicks=0;
     let defeatedAt=null;
-    for(let tick=0;tick<Math.floor(30000/ICE_BREATH_TICK_MS);tick++){
+    for(let tick=0;tick<Math.floor(58000/ICE_BREATH_TICK_MS);tick++){
       if(boss.coreExposed&&boss.coreReveal<1){
         // Na luta, o núcleo demora a abrir. Simular 2 segundos de espera.
         if(++revealTicks>=Math.ceil(2000/ICE_BREATH_TICK_MS))
@@ -93,9 +93,9 @@ for(const mode of ['wave10','wave11']){
       if(boss.defeated){defeatedAt=(tick+1)*ICE_BREATH_TICK_MS;break;}
     }
     assert.ok(boss.defeated,
-      'não derrotou Tipo 6 em 30 s; HP do chefe '+baseHp);
-    assert.ok(defeatedAt>20000,'o chefão não deve cair em segundos');
-    assert.ok(defeatedAt<=30000);
+      'não derrotou Tipo 6 em 58 s; HP do chefe '+baseHp);
+    assert.ok(defeatedAt>30000,'o chefão não deve derreter em segundos');
+    assert.ok(defeatedAt<=58000);
     assert.ok(boss.modules.every(module=>module.broken));
     assert.equal(boss.coreHp,0);
   });

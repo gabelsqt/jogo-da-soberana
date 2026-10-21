@@ -41,10 +41,17 @@ export function iceBreathMotes(angle,elapsed,count=44){
  * Contra o Tipo 6 existe uma parcela adicional de perfuração para compensar
  * os quatro módulos protegidos e o HP escalado pela build.
  */
-export const ICE_BREATH_BASE_DAMAGE=4;
-export const ICE_BREATH_BOSS_BASE_DAMAGE=24;
+export const ICE_BREATH_BASE_DAMAGE=3;
+export const ICE_BREATH_BOSS_BASE_DAMAGE=9;
+export const ICE_BREATH_BOMB_DAMAGE=12;
+export const ICE_BREATH_BOMB_CHILL_MS=360;
+export const ICE_BREATH_BOMB_SPEED_FACTOR=0.28;
+export function chillType6Bomb(bombHp,now){
+  return {hp:Math.max(0,bombHp-ICE_BREATH_BOMB_DAMAGE),
+    chilledUntil:now+ICE_BREATH_BOMB_CHILL_MS};
+}
 export function iceBreathTickDamage(basicDamage=1,isType6=false){
-  const scaled=Math.max(0,Number(basicDamage)||0)*0.45;
+  const scaled=Math.max(0,Number(basicDamage)||0)*0.35;
   return ICE_BREATH_BASE_DAMAGE+scaled+
     (isType6?ICE_BREATH_BOSS_BASE_DAMAGE:0);
 }
