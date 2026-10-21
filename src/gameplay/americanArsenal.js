@@ -37,7 +37,7 @@ export function americanWallTravelDuration(fromX,fromY,toX,toY){
 export function americanWallAnimation(wall,now){
   const elapsed=Math.max(0,now-wall.startedAt);
   const flight=Math.max(1,wall.travelMs);
-  if(elapsed<flight){
+  if(elapsed+1e-7<flight){
     const t=clamp(elapsed/flight,0,1),ease=t*t*(3-2*t);
     return {phase:'travel',x:wall.muzzleX+(wall.targetX-wall.muzzleX)*ease,
       y:wall.muzzleY+(wall.targetY-wall.muzzleY)*ease,arc:0,progress:t};

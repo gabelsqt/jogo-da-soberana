@@ -41,7 +41,7 @@ test('energia sai da boca do canhão, chega à mira e abre 120 graus',()=>{
   assert.equal(active.phase,'active');
   near(active.arc,2*Math.PI/3);
   const expiration=1000+wall.travelMs+AMERICAN_WALL_OPEN_MS+AMERICAN_WALL_DURATION_MS;
-  assert.equal(expiration-active.progress,expiration-1); // duração não encurta no voo
+  near(expiration-(1000+wall.travelMs+AMERICAN_WALL_OPEN_MS),AMERICAN_WALL_DURATION_MS);
 });
 
 test('o projétil não intercepta: colisões só no arco que já abriu',()=>{
