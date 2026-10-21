@@ -148,8 +148,9 @@ export function orbitalFormationPosition(centerX, centerY, index, count, age) {
     + age * (2 * Math.PI / 3.4);
   // O centro do círculo se desloca lentamente para dar vida ao esquadrão.
   return {
-    x: centerX + Math.sin(age * 0.85) * 50 + Math.cos(theta) * 185,
-    y: centerY + Math.sin(theta) * 62,
+    // A formação orbital também cresce; antes era achatada na vertical.
+    x: centerX + Math.sin(age * 0.85) * 25 + Math.cos(theta) * 205,
+    y: centerY + Math.sin(theta) * 120,
   };
 }
 

@@ -2241,7 +2241,7 @@ export class GameScene extends Phaser.Scene {
       enemy.orbitIndex = index;
       enemy.orbitCount = groupCount;
       enemy.orbitCenterX = center;
-      enemy.orbitCenterY = 162;
+      enemy.orbitCenterY = 215;
       enemy.orbitEntryX = startX;
       enemy.orbitEntryY = startY;
     } else if (type === 2) {

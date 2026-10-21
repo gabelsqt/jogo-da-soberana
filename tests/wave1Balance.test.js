@@ -40,7 +40,7 @@ test('esquadrilha tática da onda 1 manobra perto do meio da tela',()=>{
     direction:1,finalFormation:'triangle',boundToScreen:true};
   for(let step=0;step<=60;step++){
     const pos=tacticalManeuverPosition(group,2,step/10);
-    assert.ok(pos.y>=125 && pos.y<=300,'passo '+step+': '+pos.y);
+    assert.ok(pos.y>=125 && pos.y<=420,'passo '+step+': '+pos.y);
   }
 });
 

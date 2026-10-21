@@ -218,19 +218,20 @@ export function tacticalFormationOffset(formation, index, count) {
   return { x: i * 43, y: 0 };
 }
 
-// Tipo 2: duas voltas no céu, desaceleração e parada em coluna antes da descida.
+// Tipo 2: duas voltas GRANDES no céu, depois parada em formação e investida.
 export function tacticalManeuverPosition(group, index, elapsed) {
   const hold = group.holdDuration ?? 1.5;
   const moveDuration = Math.max(0.5, group.duration - hold);
   const t = clamp(elapsed / moveDuration, 0, 1);
   const eased = t * t * (3 - 2 * t);
-  const angle = Math.PI * 6 * eased * (group.direction ?? 1);
-  const orbitRadius = 78;
-  // Centro retorna à posição inicial ao completar duas voltas.
-  const cx = group.centerX + orbitRadius * Math.sin(angle);
-  const cy = group.lowFlight
-    ? mix(group.portalY??192,227,eased)+15*Math.sin(angle)
-    : (group.portalY ?? 125) - orbitRadius * (1 - Math.cos(angle)) * 0.55;
+  const angle = Math.PI * 4 * eased * (group.direction ?? 1);
+  const orbitRadiusX = 140; // antes 78: a órbita agora preenche o céu.
+  const orbitRadiusY = group.lowFlight ? 100 : 125;
+  // Inicia no portal, desenha duas voltas abaixo dele e retorna ao início
+  // antes da formação de ataque, sem teletransportar os invasores.
+  const cx = group.centerX + orbitRadiusX * Math.sin(angle);
+  const cy = (group.portalY ?? 125) +
+    orbitRadiusY * (1 - Math.cos(angle));
   const formA = {x:0,y:0};
   const formB = tacticalFormationOffset(group.finalFormation ?? 'triangle',index,group.count);
   // Em formação para toda a pausa, sem oscilação nem deslocamento.

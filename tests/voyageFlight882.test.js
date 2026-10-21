@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fullBrazilVoyageEligible,VOYAGE_STOPS,voyageEvents} from '../src/gameplay/fullBrazilVoyage.js';
 import {getFinalWaveEvents,getWaveEvents} from '../src/gameplay/waves.js';
-import {VOYAGE_LAUNCH_MS,VOYAGE_SPACE_MS,VOYAGE_LANDING_MS,
- VOYAGE_TOTAL_MS,voyageTravelPhase,voyageStarfield,voyageStarAt} from '../src/gameplay/voyageTravel.js';
+import {VOYAGE_PREPARE_MS,VOYAGE_LAUNCH_MS,VOYAGE_SPACE_MS,VOYAGE_LANDING_MS,
+ VOYAGE_TOTAL_MS,voyageTravelPhase,voyageRocketPose,voyageStarfield,voyageStarAt} from '../src/gameplay/voyageTravel.js';
 const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
 const typewriter=readFileSync(new URL('../src/ui/dialogueTypewriter.js',import.meta.url),'utf8');
 const brazil={choices:Array(10).fill('br')};
@@ -24,24 +24,28 @@ test('regressão: playtest que vem da Onda 10 também entra na rota espacial',()
 });
 
 test('4 segundos exatos de viagem estelar, com decolagem e pouso separados',()=>{
- assert.equal(VOYAGE_LAUNCH_MS,900);
+ assert.equal(VOYAGE_PREPARE_MS,450);
+ assert.equal(VOYAGE_LAUNCH_MS,1000);
  assert.equal(VOYAGE_SPACE_MS,4000);
  assert.equal(VOYAGE_LANDING_MS,1000);
- assert.equal(VOYAGE_TOTAL_MS,5900);
- assert.equal(voyageTravelPhase(0),'launch');
- assert.equal(voyageTravelPhase(899),'launch');
- assert.equal(voyageTravelPhase(900),'space');
- assert.equal(voyageTravelPhase(4899),'space');
- assert.equal(voyageTravelPhase(4900),'landing');
- assert.equal(voyageTravelPhase(5899),'landing');
- assert.equal(voyageTravelPhase(5900),'done');
+ assert.equal(VOYAGE_TOTAL_MS,6000);
+ assert.equal(voyageTravelPhase(0),'prepare');
+ assert.equal(voyageTravelPhase(449),'prepare');
+ assert.equal(voyageTravelPhase(450),'launch');
+ assert.equal(voyageTravelPhase(999),'launch');
+ assert.equal(voyageTravelPhase(1000),'space');
+ assert.equal(voyageTravelPhase(4999),'space');
+ assert.equal(voyageTravelPhase(5000),'landing');
+ assert.equal(voyageTravelPhase(5999),'landing');
+ assert.equal(voyageTravelPhase(6000),'done');
 });
 
 test('estrelas se movem com parallax, e a cidade seguinte só carrega após o pouso',()=>{
  const stars=voyageStarfield(92);
  assert.equal(stars.length,92);
  assert.ok(new Set(stars.map(x=>x.speed)).size>5);
- assert.notEqual(voyageStarAt(stars[1],2000).x,stars[1].x);
+ assert.notEqual(voyageStarAt(stars[1],2000).y,stars[1].y);
+ assert.equal(voyageStarAt(stars[1],2000).x,stars[1].x);
  assert.deepEqual(voyageStarAt(stars[1],0),stars[1]);
  assert.match(scene,/createVoyageRocket\(\)/);
  assert.match(scene,/this\.add\.image\(0,37,'cannon-base'\)/);
@@ -49,7 +53,7 @@ test('estrelas se movem com parallax, e a cidade seguinte só carrega após o po
  assert.match(scene,/this\.add\.image\(0,-123,'cannon-barrel-4'\)/);
  assert.match(scene,/startVoyageTransition\(nextIndex,\{initial=false\}=\{\}\)/);
  assert.match(scene,/this\.time\.delayedCall\(VOYAGE_TOTAL_MS/);
- assert.match(scene,/voyageStarAt\(star,flight,W\)/);
+ assert.match(scene,/voyageStarAt\(star,flight,H\)/);
  assert.match(scene,/this\.textures\.exists\(next\.backgroundKey\)/);
  assert.match(scene,/arrivedFromVoyage:true/);
  assert.match(scene,/this\.startWaveCountdown\(\)/);
