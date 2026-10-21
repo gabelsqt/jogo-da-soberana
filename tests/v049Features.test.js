@@ -36,7 +36,7 @@ test('intro nova revela cláusula só depois da promoção e apresenta Zeca',()=
   assert.match(slides[3].footnote,/^\*/);
   assert.match(slides[4].body,/até ontem você era mesário/);
   assert.match(slides[5].body,/mecânico de obuseiro/);
-  assert.match(slides[6].body,/canhão tá funcionando/);
+  assert.match(slides[6].body,/obuseiro — o canhão aí — tá funcionando/);
   const intro=readFileSync(new URL('../src/scenes/IntroScene.js',import.meta.url),'utf8');
   assert.match(intro,/this\.beginTyping/);
   assert.match(intro,/this\.revealPromotion\(\)/);
