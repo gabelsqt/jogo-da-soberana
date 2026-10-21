@@ -62,7 +62,7 @@ test('formação acontece no início de todas as ondas, inclusive fora da rota e
   assert.match(scene,/this\.hexShieldFlashUntil=this\.time\.now\+HEX_SHIELD_WHITE_FLASH_MS/);
   assert.match(scene,/playSfx\('shieldReady'/);
   assert.equal(HEX_SHIELD_COLLAPSE_MS,380);
-  assert.equal(HEX_SHIELD_FORM_MS,780);
+  assert.equal(HEX_SHIELD_FORM_MS,1600);
 });
 
 test('colisão e HP permanecem inalterados, inclusive em células apagadas',()=>{

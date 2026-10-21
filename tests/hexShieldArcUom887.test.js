@@ -20,20 +20,21 @@ function mockGraphics(){
 }
 const count=(g,method)=>g.calls.filter(x=>x.method===method);
 test('a formação tem duas etapas estritamente sequenciais: arco, depois hexágonos',()=>{
- assert.equal(HEX_SHIELD_ARC_FRACTION,.36);
+ assert.equal(HEX_SHIELD_ARC_FRACTION,650/1600);
  assert.deepEqual(hexShieldFormationStage(0),{arc:0,cells:0});
- assert.deepEqual(hexShieldFormationStage(.36),{arc:1,cells:0});
+ assert.deepEqual(hexShieldFormationStage(HEX_SHIELD_ARC_FRACTION),{arc:1,cells:0});
  assert.equal(hexShieldFormationStage(.18).cells,0);
  assert.equal(hexShieldFormationStage(.68).arc,1);
- assert.ok(Math.abs(hexShieldFormationStage(.68).cells-.5)<.0001);
+ assert.ok(Math.abs(hexShieldFormationStage(HEX_SHIELD_ARC_FRACTION+(1-HEX_SHIELD_ARC_FRACTION)*.5).cells-.5)<.0001);
  assert.deepEqual(hexShieldFormationStage(1),{arc:1,cells:1});
  const begin=mockGraphics();
  drawHexShieldDome(begin,{progress:.18,mode:'forming',now:200});
- assert.equal(count(begin,'fillCircle').length,0,'nenhum hexágono antes de concluir o arco');
+ assert.equal(count(begin,'fillCircle').length,4,
+   'ponta azul com quatro camadas; nenhum hexágono antes de concluir o arco');
  const partialArcs=count(begin,'strokePoints').map(c=>c.args[0].length);
  assert.ok(partialArcs.some(n=>n>3&&n<65),'arco parcial ainda incompleto');
  const justArc=mockGraphics();
- drawHexShieldDome(justArc,{progress:.36,mode:'forming',now:200});
+ drawHexShieldDome(justArc,{progress:HEX_SHIELD_ARC_FRACTION,mode:'forming',now:200});
  assert.equal(count(justArc,'fillCircle').length,0);
  assert.ok(count(justArc,'strokePoints').some(c=>c.args[0].length===65));
  const middle=mockGraphics();
@@ -43,7 +44,7 @@ test('a formação tem duas etapas estritamente sequenciais: arco, depois hexág
  assert.ok(count(middle,'fillCircle').length>0);
  assert.ok(count(middle,'fillCircle').length<count(full,'fillCircle').length);
  assert.equal(count(full,'fillCircle').length,hexShieldCells().length*2);
- assert.equal(HEX_SHIELD_FORM_MS,780);
+ assert.equal(HEX_SHIELD_FORM_MS,1600);
 });
 
 test('hexágonos aparecem em ordem da esquerda para a direita, todos com bolinha',()=>{
@@ -86,8 +87,8 @@ test('o flash de conclusão clareia toda a malha apenas uma vez e há UOM própr
  drawHexShieldDome(white,{mode:'active',now:1700,flash:1});
  assert.ok(count(white,'fillCircle').length>count(blue,'fillCircle').length);
  assert.ok(count(white,'lineStyle').some(c=>c.args[1]===0xffffff));
- assert.equal(HEX_SHIELD_WHITE_FLASH_MS,340);
- assert.equal(SFX_FILES.shieldReady,'34_escudo_hexagonal_uom.wav');
+ assert.equal(HEX_SHIELD_WHITE_FLASH_MS,840);
+ assert.equal(SFX_FILES.shieldReady,'35_escudo_hexagonal_uom_grave.wav');
  assert.match(game,/this\.hexShieldFlashUntil=this\.time\.now\+HEX_SHIELD_WHITE_FLASH_MS/);
  assert.match(game,/if\(this\.shield>0\)playSfx\('shieldReady'/);
  const transition=game.slice(game.indexOf('  drawShield() {'),

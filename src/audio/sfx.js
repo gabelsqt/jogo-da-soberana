@@ -5,7 +5,7 @@ const FILES=Object.freeze({
   cannon:'01_canhao_metralhadora_v3.wav',
   laser:'02_laser_alienigena.wav',
   shieldOn:'03_escudo_ativar.wav',
-  shieldReady:'34_escudo_hexagonal_uom.wav',
+  shieldReady:'35_escudo_hexagonal_uom_grave.wav',
   shieldBreak:'04_escudo_estilhacar.wav',
   explosion:'05_explosao_nave.wav',
   boss:'06_explosao_chefe.wav',

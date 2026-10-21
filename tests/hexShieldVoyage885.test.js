@@ -25,7 +25,7 @@ test('cúpula é feita por dezenas de hexágonos dentro do semicírculo',()=>{
 });
 
 test('escudo começa translúcido, desaparece e se reconstrói por progressão',()=>{
- assert.equal(HEX_SHIELD_FORM_MS,780);
+ assert.equal(HEX_SHIELD_FORM_MS,1600);
  assert.equal(HEX_SHIELD_COLLAPSE_MS,380);
  assert.equal(hexShieldOpacity({progress:0,mode:'forming'}),0);
  assert.ok(hexShieldOpacity({progress:.5,mode:'forming'})>.2);
