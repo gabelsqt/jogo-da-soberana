@@ -4224,11 +4224,13 @@ export class GameScene extends Phaser.Scene {
     const g=wall.graphics;
     g.clear();
     const remaining=Math.max(0,(wall.expiresAt-this.time.now)/wall.durationMs);
+    // Mantém o desenho legível até os últimos ~0,85 s de duração.
+    const visibility=Math.min(1,remaining*7);
     const integrity=Math.max(0,wall.hp/wall.maxHp);
     const pulse=.90+.10*Math.sin(this.time.now*.007);
     const a=wall.angle-wall.arc/2,b=wall.angle+wall.arc/2;
     const draw=(radius,width,color,alpha)=>{
-      g.lineStyle(width,color,alpha*remaining*pulse);
+      g.lineStyle(width,color,alpha*visibility*pulse);
       g.beginPath();g.arc(wall.x,wall.y,radius,a,b,false);g.strokePath();
     };
     // Faixa azul, estrelas brancas e listras seguem A CURVATURA de 120°.
@@ -4242,8 +4244,10 @@ export class GameScene extends Phaser.Scene {
       const ang=a+(k+.5)*wall.arc/9;
       const px=wall.x+Math.cos(ang)*(wall.radius-1);
       const py=wall.y+Math.sin(ang)*(wall.radius-1);
-      g.fillStyle(0xffffff,.86*remaining);
-      g.fillRect(px-1.5,py-1.5,3,3);
+      g.fillStyle(0xffffff,.86*visibility);
+      // Estrela retrô legível, em pixels, acompanhando o azul do arco.
+      g.fillRect(px-2.5,py-.5,5,1);
+      g.fillRect(px-.5,py-2.5,1,5);
     }
     if(integrity<.70){
       const cracks=Math.ceil((1-integrity)*9);
@@ -4251,7 +4255,7 @@ export class GameScene extends Phaser.Scene {
         const ang=a+(j+.55)*wall.arc/(cracks+1);
         const r=wall.radius+(j%2?7:-7);
         const px=wall.x+Math.cos(ang)*r,py=wall.y+Math.sin(ang)*r;
-        g.lineStyle(2,integrity<.25?0xf45d72:0xa3dbff,.85*remaining);
+        g.lineStyle(2,integrity<.25?0xf45d72:0xa3dbff,.85*visibility);
         g.lineBetween(px-7,py-4,px+6,py+5);
       }
     }
