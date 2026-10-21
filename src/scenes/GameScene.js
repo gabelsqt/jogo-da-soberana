@@ -86,6 +86,9 @@ import { finaleBossHp, finaleBossFirePattern, finaleCounterattack } from '../gam
 import {createCuboNewsState,tickCuboNews,queueCuboNews} from '../gameplay/cuboNews.js';
 import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
+import {fullBrazilVoyageEligible,voyageEvents,voyageStop,voyageNext,
+  voyageCanDepart,VOYAGE_STOPS} from '../gameplay/fullBrazilVoyage.js';
+import {createBattleBanterState,enqueueBattleBanter,currentBattleBanter} from '../gameplay/battleBanter.js';
 import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
 import {MAX_ACTIVE_SPUTNIKS,sputnikTouchesEnemy,crystallizeSputnikEnemy,isSputnikCrystalized,sputnikShatterStats,sputnikPrimaryDamage} from '../gameplay/russianSputnik.js';
 import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,ICE_BREATH_BOMB_SPEED_FACTOR,chillType6Bomb,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Target} from '../gameplay/iceBreath.js';
@@ -169,7 +172,13 @@ export class GameScene extends Phaser.Scene {
       ? (data.selectedBetrayer || pickBetrayer(this.campaign.choices)) : null;
     this.finaleCampaign={...this.campaign,selectedBetrayer:this.selectedBetrayer};
     this.finale=this.mode==='wave11'?resolveFinalOpponent(this.finaleCampaign):null;
-    this.finaleBossesNeeded=this.mode==='wave11'?1:0;
+    this.voyageActive=fullBrazilVoyageEligible(this.mode,this.campaign,{
+      lab:this.unifiedLab,playtest:this.v1Playtest,waveMaker:this.waveMakerTest,
+    });
+    this.voyageIndex=this.voyageActive
+      ?Math.max(0,Math.min(VOYAGE_STOPS.length-1,Math.trunc(data.voyageIndex)||0)):0;
+    this.voyageTransitioning=false; // Phaser reutiliza a instância da cena.
+    this.finaleBossesNeeded=this.voyageActive?0:this.mode==='wave11'?1:0;
     this.finaleBossesKilled=0;
     this.supremeFinishing=false;
     const survivors=this.mode==='wave11'
@@ -182,6 +191,10 @@ export class GameScene extends Phaser.Scene {
     this.waveDurationMs=this.mode.startsWith('wave')
       ? MODES[this.mode].minDuration:WAVE_DURATION_MS;
     if(this.waveMakerDuration!==null)this.waveDurationMs=this.waveMakerDuration;
+    if(this.voyageActive){
+      const events=voyageEvents(this.voyageIndex);
+      this.waveDurationMs=events.at(-1).at+14000; // Tempo apenas informativo.
+    }
     this.upgradeId = this.campaign.choices.at(-1) ?? null;
     this.thirdIds = this.unifiedLab
       ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 3)
@@ -236,7 +249,8 @@ export class GameScene extends Phaser.Scene {
     }
     return { mode: this.mode, campaign: normalizeCampaignState(this.campaign),
       selectedBetrayer:this.selectedBetrayer,
-      zecaRevenge:this.zecaRevenge };
+      zecaRevenge:this.zecaRevenge,
+      ...(this.voyageActive?{voyageIndex:this.voyageIndex}:{}) };
   }
 
   refreshLabStats() {
@@ -320,6 +334,10 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     preloadRioBackdrop(this);
+    // Retratos já existentes do menu de upgrades; nenhum novo sprite gerado.
+    for(const id of ['br','us','ru','jp','cn'])
+      this.load.image('battle-portrait-'+id,
+        assetUrl('assets/lideres/'+id+'_personagem.png'));
     this.load.image('cannon-base',assetUrl('assets/canhao/base.png'));
     for(let i=0;i<9;i++){
       this.load.image('cannon-head-'+i,assetUrl('assets/canhao/head_'+i+'.png'));
@@ -393,6 +411,7 @@ export class GameScene extends Phaser.Scene {
     this.input.mouse?.disableContextMenu();
 
     drawRioBackdrop(this);
+    if(this.voyageActive)this.drawVoyageBackdrop();
     // O cenário noturno original permanece até os 10 segundos finais.
     // As quatro imagens surgem sequencialmente por cima dele.
     this.dawnLayers=this.mode.startsWith('wave')?DAWN_KEYS.map(key=>
@@ -488,8 +507,9 @@ export class GameScene extends Phaser.Scene {
     this.eventsSpawned = 0;
     // v0.35: a campanha usa grupos reais, com progressão dentro de cada noite.
     // Laboratórios e a agenda legada continuam acessíveis independentemente.
-    this.waveEvents = getV035WaveEvents(this.mode,
-      getWaveEvents(this.mode,this.finaleCampaign));
+    this.waveEvents = this.voyageActive
+      ?voyageEvents(this.voyageIndex)
+      :getV035WaveEvents(this.mode,getWaveEvents(this.mode,this.finaleCampaign));
     this.lastBasicFire = -this.combat.basicInterval;
     this.heatStartedAt = null;
     this.ultimateUsed = false;
@@ -507,6 +527,7 @@ export class GameScene extends Phaser.Scene {
     this.cannonRecoil = 0;
     this.lastHeavyShake = -Infinity;
     this.lastSpecialFire = -this.combat.specialCooldown;
+    this.wasSpecialCooling=false;
     this.lastV1ShieldPulse = -Infinity;
     this.shieldReflectCount = 0;
     this.tutorialComplete = false;
@@ -514,7 +535,8 @@ export class GameScene extends Phaser.Scene {
     this.boss6Victory=false;
     // A onda do Tipo 6 nunca consome tempo antes de o chefão ficar alvejável,
     // inclusive no intervalo entre abrir o combate e criar o sprite do boss.
-    this.boss6IntroPaused=this.mode==='wave10'||this.mode==='wave11';
+    this.boss6IntroPaused=!this.voyageActive&&
+      (this.mode==='wave10'||this.mode==='wave11');
     this.boss6DoomFired=false;
     this.boss6WarningText=null;
     this.cannonHealth = 100;
@@ -534,6 +556,16 @@ export class GameScene extends Phaser.Scene {
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
+    this.banterState=createBattleBanterState();
+    this.createBattleBanterPanel();
+    if(this.voyageActive){
+      const destination=voyageStop(this.voyageIndex);
+      this.voyageLabel=this.add.text(760,110,
+        destination.city+'  '+(this.voyageIndex+1)+'/'+VOYAGE_STOPS.length,{
+          fontFamily:'monospace',fontSize:'11px',fontStyle:'bold',
+          color:'#f6e5af',backgroundColor:'#12233dd5',padding:{x:7,y:5},
+        }).setOrigin(0.5).setDepth(108);
+    }
     if(this.mode.startsWith('wave')){
       this.cuboNewsState=createCuboNewsState(this.combatCampaign?.choices||this.campaign?.choices||[],
         this.mode,this.mode==='wave11'?this.selectedBetrayer:null);
@@ -639,6 +671,8 @@ export class GameScene extends Phaser.Scene {
     if (this.unifiedLab && this.mode === 'lab') {
       // Arena livre: nenhum spawn agendado e nenhuma duração limite.
       this.waveEvents = [];
+    } else if(this.voyageActive){
+      this.showVoyageArrival();
     } else if (this.mode === 'wave11' && !this.zecaRevenge && !this.v1Playtest && !this.waveMakerTest) {
       this.showFinalePrelude();
     } else if (this.mode === 'wave10' && !this.v1Playtest && !this.waveMakerTest) {
@@ -925,10 +959,14 @@ export class GameScene extends Phaser.Scene {
       this.countdownActive = false;
       this.music.play(waveMusic(this.mode, this.campaign));
       this.elapsed = 0;
+      this.queueBattleBanter(this.voyageActive?'arrival':'start');
       for (const tower of this.supportTowers) tower.lastAttackAt = this.time.now;
       this.scheduleWaveEvents();
     };
-    if (this.cuboNewsHud?.beginDawnIntro) {
+    if(this.voyageActive){
+      // A chegada espacial já é a cutscene de abertura, não há nova contagem.
+      this.time.delayedCall(400,startCombat);
+    }else if (this.cuboNewsHud?.beginDawnIntro) {
       this.cuboNewsHud.beginDawnIntro(this.waveDurationMs, startCombat);
       // Failsafe: uma animação DOM/tween interrompida nunca pode bloquear a onda.
       this.time.delayedCall(5300,()=>{
@@ -1443,6 +1481,128 @@ export class GameScene extends Phaser.Scene {
     if(this.cuboNewsState)queueCuboNews(this.cuboNewsState,headline,subtitle);
   }
 
+  drawVoyageBackdrop(){
+    const stop=voyageStop(this.voyageIndex);
+    // Cenário provisório; assim que o PNG indicado existir, ele assume o fundo.
+    if(this.textures.exists(stop.backgroundKey)){
+      this.add.image(W/2,H/2,stop.backgroundKey)
+        .setDisplaySize(W,H).setDepth(0.7);
+      return;
+    }
+    this.add.rectangle(W/2,H/2,W,H,0x070e25,1).setDepth(0.7);
+    const g=this.add.graphics().setDepth(0.8);
+    for(let i=0;i<72;i++){
+      const x=(i*137+19)%W,y=(i*79+13)%380;
+      g.fillStyle(i%5?0xaec3ef:0xffffff,0.25+(i%4)*0.16);
+      g.fillRect(x,y,1+(i%3===0?1:0),1+(i%3===0?1:0));
+    }
+    g.fillStyle(stop.accent,0.28).fillEllipse(W/2,600,1100,380);
+    for(let i=0;i<19;i++){
+      const x=i*55-20,h=35+(i*37+this.voyageIndex*17)%80;
+      g.fillStyle(0x1e2b44,0.94).fillRect(x,H-h,50,h);
+      g.fillStyle(0x6b8aa4,0.19);
+      for(let y=H-h+13;y<H;y+=17)g.fillRect(x+8,y,5,5);
+    }
+  }
+
+  showVoyageArrival(){
+    this.countdownActive=true;
+    const stop=voyageStop(this.voyageIndex),objects=[];
+    const add=obj=>{objects.push(obj);return obj;};
+    add(this.add.rectangle(W/2,H/2,W,H,0x060d20,.97).setDepth(210));
+    const stars=add(this.add.graphics().setDepth(211));
+    for(let i=0;i<90;i++){
+      stars.fillStyle(i%4?0x94bbf4:0xffffff,0.24+(i%5)*.13);
+      stars.fillRect((i*181+17)%W,(i*97+9)%H,2,2);
+    }
+    const building=add(this.add.container(W/2,H+110).setDepth(214));
+    // Nave-foguete vetorial TEMPORÁRIA: sprite do edifício vem depois.
+    building.add([
+      this.add.rectangle(0,-30,80,145,0x62758c).setStrokeStyle(3,0xd7e7f7),
+      this.add.triangle(0,-119,0,80,45,0,-45,0,0xa0b8d8),
+      this.add.rectangle(-49,5,18,70,0x6d7c93),
+      this.add.rectangle(49,5,18,70,0x6d7c93),
+      this.add.triangle(0,70,0,72,22,128,-22,128,0xffb74f),
+    ]);
+    const title=add(this.add.text(W/2,96,
+      this.voyageIndex===0?'PRÉDIO-FOGUETE • DECOLAGEM':'VOO ESPACIAL • NOVA PARADA',{
+        fontFamily:'monospace',fontSize:'27px',fontStyle:'bold',color:'#fce7ae',
+      }).setOrigin(0.5).setDepth(216));
+    add(this.add.text(W/2,161,stop.city,{
+      fontFamily:'monospace',fontSize:'24px',fontStyle:'bold',color:'#e8f3ff',
+    }).setOrigin(0.5).setDepth(216));
+    add(this.add.text(W/2,202,stop.statue+'  •  CENÁRIO PROVISÓRIO',{
+      fontFamily:'monospace',fontSize:'14px',color:'#accae5',
+    }).setOrigin(0.5).setDepth(216));
+    this.tweens.add({targets:building,y:245,duration:2350,ease:'Cubic.Out'});
+    this.time.delayedCall(3000,()=>{
+      if(!this.scene.isActive('GameScene')||this.tutorialComplete)return;
+      objects.forEach(object=>object.destroy());
+      this.startWaveCountdown();
+    });
+  }
+
+  finishVoyageDestination(){
+    if(this.voyageTransitioning||this.tutorialComplete)return;
+    this.queueBattleBanter('clear');
+    this.voyageTransitioning=true;
+    this.countdownActive=true;
+    this.showAttackWarning('ESTÁTUA DEFENDIDA • PRÓXIMO DESTINO!');
+    this.time.delayedCall(1650,()=>{
+      if(!this.scene.isActive('GameScene')||this.tutorialComplete)return;
+      const next=voyageNext(this.voyageIndex);
+      if(next!==null){
+        this.scene.start('GameScene',{
+          mode:'wave11',campaign:this.campaign,voyageIndex:next,
+        });
+      }else{
+        this.countdownActive=false;
+        this.showWaveComplete('cleared');
+      }
+    });
+  }
+
+  createBattleBanterPanel(){
+    // Zona morta inferior esquerda: HUD não-interativo, um recado por vez.
+    this.banterBackground=this.add.rectangle(168,421,326,100,0x0b1a2d,0.88)
+      .setStrokeStyle(2,0x608ca8).setDepth(104).setVisible(false);
+    this.banterPortrait=this.add.image(49,422,'battle-portrait-br')
+      .setDisplaySize(71,88).setDepth(105).setVisible(false);
+    this.banterName=this.add.text(91,380,'',{
+      fontFamily:'monospace',fontSize:'12px',fontStyle:'bold',color:'#ffe2ad',
+    }).setDepth(105).setVisible(false);
+    this.banterText=this.add.text(91,400,'',{
+      fontFamily:'monospace',fontSize:'11px',color:'#ecf4ff',
+      wordWrap:{width:226},lineSpacing:3,
+    }).setDepth(105).setVisible(false);
+    this.lastBanterKey=null;
+  }
+
+  queueBattleBanter(event){
+    if(this.tutorialComplete||this.voyageTransitioning)return;
+    enqueueBattleBanter(this.banterState,event,{
+      choices:this.combatCampaign?.choices??this.campaign?.choices,
+      traitor:this.mode==='wave11'?this.selectedBetrayer:null,
+      voyage:this.voyageActive,
+    },this.time.now);
+  }
+
+  updateBattleBanterPanel(){
+    const line=currentBattleBanter(this.banterState,this.time.now);
+    const show=Boolean(line);
+    for(const part of [this.banterBackground,this.banterPortrait,this.banterName,this.banterText])
+      part?.setVisible(show);
+    if(!line)return;
+    const key=line.name+':'+line.text;
+    if(this.lastBanterKey===key)return;
+    this.lastBanterKey=key;
+    this.banterName.setText(line.name);
+    this.banterText.setText(line.text);
+    this.banterBackground.setStrokeStyle(2,line.color);
+    if(this.textures.exists('battle-portrait-'+line.speaker))
+      this.banterPortrait.setTexture('battle-portrait-'+line.speaker);
+  }
+
   createHud() {
     const font = { fontFamily: 'monospace', fontSize: '18px', color: '#f0f7ff' };
     const topPanel=this.add.rectangle(W / 2, 20, W, 40, 0x081528, 0.93).setDepth(100);
@@ -1628,6 +1788,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   showAttackWarning(message) {
+    this.queueBattleBanter('danger');
     const label = this.add.text(W / 2, 143, message, {
       fontFamily: 'monospace', fontSize: '19px',
       fontStyle: 'bold', color: '#ffcf83',
@@ -1830,6 +1991,7 @@ export class GameScene extends Phaser.Scene {
 
   spawnEnemy(type, options = {}) {
     if(type===6){
+      if(this.voyageActive)return null; // Nenhuma repetição do chefe alienígena.
       if(this.enemies.some(e=>e.type===6&&!e.type6?.defeated))return null;
       let hp;
       if(this.mode==='wave10')hp=finaleBossHp('wave10',this.combat);
@@ -3873,7 +4035,8 @@ export class GameScene extends Phaser.Scene {
       }
       this.supremeFinishing=false;
       this.supremeCinematic=false;
-      if((this.mode==='wave10'||this.mode==='wave11')&&!this.tutorialComplete)
+      if((this.mode==='wave10'||this.mode==='wave11')&&
+        !this.voyageActive&&!this.tutorialComplete)
         this.showWaveComplete('cleared');
     });
     return true;
@@ -5380,12 +5543,7 @@ export class GameScene extends Phaser.Scene {
           event?.stopPropagation();
           talkToZeca();
         });
-      addMenuButton(this,{
-        x:747,y:474,width:220,height:38,depth:250,
-        text:'ZECA • PEDIR AJUDA',primary:true,fontSize:'16px',
-        onClick:talkToZeca,
-      });
-    }
+     }
   }
 
   showDefeat(reason='cannon') {
@@ -5705,7 +5863,10 @@ export class GameScene extends Phaser.Scene {
   updateHud() {
     if(this.cuboNewsState){
       const story=tickCuboNews(this.cuboNewsState,this.elapsed,this.waveDurationMs);
-      this.cuboNewsHud?.update(this.elapsed,this.waveDurationMs,story,{frozen:this.boss6IntroPaused});
+      this.cuboNewsHud?.update(this.elapsed,this.waveDurationMs,story,{
+        frozen:this.boss6IntroPaused,
+        voyageProgress:this.voyageActive?Math.max(0,this.waveEvents.length-this.eventsSpawned):null,
+      });
     }
     const remaining = Math.max(
       0, (this.lastSpecialFire + this.combat.specialCooldown - this.time.now) / 1000,
@@ -5732,6 +5893,8 @@ export class GameScene extends Phaser.Scene {
         this.usJulyStatusLabel.setColor(color);
       this.updateHudText(this.usJulyStatusLabel,message);
     }
+    if(this.wasSpecialCooling&&remaining===0)this.queueBattleBanter('special');
+    this.wasSpecialCooling=remaining>0;
     if(this.supremeReadyHint){
       this.supremeReadyHint.setVisible(!this.ultimateUsed && !this.supremeTyping &&
         !this.supremeCinematic && !this.tutorialComplete && !this.countdownActive &&
@@ -5833,9 +5996,10 @@ export class GameScene extends Phaser.Scene {
     if (this.supremeTyping) return;
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += this.boss6IntroPaused?0:delta;
-    // Tipo 6 é uma corrida até 00:00: nunca deixa o tempo ultrapassar zero.
-    if(this.mode==='wave10'||this.mode==='wave11')
+    // Não aplicar o limite do chefão às batalhas contínuas nas cidades.
+    if((this.mode==='wave10'||this.mode==='wave11')&&!this.voyageActive)
       this.elapsed=Math.min(this.elapsed,this.waveDurationMs);
+    this.updateBattleBanterPanel();
     this.updateDiscoGlobes();
     this.updateRussianSputniks();
     setSfxLoopActive('ruSputnikHum',(this.russianSputniks?.length??0)>0,{volumeScale:0.30});
@@ -5843,14 +6007,14 @@ export class GameScene extends Phaser.Scene {
     setSfxLoopActive('brBonfire',(this.arraialNuclei?.length??0)>0,{volumeScale:0.27});
     setSfxLoopActive('krDiscoSpin',(this.discoGlobes?.length??0)>0,{volumeScale:0.34});
     // Amanhecer nos dez segundos finais; o Supremo congela o relógio e a imagem.
-    if(this.dawnLayers?.length===4&&this.dawnLayers.every(Boolean)){
+    if(!this.voyageActive&&this.dawnLayers?.length===4&&this.dawnLayers.every(Boolean)){
       const alphas=dawnLayerAlphas(this.waveDurationMs-this.elapsed);
       this.dawnLayers.forEach((layer,i)=>layer.setAlpha(alphas[i]));
     }
     if(this.sunriseOverlay)this.sunriseOverlay.setAlpha(0);
     // À meia-noite de 30 segundos, sobreviver basta — mesmo com inimigos vivos.
     // A verificação vem ANTES das atualizações hostis do quadro final.
-    if(this.mode==='wave10'||this.mode==='wave11'){
+    if((this.mode==='wave10'||this.mode==='wave11')&&!this.voyageActive){
       // O mostrador precisa mostrar 00:00 ANTES da animação fatal.
       if(this.elapsed>=this.waveDurationMs)this.updateHud();
       type6NextDeadline(this);
@@ -5929,6 +6093,17 @@ export class GameScene extends Phaser.Scene {
     this.drawTowerStatus();
     this.updateHud();
 
+    // A rota Full Brazil só parte depois do último reforço e de limpar o céu.
+    // O tempo decorrido não concede vitória automática.
+    if(this.voyageActive&&!this.voyageTransitioning&&voyageCanDepart({
+      elapsed:this.elapsed,spawned:this.eventsSpawned,scheduled:this.waveEvents.length,
+      enemies:this.enemies.length,hostileShots:this.enemyBullets.length,
+      portals:this.activeSpawnPortals?.size??0,
+      lastAt:this.waveEvents.at(-1)?.at??0,
+    })){
+      this.finishVoyageDestination();
+      return;
+    }
     // A Arena Livre deve continuar indefinidamente, inclusive quando o
     // jogador eliminar todas as naves de treino.
     if (!(this.unifiedLab && this.mode === 'lab') && !(this.v1Playtest && this.mode === 'upgradeLab')) {

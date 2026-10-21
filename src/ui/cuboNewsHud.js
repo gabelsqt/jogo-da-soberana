@@ -142,13 +142,21 @@ export function createCuboNewsHud(scene){
         });
       });
     },
-    update(elapsed,total,story,{frozen=false,active=true}={}){
+    update(elapsed,total,story,{frozen=false,active=true,voyageProgress=null}={}){
       if(destroyed||!active)return;
-      const value=formatCuboTime(Math.max(0,total-elapsed));
-      const critical=!frozen&&total-elapsed<=5000;
+      // Nas cidades não existe prazo fatal: o número indica reforços faltantes.
+      const inVoyage=voyageProgress!==null;
+      const value=inVoyage?String(Math.max(0,voyageProgress)):
+        formatCuboTime(Math.max(0,total-elapsed));
+      const critical=!inVoyage&&!frozen&&total-elapsed<=5000;
+      if(inVoyage){
+        if(timer){timer.style.visibility='visible';timer.style.opacity='1';}
+        if(introLabel)introLabel.textContent='Reforços restantes';
+      }
       if(lastSecond!==value||lastCritical!==critical){
         timerReader.textContent=value;
-        timer.setAttribute('aria-label',`Tempo restante: ${value} segundos`);
+        timer.setAttribute('aria-label',inVoyage
+          ?`Reforços restantes: ${value}`:`Tempo restante: ${value} segundos`);
         timer.style.color=critical?'#ffb26f':'';
         lastSecond=value;lastCritical=critical;
       }

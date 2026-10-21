@@ -27,9 +27,9 @@ export function finalePrelude(state = {}) {
     fullBrazil:true,
     title:'ONDA 11 — SOBERANIA TOTAL',
     lines:[
-      'A FORTALEZA-MÃE CAIU. MAS OS INVASORES AINDA TÊM UMA ÚLTIMA FROTA.',
-      'O BRASIL NÃO ASSINOU NENHUM ACORDO EXTERNO.',
-      'AGORA É TUDO OU NADA. O CÉU SERÁ NOSSO.',
+      'A FORTALEZA-MÃE CAIU. MAS AS ESTÁTUAS DE BRAÇOS ABERTOS AINDA SÃO ALVOS.',
+      'O PRÉDIO DO CANHÃO REVELOU PROPULSORES E VAI DECOLAR.',
+      'PRÓXIMA MISSÃO: PROTEGER ESTÁTUAS PELO MUNDO, UMA CIDADE DE CADA VEZ.',
     ],
   };
   const messages={
@@ -57,20 +57,20 @@ const ENDINGS = {
       title:'SOBERANIA ABSOLUTA',
       subtitle:'FINAL FULL BRAZIL — VITÓRIA',
       slides:[
-        ['ÚLTIMO CONTATO','Sem apoio externo, o Brasil derruba a derradeira nave invasora. Até os radares demoram a acreditar.'],
-        ['SILÊNCIO NO CÉU','O Rio começa a comemorar. O canhão continua quente, mas pela primeira vez não há nada para atirar.'],
-        ['NENHUMA DÍVIDA','Não há contratos secretos, bases militares emprestadas nem boletos internacionais esperando assinatura.'],
-        ['BRASIL SOBERANO','A humanidade venceu por aqui. A gambiarra virou política de defesa nacional. E funcionou.'],
+        ['DECOLAGEM','O prédio do canhão virou um foguete improvisado. Os alienígenas agora descobrem que o Brasil vai atrás deles.'],
+        ['ESTÁTUAS DEFENDIDAS','A nave percorreu cidades pelo mundo. Em cada parada, reforços alienígenas tentaram impedir a defesa das estátuas de braços abertos.'],
+        ['NENHUMA DÍVIDA','Não houve contratos secretos, bases militares emprestadas nem boletos internacionais: a viagem inteira foi por conta do Brasil.'],
+        ['BRASIL SOBERANO','A humanidade venceu em várias cidades. A gambiarra brasileira virou programa espacial de defesa planetária.'],
       ],
     },
     lose:{
       title:'A ÚLTIMA NOITE',
       subtitle:'FINAL FULL BRAZIL — DERROTA',
       slides:[
-        ['SEM REFORÇOS','O Brasil enfrentou a invasão sem pedir favores. A última frota, porém, era maior do que as reservas.'],
-        ['A QUEDA','As defesas cedem, o canhão se cala e o céu do Rio é tomado por um brilho extraterrestre.'],
-        ['RESISTÊNCIA','Os invasores controlam a cidade, mas não conseguem explicar por que alguém ainda insiste em consertar rádios.'],
-        ['AINDA NÃO ACABOU','A soberania foi perdida nesta batalha. Nas ruas, a resistência já planeja o próximo improviso.'],
+        ['SEM REFORÇOS','O Brasil decolou sozinho para proteger estátuas pelo mundo. As naves inimigas aguardavam em cada cidade.'],
+        ['A QUEDA','Durante uma das paradas, as defesas do prédio-foguete cederam à ofensiva alienígena.'],
+        ['RESISTÊNCIA','A viagem foi interrompida, mas a ideia de defender quem mantém os braços abertos continua viva.'],
+        ['AINDA NÃO ACABOU','Mesmo com a missão perdida, a tripulação já planeja consertar o foguete e tentar outra vez.'],
       ],
     },
   },

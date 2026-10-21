@@ -298,6 +298,7 @@ function hitTarget(scene,enemy,id,damage){
     }
   }
   if(result.moduleDestroyed){
+    scene.queueBattleBanter?.('module');
     module.deadAt=scene.time.now;
     if(s.action?.moduleId===module.id)stopAction(enemy);
     scene.queueCuboNews?.('SISTEMA INIMIGO DESTRUÍDO',

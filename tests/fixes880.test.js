@@ -17,11 +17,12 @@ test('canhão russo usa loop de sopro, não efeito pontual de tiro',()=>{
  assert.match(source,/stopRussianSfxLoops\(\)/);
 });
 
-test('Zeca EUA/Rússia reinicia trava ao reutilizar cena e recebe botão adicional',()=>{
+test('Zeca EUA/Rússia reinicia trava e mantém somente retrato/legenda clicáveis',()=>{
  assert.match(source,/this\.zecaRevenge = this\.mode === 'wave11'[\s\S]*?this\.zecaProposalOpened=false;/);
  assert.match(source,/this\.add\.rectangle\(px\+13,py\+16,118,132/);
- assert.match(source,/text:'ZECA • PEDIR AJUDA'/);
- assert.match(source,/onClick:talkToZeca/);
+ assert.doesNotMatch(source,/text:'ZECA • PEDIR AJUDA'/);
+ assert.match(source,/talkToZeca\(\)/);
+ assert.match(source,/\.setInteractive\(\{useHandCursor:true\}\)/);
  const c={choices:['br','us','ru','br','us','ru','br','us','ru','br']};
  for(const nation of ['us','ru']){
    assert.equal(canOfferZecaRecovery(c,nation,false),true);
