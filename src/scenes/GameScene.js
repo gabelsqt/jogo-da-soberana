@@ -1569,15 +1569,16 @@ export class GameScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(324));
     const {ship,flame}=this.createVoyageRocket();
     keep(ship);
-    const stars=voyageStarfield(92,W,H);
+    const stars=voyageStarfield(108,W,H);
     const tick=this.time.addEvent({delay:33,loop:true,callback:()=>{
       if(!this.scene.isActive('GameScene'))return;
       const elapsed=Math.max(0,this.time.now-started);
       const pose=voyageRocketPose(elapsed,{x:CANNON.x,
-        startY:CANNON.y-40,groundY:390});
+        startY:CANNON.y-40,groundY:CANNON.y-40});
       const phase=pose.phase;
       starGraphics.clear();skyline.clear();
-      // Nunca variar o eixo horizontal — nem na aceleração nem no espaço.
+      // O canhão permanece na coluna original, em escala constante.
+      // Só sobe para revelar a estrutura do prédio-foguete e depois desce.
       ship.x=pose.x;
       ship.y=pose.y;
       ship.setScale(pose.scale);
@@ -1618,10 +1619,18 @@ export class GameScene extends Phaser.Scene {
         const flight=elapsed-VOYAGE_LAUNCH_MS;
         for(const star of stars){
           const pos=voyageStarAt(star,flight,H);
-          const tail=Math.min(78,12+star.speed*.055);
-          starGraphics.lineStyle(star.size,0xd8eaff,.35+star.size*.16);
+          const tail=Math.min(92,9+star.speed*.048+star.size*2.4);
+          const glimmer=.75+.25*Math.sin(flight*.004+star.twinklePhase);
+          const alpha=Math.min(1,star.alpha*glimmer);
+          // Cada estrela mantém seu matiz e seu tamanho próprios.
+          starGraphics.lineStyle(Math.max(1,star.size*.58),star.color,
+            alpha*.64);
           starGraphics.lineBetween(pos.x,pos.y-tail,pos.x,pos.y);
-          starGraphics.fillStyle(0xffffff,.48+star.size*.12);
+          if(star.size>=4){
+            starGraphics.fillStyle(star.color,alpha*.14);
+            starGraphics.fillCircle(pos.x,pos.y,star.size*2.2);
+          }
+          starGraphics.fillStyle(star.color,alpha);
           starGraphics.fillRect(pos.x,pos.y,star.size,star.size);
         }
       }else if(phase==='landing'){

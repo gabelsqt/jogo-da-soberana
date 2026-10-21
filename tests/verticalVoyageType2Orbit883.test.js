@@ -40,14 +40,18 @@ test('foguete não desloca na horizontal, prepara motor e acelera fortemente par
  assert.ok(poses[5].y<poses[4].y);
  assert.ok(poses[6].y<poses[5].y);
  assert.ok(poses[8].y<poses[7].y);
- assert.ok(poses[9].y<-150,'foguete precisa sair da tela pelo topo');
+ assert.ok(poses[9].y<215&&poses[9].y>140,
+   'canhão sobe até o campo estelar sem desaparecer nem saltar de posição');
  const firstJump=voyageRocketPose(550).y-voyageRocketPose(500).y;
  const fastJump=voyageRocketPose(950).y-voyageRocketPose(900).y;
  assert.ok(Math.abs(fastJump)>Math.abs(firstJump)*7,'a arrancada tem aceleração cúbica');
  assert.equal(voyageRocketPose(1000).x,voyageRocketPose(4999).x);
- assert.ok(poses[13].y<0,'a aterrissagem começa acima da tela');
+ assert.ok(Math.abs(poses[13].y-poses[10].y)<1,
+   'a descida começa na exata altura do cruzeiro');
  assert.ok(poses[14].y<poses[15].y&&poses[15].y<poses[16].y);
- assert.equal(poses[17].y,390);
+ assert.equal(poses[17].y,454);
+ assert.equal(poses[0].scale,poses[17].scale);
+ assert.equal(poses[0].x,poses[17].x);
  assert.ok(poses[16].thrust<poses[13].thrust);
 });
 
