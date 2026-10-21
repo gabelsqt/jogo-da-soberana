@@ -1,0 +1,57 @@
+// Geometria pura do arsenal americano: foguete fixo por nível e muro em arco.
+export const AMERICAN_WALL_ARC=Math.PI*2/3; // 120 graus
+export const AMERICAN_WALL_DURATION_MS=6000;
+export const AMERICAN_WALL_COOLDOWN_MS=14000;
+const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
+export function americanRocketConfig(level=0){
+  if(level<1)return {radius:0,blastRadius:0,blastDamage:0};
+  const stage=level>=10?4:level>=7?3:level>=5?2:level>=3?1:0;
+  return {
+    radius:[9,13,17,22,29][stage],
+    blastRadius:[29,38,49,62,78][stage],
+    blastDamage:[1.4,1.9,2.6,3.3,4.8][stage],
+  };
+}
+export function americanWallConfig(level=0){
+  if(level<2)return null;
+  const stage=level>=8?3:level>=6?2:level>=4?1:0;
+  return {radius:[60,79,101,125][stage],maxHp:[88,135,195,275][stage],
+    durationMs:AMERICAN_WALL_DURATION_MS,
+    cooldownMs:AMERICAN_WALL_COOLDOWN_MS,arc:AMERICAN_WALL_ARC};
+}
+export function americanWallPlacement(x,y,cannonX,cannonY,width,height){
+  const px=clamp(Number(x)||0,12,width-12);
+  const py=clamp(Number(y)||0,48,height-30);
+  return {x:px,y:py,angle:Math.atan2(py-cannonY,px-cannonX)};
+}
+export function wallAngleDiff(a,b){
+  return Math.atan2(Math.sin(a-b),Math.cos(a-b));
+}
+export function americanWallTouches(wall,x,y,entityRadius=0){
+  const dx=x-wall.x,dy=y-wall.y,d=Math.hypot(dx,dy);
+  if(Math.abs(d-wall.radius)>12+entityRadius)return false;
+  const tolerance=Math.asin(clamp(entityRadius/Math.max(1,d),0,1));
+  return Math.abs(wallAngleDiff(Math.atan2(dy,dx),wall.angle))<=wall.arc/2+tolerance;
+}
+// Detecta atravessamento entre frames, inclusive nas duas pontas arredondadas.
+export function americanWallIntersects(wall,x1,y1,x2,y2,projectileRadius=0){
+  const dx=x2-x1,dy=y2-y1,fx=x1-wall.x,fy=y1-wall.y,a=dx*dx+dy*dy;
+  if(!a)return americanWallTouches(wall,x1,y1,projectileRadius);
+  const b=2*(fx*dx+fy*dy),c=fx*fx+fy*fy-wall.radius*wall.radius;
+  const disc=b*b-4*a*c,probes=[0,1,clamp(-b/(2*a),0,1)];
+  if(disc>=0){
+    const sq=Math.sqrt(disc);
+    probes.push((-b-sq)/(2*a),(-b+sq)/(2*a));
+  }
+  for(const t of probes)
+    if(t>=0&&t<=1&&americanWallTouches(wall,
+      x1+dx*t,y1+dy*t,projectileRadius))return true;
+  for(const sign of [-1,1]){
+    const theta=wall.angle+sign*wall.arc/2;
+    const px=wall.x+Math.cos(theta)*wall.radius;
+    const py=wall.y+Math.sin(theta)*wall.radius;
+    const t=clamp(((px-x1)*dx+(py-y1)*dy)/a,0,1);
+    if(Math.hypot(x1+dx*t-px,y1+dy*t-py)<=12+projectileRadius)return true;
+  }
+  return false;
+}

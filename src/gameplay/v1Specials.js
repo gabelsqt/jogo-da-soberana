@@ -1,6 +1,7 @@
 // Mecânicas puras dos especiais híbridos — sem dependências do Phaser.
 // 'jp' é o ID técnico legado da Coreia do Sul neste projeto.
 import {countryColor} from '../config/countryIdentity.js';
+import {americanWallConfig} from './americanArsenal.js';
 export const SPECIAL_COUNTRIES = Object.freeze(['br','us','ru','cn','jp']);
 
 export function specialStage(level) {
@@ -40,12 +41,8 @@ export function v1SpecialConfig(state = {}) {
     // Brasil preserva as contagens e o turbo aprovados.
     fireworks:at(br,[4,8,16,32]),
     brazilTurbo:at(br,[1.5,2,2.5,3],1),
-    // EUA: um míssil base enorme, escalado progressivamente.
-    usMissileScale:at(us,[1,2,4,8]),
-    usBlastRadius:at(us,[55,75,95,120]),
-    usShockRadius:at(us,[90,125,160,210]),
-    usPush:at(us,[110,160,220,290]),
-    usDamage:at(us,[4,6,8,11]),
+    // EUA: arco fixo de 120° que cresce em raio e HP com upgrades pares.
+    usWall:americanWallConfig(loadout.levels.us),
     // Rússia: satélite Sputnik persistente, só prepara alvos para o canhão.
     ruSputnikDurationMs:at(ru,[4000,5000,5000,5000]),
     ruSputnikRadius:at(ru,[43,59,59,67]),

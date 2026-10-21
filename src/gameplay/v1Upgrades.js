@@ -1,6 +1,6 @@
 import { russianShatterRadius, russianShatterDamage } from './russianFrost.js';
 import {countryColor} from '../config/countryIdentity.js';
-import {americanJulyConfig} from './usJuly.js';
+import {americanRocketConfig} from './americanArsenal.js';
 import {BASE_CANNON_INTERVAL_MS} from './upgrades.js';
 
 // Versão 1 — catálogo aprovado nas decisões 53–68. Animais antigos ficam arquivados.
@@ -71,50 +71,50 @@ export const V1_UPGRADES = {
   "us": [
     {
       "level": 1,
-      "title": "Munição de Fragmentação™",
-      "description": "Balas convencionais explodem ao atingir naves. Sem crescimento durante o voo.",
+      "title": "Munição Patriótica™",
+      "description": "Tiro principal vira um foguete físico com explosão vermelha, branca e azul.",
       "kind": "primary"
     },
     {
       "level": 2,
-      "title": "Choque Inicial™",
-      "description": "Choque e Pavor: míssil guiado, explosão e onda de choque que empurra inimigos.",
+      "title": "O Grande Muro™",
+      "description": "Botão direito cria arco energético de 120° na mira: bloqueia tiros e repele naves durante até 6 segundos.",
       "kind": "secondary"
     },
     {
       "level": 3,
       "title": "Quatro de Julho™",
-      "description": "Cada 5 acertos diretos carregam automaticamente o próximo tiro patriótico. Sem perseguição.",
+      "description": "Foguetes maiores: colisão física mais larga e explosão tricolor ampliada.",
       "kind": "primary"
     },
     {
       "level": 4,
-      "title": "Entrega de Democracia™",
-      "description": "Choque e Pavor com míssil 2× e onda de impacto ampliada.",
+      "title": "Obra Superfaturada™",
+      "description": "Grande Muro cresce em raio e resistência; ângulo fixo em 120°.",
       "kind": "secondary"
     },
     {
       "level": 5,
       "title": "Espetáculo da Independência™",
-      "description": "Quatro de Julho com raio de explosão ampliado e clarão vermelho, branco e azul.",
+      "description": "Foguete ainda maior e explosão patriótica mais destrutiva.",
       "kind": "primary"
     },
     {
       "level": 6,
-      "title": "Choque e Pavor™",
-      "description": "Choque e Pavor com míssil 4× e choque ofensivo maior.",
+      "title": "Segurança Nacional™",
+      "description": "Grande Muro mais largo e resistente, com bandeira americana na curvatura.",
       "kind": "secondary"
     },
     {
       "level": 7,
-      "title": "Estrelas e Estilhaços™",
-      "description": "Quatro de Julho mais poderoso: estilhaços atingem inimigos na borda da explosão.",
+      "title": "Choque e Pavor™",
+      "description": "Foguete enorme, maior colisão e explosão tricolor capaz de atingir enxames.",
       "kind": "primary"
     },
     {
       "level": 8,
-      "title": "Ataque Premium™",
-      "description": "Choque e Pavor com míssil 8× e pulso ofensivo maior.",
+      "title": "O Maior Muro do Mundo™",
+      "description": "Grande Muro com raio e resistência máximos.",
       "kind": "secondary"
     },
     {
@@ -126,7 +126,7 @@ export const V1_UPGRADES = {
     {
       "level": 10,
       "title": "Independence Day™",
-      "description": "Transformação: tiro patriótico automático a cada 3 acertos diretos, explosões monumentais e balas pequenas sem mira automática.",
+      "description": "Transformação: foguetes monumentais, colisão larga e explosão tricolor, sem crescimento durante o voo.",
       "kind": "transformation"
     }
   ],
@@ -372,6 +372,7 @@ export function v1CombatStats(state = {}, base = {}) {
     laserDamage:3, shockRadius:0, slowShot:false, specialAmplifier:1,
     shieldIntercept:false, shieldPulse:false, brazilTurboMultiplier:1, brazilFireworkCount:0, brazilHeatPeak:0, ultimate:v1SupremeFor(state),
     usGrowthMax:1, usHoming:0,
+    usRocketRadius:0,usRocketBlastRadius:0,usRocketBlastDamage:0,
     usJulyHitsRequired:0,usJulyBlastRadius:0,usJulyBlastDamage:0,usJulyShards:false,
     russianFreezeMs:0,
     russianShatterRadius:0,russianShatterDamage:0,
@@ -386,19 +387,13 @@ export function v1CombatStats(state = {}, base = {}) {
   if(n.br>=7){stats.basicInterval/=1.3;stats.brazilHeatPeak=1.5;stats.horizontalSpread=11;}
   if(n.br>=8){stats.specialAmplifier+=0.2;stats.brazilFireworkCount=32;stats.brazilTurboMultiplier=3;}
   if(n.br>=10){stats.basicInterval/=1.9;stats.brazilHeatPeak=2.4;stats.horizontalSpread=16;}
-  if(n.us>=1)stats.fragmentation=true;
-  // EUA não perseguem nem crescem: o acerto direto constrói a próxima salva.
+  // O tamanho físico e a colisão dos foguetes crescem APENAS com upgrades.
+  // O Quatro de Julho por acertos e a fragmentação antiga não são usados.
   Object.assign(stats,{
-    usJulyHitsRequired:americanJulyConfig(n.us).hitsRequired,
-    usJulyBlastRadius:americanJulyConfig(n.us).blastRadius,
-    usJulyBlastDamage:americanJulyConfig(n.us).blastDamage,
-    usJulyShards:americanJulyConfig(n.us).shards,
+    usRocketRadius:americanRocketConfig(n.us).radius,
+    usRocketBlastRadius:americanRocketConfig(n.us).blastRadius,
+    usRocketBlastDamage:americanRocketConfig(n.us).blastDamage,
   });
-  if(n.us>=2){stats.specialAmplifier+=0.25;}
-  // Ondas extras permanentes e drones automáticos antigos foram substituídos
-  // pelo Quatro de Julho, ativado só após cinco acertos (três no nível 10).
-  if(n.us>=6){stats.specialAmplifier+=0.4;}
-  if(n.us>=8){stats.specialAmplifier+=0.4;}
   if(n.jp>=1)stats.plasmaEvery=3;
   if(n.jp>=2){stats.residualSlash=true;}
   if(n.jp>=3)stats.plasmaEvery=2;
