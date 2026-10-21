@@ -4202,6 +4202,13 @@ export class GameScene extends Phaser.Scene {
     if (this.isV1Campaign && this.combat.brazilTurboMultiplier>1)
       this.brazilTurboUntil=this.time.now+5000;
     const shot=this.createProjectile(target.angle,true,target.distance);
+    if(shot){
+      // O destino usado pela física DEVE ser o mesmo ponto limitado à
+      // tela, exibido pela mira, jamais recalculado por ângulo/distância.
+      shot.tx=target.x;
+      shot.ty=target.y;
+      shot.specialLaunchedAt=this.time.now;
+    }
     const build=this.isV1Campaign ? this.specialBuild : null;
     if(build?.primary && shot) {
       shot.hybridConfig=build;
@@ -5291,7 +5298,12 @@ export class GameScene extends Phaser.Scene {
         remove=true;
       }
 
-      if (bullet.special && specialArrived) {
+      if (bullet.special && (
+        specialArrived ||
+        // Mesmo se houver interrupção grande da simulação, o efeito nunca
+        // pode ficar sem detonador.
+        this.time.now-(bullet.specialLaunchedAt??this.time.now)>4200
+      )) {
         bullet.sprite.setPosition(bullet.tx, bullet.ty);
         if(bullet.hybridConfig)this.detonateV1HybridSpecial(bullet.tx,bullet.ty,bullet.hybridConfig);
         else this.explode(bullet.tx,bullet.ty);

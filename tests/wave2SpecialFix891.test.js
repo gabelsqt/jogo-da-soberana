@@ -8,20 +8,20 @@ import {specialTargetPoint,advanceSpecialProjectile,
 import {v1SpecialConfig} from '../src/gameplay/v1Specials.js';
 const source=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
 
-test('Onda 2 tem no máximo 41 naves e encontros distribuídos até 13s',()=>{
+test('Onda 2 tem no máximo 26 naves e encontros distribuídos até 13s',()=>{
  const events=getV035WaveEvents('wave2',getWaveEvents('wave2'));
- assert.equal(scheduledEnemyCount(events),41);
- assert.equal(events.filter(e=>e.pattern==='swarm').length,6);
+ assert.equal(scheduledEnemyCount(events),26);
+ assert.equal(events.filter(e=>e.pattern==='swarm').length,4);
  assert.equal(events.filter(e=>e.pattern==='tactical').length,2);
  assert.equal(events.filter(e=>e.pattern==='orbit').length,1);
- assert.equal(events.at(-1).at,12800);
+ assert.equal(events.at(-1).at,12400);
  assert.ok(events.every(e=>e.at<=13500));
  assert.deepEqual(events.filter(e=>e.pattern==='swarm').map(e=>e.count),
-   [4,4,5,5,5,5]);
- assert.deepEqual(events.filter(e=>e.pattern==='tactical').map(e=>e.count),[3,4]);
- assert.equal(events.find(e=>e.pattern==='orbit').count,6);
+   [3,4,4,4]);
+ assert.deepEqual(events.filter(e=>e.pattern==='tactical').map(e=>e.count),[3,3]);
+ assert.equal(events.find(e=>e.pattern==='orbit').count,5);
  assert.ok(events.every(e=>e.type<=2));
- assert.equal(WAVE2_PACING.orbitCount,6);
+ assert.equal(WAVE2_PACING.orbitCount,5);
  assert.ok(scheduledEnemyCount(events)<scheduledEnemyCount(
    getV035WaveEvents('wave1',getWaveEvents('wave1'))));
 });
@@ -76,7 +76,7 @@ test('A mira e os efeitos Brasil, Rússia, China e Coreia compartilham detonaç�
    assert.equal(build.primary,country);
  }
  assert.match(source,/const next=advanceSpecialProjectile\(/);
- assert.match(source,/if \(bullet\.special && specialArrived\)/);
+ assert.match(source,/if \(bullet\.special && \(/);
  assert.match(source,/if\(bullet\.hybridConfig\)this\.detonateV1HybridSpecial\(bullet\.tx,bullet\.ty,bullet\.hybridConfig\)/);
  assert.match(source,/if \(!remove && !bullet\.special && \(/);
  assert.doesNotMatch(source,/bullet\.special && Phaser\.Math\.Distance\.Between\(/);

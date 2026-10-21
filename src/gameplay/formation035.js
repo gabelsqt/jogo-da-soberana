@@ -47,12 +47,13 @@ export const WAVE1_PACING = Object.freeze({
 // v0.891: Onda 2 tem grupos cuidadosamente espaçados, nunca o
 // autoexpansor que elevava a população para mais de cem naves.
 export const WAVE2_PACING = Object.freeze({
-  swarmTimes:Object.freeze([450,2750,5200,7550,10100,12800]),
-  swarmCounts:Object.freeze([4,4,5,5,5,5]),
-  tacticalTimes:Object.freeze([4150,8850]),
-  tacticalCounts:Object.freeze([3,4]),
-  orbitAt:11550,
-  orbitCount:6,
+  // Onda 2 de transição: menos saturação, com janelas para respirar.
+  swarmTimes:Object.freeze([550,3450,6750,10100]),
+  swarmCounts:Object.freeze([3,4,4,4]),
+  tacticalTimes:Object.freeze([4950,9200]),
+  tacticalCounts:Object.freeze([3,3]),
+  orbitAt:12400,
+  orbitCount:5,
   portalY:155,
   tacticalPortalY:175,
 });
