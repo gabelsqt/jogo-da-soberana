@@ -90,8 +90,8 @@ import {fullBrazilVoyageEligible,voyageEvents,voyageStop,voyageNext,
   voyageCanDepart,VOYAGE_STOPS} from '../gameplay/fullBrazilVoyage.js';
 import {createBattleBanterState,enqueueBattleBanter,currentBattleBanter} from '../gameplay/battleBanter.js';
 import {createDialogueTypewriter} from '../ui/dialogueTypewriter.js';
-import {VOYAGE_LAUNCH_MS,VOYAGE_SPACE_MS,VOYAGE_LANDING_MS,
-  VOYAGE_TOTAL_MS,voyageTravelPhase,voyageStarfield,voyageStarAt} from '../gameplay/voyageTravel.js';
+import {VOYAGE_PREPARE_MS,VOYAGE_LAUNCH_MS,VOYAGE_SPACE_MS,VOYAGE_LANDING_MS,
+  VOYAGE_TOTAL_MS,voyageRocketPose,voyageStarfield,voyageStarAt} from '../gameplay/voyageTravel.js';
 import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
 import {MAX_ACTIVE_SPUTNIKS,sputnikTouchesEnemy,crystallizeSputnikEnemy,isSputnikCrystalized,sputnikShatterStats,sputnikPrimaryDamage} from '../gameplay/russianSputnik.js';
 import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,ICE_BREATH_BOMB_SPEED_FACTOR,chillType6Bomb,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Target} from '../gameplay/iceBreath.js';
@@ -1573,39 +1573,54 @@ export class GameScene extends Phaser.Scene {
     const tick=this.time.addEvent({delay:33,loop:true,callback:()=>{
       if(!this.scene.isActive('GameScene'))return;
       const elapsed=Math.max(0,this.time.now-started);
-      const phase=voyageTravelPhase(elapsed);
+      const pose=voyageRocketPose(elapsed,{x:CANNON.x,
+        startY:CANNON.y-40,groundY:390});
+      const phase=pose.phase;
       starGraphics.clear();skyline.clear();
-      if(phase==='launch'){
-        const p=Math.min(1,elapsed/VOYAGE_LAUNCH_MS);
-        ship.y=CANNON.y-40-p*225;
-        ship.scale=1-p*.27;
-        flame.scaleY=.7+Math.sin(elapsed*.044)*.23;
-        veil.setAlpha(.45+p*.55);
-        heading.setText('DECOLAGEM • PRÉDIO E CANHÃO');
+      // Nunca variar o eixo horizontal — nem na aceleração nem no espaço.
+      ship.x=pose.x;
+      ship.y=pose.y;
+      ship.setScale(pose.scale);
+      flame.scaleY=Math.max(.01,pose.thrust*
+        (1+.13*Math.sin(elapsed*.052)));
+      if(phase==='prepare'){
+        veil.setAlpha(.48);
+        heading.setText('PREPARANDO DECOLAGEM • PROPULSORES');
+        // Contagem de carga e ar quente sob o prédio, ainda no solo.
+        const charge=elapsed/VOYAGE_PREPARE_MS;
+        for(let i=0;i<5;i++){
+          const y=CANNON.y+63+i*14;
+          starGraphics.lineStyle(1.5+i*.3,0xffb65a,charge*.60)
+            .lineBetween(CANNON.x-26-i*7,y,CANNON.x+26+i*7,y);
+        }
+      }else if(phase==='launch'){
+        const p=(elapsed-VOYAGE_PREPARE_MS)/
+          (VOYAGE_LAUNCH_MS-VOYAGE_PREPARE_MS);
+        veil.setAlpha(.48+.52*Math.min(1,p*p));
+        heading.setText('IGNIÇÃO! • DECOLAGEM VERTICAL');
+        // Rastros compridos para transmitir a aceleração violentíssima.
+        for(let i=0;i<20;i++){
+          const x=(i*103+19)%W;
+          const y=(i*67+elapsed*1.5)%H;
+          starGraphics.lineStyle(1+i%3,0xd4eaff,.25+p*.58)
+            .lineBetween(x,y-26-120*p,x,y);
+        }
       }else if(phase==='space'){
         const travel=elapsed-VOYAGE_LAUNCH_MS;
-        ship.y=245+Math.sin(travel*.004)*7;
-        ship.x=W/2+Math.sin(travel*.0018)*14;
-        ship.setScale(.73);
-        flame.scaleY=1+Math.sin(travel*.03)*.16;
+        veil.setAlpha(1);
         heading.setText('VOO ESPACIAL • '+Math.ceil((VOYAGE_SPACE_MS-travel)/1000)+' s');
-      }else{
-        const p=Math.min(1,Math.max(0,
-          (elapsed-VOYAGE_LAUNCH_MS-VOYAGE_SPACE_MS)/VOYAGE_LANDING_MS));
-        ship.x=W/2;
-        ship.y=245+p*145;
-        ship.setScale(.73+p*.27);
-        flame.scaleY=1-p;
-        heading.setText('POUSO • '+next.city);
+      }else if(phase==='landing'){
+        veil.setAlpha(1);
+        heading.setText('POUSO VERTICAL • '+next.city);
       }
-      // Movimento real com parallax: estrelas passam rapidamente pelo foguete.
+      // Foguete SUBINDO: estrelas descem velozmente, em parallax vertical.
       if(phase==='space'){
         const flight=elapsed-VOYAGE_LAUNCH_MS;
         for(const star of stars){
-          const pos=voyageStarAt(star,flight,W);
+          const pos=voyageStarAt(star,flight,H);
+          const tail=Math.min(78,12+star.speed*.055);
           starGraphics.lineStyle(star.size,0xd8eaff,.35+star.size*.16);
-          starGraphics.lineBetween(pos.x,pos.y,
-            Math.min(W,pos.x+star.speed*.09),pos.y);
+          starGraphics.lineBetween(pos.x,pos.y-tail,pos.x,pos.y);
           starGraphics.fillStyle(0xffffff,.48+star.size*.12);
           starGraphics.fillRect(pos.x,pos.y,star.size,star.size);
         }
