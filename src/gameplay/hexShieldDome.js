@@ -7,6 +7,21 @@ export const HEX_SHIELD_CELL_RADIUS=9;
 export const HEX_SHIELD_FORM_MS=780;
 export const HEX_SHIELD_COLLAPSE_MS=380;
 
+// Cada célula central pulsa em um momento diferente. Alterar somente
+// alpha mantém a malha, a cúpula e sua colisão exatamente onde estavam.
+// Células da borda ficam mais estáveis, preservando a silhueta luminosa.
+export function hexShieldCellOpacity(cell,index,now=0,radius=CANNON_DOME_RADIUS){
+  const distance=Math.hypot(cell.x,cell.y);
+  const innerStrength=clamp01((radius-distance-14)/(radius*.56));
+  const speed=.0037+(index%7)*.00043;
+  const phase=index*2.39996+cell.x*.093+cell.y*.071;
+  const wave=.5+.5*Math.sin(Math.max(0,now)*speed+phase);
+  // ~25% do ciclo praticamente apagado. Sem apagão sincronizado.
+  const visible=clamp01((wave-.28)/.72);
+  const dim=.035+.965*visible*visible;
+  return 1-innerStrength*.96*(1-dim);
+}
+
 export function hexShieldCells(radius=CANNON_DOME_RADIUS,cellRadius=HEX_SHIELD_CELL_RADIUS){
   const cells=[];
   // Pontas para cima, malha quase contínua. Todo o hexágono deve caber
@@ -57,9 +72,9 @@ export function drawHexShieldDome(graphics,{
   for(let i=0;i<cells.length;i++){
     if(mode==='forming'&&i/total>reveal)break; // forma de baixo para cima
     const cell=cells[i];
-    const localOpacity=mode==='forming'
+    const localOpacity=(mode==='forming'
       ?opacity*(.65+.35*Math.min(1,(reveal-i/total)*total*.25))
-      :opacity;
+      :opacity)*hexShieldCellOpacity(cell,i,now,radius);
     const vertices=cell.points.map(p=>({x:cx+p.x,y:cy+p.y}));
     graphics.fillStyle(cell.glow?0x78dafb:0x1c81b9,
       localOpacity*(cell.glow?.085:.036));

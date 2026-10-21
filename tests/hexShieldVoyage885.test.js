@@ -62,7 +62,7 @@ test('viajar anima os sprites do canhão original, nunca desenha segundo canhão
 test('escudo fecha ao decolar, reaparece no pouso e mantém colisão existente',()=>{
  assert.match(game,/this\.hexShieldTransition='disabling'/);
  assert.match(game,/this\.hexShieldTransition='forming'/);
- assert.match(game,/this\.hexShieldTransition=this\.voyageArrived\?'forming':'active'/);
+ assert.match(game,/this\.hexShieldTransition='active'/);
  assert.match(game,/this\.cannonDomeSprite\?\.setVisible\(false\)/);
  assert.match(game,/drawHexShieldDome\(this\.hexShieldGraphics,\{/);
  assert.match(game,/this\.hexShieldFlashUntil=this\.time\.now\+450/);

@@ -556,7 +556,7 @@ export class GameScene extends Phaser.Scene {
     installShieldSprites(this);
     // A proteção hexagonal é inteiramente desenhada no Phaser, sem texturas externas.
     this.hexShieldGraphics=this.add.graphics().setDepth(25);
-    this.hexShieldTransition=this.voyageArrived?'forming':'active';
+    this.hexShieldTransition='active';
     this.hexShieldTransitionAt=this.time.now;
     this.hexShieldFlashUntil=0;
     this.enemyHealthGraphics = this.add.graphics().setDepth(27);
@@ -962,6 +962,12 @@ export class GameScene extends Phaser.Scene {
     // até a fortaleza ficar alvejável, independentemente desta abertura.
     this.countdownActive = true;
     this.elapsed = 0;
+    // Toda nova fase desmonta o escudo antes da contagem regressiva.
+    // A cúpula se forma de novo quando a batalha começa, não apenas
+    // quando o prédio-foguete pousa na rota Full Brazil.
+    this.hexShieldTransition='disabling';
+    this.hexShieldTransitionAt=this.time.now;
+    this.hexShieldFlashUntil=0;
     this.statusText.setText(this.mode==='wave11'&&this.finale&&!this.finale.fullBrazil
       ?'TEMPO ATÉ O BRASIL VIRAR COLÔNIA':'TEMPO ATÉ O AMANHECER');
     let combatStarted=false;
@@ -969,6 +975,10 @@ export class GameScene extends Phaser.Scene {
       if (combatStarted || !this.scene.isActive('GameScene') || this.tutorialComplete) return;
       combatStarted=true;
       this.countdownActive = false;
+      // A formação acontece NO INÍCIO do combate em todas as ondas.
+      this.hexShieldTransition='forming';
+      this.hexShieldTransitionAt=this.time.now;
+      this.hexShieldFlashUntil=0;
       this.music.play(waveMusic(this.mode, this.campaign));
       this.elapsed = 0;
       this.queueBattleBanter(this.voyageActive?'arrival':'start');
