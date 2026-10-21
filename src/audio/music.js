@@ -326,11 +326,11 @@ export function addMenuMusicControl(scene,{x=91,y=518,depth=40}={}){
     if(!pointer.leftButtonDown())return;
     event?.stopPropagation();music.toggleMute();refresh();
   });
-  const statusTick=scene.time.addEvent({delay:600,loop:true,callback:()=>{
+  const statusTick=scene.time?.addEvent?.({delay:600,loop:true,callback:()=>{
     if(expanded)refresh();
   }});
   scene.events.once('shutdown',()=>{
-    statusTick.remove();
+    statusTick?.remove?.();
     scene.input.off('pointermove',move);
     scene.input.off('pointerup',up);
   });
