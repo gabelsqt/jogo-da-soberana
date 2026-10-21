@@ -60,6 +60,7 @@ jobs:
           tests/pagesMusic888.test.js
           tests/stabilityMusicVoyage889.test.js
           tests/hexShieldCeremony890.test.js
+          tests/wave2SpecialFix891.test.js
           tests/sputnikRework.test.js
           tests/v1Specials.test.js
           tests/cuboNewsDomHud.test.js

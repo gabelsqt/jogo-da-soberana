@@ -44,6 +44,20 @@ export const WAVE1_PACING = Object.freeze({
   impactDamageMultiplier: 0.75,
 });
 
+// v0.891: Onda 2 tem grupos cuidadosamente espaçados, nunca o
+// autoexpansor que elevava a população para mais de cem naves.
+export const WAVE2_PACING = Object.freeze({
+  swarmTimes:Object.freeze([450,2750,5200,7550,10100,12800]),
+  swarmCounts:Object.freeze([4,4,5,5,5,5]),
+  tacticalTimes:Object.freeze([4150,8850]),
+  tacticalCounts:Object.freeze([3,4]),
+  orbitAt:11550,
+  orbitCount:6,
+  portalY:155,
+  tacticalPortalY:175,
+});
+
+
 // Um ou dois atiradores por esquadrilha: as outras naves ainda podem mergulhar.
 export function wave1FormationShooter(kind,index,count) {
   const n=Math.max(1,Math.trunc(Number(count)||1));
@@ -101,6 +115,20 @@ export function getV035WaveEvents(mode, legacyEvents) {
       at,type:1,level:1,pattern:'swarm',count:WAVE1_PACING.swarmCounts[index],
     }));
     return [...squads,...swarms].sort((a,b)=>a.at-b.at);
+  }
+  if(wave===2){
+    const swarms=WAVE2_PACING.swarmTimes.map((at,index)=>({
+      at,type:1,pattern:'swarm',count:WAVE2_PACING.swarmCounts[index],
+      level:index>=4?2:1,portalY:WAVE2_PACING.portalY,
+    }));
+    const squads=WAVE2_PACING.tacticalTimes.map((at,index)=>({
+      at,type:2,level:index?2:1,pattern:'tactical',group:true,
+      count:WAVE2_PACING.tacticalCounts[index],
+      portalY:WAVE2_PACING.tacticalPortalY,
+    }));
+    const orbit={at:WAVE2_PACING.orbitAt,type:2,level:2,
+      pattern:'orbit',count:WAVE2_PACING.orbitCount};
+    return [...swarms,...squads,orbit].sort((a,b)=>a.at-b.at);
   }
   const regular = legacyEvents.filter(event => event.type !== 1).map(event => {
     if (event.type !== 2) return { ...event };

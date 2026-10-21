@@ -46,6 +46,7 @@ import {
   specialBlastRadius,
   blastCatchesTarget,
   specialTargetPoint,
+  advanceSpecialProjectile,
   SPECIAL_BLAST_DURATION,
 } from '../gameplay/specialBlast.js';
 import {
@@ -2564,7 +2565,7 @@ export class GameScene extends Phaser.Scene {
           : this.mode==='wave1'?0.7:0.40;
         if(!enemy.formationShotFired&&enemy.phaseAge>=shotDelay){
           enemy.formationShotFired=true;
-          if(this.mode!=='wave1'||
+          if(!['wave1','wave2'].includes(this.mode)||
             wave1FormationShooter('swarm',enemy.formationIndex,group.count))
             this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
         }
@@ -2613,7 +2614,7 @@ export class GameScene extends Phaser.Scene {
         }
         if(!enemy.formationShotFired&&enemy.phaseAge>=0.65){
           enemy.formationShotFired=true;
-          if(this.mode!=='wave1'||
+          if(!['wave1','wave2'].includes(this.mode)||
             wave1FormationShooter('tactical',enemy.formationIndex,group.count)){
             this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
             // Só as ondas 2+ recebem a segunda ogiva por nave.
@@ -5253,10 +5254,21 @@ export class GameScene extends Phaser.Scene {
       const bullet = this.projectiles[i];
       // Os foguetes americanos não usam guiagem.
       // O tamanho do foguete é fixado na criação. Não há mudança de direção no ar.
-      bullet.distanceTravelled+=Math.hypot(bullet.vx,bullet.vy)*dt;
       const previousX=bullet.sprite.x,previousY=bullet.sprite.y;
-      bullet.sprite.x += bullet.vx * dt;
-      bullet.sprite.y += bullet.vy * dt;
+      let specialArrived=false;
+      if(bullet.special){
+        // Partir da boca real do canhão pode deslocar o projétil em relação
+        // ao raio da mira: guiar diretamente ao alvo impede ultrapassagens.
+        const next=advanceSpecialProjectile(
+          previousX,previousY,bullet.tx,bullet.ty,300,dt);
+        bullet.sprite.setPosition(next.x,next.y);
+        specialArrived=next.arrived;
+      }else{
+        bullet.sprite.x+=bullet.vx*dt;
+        bullet.sprite.y+=bullet.vy*dt;
+      }
+      bullet.distanceTravelled+=Math.hypot(
+        bullet.sprite.x-previousX,bullet.sprite.y-previousY);
       if(bullet.specialMarker)bullet.specialMarker.setPosition(bullet.sprite.x,bullet.sprite.y);
       this.drawProjectileTrail(bullet);
       let remove = false;
@@ -5279,9 +5291,7 @@ export class GameScene extends Phaser.Scene {
         remove=true;
       }
 
-      if (bullet.special && Phaser.Math.Distance.Between(
-        bullet.sprite.x, bullet.sprite.y, bullet.tx, bullet.ty,
-      ) <= 300 * dt + 6) {
+      if (bullet.special && specialArrived) {
         bullet.sprite.setPosition(bullet.tx, bullet.ty);
         if(bullet.hybridConfig)this.detonateV1HybridSpecial(bullet.tx,bullet.ty,bullet.hybridConfig);
         else this.explode(bullet.tx,bullet.ty);
@@ -5396,7 +5406,9 @@ export class GameScene extends Phaser.Scene {
           if (remove) break;
         }
       }
-      if (!remove && (
+      // Um especial nunca deve sumir sem executar seu efeito. Seu alvo
+      // é limitado à área visível, e o passo final sempre o alcança.
+      if (!remove && !bullet.special && (
         bullet.sprite.x < -30 || bullet.sprite.x > W + 30 ||
         bullet.sprite.y < -30 || bullet.sprite.y > H + 30
       )) remove = true;

@@ -74,7 +74,8 @@ test('mira respeita a distância mínima e máxima usada pelo tiro especial', ()
 
   const distant = specialTargetPoint(480, 494, 480, -10000);
   assert.equal(distant.distance, SPECIAL_MAX_DISTANCE);
-  assert.ok(Math.abs(distant.y + 86) < 1e-8);
+  assert.equal(distant.y,24); // Limite superior visível, nunca fora da tela.
+  assert.ok(distant.distance<SPECIAL_MAX_DISTANCE);
 });
 
 test('mira reflete a elevação mínima do canhão em vez de seguir o cursor impossível', () => {
