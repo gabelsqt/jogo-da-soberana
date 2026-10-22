@@ -332,6 +332,16 @@ export const MAX_PROJECTILE_GENERATION = 1;
 
 export function v1CountryLevels(state = {}) {
   const levels = Object.fromEntries(Object.keys(V1_UPGRADES).map(id=>[id,0]));
+  // Apenas o laboratório V1 fornece estes níveis extras. A campanha
+  // continua limitada a dez upgrades, sem misturar regras de progressão.
+  if(state.labLevels && typeof state.labLevels === 'object') {
+    for (const id of Object.keys(levels)) {
+      const level=Number(state.labLevels[id]);
+      levels[id]=Number.isFinite(level)
+        ? Math.max(0,Math.min(10,Math.trunc(level))) : 0;
+    }
+    return levels;
+  }
   for (const id of (Array.isArray(state.choices)?state.choices:[]).slice(0,10)) {
     if (Object.hasOwn(levels,id)) levels[id] += 1;
   }
