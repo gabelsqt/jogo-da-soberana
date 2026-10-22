@@ -16,7 +16,7 @@ export const V1_UPGRADES = {
     {
       "level": 2,
       "title": "Arraial Balístico",
-      "description": "Arraial Balístico: 4 fogos e turbo de cadência por 5 s.",
+      "description": "Balão de Rojões: atire no balão para gerar mini-explosões coloridas aleatórias em área; no final, uma grande explosão e frase de caminhão. Turbo por 5 s.",
       "kind": "secondary"
     },
     {
@@ -28,7 +28,7 @@ export const V1_UPGRADES = {
     {
       "level": 4,
       "title": "São João de Arromba",
-      "description": "8 fogos explosivos e turbo mais forte.",
+      "description": "Balão de Rojões com área ampliada e turbo de metralhadora mais forte.",
       "kind": "secondary"
     },
     {
@@ -40,7 +40,7 @@ export const V1_UPGRADES = {
     {
       "level": 6,
       "title": "220V",
-      "description": "16 fogos, turbo reforçado e descargas ofensivas em cadeia.",
+      "description": "Balão com alcance ainda maior e turbo reforçado para alimentar os rojões.",
       "kind": "secondary"
     },
     {
@@ -52,7 +52,7 @@ export const V1_UPGRADES = {
     {
       "level": 8,
       "title": "Usina de Gambiarra",
-      "description": "32 fogos e turbo máximo de cadência.",
+      "description": "Balão de Rojões em sua área máxima e turbo máximo de cadência.",
       "kind": "secondary"
     },
     {

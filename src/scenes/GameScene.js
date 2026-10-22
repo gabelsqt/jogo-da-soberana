@@ -18,7 +18,9 @@ import {registerAmericanJulyHit,americanJulyReady,consumeAmericanJulyShot} from 
 import {americanWallPlacement,americanWallArcCenter,americanWallTravelDuration,
   americanWallAnimation,americanWallTouches,americanWallIntersects,
   americanWallBreaksFromBeam,AMERICAN_WALL_COOLDOWN_MS,AMERICAN_WALL_OPEN_MS} from '../gameplay/americanArsenal.js';
-import { ARRAIAL, fireworkSchedule, withinBlast, withinFlame, firePulseRadius } from '../gameplay/arraialBrasil2.js';
+import { ARRAIAL, withinBlast, withinFlame, firePulseRadius,
+  arraialFinalPhrase, randomArraialBurst, shotHitsArraialBalloon,
+} from '../gameplay/arraialBrasil2.js';
 import {
   normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout,
   LAB_ENEMY_NAMES, LAB_MAX_ENEMY_LEVEL, labEnemyEvent,
@@ -500,6 +502,7 @@ export class GameScene extends Phaser.Scene {
     this.enemyBullets = [];
     this.specialBlasts = [];
     this.arraialNuclei = [];
+    this.arraialBurstVisuals = 0;
     this.lastFlameTick = -Infinity;
     this.supportTowers = [];
     this.supportProjectiles = [];
@@ -4893,58 +4896,75 @@ export class GameScene extends Phaser.Scene {
 
 
   createArraial(x, y) {
+    // O balão é um ALVO do jogador, não uma sequência automática de fogos.
     const graphics = this.add.graphics().setDepth(39);
-    const nucleus = {x, y, graphics, bornAt:this.time.now,
-      events:fireworkSchedule(this.combat.brazilFireworkCount || ARRAIAL.fireworkCount), next:0, finished:false};
-    this.arraialNuclei.push(nucleus);
-    this.firePulse={bornAt:this.time.now,hits:new Set()};
+    this.arraialNuclei.push({
+      x,y,graphics,bornAt:this.time.now,bursts:0,
+      // Upgrades pares brasileiros ampliam a região, não a força de cada rojão.
+      radius:ARRAIAL.orbitRadius+10*
+        Math.max(0,(this.specialBuild?.stages?.br??1)-1),
+    });
   }
 
   arraialDamage(x, y, radius, amount, color) {
-    // Iteração reversa preserva índices quando inimigos morrem.
+    // Uma única regra de dano em área, aplicada a naves e projéteis.
+    // Nada de remover bombas ou matar inimigos mais fortes automaticamente.
     for(let i=this.enemies.length-1;i>=0;i--){
       const enemy=this.enemies[i];
       if(enemy.type===6){hitType6At(this,enemy,x,y,amount,radius);continue;}
       if(withinBlast(x,y,enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type),radius))
-        this.impactInvader(i,amount,0,color);
+        this.impactInvader(i,amount,0,color,false);
+    }
+    for(let i=this.enemyBullets.length-1;i>=0;i--){
+      const bullet=this.enemyBullets[i];
+      if(!bullet?.sprite?.active)continue;
+      if(!withinBlast(x,y,bullet.sprite.x,bullet.sprite.y,
+        bullet.radius??8.25,radius))continue;
+      bullet.hp=Math.max(0,(bullet.hp??1)-amount);
+      if(bullet.hp<=0){
+        if(bullet.colossal)detonateType6Bomb(this,bullet);
+        else this.removeEnemyBullet(i,true);
+      }else this.showEnemyBulletHit(bullet);
     }
   }
 
   arraialFirework(x, y, hue, damaging = true) {
-    // Um estouro para a salva, limitado em cenas com 32 fogos simultâneos.
+    // TODO: a morte de inimigos NÃO deve depender de um orçamento de VFX.
+    // A colisão e o dano acontecem sempre, mesmo com 50 tiros/segundo.
+    if(damaging)this.arraialDamage(x,y,ARRAIAL.fireworkRadius,
+      ARRAIAL.fireworkDamage,'#ffe8b7');
     playSfx('brFireworkBurst',{throttle:95,volumeScale:0.50});
-    if(damaging) this.arraialDamage(x,y,ARRAIAL.fireworkRadius,ARRAIAL.fireworkDamage,'#ffe8b7');
-    // Uma única Graphics em posição fixa; desenhamos o crescimento local a cada frame.
-    // Não usar scale/tweens nem coordenadas mundiais dentro da Graphics:
-    // isso causava deslocamento visual em direção ao canto inferior direito.
+    if(this.arraialBurstVisuals>=ARRAIAL.maxBurstVisuals)return;
+    this.arraialBurstVisuals++;
     const gfx=this.add.graphics().setPosition(x,y).setDepth(46);
     const palette=[0xffe36b,0xff576a,0x60ffaf,0x69d4ff,0xf5a0f9];
     const color=palette[hue%palette.length];
-    const started=this.time.now;
-    const duration=570;
+    const started=this.time.now,duration=290;
     const paint=()=>{
       if(!gfx.active)return;
       const t=Math.min(1,(this.time.now-started)/duration);
-      const radius=3+25*Math.sin(Math.PI*Math.min(1,t*0.92));
+      const radius=2+18*Math.sin(Math.PI*t);
       const fade=1-t*t;
       gfx.clear();
-      gfx.fillStyle(color,0.25*fade);gfx.fillCircle(0,0,radius+9);
-      gfx.fillStyle(0xfff8d6,0.78*fade);gfx.fillCircle(0,0,Math.max(1,7*(1-t)));
-      for(let k=0;k<12;k++){
-        const angle=k*Math.PI/6;
+      gfx.fillStyle(color,0.18*fade);gfx.fillCircle(0,0,radius+4);
+      gfx.fillStyle(0xfff8d6,0.75*fade);gfx.fillCircle(0,0,Math.max(1,4*(1-t)));
+      for(let k=0;k<8;k++){
+        const angle=k*Math.PI/4;
         const outer=radius*(k%2===0?1:0.82);
-        gfx.lineStyle(k%2===0?3:2,k%3===0?0xffffff:color,fade);
+        gfx.lineStyle(k%2===0?2:1.5,k%3===0?0xffffff:color,fade);
         gfx.lineBetween(Math.cos(angle)*Math.max(2,outer*0.28),
           Math.sin(angle)*Math.max(2,outer*0.28),
           Math.cos(angle)*outer,Math.sin(angle)*outer);
-        gfx.fillStyle(k%2===0?0xfff4bc:color,fade);
-        gfx.fillCircle(Math.cos(angle)*outer,Math.sin(angle)*outer,2.6);
       }
     };
     paint();
-    this.time.addEvent({delay:32,repeat:Math.ceil(duration/32),callback:()=>{
+    this.time.addEvent({delay:32,repeat:Math.ceil(duration/32)+1,callback:()=>{
       if(!gfx.active)return;
-      if(this.time.now-started>=duration){gfx.destroy();return;}
+      if(this.time.now-started>=duration){
+        gfx.destroy();
+        this.arraialBurstVisuals=Math.max(0,this.arraialBurstVisuals-1);
+        return;
+      }
       paint();
     }});
   }
@@ -4952,13 +4972,24 @@ export class GameScene extends Phaser.Scene {
   updateArraial() {
     for(let i=this.arraialNuclei.length-1;i>=0;i--){
       const n=this.arraialNuclei[i], age=this.time.now-n.bornAt;
-      while(n.next<n.events.length && age>=n.events[n.next].at){
-        const f=n.events[n.next];
-        this.arraialFirework(n.x+f.x,n.y+f.y,n.next,f.damaging);
-        n.next++;
-      }
       if(age>=ARRAIAL.duration){
-        this.arraialDamage(n.x,n.y,ARRAIAL.finaleRadius,ARRAIAL.finaleDamage,'#fff2aa');
+        this.arraialDamage(n.x,n.y,n.radius,ARRAIAL.finaleDamage,'#fff2aa');
+        playSfx('brFireworkBurst',{throttle:0,volumeScale:0.86});
+        // A mensagem é uma surpresa de para-choque, sorteada a cada estouro.
+        const truck=this.add.text(
+          Math.max(170,Math.min(W-170,n.x)),Math.max(50,Math.min(H-120,n.y)),
+          arraialFinalPhrase(),{
+            fontFamily:'monospace',fontSize:'13px',fontStyle:'bold',
+            color:'#fff2b3',stroke:'#182135',strokeThickness:4,
+            backgroundColor:'#172d36bb',padding:{x:7,y:6},
+            align:'center',
+          }).setOrigin(0.5).setDepth(110).setAlpha(0);
+        this.tweens.add({targets:truck,alpha:1,y:truck.y-25,duration:260,
+          ease:'Back.Out',onComplete:()=>{
+            this.tweens.add({targets:truck,alpha:0,y:truck.y-15,
+              delay:1000,duration:450,onComplete:()=>truck.destroy()});
+          }});
+
         // Clarão final mais expressivo, também ancorado no balão sem escala.
         const finale=this.add.graphics().setPosition(n.x,n.y).setDepth(48);
         const startFinal=this.time.now;
@@ -4967,7 +4998,7 @@ export class GameScene extends Phaser.Scene {
           if(!finale.active)return;
           const t=Math.min(1,(this.time.now-startFinal)/680);
           const fade=1-t*t;
-          const radius=8+(ARRAIAL.finaleRadius-8)*t;
+          const radius=8+(n.radius-8)*t;
           finale.clear();
           finale.fillStyle(0xffefaf,0.22*fade);finale.fillCircle(0,0,radius);
           for(let ring=0;ring<3;ring++){
@@ -4991,8 +5022,13 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
       const g=n.graphics;g.clear();
-      // Balão junino em pixel-art geométrica, núcleo luminoso, cordão e boca.
+      // O círculo visível marca onde as pequenas explosões podem nascer.
       const pulse=0.6+0.4*Math.sin(age*0.008);
+      g.lineStyle(1.6,0x6af2aa,0.30+0.13*pulse);
+      g.strokeCircle(n.x,n.y,n.radius);
+      g.fillStyle(0x42a871,0.034*pulse);
+      g.fillCircle(n.x,n.y,n.radius);
+      // Balão junino em pixel-art geométrica, núcleo luminoso, cordão e boca.
       g.fillStyle(0xffdf69,0.19*pulse);g.fillCircle(n.x,n.y,22);
       g.fillStyle(0xdb544b,1);g.fillTriangle(n.x,n.y-18,n.x-12,n.y-7,n.x+12,n.y-7);
       g.fillStyle(0xf6b948,1);g.fillTriangle(n.x-12,n.y-7,n.x+12,n.y-7,n.x,n.y+12);
@@ -5285,6 +5321,21 @@ export class GameScene extends Phaser.Scene {
         if(hit){
           this.fireV1DiscoReflections(hit.globe.x,hit.globe.y,hit.globe.build,hit.globe);
           remove=true;
+        }
+      }
+      // O jogador ALIMENTA o Arraial acertando o balão com o tiro principal.
+      // Usar o segmento evita atravessar a hitbox em FPS baixos. Cada acerto
+      // produz uma explosão em ponto ALEATÓRIO dentro do círculo do balão.
+      if(!remove&&!bullet.special&&this.arraialNuclei.length){
+        for(const n of this.arraialNuclei){
+          if(this.time.now-n.bornAt>=ARRAIAL.duration)continue;
+          if(!shotHitsArraialBalloon(previousX,previousY,
+            bullet.sprite.x,bullet.sprite.y,n.x,n.y,
+            Math.max(3,bullet.usRadius??0)))continue;
+          const p=randomArraialBurst(n.x,n.y,n.radius);
+          this.arraialFirework(p.x,p.y,n.bursts++,true);
+          remove=true;
+          break;
         }
       }
       if(!remove && bullet.chinaSplit && bullet.distanceTravelled>=100){

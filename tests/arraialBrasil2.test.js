@@ -19,13 +19,13 @@ test('Arraial: anel imediato e explosões fixas em espiral rumo ao centro',()=>{
   for(const f of e.slice(0,6))assert.ok(Math.abs(Math.hypot(f.x,f.y)-100)<1e-9);
 });
 test('Arraial: raios de explosões e escudo',()=>{
-  assert.equal(ARRAIAL.fireworkRadius,37);
-  assert.equal(ARRAIAL.finaleRadius,150);
-  assert.ok(ARRAIAL.finaleRadius > ARRAIAL.orbitRadius + ARRAIAL.fireworkRadius);
-  assert.ok(withinBlast(0,0,37,0,0,ARRAIAL.fireworkRadius));
-  assert.ok(!withinBlast(0,0,38,0,0,ARRAIAL.fireworkRadius));
-  assert.ok(withinBlast(0,0,150,0,0,ARRAIAL.finaleRadius));
-  assert.ok(!withinBlast(0,0,151,0,0,ARRAIAL.finaleRadius));
+  assert.equal(ARRAIAL.fireworkRadius,27);
+  assert.equal(ARRAIAL.finaleRadius,100);
+  assert.equal(ARRAIAL.finaleRadius,ARRAIAL.orbitRadius);
+  assert.ok(withinBlast(0,0,27,0,0,ARRAIAL.fireworkRadius));
+  assert.ok(!withinBlast(0,0,28,0,0,ARRAIAL.fireworkRadius));
+  assert.ok(withinBlast(0,0,100,0,0,ARRAIAL.finaleRadius));
+  assert.ok(!withinBlast(0,0,101,0,0,ARRAIAL.finaleRadius));
   assert.ok(withinFlame(0,0,62,0,-73,0));
   assert.ok(!withinFlame(0,0,62,0,-90,0));
   assert.ok(!withinFlame(0,0,62,0,73,0));
