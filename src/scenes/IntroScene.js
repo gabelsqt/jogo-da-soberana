@@ -21,6 +21,8 @@ export class IntroScene extends Phaser.Scene {
     this.finished=false;
     this.slides=introductionSlides();
     this.page=0;
+    // Vinheta Cubo News toca apenas uma vez por introdução, sem repetir.
+    this.newsThemePlayed=false;
     this.objects=[];
     this.typeTimer=null;
     this.holdTimer=null;
@@ -109,7 +111,10 @@ export class IntroScene extends Phaser.Scene {
       `${index+1}/${this.slides.length}  •  ESPAÇO/CLIQUE: completar texto ou avançar  •  ESC: pular`);
     if(slide.kind==='news'){
       if(index===1){
-        this.music.play('news');
+        if(!this.newsThemePlayed){
+          this.newsThemePlayed=true;
+          this.music.play('news',{loop:false});
+        }
         playSfx('introAlert',{throttle:300,volumeScale:0.78});
       }
       this.drawNews(slide);
