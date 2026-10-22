@@ -265,6 +265,9 @@ function hitTarget(scene,enemy,id,damage){
   const s=enemy.type6,p=TYPE6_PALETTES[s.country],previousShield=type6BarrierActive(s);
   const result=type6Damage(s,id,damage);
   if(!result.damage)return false;
+  const shieldHit=result.targetId==='barrier' ||
+    (typeof id==='number'&&result.moduleDamage===0&&!result.moduleDestroyed);
+  if(result.targetId==='barrier')s.barrier.hitAt=scene.time.now;
   const major=result.barrierBroken||result.moduleShieldBroken||result.moduleDestroyed;
   enemy.impactShakeStrength=Math.max(major?4.5:1.7,
     enemy.impactShakeStrength*Math.max(0,enemy.impactShakeUntil-scene.time.now)/150);
@@ -284,7 +287,7 @@ function hitTarget(scene,enemy,id,damage){
   if(module&&result.targetId===module.id){
     module.hitAt=scene.time.now;
     // Tiros em alta cadência não devem deixar a nave permanentemente branca.
-    if(scene.time.now-(module.spriteFlashStartedAt??-Infinity)>=TYPE6_MODULE_FLASH_RETRIGGER_MS)
+    if(!shieldHit&&scene.time.now-(module.spriteFlashStartedAt??-Infinity)>=TYPE6_MODULE_FLASH_RETRIGGER_MS)
       module.spriteFlashStartedAt=scene.time.now;
   }else if(!module)s.hitAt=scene.time.now;
   // Interrupção do laser durante a carga: 25% do HP máximo no carregamento atual.
