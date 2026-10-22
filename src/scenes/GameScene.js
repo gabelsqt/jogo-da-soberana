@@ -926,7 +926,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   showFinalePrelude() {
-    this.music.play('news', { loop: false });
+    // Plantões e notícias usam a trilha normal da onda, não a vinheta da Cubo News.
     this.countdownActive=true;
     const info=finalePrelude(this.finaleCampaign);
     const panel=this.add.rectangle(W/2,H/2,W,H,0x071021,0.96)
@@ -998,8 +998,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   startWaveCountdown() {
-    if (this.mode === 'wave0' && !this.v1Playtest) this.music.play('news', { loop: false });
-    else this.music.play(waveMusic(this.mode, this.campaign));
+    // A vinheta da Cubo News é exclusiva do primeiro plantão da introdução.
+    // Desde a contagem regressiva da onda 0, usa-se a trilha de combate.
+    this.music.play(waveMusic(this.mode, this.campaign));
     // O tempo de combate e os spawns só começam APÓS o número total (30/60)
     // sair do centro da tela e alcançar o relógio externo à câmera.
     // A entrada cinematográfica do Tipo 6 pode pausar esse relógio novamente
