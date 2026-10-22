@@ -22,7 +22,7 @@ test('Onda 2 tem no máximo 26 naves e encontros distribuídos até 13s',()=>{
  assert.equal(events.find(e=>e.pattern==='orbit').count,5);
  assert.ok(events.every(e=>e.type<=2));
  assert.equal(WAVE2_PACING.orbitCount,5);
- assert.ok(scheduledEnemyCount(events)<scheduledEnemyCount(
+ assert.ok(scheduledEnemyCount(events)>scheduledEnemyCount(
    getV035WaveEvents('wave1',getWaveEvents('wave1'))));
 });
 
