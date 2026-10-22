@@ -12,7 +12,14 @@ export function v1SpecialLoadout(state = {}) {
   const choices = Array.isArray(state.choices) ? state.choices.slice(0,10) : [];
   const levels = Object.fromEntries(SPECIAL_COUNTRIES.map(id=>[id,0]));
   let primary = null;
-  for(const id of choices) {
+  if(state.labLevels && typeof state.labLevels === 'object') {
+    for(const id of SPECIAL_COUNTRIES) {
+      const value=Number(state.labLevels[id]);
+      levels[id]=Number.isFinite(value)?Math.max(0,Math.min(10,Math.trunc(value))):0;
+    }
+    primary=levels[state.labPrimary]>=2 ? state.labPrimary : null;
+    if(!primary)primary=SPECIAL_COUNTRIES.find(id=>levels[id]>=2)??null;
+  } else for(const id of choices) {
     if(!(id in levels)) continue;
     levels[id]++;
     if(!primary && levels[id]===2) primary=id;
