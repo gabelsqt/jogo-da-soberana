@@ -9,14 +9,14 @@ import {
 
 const wave1=()=>getV035WaveEvents('wave1',getWaveEvents('wave1'));
 
-test('onda 1 tem sete enxames e três esquadrilhas menores, sem pico de naves',()=>{
+test('onda 1 tem cinco enxames e duas esquadrilhas menores, sem pico de naves',()=>{
   const events=wave1(),swarms=events.filter(e=>e.type===1),squads=events.filter(e=>e.type===2);
   assert.deepEqual(swarms.map(e=>e.count),[...WAVE1_PACING.swarmCounts]);
   assert.deepEqual(swarms.map(e=>e.at),[...WAVE1_PACING.swarmTimes]);
-  assert.deepEqual(squads.map(e=>e.count),[3,4,4]);
+  assert.deepEqual(squads.map(e=>e.count),[4,4]);
   assert.ok(events.every(e=>e.at<=13500 && e.count<=6));
-  assert.equal(scheduledEnemyCount(events),47);
-  assert.ok(swarms.at(-1).at - swarms[0].at>=12000);
+  assert.equal(scheduledEnemyCount(events),23);
+  assert.ok(swarms.at(-1).at - swarms[0].at>=10000);
 });
 
 test('danças da onda 1 descem ao céu médio sem subir de volta ao topo',()=>{
@@ -53,7 +53,7 @@ test('somente um Tipo 1 por enxame e dois Tipo 2 por esquadrilha disparam',()=>{
     assert.equal(shooters,event.type===1?1:2);
     volleyBudget+=shooters;
   }
-  assert.equal(volleyBudget,13);
+  assert.equal(volleyBudget,9);
 });
 
 test('cadência, dano e trajeto especiais se aplicam somente à onda 1',()=>{
