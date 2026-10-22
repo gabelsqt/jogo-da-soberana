@@ -62,7 +62,6 @@ export function enemyDefinition(type) {
 export function enemyContactRadius(type) {
   const e = enemyDefinition(type);
   if(type===6)return 55; // colisão real delegada aos cinco alvos independentes
-  if(type===5)return 70; // escudo oval do cruzador cobre o casco largo
   return Math.max(e.width, e.height) * 0.34;
 }
 
