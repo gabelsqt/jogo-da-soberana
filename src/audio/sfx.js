@@ -4,6 +4,7 @@ import {assetUrl} from '../config/assetUrl.js';
 const FILES=Object.freeze({
   cannon:'01_canhao_metralhadora_v3.wav',
   laser:'02_laser_alienigena.wav',
+  fighterWhoosh:'34_tipo4_whoosh_retro.wav',
   shieldOn:'03_escudo_ativar.wav',
   shieldReady:'35_escudo_hexagonal_uom_grave.wav',
   shieldBreak:'04_escudo_estilhacar.wav',
@@ -48,6 +49,7 @@ export const SFX_VARIATIONS=Object.freeze({
   introKey:Object.freeze({pitch:Object.freeze([0.88,1.14]),volume:Object.freeze([0.89,1.05])}),
   explosion:Object.freeze({pitch:Object.freeze([0.75,1.25]),volume:Object.freeze([0.94,1.06])}),
   boss:Object.freeze({pitch:Object.freeze([0.85,1.15]),volume:Object.freeze([0.97,1.03])}),
+  fighterWhoosh:Object.freeze({pitch:Object.freeze([0.91,1.09]),volume:Object.freeze([0.90,1.04])}),
 });
 export const SFX_PITCH_RANGES=Object.freeze(Object.fromEntries(
   Object.entries(SFX_VARIATIONS).filter(([,v])=>v.pitch).map(([id,v])=>[id,v.pitch])
