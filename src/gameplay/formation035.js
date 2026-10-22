@@ -1,3 +1,5 @@
+import { getBalancedWaveEvents } from './campaignWavePacing.js';
+
 // Soberana v0.35 — grupos coreografados. Matemática sem Phaser,
 // compartilhada por campanha e laboratório e testável de forma isolada.
 
@@ -13,11 +15,11 @@ export const STANDARD_INVADER_FLIGHT_FACTOR = 0.78;
 /** Cinemática da onda 0: 1 portal sozinho, depois pares simultâneos.
  * Cinco pontos reais distintos, sem encaixe nos três corredores antigos. */
 export const WAVE0_PORTAL_SEQUENCE = Object.freeze([
-  Object.freeze({at:800, portalX:480, count:8}),
-  Object.freeze({at:4600, portalX:235, count:10}),
-  Object.freeze({at:4600, portalX:725, count:10}),
-  Object.freeze({at:9600, portalX:125, count:10}),
-  Object.freeze({at:9600, portalX:835, count:10}),
+  Object.freeze({at:800, portalX:480, count:4}),
+  Object.freeze({at:4600, portalX:235, count:4}),
+  Object.freeze({at:4600, portalX:725, count:4}),
+  Object.freeze({at:9600, portalX:125, count:4}),
+  Object.freeze({at:9600, portalX:835, count:4}),
 ]);
 
 
@@ -34,9 +36,10 @@ export const WAVE0_EASY_PACING=Object.freeze({
 // Onda 1: primeiro combate após a introdução. Grupos menores, menos salvas
 // e voo progressivamente mais baixo. Não modifica as outras ondas/laboratórios.
 export const WAVE1_PACING = Object.freeze({
-  swarmTimes: Object.freeze([400,2300,4300,6400,8600,10800,12700]),
-  swarmCounts: Object.freeze([4,5,5,5,5,6,6]),
-  squadCounts: Object.freeze([3,4,4]),
+  swarmTimes: Object.freeze([500,3300,6100,8900,11700]),
+  swarmCounts: Object.freeze([3,3,3,3,3]),
+  tacticalTimes: Object.freeze([2400,7600]),
+  squadCounts: Object.freeze([4,4]),
   swarmPortalY: 120,
   tacticalPortalY: 192,
   bulletSpeedMultiplier: 0.9,
@@ -98,20 +101,18 @@ export function progressiveGroupCount(wave, type, progress) {
 export function getV035WaveEvents(mode, legacyEvents) {
   const wave = campaignWaveIndex(mode);
   if (wave === null) return legacyEvents.map(event => ({ ...event }));
-  // v0.49.3: sequência ensaiada de CINCO portais no céu do Rio:
-  // primeiro o central isolado, depois dois pares simultâneos. Os 48
-  // inimigos continuam com a entrada dos projéteis adiada na onda 0.
+  // Cinco portais coreografados: um central e depois dois pares.
+  // São 20 naves no tutorial, mantendo a entrada de tiros retardada.
   if (wave === 0) {
     return WAVE0_PORTAL_SEQUENCE.map(({at,portalX,count})=>({
       at,portalX,type:1,pattern:'swarm',count,level:1,
     }));
   }
   if(wave===1){
-    const squads=legacyEvents.filter(event=>event.type===2)
-      .map((event,index)=>({
-        ...event,pattern:'tactical',group:true,
-        count:WAVE1_PACING.squadCounts[Math.min(index,WAVE1_PACING.squadCounts.length-1)],
-      }));
+    const squads=WAVE1_PACING.tacticalTimes.map((at,index)=>({
+      at,type:2,level:1,pattern:'tactical',group:true,
+      count:WAVE1_PACING.squadCounts[index],
+    }));
     const swarms=WAVE1_PACING.swarmTimes.map((at,index)=>({
       at,type:1,level:1,pattern:'swarm',count:WAVE1_PACING.swarmCounts[index],
     }));
@@ -131,37 +132,8 @@ export function getV035WaveEvents(mode, legacyEvents) {
       pattern:'orbit',count:WAVE2_PACING.orbitCount};
     return [...swarms,...squads,orbit].sort((a,b)=>a.at-b.at);
   }
-  const regular = legacyEvents.filter(event => event.type !== 1).map(event => {
-    if (event.type !== 2) return { ...event };
-    return {
-      ...event,
-      pattern: 'tactical',
-      group: true,
-      count: progressiveGroupCount(wave, 2, event.at / 19500)+(wave<=2?1:0),
-    };
-  });
-  const basic = legacyEvents.filter(event => event.type === 1);
-  if (!basic.length) return regular.sort((a, b) => a.at - b.at);
-  const totalOldShips = basic.reduce((sum, event) =>
-    sum + (event.pattern === 'spread' || event.pattern === 'line'
-      ? (event.count ?? 1) : 1), 0);
-  const [lo, hi] = V035_SWARM_SIZES[wave];
-  const groupCount = Math.max(2, Math.ceil(totalOldShips / ((lo + hi) / 2)));
-  const lastWarning = [...basic].reverse().find(event => event.warning)?.warning;
-  const firstLevel = basic[0]?.level ?? 1;
-  const lastLevel = basic.at(-1)?.level ?? firstLevel;
-  const swarms = Array.from({ length: groupCount }, (_, i) => {
-    const progress = groupCount === 1 ? 1 : i / (groupCount - 1);
-    return {
-      at: Math.round(320 + 12480 * Math.pow(progress, 0.75)),
-      type: 1,
-      pattern: 'swarm',
-      count: wave<=2?progressiveGroupCount(wave,1,progress)+2:progressiveGroupCount(wave,1,progress),
-      level: progress >= 0.55 ? lastLevel : firstLevel,
-      ...(i === groupCount - 1 && lastWarning ? { warning: lastWarning } : {}),
-    };
-  });
-  return [...regular, ...swarms].sort((a, b) => a.at - b.at);
+  // Ondas 3–9 usam agendas explícitas e limitadas, sem o expansor antigo.
+  return getBalancedWaveEvents(wave);
 }
 
 export function swarmOffset(index, count, pattern = 'serpentine') {
