@@ -2,7 +2,11 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.894 (progressão de spawns)
+## Versão atual — 0.895 (Coreia + laboratório combinado)
+
+Corrigido o travamento do **Lightstick contínuo coreano**, especialmente na **onda 10**, quando bombas da Fortaleza Tipo 6 são removidas no mesmo quadro. O **laboratório V1** agora permite selecionar **níveis 0–10 independentemente nos cinco países**, combinar efeitos primários e especiais, definir o país do especial principal e retornar à tela de combinações pelo botão **ALTERAR COMBINAÇÃO [U]** da arena. A campanha continua limitada às dez escolhas tradicionais. Veja [notas da v0.895](docs/versao-0.895.md).
+
+## Versão anterior — 0.894 (progressão de spawns)
 
 O número de naves **agendadas na campanha cresce em todas as ondas 0–9**: 20, 23, 26, 33, 40, 47, 53, 59, 65 e 71. As ondas 3/4 não expandem mais a população para quase cem inimigos; as ondas 5–9 passam a ter quantidades explicitamente controladas, mantendo a identidade dos padrões, os bombardeiros, as pinças e o miniboss Tipo 5 nas ondas 8/9. Os cinco portais da onda 0 permanecem nas mesmas posições. Todos os encontros comuns abrem em até 13,5 segundos; os 15 segundos restantes continuam dedicados à defesa. Reforços gerados por Tipo 5 durante o combate não estão incluídos nesses totais. Veja [notas da v0.894](docs/versao-0.894.md).
 
