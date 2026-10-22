@@ -1339,7 +1339,7 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
       if (segmentHitsCircle(oldX, oldY, next.x, next.y,
-        enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 9)) {
+        enemy.sprite.x, enemy.sprite.y, this.enemyCombatRadius(enemy) + 9)) {
         this.detonateShockArtillery(enemy.sprite.x, enemy.sprite.y, shot.weapon);
         return true;
       }
@@ -1470,7 +1470,7 @@ export class GameScene extends Phaser.Scene {
           continue;
         }
         if (!segmentHitsCircle(oldX, oldY, next.x, next.y,
-          enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 7)) continue;
+          enemy.sprite.x, enemy.sprite.y, this.enemyCombatRadius(enemy) + 7)) continue;
 
         this.impactInvader(
           j, shot.weapon.damage, shot.weapon.knockback ?? 0, '#fff3b9',
@@ -2511,9 +2511,9 @@ export class GameScene extends Phaser.Scene {
         enemy.shockOffset = {x:0,y:0,vx:0,vy:0};
         enemy.russianPullOffset = {x:0,y:0};
         this.frostGraphics.lineStyle(3,0x93ebff,0.85);
-        this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type)+8);
+        this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy)+8);
         this.frostGraphics.lineStyle(1,0xe2ffff,0.72);
-        this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type)+13);
+        this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy)+13);
         if(isSputnikCrystalized(enemy,this.elapsed)){
           // Cristalizado é legível e diferente do congelamento comum:
           // quatro pequenos diamantes dourados/cianos orbitam a nave.
@@ -3195,6 +3195,11 @@ export class GameScene extends Phaser.Scene {
     this.enemyBullets.splice(index, 1);
   }
 
+  enemyCombatRadius(enemy) {
+    // O escudo aumenta a área interceptável apenas enquanto há proteção.
+    return enemy.type===5&&enemy.shield>0?70:enemyContactRadius(enemy.type);
+  }
+
   removeEnemy(index) {
     const enemy = this.enemies[index];
     if (!enemy) return;
@@ -3874,7 +3879,7 @@ export class GameScene extends Phaser.Scene {
       if (laserHitsTarget(
         startX, startY, endX, endY,
         enemy.sprite.x, enemy.sprite.y,
-        PLASMA_HALF_WIDTH, enemyContactRadius(enemy.type),
+        PLASMA_HALF_WIDTH, this.enemyCombatRadius(enemy),
       )) {
         initialHitIds.add(enemy.uid);
         this.impactInvader(i, this.isV1Campaign ? this.combat.laserDamage : PLASMA_DAMAGE, 0, '#e9aaff');
@@ -4120,7 +4125,7 @@ export class GameScene extends Phaser.Scene {
       }
       if (enemy.uid === directTargetId) continue;
       if (fragmentHitsTarget(
-        x, y, enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type),
+        x, y, enemy.sprite.x, enemy.sprite.y, this.enemyCombatRadius(enemy),
       )) {
         const position = { x: enemy.sprite.x, y: enemy.sprite.y };
         const killed = this.impactInvader(i, FRAGMENT_DAMAGE, 0, '#90cfff');
@@ -5101,7 +5106,7 @@ export class GameScene extends Phaser.Scene {
     for(let i=this.enemies.length-1;i>=0;i--){
       const enemy=this.enemies[i];
       if(enemy.type===6){hitType6At(this,enemy,x,y,amount,radius);continue;}
-      if(withinBlast(x,y,enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type),radius))
+      if(withinBlast(x,y,enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy),radius))
         this.impactInvader(i,amount,0,color,false);
     }
     for(let i=this.enemyBullets.length-1;i>=0;i--){
@@ -5279,7 +5284,7 @@ export class GameScene extends Phaser.Scene {
           const enemy=this.enemies[i];
           if(this.firePulse.hits.has(enemy.uid))continue;
           if(withinBlast(CANNON.x,CANNON.y+7,
-            enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type),radius)){
+            enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy),radius)){
             this.firePulse.hits.add(enemy.uid);
             this.impactInvader(i,ARRAIAL.firePulseDamage,0,'#ffac50',false);
           }
@@ -5322,7 +5327,7 @@ export class GameScene extends Phaser.Scene {
       if (blast.hits.has(enemy.uid)) continue;
       if (!blastCatchesTarget(
         blast.x, blast.y, this.time.now - blast.bornAt,
-        enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type),blast.radiusScale??1,
+        enemy.sprite.x, enemy.sprite.y, this.enemyCombatRadius(enemy),blast.radiusScale??1,
       )) continue;
       blast.hits.add(enemy.uid);
       // Cada explosão pode atingir o mesmo alvo uma única vez.
@@ -5652,7 +5657,7 @@ export class GameScene extends Phaser.Scene {
           if (bullet.hitEnemyIds.has(enemy.uid)) continue;
           if (Phaser.Math.Distance.Between(
             bullet.sprite.x, bullet.sprite.y, enemy.sprite.x, enemy.sprite.y,
-          ) >= enemyContactRadius(enemy.type) + Math.max(7,bullet.usRadius)) continue;
+          ) >= this.enemyCombatRadius(enemy) + Math.max(7,bullet.usRadius)) continue;
 
           const directTargetId = enemy.uid;
           bullet.hitEnemyIds.add(directTargetId);
