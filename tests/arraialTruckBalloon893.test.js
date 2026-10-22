@@ -15,7 +15,7 @@ test('mini-rojões pequenos matam um Tipo 1 básico, mas Tipo 2 sobrevive',()=>{
  assert.equal(enemyStats(1,1).hp,ARRAIAL.fireworkDamage);
  assert.ok(enemyStats(2,1).hp>ARRAIAL.fireworkDamage);
  assert.equal(ARRAIAL.finaleRadius,ARRAIAL.orbitRadius);
- assert.equal(ARRAIAL.maxBurstVisuals,10);
+ assert.equal(ARRAIAL.maxBurstVisuals,28);
 });
 
 test('rojões se espalham por toda a área circular do balão (não no centro fixo)',()=>{
@@ -71,7 +71,7 @@ test('código do Arraial exige acerto direto no balão; não agenda fogos autom�
  assert.doesNotMatch(update,/n\.events|n\.next|fireworkSchedule/);
  assert.match(shoot,/shotHitsArraialBalloon\(previousX,previousY/);
  assert.match(shoot,/randomArraialBurst\(n\.x,n\.y,n\.radius\)/);
- assert.match(shoot,/this\.arraialFirework\(p\.x,p\.y,n\.bursts\+\+,true\)/);
+ assert.match(shoot,/this\.arraialFirework\(p\.x,p\.y,n\.bursts\+spark,true,stage\)/);
  assert.match(shoot,/remove=true;/);
  assert.ok(shoot.indexOf('shotHitsArraialBalloon')<shoot.indexOf('if (!remove && !bullet.special)'));
 });
@@ -93,7 +93,7 @@ test('estouro final cobre a área, exibe frase e não deixa balão persistente',
    game.indexOf('  updateArraialFlames() {'));
  assert.match(update,/this\.arraialDamage\(n\.x,n\.y,n\.radius,ARRAIAL\.finaleDamage/);
  assert.match(update,/arraialFinalPhrase\(\)/);
- assert.match(update,/truck\.destroy\(\)/);
+ assert.match(update,/phraseGfx\.destroy\(\)/);
  assert.match(update,/n\.graphics\.destroy\(\); this\.arraialNuclei\.splice\(i,1\)/);
  assert.match(update,/g\.strokeCircle\(n\.x,n\.y,n\.radius\)/);
  assert.match(update,/const radius=8\+\(n\.radius-8\)\*t/);
