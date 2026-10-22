@@ -2,7 +2,11 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.50
+## Versão atual — 0.894 (progressão de spawns)
+
+O número de naves **agendadas na campanha cresce em todas as ondas 0–9**: 20, 23, 26, 33, 40, 47, 53, 59, 65 e 71. As ondas 3/4 não expandem mais a população para quase cem inimigos; as ondas 5–9 passam a ter quantidades explicitamente controladas, mantendo a identidade dos padrões, os bombardeiros, as pinças e o miniboss Tipo 5 nas ondas 8/9. Os cinco portais da onda 0 permanecem nas mesmas posições. Todos os encontros comuns abrem em até 13,5 segundos; os 15 segundos restantes continuam dedicados à defesa. Reforços gerados por Tipo 5 durante o combate não estão incluídos nesses totais. Veja [notas da v0.894](docs/versao-0.894.md).
+
+## Registro anterior — 0.50
 
 **Boteco diurno:** imagem enviada pelo criador integrada em 960×540 (WebP) ao menu de negociações, com cinco retratos provisórios nas cadeiras. Selecionar representante escurece o cenário, faz o retrato crescer no canto superior esquerdo e apresenta simultaneamente flavor, descrição real do upgrade e uma área reservada para futura prévia animada. Histórias de Brasil, EUA, Coreia, Rússia e China aparecem progressivamente como placeholders.
 
