@@ -20,6 +20,7 @@ import {americanWallPlacement,americanWallArcCenter,americanWallTravelDuration,
   americanWallBreaksFromBeam,AMERICAN_WALL_COOLDOWN_MS,AMERICAN_WALL_OPEN_MS} from '../gameplay/americanArsenal.js';
 import { ARRAIAL, withinBlast, withinFlame, firePulseRadius,
   arraialFinalPhrase, randomArraialBurst, shotHitsArraialBalloon,
+  arraialStage, arraialPhrasePixels,
 } from '../gameplay/arraialBrasil2.js';
 import {
   normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout,
@@ -4928,16 +4929,16 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  arraialFirework(x, y, hue, damaging = true) {
+  arraialFirework(x, y, hue, damaging = true, stage = arraialStage(0)) {
     // TODO: a morte de inimigos NÃO deve depender de um orçamento de VFX.
     // A colisão e o dano acontecem sempre, mesmo com 50 tiros/segundo.
     if(damaging)this.arraialDamage(x,y,ARRAIAL.fireworkRadius,
-      ARRAIAL.fireworkDamage,'#ffe8b7');
+      stage.damage,'#ffe8b7');
     playSfx('brFireworkBurst',{throttle:95,volumeScale:0.50});
     if(this.arraialBurstVisuals>=ARRAIAL.maxBurstVisuals)return;
     this.arraialBurstVisuals++;
     const gfx=this.add.graphics().setPosition(x,y).setDepth(46);
-    const palette=[0xffe36b,0xff576a,0x60ffaf,0x69d4ff,0xf5a0f9];
+    const palette=stage.palette;
     const color=palette[hue%palette.length];
     const started=this.time.now,duration=290;
     const paint=()=>{
@@ -4948,13 +4949,16 @@ export class GameScene extends Phaser.Scene {
       gfx.clear();
       gfx.fillStyle(color,0.18*fade);gfx.fillCircle(0,0,radius+4);
       gfx.fillStyle(0xfff8d6,0.75*fade);gfx.fillCircle(0,0,Math.max(1,4*(1-t)));
-      for(let k=0;k<8;k++){
-        const angle=k*Math.PI/4;
-        const outer=radius*(k%2===0?1:0.82);
-        gfx.lineStyle(k%2===0?2:1.5,k%3===0?0xffffff:color,fade);
-        gfx.lineBetween(Math.cos(angle)*Math.max(2,outer*0.28),
-          Math.sin(angle)*Math.max(2,outer*0.28),
-          Math.cos(angle)*outer,Math.sin(angle)*outer);
+      for(let k=0;k<12;k++){
+        const angle=k*Math.PI/6;
+        const outer=radius*(k%3===0?1:0.78);
+        const spark=palette[(hue+k)%palette.length];
+        gfx.fillStyle(k%4===0?0xfff9db:spark,fade);
+        gfx.fillRect(Math.round(Math.cos(angle)*outer)-1,
+          Math.round(Math.sin(angle)*outer)-1,k%3===0?3:2,k%3===0?3:2);
+        if(k%3===0){gfx.fillStyle(color,fade*0.7);
+          gfx.fillRect(Math.round(Math.cos(angle)*outer*0.57),
+            Math.round(Math.sin(angle)*outer*0.57),2,2);}
       }
     };
     paint();
@@ -4975,21 +4979,59 @@ export class GameScene extends Phaser.Scene {
       if(age>=ARRAIAL.duration){
         this.arraialDamage(n.x,n.y,n.radius,ARRAIAL.finaleDamage,'#fff2aa');
         playSfx('brFireworkBurst',{throttle:0,volumeScale:0.86});
-        // A mensagem é uma surpresa de para-choque, sorteada a cada estouro.
-        const truck=this.add.text(
-          Math.max(170,Math.min(W-170,n.x)),Math.max(50,Math.min(H-120,n.y)),
-          arraialFinalPhrase(),{
-            fontFamily:'monospace',fontSize:'13px',fontStyle:'bold',
-            color:'#fff2b3',stroke:'#182135',strokeThickness:4,
-            backgroundColor:'#172d36bb',padding:{x:7,y:6},
-            align:'center',
-          }).setOrigin(0.5).setDepth(110).setAlpha(0);
-        this.tweens.add({targets:truck,alpha:1,y:truck.y-25,duration:260,
-          ease:'Back.Out',onComplete:()=>{
-            this.tweens.add({targets:truck,alpha:0,y:truck.y-15,
-              delay:1000,duration:450,onComplete:()=>truck.destroy()});
+        // Frase pequena composta somente de pixels: sem objeto Text ou HUD.
+        const phrase=arraialPhrasePixels(arraialFinalPhrase());
+        const scale=2, centerX=Math.max(phrase.width,
+          Math.min(W-phrase.width,n.x));
+        const centerY=Math.max(phrase.height+8,Math.min(H-phrase.height-8,n.y-34));
+        const coords=phrase.points.map(p=>({
+          x:centerX+(p.x-phrase.width/2)*scale,
+          y:centerY+(p.y-phrase.height/2)*scale,
+        }));
+        const phraseGfx=this.add.graphics().setDepth(110);
+        const phraseColors=arraialStage(n.bursts).palette;
+        const drawPhrase=(scatter=0,fade=1)=>{
+          if(!phraseGfx.active)return;
+          phraseGfx.clear();
+          coords.forEach((p,k)=>{
+            const a=k*2.39996;
+            const x=p.x+Math.cos(a)*scatter*(0.5+k%4/5);
+            const y=p.y+Math.sin(a)*scatter*(0.5+k%5/6);
+            phraseGfx.fillStyle(phraseColors[k%phraseColors.length],fade);
+            phraseGfx.fillRect(Math.round(x),Math.round(y),2,2);
+          });
+        };
+        drawPhrase();
+        // O estouro aplica 1 de dano por alvo, independentemente da densidade
+        // de pixels; projéteis inimigos seguem a mesma regra.
+        this.time.delayedCall(210,()=>{
+          if(!phraseGfx.active)return;
+          for(let j=this.enemies.length-1;j>=0;j--){
+            const e=this.enemies[j];
+            const x=e.sprite.x,y=e.sprite.y,r=enemyContactRadius(e.type);
+            if(!coords.some(p=>Math.abs(p.x-x)<=r+5&&Math.abs(p.y-y)<=r+5))continue;
+            if(e.type===6)hitType6At(this,e,x,y,1,r);
+            else this.impactInvader(j,1,0,'#ffe8b7',false);
+          }
+          for(let j=this.enemyBullets.length-1;j>=0;j--){
+            const b=this.enemyBullets[j];
+            if(!b?.sprite?.active)continue;
+            if(!coords.some(p=>Math.abs(p.x-b.sprite.x)<=13&&
+              Math.abs(p.y-b.sprite.y)<=13))continue;
+            b.hp=Math.max(0,(b.hp??1)-1);
+            if(b.hp<=0){
+              if(b.colossal)detonateType6Bomb(this,b);
+              else this.removeEnemyBullet(j,true);
+            }else this.showEnemyBulletHit(b);
+          }
+          let frame=0;
+          const timer=this.time.addEvent({delay:35,repeat:8,callback:()=>{
+            frame++;
+            if(!phraseGfx.active)return;
+            drawPhrase(frame*3,Math.max(0,1-frame/9));
+            if(frame>=9)phraseGfx.destroy();
           }});
-
+        });
         // Clarão final mais expressivo, também ancorado no balão sem escala.
         const finale=this.add.graphics().setPosition(n.x,n.y).setDepth(48);
         const startFinal=this.time.now;
@@ -5332,8 +5374,11 @@ export class GameScene extends Phaser.Scene {
           if(!shotHitsArraialBalloon(previousX,previousY,
             bullet.sprite.x,bullet.sprite.y,n.x,n.y,
             Math.max(3,bullet.usRadius??0)))continue;
-          const p=randomArraialBurst(n.x,n.y,n.radius);
-          this.arraialFirework(p.x,p.y,n.bursts++,true);
+          const stage=arraialStage(n.bursts++);
+          for(let spark=0;spark<stage.fireworks;spark++){
+            const p=randomArraialBurst(n.x,n.y,n.radius);
+            this.arraialFirework(p.x,p.y,n.bursts+spark,true,stage);
+          }
           remove=true;
           break;
         }
