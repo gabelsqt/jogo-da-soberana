@@ -3195,11 +3195,6 @@ export class GameScene extends Phaser.Scene {
     this.enemyBullets.splice(index, 1);
   }
 
-  enemyCombatRadius(enemy) {
-    // O escudo aumenta a área interceptável apenas enquanto há proteção.
-    return enemy.type===5&&enemy.shield>0?70:enemyContactRadius(enemy.type);
-  }
-
   removeEnemy(index) {
     const enemy = this.enemies[index];
     if (!enemy) return;
@@ -3208,6 +3203,11 @@ export class GameScene extends Phaser.Scene {
     enemy.bossLabel?.destroy();
     enemy.sprite.destroy();
     this.enemies.splice(index, 1);
+  }
+
+  enemyCombatRadius(enemy) {
+    // O escudo aumenta a área interceptável apenas enquanto há proteção.
+    return enemy.type===5&&enemy.shield>0?70:enemyContactRadius(enemy.type);
   }
 
   drawEnemyHealthBars() {
