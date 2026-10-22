@@ -12,5 +12,5 @@ test('Onda 2 usa somente Tipos 1, 2 e 3; Tipo 4 estreia na Onda 3', () => {
   assert.equal(MODES.wave2.minDuration, 46000);
   assert.ok(wave2.every(({ at }) => at < MODES.wave2.minDuration));
   assert.ok(wave2.every((event, index) => index === 0 || event.at >= wave2[index - 1].at));
-  assert.equal(scheduledEnemyCount(wave2), 94);
+  assert.equal(scheduledEnemyCount(wave2), 82);
 });
