@@ -312,7 +312,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   openUpgradeLab() {
-    if (this.mode !== 'upgradeLab' || this.scene.isActive('UpgradeLabScene')) return;
+    if (this.mode !== 'upgradeLab') return;
+    if(this.v1Playtest && this.v1LabLevels){
+      // A árvore V1 é escolhida no laboratório novo, não no painel legado.
+      this.scene.start('V1PlaytestScene',{
+        levels:{...this.v1LabLevels},primary:this.v1LabPrimary,arenaIndex:12,
+      });
+      return;
+    }
+    if(this.scene.isActive('UpgradeLabScene'))return;
     this.scene.pause();
     this.scene.launch('UpgradeLabScene', {
       selectedIds: [...this.upgradeIds], selectedTowerIds: [...this.labTowerIds],
@@ -747,12 +755,23 @@ export class GameScene extends Phaser.Scene {
           if (!this.tutorialComplete && this.enemies.length < 12) this.spawnEnemy(3);
         },
       });
-      if (!this.v1Playtest) {
-        this.input.keyboard.on('keydown-U', () => {
-          if (this.scene.isActive('GameScene')) this.openUpgradeLab();
-        });
+      this.input.keyboard.on('keydown-U', () => {
+        if (this.scene.isActive('GameScene')) this.openUpgradeLab();
+      });
+      if(!this.v1Playtest){
         // Apenas laboratório legado abre o seletor de upgrades antigo.
         this.time.delayedCall(1, () => this.openUpgradeLab());
+      } else {
+        const comboButton=this.add.rectangle(835,95,213,29,0x204d50,0.97)
+          .setStrokeStyle(2,0x9dffce).setDepth(109)
+          .setInteractive({useHandCursor:true});
+        this.add.text(835,95,'ALTERAR COMBINAÇÃO [U]',{
+          fontFamily:'monospace',fontSize:'12px',color:'#effff6',
+        }).setOrigin(0.5).setDepth(110);
+        comboButton.on('pointerdown',(pointer,_x,_y,event)=>{
+          event?.stopPropagation();
+          if(pointer.leftButtonDown())this.openUpgradeLab();
+        });
       }
     }
     if (this.unifiedLab || this.mode === 'upgradeLab' || this.mode === 'lab') {
@@ -3425,6 +3444,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   activeUpgradeIds() {
+    if(this.v1Playtest && this.v1LabLevels)
+      return Object.keys(this.v1LabLevels).filter(id=>this.v1LabLevels[id]>=1);
     if (this.unifiedLab) return Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 1);
     return this.mode === 'upgradeLab'
       ? this.upgradeIds
