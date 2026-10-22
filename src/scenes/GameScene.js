@@ -3408,15 +3408,20 @@ export class GameScene extends Phaser.Scene {
         scaleY:wreck.scaleY*1.3,duration:300,onComplete:()=>wreck.destroy()});
     }
     if (enemy.type === 4 && enemy.sprite.texture?.key === 'tipo4_sheet') {
-      // O último quadro mostra a fragmentação antes da explosão padrão.
+      // Clarão branco breve seguido de fragmentos que continuam visíveis.
+      const flare=this.add.sprite(enemy.sprite.x,enemy.sprite.y,'tipo4_sheet',10)
+        .setDisplaySize(enemy.sprite.displayWidth*1.2,enemy.sprite.displayHeight*1.2)
+        .setDepth(55).setTintFill(0xffffff);
+      this.tweens.add({targets:flare,alpha:0,scaleX:flare.scaleX*1.5,
+        scaleY:flare.scaleY*1.5,duration:135,onComplete:()=>flare.destroy()});
       const debris=this.add.sprite(enemy.sprite.x,enemy.sprite.y,'tipo4_sheet',11)
         .setDisplaySize(enemy.sprite.displayWidth,enemy.sprite.displayHeight)
         .setDepth(53).setRotation(enemy.sprite.rotation)
         .setFlipX(enemy.sprite.flipX);
       this.tweens.add({
         targets:debris,alpha:0,
-        scaleX:debris.scaleX*1.22,scaleY:debris.scaleY*1.22,
-        duration:230,onComplete:()=>debris.destroy(),
+        scaleX:debris.scaleX*1.65,scaleY:debris.scaleY*1.65,
+        duration:420,onComplete:()=>debris.destroy(),
       });
     }
     if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
@@ -3436,14 +3441,15 @@ export class GameScene extends Phaser.Scene {
     const profile = deathProfileFor(enemy.type);
     const createBurst = (stage = 0) => {
       if (!this.scene.isActive('GameScene')) return;
-      const radius = profile.radius * (stage > 0 ? 0.70 : 1);
+      const radius = profile.radius*(enemy.type===4?1.32:1)*
+        (stage===2?0.92:stage>0?0.73:1);
       const color = stage > 0
         ? (enemy.type === 4 ? 0xffd49c : 0xfff0bf)
         : profile.color;
       const graphic = this.add.graphics().setPosition(
         x + (stage > 0 ? 9 : 0), y + (stage > 0 ? -6 : 0),
       ).setDepth(54);
-      const fragments = Math.min(30, profile.fragments);
+      const fragments = Math.min(30,profile.fragments+(enemy.type===4?8:0));
       // Primeiro clarão branco, seguido de anel de energia e fragmentos.
       graphic.fillStyle(color, stage > 0 ? 0.2 : 0.23);
       graphic.fillCircle(0, 0, radius * 0.55);
@@ -3489,17 +3495,17 @@ export class GameScene extends Phaser.Scene {
       });
     };
     createBurst(0);
-    if (profile.stages >= 2) {
-      this.time.delayedCall(enemy.type === 4 ? 95 : 150, () => createBurst(1));
+    if (profile.stages >= 2 || enemy.type===4) {
+      this.time.delayedCall(enemy.type === 4 ? 110 : 150, () => createBurst(1));
     }
-    // Reservado ao futuro chefe Tipo 6, ainda fora das ondas atuais.
-    if (profile.stages >= 3) {
-      this.time.delayedCall(300, () => createBurst(2));
+    // Terceira detonação apenas quando a nave foi REALMENTE destruída.
+    if (profile.stages >= 3 || enemy.type===4) {
+      this.time.delayedCall(enemy.type===4?225:300, () => createBurst(2));
     }
     // Recompensa no Tipo 4/5 sem tremor intenso em kills simultâneos.
     if (enemy.type >= 4 && this.time.now - this.lastVictoryShake >= 220) {
-      this.cameras.main.shake(enemy.type === 4 ? 75 : 130,
-        enemy.type === 4 ? 0.0012 : 0.0019);
+      this.cameras.main.shake(enemy.type === 4 ? 155 : 130,
+        enemy.type === 4 ? 0.0024 : 0.0019);
       this.lastVictoryShake = this.time.now;
     }
   }
