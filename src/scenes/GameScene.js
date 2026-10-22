@@ -91,6 +91,12 @@ import {createCuboNewsState,tickCuboNews,queueCuboNews} from '../gameplay/cuboNe
 import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
 import { v1LabBuild } from '../gameplay/v1LabLoadout.js';
+import {
+  type5ShieldHp,absorbType5Shield,type5ChargeFraction,
+  shieldRippleAt,shieldSoftFlashAt,
+  TYPE5_LASER_CHARGE_SECONDS,TYPE5_LASER_FIRE_SECONDS,
+  TYPE5_LASER_RECOVERY_SECONDS,TYPE5_LASER_DAMAGE,
+} from '../gameplay/type5Combat.js';
 import {fullBrazilVoyageEligible,voyageEvents,voyageStop,voyageNext,
   voyageCanDepart,VOYAGE_STOPS} from '../gameplay/fullBrazilVoyage.js';
 import {createBattleBanterState,enqueueBattleBanter,currentBattleBanter} from '../gameplay/battleBanter.js';
@@ -2226,6 +2232,13 @@ export class GameScene extends Phaser.Scene {
       bossLevel:options.bossLevel??0,bossLabel:null,
       finalAbilityAge:0,finalAbilityCount:0,finalAssaultPhase:1,
       laserGraphics: null,
+      shieldGraphics: null,
+      shield: type===5 ? type5ShieldHp(level) : 0,
+      maxShield: type===5 ? type5ShieldHp(level) : 0,
+      shieldHitAt: -Infinity,
+      laserTarget: null,
+      laserShotDone: false,
+      lastWhooshPass: -1,
       formationGroup,
       formationIndex: index,
       entryDelay: formationGroup?.kind === 'swarm' &&
@@ -2299,8 +2312,10 @@ export class GameScene extends Phaser.Scene {
       enemy.phase = 'flyby';
       enemy.direction = startX < 0 ? 1 : -1;
       enemy.passesRemaining = definition.fighterExtraPasses;
+      enemy.flybySerial=0;
     } else if (type === 5) {
       enemy.phase = 'arrival';
+      enemy.shieldGraphics=this.add.graphics().setDepth(38);
     }
     this.enemies.push(enemy);
     // Só teletransportes que aparecem já dentro da área de jogo precisam
@@ -2517,6 +2532,7 @@ export class GameScene extends Phaser.Scene {
           enemy.type2Facing=steerType2Rotation(enemy.type2Facing??0,0,0,dt);
           enemy.sprite.rotation=enemy.type2Facing;
         }
+        if(enemy.type===5)this.drawType5Effects(enemy);
         // Congelar não dá imunidade às explosões que já estejam ativas.
         this.hitEnemyWithBlast(i);
         continue;
@@ -2763,6 +2779,12 @@ export class GameScene extends Phaser.Scene {
       } else if (enemy.phase === 'flyby') {
         const slow = this.time.now < enemy.electricSlowUntil ? ELECTRIC_SLOW_FACTOR : 1;
         enemy.sprite.x += enemy.direction * enemy.speed * slow * dt;
+        // Whoosh breve ao cruzar a arena; não repetir som a cada frame.
+        if(enemy.lastWhooshPass!==enemy.flybySerial &&
+          Math.abs(enemy.sprite.x-W/2)<Math.max(12,enemy.speed*dt*1.1)){
+          enemy.lastWhooshPass=enemy.flybySerial;
+          playSfx('fighterWhoosh',{throttle:220,volumeScale:0.78});
+        }
         if ((enemy.direction > 0 && enemy.sprite.x >= W + 55) ||
             (enemy.direction < 0 && enemy.sprite.x <= -55)) {
           if (enemy.passesRemaining > 0) {
@@ -2770,6 +2792,7 @@ export class GameScene extends Phaser.Scene {
             // ainda com a velocidade de caça, antes do mergulho com laser.
             enemy.passesRemaining -= 1;
             enemy.direction *= -1;
+            enemy.flybySerial++;
             enemy.sprite.y = Phaser.Math.Clamp(
               enemy.sprite.y + (enemy.direction > 0 ? 30 : -30), 110, 215);
           } else {
@@ -2810,13 +2833,31 @@ export class GameScene extends Phaser.Scene {
           enemy.sprite.x, enemy.sprite.y, enemy.target.x, enemy.target.y,
         );
         if (enemy.phaseAge >= 0.35) {
-          this.removeEnemy(i);
-          continue;
+          // O disparo NÃO é uma morte: recolhe asas, retoma a altura de
+          // patrulha e volta a cruzar a tela até que o HP chegue a zero.
+          enemy.laserGraphics.clear();
+          enemy.phase='recover4';enemy.phaseAge=0;
+          const farX=enemy.direction>0?W-75:75;
+          this.setRoute(enemy,farX,Phaser.Math.Clamp(enemy.sprite.y-90,115,195));
+        }
+      } else if(enemy.phase==='recover4'){
+        if(this.moveAlongRoute(enemy,dt)){
+          enemy.direction*=-1;
+          enemy.flybySerial++;
+          enemy.passesRemaining=enemy.definition.fighterExtraPasses;
+          enemy.target=this.chooseDefenseTarget();
+          enemy.phase='flyby';enemy.phaseAge=0;
         }
       } else if (enemy.phase === 'arrival') {
         enemy.sprite.y = Math.min(140, enemy.sprite.y + enemy.speed * dt);
         if (enemy.sprite.y >= 140) {
           enemy.phase = 'boss';
+          if(enemy.type===5){
+            enemy.shotTimer=0;
+            enemy.laserShotDone=false;
+            enemy.laserTarget=this.chooseDefenseTarget();
+            this.showAttackWarning('CRUZADOR TIPO 5 — LASER CARREGANDO (5 S)!');
+          }
           enemy.bossAnchorX = enemy.sprite.x;
           enemy.bossAnchorY = enemy.sprite.y;
           enemy.phaseAge = 0;
@@ -2831,13 +2872,16 @@ export class GameScene extends Phaser.Scene {
         enemy.sprite.y = enemy.bossAnchorY + Math.sin(enemy.phaseAge * 1.05) * 10;
         enemy.shotTimer += dt;
         enemy.spawnTimer += dt;
+        // Cinco segundos de carga visível, seguido de raio pesado.
+        // O disparo é feito uma vez por ciclo, jamais a cada frame.
+        if(enemy.type===5)this.updateType5Laser(enemy);
         // Duas fases de fúria: mais salvas e escoltas abaixo de 70% e 35% HP.
         const phaseProfile=enemy.finalBoss
           ? finaleBossFirePattern(this.mode,this.finale?.coalition.length||1,
             enemy.finalAssaultPhase) : null;
         const interval=enemy.definition.shotInterval*
           (phaseProfile?.intervalMultiplier??1);
-        if (enemy.shotTimer >= interval) {
+        if (enemy.type!==5 && enemy.shotTimer >= interval) {
           enemy.shotTimer = 0;
           this.fireEnemyProjectile(enemy);
         }
@@ -2930,6 +2974,7 @@ export class GameScene extends Phaser.Scene {
       }
       this.updateType4Appearance(enemy,previousX,previousY,dt);
       this.updateEnemyHitVisual(enemy);
+      if(enemy.type===5)this.drawType5Effects(enemy);
       enemy.bossLabel?.setPosition(enemy.sprite.x,enemy.sprite.y-52);
 
       // Bombas de pulso são barreiras: inimigos entram nelas durante o movimento.
@@ -3153,6 +3198,7 @@ export class GameScene extends Phaser.Scene {
   removeEnemy(index) {
     const enemy = this.enemies[index];
     if (!enemy) return;
+    enemy.shieldGraphics?.destroy();
     enemy.laserGraphics?.destroy();
     enemy.bossLabel?.destroy();
     enemy.sprite.destroy();
@@ -3202,6 +3248,92 @@ export class GameScene extends Phaser.Scene {
       duration: 570,
       onComplete: () => number.destroy(),
     });
+  }
+
+
+  updateType5Laser(enemy){
+    const charge=TYPE5_LASER_CHARGE_SECONDS;
+    const fire=TYPE5_LASER_FIRE_SECONDS;
+    const end=charge+fire+TYPE5_LASER_RECOVERY_SECONDS;
+    if(!enemy.laserGraphics)enemy.laserGraphics=this.add.graphics().setDepth(47);
+    const g=enemy.laserGraphics;
+    g.clear();
+    const target=enemy.laserTarget??{x:CANNON.x,y:CANNON.y,kind:'cannon'};
+    const x=enemy.sprite.x,y=enemy.sprite.y+29;
+    const t=enemy.shotTimer;
+    if(t<charge){
+      const fraction=type5ChargeFraction(t);
+      const pulse=0.58+0.42*Math.sin(this.time.now*0.022);
+      g.lineStyle(1.5+2.3*fraction,0xff7c73,0.23+0.50*fraction*pulse);
+      g.lineBetween(x,y,target.x,target.y);
+      g.lineStyle(2.5,0xffc078,0.50).strokeCircle(x,y,8+21*fraction);
+      g.fillStyle(0xff4d66,0.20+0.60*fraction*pulse)
+        .fillCircle(x,y,4+10*fraction);
+      if(!enemy.laserChargeSoundPlayed){
+        enemy.laserChargeSoundPlayed=true;
+        playSfx('shieldOn',{throttle:330,volumeScale:0.45});
+      }
+    }else if(t<charge+fire){
+      if(!enemy.laserShotDone){
+        enemy.laserShotDone=true;
+        // O dano é aplicado uma única vez. O restante é o feixe visível.
+        this.damageTarget(target,TYPE5_LASER_DAMAGE);
+        playSfx('laser',{throttle:120,volumeScale:1});
+        this.cameras.main.shake(180,0.003);
+      }
+      const pulse=0.78+0.22*Math.sin(this.time.now*0.038);
+      g.lineStyle(26,0xff344f,0.23*pulse).lineBetween(x,y,target.x,target.y);
+      g.lineStyle(12,0xff4f5f,0.91*pulse).lineBetween(x,y,target.x,target.y);
+      g.lineStyle(4,0xfff4dc,0.98).lineBetween(x,y,target.x,target.y);
+      g.fillStyle(0xffffff,0.8).fillCircle(x,y,12);
+    }
+    if(t>=end){
+      enemy.shotTimer=0;
+      enemy.laserShotDone=false;
+      enemy.laserChargeSoundPlayed=false;
+      enemy.laserTarget=this.chooseDefenseTarget();
+      this.showAttackWarning('CRUZADOR TIPO 5 — NOVO LASER EM 5 S!');
+    }
+  }
+
+  drawType5Effects(enemy){
+    const g=enemy.shieldGraphics;
+    if(!g)return;
+    g.clear().setPosition(enemy.sprite.x,enemy.sprite.y);
+    if(enemy.shield<=0)return;
+    const p=Math.max(0,enemy.shield/enemy.maxShield);
+    const ripple=shieldRippleAt(this.time.now,enemy.shieldHitAt);
+    const blink=shieldSoftFlashAt(this.time.now,enemy.shieldHitAt);
+    // A cúpula pulsa levemente, ondula após impactos e pisca por apenas
+    // 65 ms; nunca torna o casco inteiro branco.
+    const wobble=Math.sin(this.time.now*.011)*1.5 + Math.sin(this.time.now*.035)*ripple*4;
+    const color=p>0.6?0x62deff:p>0.3?0xffd86f:0xff6880;
+    g.fillStyle(color,0.045+0.085*ripple).fillEllipse(0,0,150+wobble,96+wobble);
+    g.lineStyle(2.6+1.6*ripple,blink?0xeaffff:color,0.68+0.22*ripple)
+      .strokeEllipse(0,0,150+wobble,96+wobble);
+    g.lineStyle(1.2,0xbcefff,0.21+0.25*ripple)
+      .strokeEllipse(0,0,139-wobble,86-wobble);
+    if(ripple>0){
+      const phase=1-ripple;
+      g.lineStyle(2.0,0xe7ffff,0.62*ripple)
+        .strokeEllipse(0,0,151+phase*27,96+phase*17);
+      g.lineStyle(1.4,color,0.36*ripple)
+        .strokeEllipse(0,0,156+phase*44,102+phase*25);
+    }
+  }
+
+  showType5ShieldBreak(enemy){
+    const g=this.add.graphics().setPosition(enemy.sprite.x,enemy.sprite.y)
+      .setDepth(56);
+    g.lineStyle(4,0xcaf8ff,0.95).strokeEllipse(0,0,150,96);
+    for(let k=0;k<12;k++){
+      const a=k*Math.PI/6;
+      g.lineStyle(2,k%3===0?0xffffff:0x7ad7ff,0.87);
+      g.lineBetween(Math.cos(a)*48,Math.sin(a)*30,
+        Math.cos(a)*83,Math.sin(a)*54);
+    }
+    this.tweens.add({targets:g,alpha:0,scale:1.45,duration:340,
+      onComplete:()=>g.destroy()});
   }
 
   updateEnemyHitVisual(enemy) {
@@ -3382,6 +3514,19 @@ export class GameScene extends Phaser.Scene {
       const hitX=enemy.sprite.x+(first?.offsetX??0);
       const hitY=enemy.sprite.y;
       return hitType6At(this,enemy,hitX,hitY,damage,0,true).defeated;
+    }
+    if(enemy.type===5 && enemy.shield>0 && damage<100000){
+      const result=absorbType5Shield(enemy.shield,damage);
+      enemy.shield=result.shield;
+      enemy.shieldHitAt=this.time.now;
+      if(showNumber)this.popHitNumber(enemy.sprite.x,enemy.sprite.y,
+        result.absorbed,'#8defff');
+      playSfx(result.broken?'shieldBreak':'shieldHit',{
+        throttle:result.broken?280:140,volumeScale:0.58,
+      });
+      if(result.broken)this.showType5ShieldBreak(enemy);
+      // Quando a proteção se rompe, o casco só é vulnerável ao PRÓXIMO acerto.
+      return false;
     }
     if (showNumber) this.popHitNumber(enemy.sprite.x, enemy.sprite.y, damage, hitColor);
     enemy.hp -= damage;
