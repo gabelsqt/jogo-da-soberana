@@ -78,3 +78,50 @@ export function shotHitsArraialBalloon(x1,y1,x2,y2,cx,cy,bulletRadius=0){
   return Math.hypot(cx-(x1+dx*t),cy-(y1+dy*t))<=
     ARRAIAL.balloonHitRadius+Math.max(0,Number(bulletRadius)||0);
 }
+
+export const ARRAIAL_STAGES = Object.freeze([
+  Object.freeze({from:0, fireworks:1, damage:1, palette:[0xffd566,0xff943e,0xff5142]}),
+  Object.freeze({from:8, fireworks:2, damage:1, palette:[0xffd566,0xff943e,0xff5142,0xff6f9c,0xffd86b]}),
+  Object.freeze({from:16, fireworks:3, damage:2, palette:[0xffd566,0xff943e,0xff5142,0xff6f9c,0xffd86b,0x6cf6aa,0x68dfff,0x9c7aff]}),
+  Object.freeze({from:28, fireworks:5, damage:2, palette:[0xffd566,0xff943e,0xff5142,0xff6f9c,0xffd86b,0x6cf6aa,0x68dfff,0x9c7aff,0xfff1c5,0xe96fff]}),
+]);
+export function arraialStage(hits) {
+  const count=Math.max(0,Math.floor(Number(hits)||0));
+  return ARRAIAL_STAGES[count>=28?3:count>=16?2:count>=8?1:0];
+}
+export const ARRAIAL_PIXEL_FONT=Object.freeze({
+  A:['010','101','111','101','101'],B:['110','101','110','101','110'],
+  C:['011','100','100','100','011'],D:['110','101','101','101','110'],
+  E:['111','100','110','100','111'],F:['111','100','110','100','100'],
+  G:['011','100','101','101','011'],H:['101','101','111','101','101'],
+  I:['111','010','010','010','111'],J:['001','001','001','101','010'],
+  K:['101','101','110','101','101'],L:['100','100','100','100','111'],
+  M:['101','111','111','101','101'],N:['101','111','111','111','101'],
+  O:['010','101','101','101','010'],P:['110','101','110','100','100'],
+  Q:['010','101','101','111','011'],R:['110','101','110','101','101'],
+  S:['011','100','010','001','110'],T:['111','010','010','010','010'],
+  U:['101','101','101','101','111'],V:['101','101','101','101','010'],
+  W:['101','101','111','111','101'],X:['101','101','010','101','101'],
+  Y:['101','101','010','010','010'],Z:['111','001','010','100','111'],
+  '!':['010','010','010','000','010'],'?':['110','001','010','000','010'],
+  '.':['000','000','000','000','010'],',':['000','000','000','010','100'],
+  ' ':['000','000','000','000','000'],
+});
+export function arraialPhrasePixels(phrase,maxChars=24) {
+  const words=String(phrase).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().split(/\s+/);
+  const lines=[''];
+  for(const word of words){
+    const last=lines.length-1;
+    if(lines[last] && (lines[last].length+1+word.length)>maxChars)lines.push(word);
+    else lines[last]+=(lines[last]?' ':'')+word;
+  }
+  const points=[];
+  lines.forEach((line,row)=>[...line].forEach((char,col)=>{
+    const glyph=ARRAIAL_PIXEL_FONT[char]??ARRAIAL_PIXEL_FONT['?'];
+    glyph.forEach((bits,y)=>[...bits].forEach((bit,x)=>{
+      if(bit==='1')points.push({x:col*4+x,y:row*7+y});
+    }));
+  }));
+  return {points,width:Math.max(...lines.map(l=>l.length),0)*4,
+    height:lines.length*7};
+}
