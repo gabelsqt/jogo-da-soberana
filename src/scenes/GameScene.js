@@ -3696,7 +3696,10 @@ export class GameScene extends Phaser.Scene {
       }
     }
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
+      // A explosão/remoção de uma bomba do Tipo 6 pode encolher esta lista
+      // enquanto o laser contínuo a percorre. Nunca acessar slot inexistente.
       const bullet = this.enemyBullets[i];
+      if (!bullet?.sprite?.active) continue;
       if (laserHitsTarget(
         startX, startY, endX, endY, bullet.sprite.x, bullet.sprite.y, PLASMA_HALF_WIDTH, bullet.radius??7,
       )) {
