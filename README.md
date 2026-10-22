@@ -2,7 +2,11 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.896 (escudos, cruzadores e caças)
+## Versão atual — 0.897 (música da Cubo News só na introdução)
+
+A trilha da Cubo News toca **uma única vez, sem loop**, no primeiro plantão da introdução. As demais notícias (incluindo abertura da onda 0 e prévia da onda 11) conservam seus diálogos e efeitos, mas **não** reiniciam a música da emissora. A batalha mantém sua trilha nacional/de onda desde a contagem regressiva. [Notas de implementação v0.897](docs/versao-0.897.md).
+
+## Versão anterior — 0.896 (escudos, cruzadores e caças)
 
 - Escudos do Tipo 5 e da Fortaleza Tipo 6 agora ondulam e piscam discretamente ao absorver dano, sem flash branco no casco.
 - O Cruzador Tipo 5 recebe escudo próprio, carrega por **5 segundos** um **laser pesado** telegráfico de **68 de dano**, dispara uma única vez e depois recarrega. Seus enxames continuam funcionando.
