@@ -2,7 +2,7 @@
 export const ARRAIAL = Object.freeze({
   duration: 2200, fireworkCount: 20, ringCount: 6, orbitRadius: 100,
   fireworkRadius: 27, fireworkDamage: 1, finaleRadius: 100, finaleDamage: 5,
-  balloonHitRadius: 19, maxBurstVisuals: 10,
+  balloonHitRadius: 19, maxBurstVisuals: 28,
   flameReach: 15, flameInterval: 500, flameDamage: 0.5,
   shieldDomeRadius: 110, fireRingRadius: 43, fireRingMaxRadius: 122, fireRingFlatten: 0.38,
   fireRingOffsetY: -43, firePulseDuration: 650, firePulseDamage: 1,
