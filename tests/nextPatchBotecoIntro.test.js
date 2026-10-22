@@ -54,7 +54,8 @@ test('nova abertura substitui login, preserva notícias e apresenta Zeca',()=>{
   assert.doesNotMatch(menu,/installNameGate/);
   assert.doesNotMatch(scene,/installComputerLogin|openNewsButton/);
   assert.match(scene,/assetUrl\('assets\/lideres\/br_retrato\.png'\)/);
-  assert.match(scene,/this\.music\.play\('news'\)/);
+  assert.match(scene,/this\.music\.play\('news',\{loop:false\}\)/);
+  assert.match(scene,/if\(!this\.newsThemePlayed\)/);
   assert.match(scene,/playSfx\('introKey'/);
   assert.equal(introductionSlides().length,7);
   assert.ok(INTRO_PAGE_MS>0);
