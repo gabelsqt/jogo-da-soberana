@@ -90,6 +90,7 @@ import { finaleBossHp, finaleBossFirePattern, finaleCounterattack } from '../gam
 import {createCuboNewsState,tickCuboNews,queueCuboNews} from '../gameplay/cuboNews.js';
 import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
 import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
+import { v1LabBuild } from '../gameplay/v1LabLoadout.js';
 import {fullBrazilVoyageEligible,voyageEvents,voyageStop,voyageNext,
   voyageCanDepart,VOYAGE_STOPS} from '../gameplay/fullBrazilVoyage.js';
 import {createBattleBanterState,enqueueBattleBanter,currentBattleBanter} from '../gameplay/battleBanter.js';
@@ -198,6 +199,13 @@ export class GameScene extends Phaser.Scene {
       ? (this.zecaRevenge
         ? zecaRevengeLoadout(this.campaign,this.selectedBetrayer)
         : {choices:survivors}) : this.campaign;
+    // Teste experimental: libera uma árvore de até dez níveis POR PAÍS.
+    // O limite da campanha real continua sendo dez escolhas no total.
+    const v1Lab=this.v1Playtest&&data.v1LabLevels
+      ?v1LabBuild(data.v1LabLevels,data.v1LabPrimary):null;
+    this.v1LabLevels=v1Lab?.labLevels??null;
+    this.v1LabPrimary=v1Lab?.labPrimary??null;
+    if(v1Lab)this.combatCampaign=v1Lab;
     this.waveDurationMs=this.mode.startsWith('wave')
       ? MODES[this.mode].minDuration:WAVE_DURATION_MS;
     if(this.waveMakerDuration!==null)this.waveDurationMs=this.waveMakerDuration;
@@ -248,6 +256,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   getRunOptions() {
+    if(this.v1Playtest && this.v1LabLevels)return {
+      mode:this.mode, v1Playtest:true, campaign:normalizeCampaignState(this.campaign),
+      v1LabLevels:{...this.v1LabLevels}, v1LabPrimary:this.v1LabPrimary,
+      selectedBetrayer:this.selectedBetrayer,
+    };
     if (this.unifiedLab) return { mode: this.mode, labConfig: this.labConfig,
       ...(this.waveMakerTest?{waveMakerTest:true,waveMakerEvents:this.waveMakerEvents?.map(e=>({...e})),waveMakerDuration:this.waveMakerDuration}:{}) };
     if (this.mode === 'upgradeLab') {
