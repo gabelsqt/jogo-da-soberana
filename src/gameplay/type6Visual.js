@@ -3,6 +3,21 @@ import {
   type6ModuleVisualState,
 } from './type6Boss.js';
 import {type6ModuleEnergyActive,type6CoreEnergyActive,type6IntakeProgress} from './type6ModuleSprite.js';
+import {shieldRippleAt,shieldSoftFlashAt} from './type5Combat.js';
+
+function drawShieldImpact(g,x,y,width,height,now,hitAt){
+  const ripple=shieldRippleAt(now,hitAt);
+  if(ripple<=0)return;
+  const flash=shieldSoftFlashAt(now,hitAt);
+  const expand=(1-ripple)*28;
+  // Ondulação curta de borda, sem piscar o casco como um inimigo comum.
+  g.lineStyle(1.8+flash*1.2,flash?0xffffff:0xc5f6ff,0.63*ripple)
+    .strokeRoundedRect(x-width/2-expand*.25,y-height/2-expand*.2,
+      width+expand*.5,height+expand*.4,10+expand*.2);
+  g.lineStyle(1.4,0x86dbff,0.34*ripple)
+    .strokeRoundedRect(x-width/2-expand*.5,y-height/2-expand*.38,
+      width+expand,height+expand*.76,12+expand*.3);
+}
 
 // Órbitas de energia puramente cosméticas: partículas convergem para a
 // eletrônica da fortaleza sem interagir com disparos nem causar colisões.
@@ -204,6 +219,7 @@ export function drawType6Ship(g,state,ageMs=0,useHullSprite=false,useModuleSprit
         g.strokeRoundedRect(x-61,y-46,122,92,9);
         g.lineStyle(2,color,0.17+0.16*pulse);
         g.strokeRoundedRect(x-65,y-50,130,100,12);
+        drawShieldImpact(g,x,y,130,100,ageMs,module.hitAt);
       }
 
     }
@@ -221,6 +237,7 @@ export function drawType6Ship(g,state,ageMs=0,useHullSprite=false,useModuleSprit
       g.strokeRoundedRect(x-61,y-46,122,92,9);
       g.lineStyle(2,color,0.17+0.16*pulse);
       g.strokeRoundedRect(x-65,y-50,130,100,12);
+      drawShieldImpact(g,x,y,130,100,ageMs,module.hitAt);
     }
   }
   // A absorção só aparece para o módulo executando a sua ação.
@@ -269,6 +286,19 @@ export function drawType6Ship(g,state,ageMs=0,useHullSprite=false,useModuleSprit
     g.lineStyle(7,tint,0.46+0.24*pulse).strokePoints(arch,false);
     g.lineStyle(2,0xe1f9ff,0.48).strokePoints(
       arch.map(point=>({x:point.x*.985,y:point.y-6})),false);
+    const ripple=shieldRippleAt(ageMs,b.hitAt);
+    if(ripple>0){
+      const phase=1-ripple,flash=shieldSoftFlashAt(ageMs,b.hitAt);
+      g.lineStyle(3+flash*1.8,flash?0xf5ffff:p.barrier,0.78*ripple)
+        .strokePoints(arch.map(point=>({
+          x:point.x*(1+0.018*phase),
+          y:point.y+Math.sin((point.x/68)+phase*Math.PI*3)*9*ripple+5*phase,
+        })),false);
+      g.lineStyle(1.8,0xffffff,0.33*ripple)
+        .strokePoints(arch.map(point=>({
+          x:point.x*(1+0.035*phase),y:point.y+14*phase,
+        })),false);
+    }
     const cracks=fraction<0.65?fraction<0.30?10:5:0;
     for(let j=0;j<cracks;j++){
       const x=-370+((j*143)%740),nx=x/400;
