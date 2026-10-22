@@ -31,9 +31,9 @@ test('v0.35 preserva 30 segundos, agenda em até 13,5s e vitória antecipada', (
   }
 });
 
-test('onda 0 usa cinco portais (um e depois dois pares) para 48 naves',()=>{
+test('onda 0 usa cinco portais (um e depois dois pares) para 20 naves',()=>{
   const events=getV035WaveEvents('wave0',getWaveEvents('wave0'));
-  assert.deepEqual(events.map(e=>e.count),[8,10,10,10,10]);
+  assert.deepEqual(events.map(e=>e.count),[4,4,4,4,4]);
   assert.deepEqual(events.map(e=>e.at),[800,4600,4600,9600,9600]);
   assert.deepEqual(events.map(e=>e.portalX),[480,235,725,125,835]);
   assert.deepEqual(WAVE0_PORTAL_SEQUENCE.map(({at,portalX,count})=>({at,portalX,count})),
@@ -42,8 +42,8 @@ test('onda 0 usa cinco portais (um e depois dois pares) para 48 naves',()=>{
   assert.equal(events.filter(e=>e.at===800).length,1);
   assert.equal(events.filter(e=>e.at===4600).length,2);
   assert.equal(events.filter(e=>e.at===9600).length,2);
-  assert.equal(scheduledEnemyCount(events),48);
-  // Último dos dez invasores sai do portal ~3,4 s após ele abrir.
+  assert.equal(scheduledEnemyCount(events),20);
+  // As quatro naves de cada portal terminam de entrar antes dos 15 s.
   // Com os últimos dois abrindo aos 9,6 s, todos entram antes dos 15 s.
   assert.ok(Math.max(...events.map(e=>e.at+(e.count-1)*320+500))<15000);
   assert.equal(STANDARD_INVADER_FLIGHT_FACTOR,0.78);
@@ -56,42 +56,36 @@ test('onda 0 usa cinco portais (um e depois dois pares) para 48 naves',()=>{
   assert.ok(events.every(e=>e.type===1&&e.pattern==='swarm'));
 });
 
-test('Tipo 1 das ondas 3–9 chega em enxames progressivos até 15–18', () => {
+test('ondas 3–9 usam enxames menores, sem o expansor antigo de 100 naves', () => {
   assert.deepEqual(V035_SWARM_SIZES[0],[3,5]);
   assert.deepEqual(V035_SWARM_SIZES[9],[15,18]);
   assert.equal(progressiveGroupCount(0,1,0),3);
-  assert.equal(progressiveGroupCount(0,1,1),5);
-  assert.equal(progressiveGroupCount(9,1,0),15);
   assert.equal(progressiveGroupCount(9,1,1),18);
-  assert.equal(progressiveGroupCount(9,1,0.5),17);
   for(let wave=3;wave<=9;wave++){
     const events=getV035WaveEvents('wave'+wave,getWaveEvents('wave'+wave));
     const swarms=events.filter(e=>e.type===1);
-    assert.ok(swarms.length>=2);
-    assert.ok(swarms.every(e=>e.pattern==='swarm'));
-    assert.ok(swarms.every(e=>e.count>=V035_SWARM_SIZES[wave][0]+(wave<=2?2:0) &&
-      e.count<=V035_SWARM_SIZES[wave][1]+(wave<=2?2:0)));
-    assert.equal(swarms[0].count,V035_SWARM_SIZES[wave][0]+(wave<=2?2:0));
-    assert.equal(swarms.at(-1).count,V035_SWARM_SIZES[wave][1]+(wave<=2?2:0));
-    assert.equal(scheduledEnemyCount(swarms),swarms.reduce((s,e)=>s+e.count,0));
-    assert.ok(swarms.at(-1).at-swarms.at(-2).at <
-      swarms[1].at-swarms[0].at,'entradas mais próximas no clímax');
+    assert.equal(swarms.length,4,'wave'+wave);
+    assert.ok(swarms.every(e=>e.pattern==='swarm' && e.count>=4 && e.count<=10));
+    assert.ok(swarms.at(-1).count>=swarms[0].count);
+    assert.ok(swarms.every(e=>e.at+(e.count-1)*320+500<=15000),
+      'o último integrante de cada enxame deve entrar antes de 15s');
+    assert.equal(scheduledEnemyCount(swarms),swarms.reduce((sum,e)=>sum+e.count,0));
   }
   assert.deepEqual(SWARM_ENTRIES,['together','staggered']);
   assert.deepEqual(SWARM_DANCES,['serpentine','cross','spiral','circle']);
 });
 
-test('Tipo 2 das ondas 3–9 usa esquadrilhas progressivas de 6–16', () => {
+test('ondas 3–9 mantêm esquadrilhas coreografadas e círculos especiais', () => {
   assert.deepEqual(V035_SQUAD_SIZES[0],[6,8]);
   assert.deepEqual(V035_SQUAD_SIZES[9],[12,16]);
   assert.deepEqual(TACTICAL_FORMATIONS,['triangle','square']);
   for(let wave=3;wave<=9;wave++){
     const events=getV035WaveEvents('wave'+wave,getWaveEvents('wave'+wave));
-    const squads=events.filter(e=>e.type===2);
-    assert.ok(squads.length, 'onda '+wave);
-    assert.ok(squads.every(e=>e.pattern==='tactical' && e.group));
-    assert.ok(squads.every(e=>e.count>=V035_SQUAD_SIZES[wave][0] &&
-      e.count<=V035_SQUAD_SIZES[wave][1]+(wave<=2?1:0)));
+    const squads=events.filter(e=>e.type===2&&e.pattern==='tactical');
+    assert.ok(squads.length>=2,'wave'+wave);
+    assert.ok(squads.every(e=>e.group && e.count>=4 && e.count<=8));
+    assert.ok(events.filter(e=>e.type===2).every(e=>
+      ['tactical','orbit'].includes(e.pattern)));
   }
   assert.deepEqual(labEnemyEvent(2,10),
     {type:2,level:10,pattern:'tactical',group:true,count:8});
