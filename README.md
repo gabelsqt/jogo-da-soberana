@@ -2,7 +2,15 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.895 (Coreia + laboratório combinado)
+## Versão atual — 0.896 (escudos, cruzadores e caças)
+
+- Escudos do Tipo 5 e da Fortaleza Tipo 6 agora ondulam e piscam discretamente ao absorver dano, sem flash branco no casco.
+- O Cruzador Tipo 5 recebe escudo próprio, carrega por **5 segundos** um **laser pesado** telegráfico de **68 de dano**, dispara uma única vez e depois recarrega. Seus enxames continuam funcionando.
+- O Caça Tipo 4 não desaparece após o ataque: recolhe altitude e volta a patrulhar até ser destruído; sua morte tem **três detonações** e flash branco curto.
+- Whoosh retrô de voo em PCM, com pequenas variações de afinação e limite de repetição, acompanha suas passagens.
+- [Detalhes técnicos v0.896](docs/versao-0.896.md).
+
+## Versão anterior — 0.895 (Coreia + laboratório combinado)
 
 Corrigido o travamento do **Lightstick contínuo coreano**, especialmente na **onda 10**, quando bombas da Fortaleza Tipo 6 são removidas no mesmo quadro. O **laboratório V1** agora permite selecionar **níveis 0–10 independentemente nos cinco países**, combinar efeitos primários e especiais, definir o país do especial principal e retornar à tela de combinações pelo botão **ALTERAR COMBINAÇÃO [U]** da arena. A campanha continua limitada às dez escolhas tradicionais. Veja [notas da v0.895](docs/versao-0.895.md).
 
