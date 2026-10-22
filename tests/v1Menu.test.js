@@ -13,11 +13,11 @@ test('menu do playtest v1 não expõe laboratório de animais',()=>{
 });
 test('menu escolhe próximos níveis da árvore nova, incluindo 9 e 10',()=>{
  const scene=readFileSync(new URL('../src/scenes/V1PlaytestScene.js',import.meta.url),'utf8');
- assert.match(scene,/V1_UPGRADES\[this\.country\]/);
+ assert.match(scene,/V1_UPGRADES\[row\.id\]/);
  assert.match(scene,/this\.arenaIndex===12\?'upgradeLab':'wave'\+this\.arenaIndex/);
  assert.match(scene,/ARENA LIVRE/);
- assert.match(scene,/this\.level=Math\.min\(10/);
- assert.match(scene,/campaign:\{choices\}/);
+ assert.match(scene,/changeV1LabLevel\(this\.levels,country,delta\)/);
+ assert.match(scene,/v1LabLevels:build\.labLevels/);
  assert.equal(Object.keys(V1_UPGRADES).length,5);
 });
 test('boteco V1 não exibe diálogos legados de animais',()=>{
