@@ -122,8 +122,10 @@ test('o aumento russo não modifica velocidade, dano ou alcance físico', () => 
   assert.equal(combined.knockback, before.knockback);
   const scene = readFileSync(new URL('../src/scenes/GameScene.js', import.meta.url), 'utf8');
   assert.match(scene, /this\.add\.rectangle\(x, y, style\.width, style\.length, style\.color\)/);
-  assert.match(scene, /enemyContactRadius\(enemy\.type\) \+ 7/,
-    'colisão continua fixa, independente da largura do sprite');
+  assert.match(scene,/return enemy\.type===5&&enemy\.shield>0\?70:enemyContactRadius\(enemy\.type\)/,
+    'só escudos Tipo 5 possuem raio maior; casco/russa continuam fixos');
+  assert.match(scene,/this\.enemyCombatRadius\(enemy\) \+ Math\.max\(7,bullet\.usRadius\)/,
+    'colisão usa a largura do escudo ativo e não a espessura do sprite');
 });
 
 test('rastro visual e recuo são puramente gráficos, com limpeza por bala', () => {
