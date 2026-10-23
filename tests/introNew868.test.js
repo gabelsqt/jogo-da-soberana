@@ -6,10 +6,10 @@ import {
   INTRO_CONVOCATION_HOLD_MS,INTRO_ZECA_HOLD_MS,INTRO_FOOTNOTE_DELAY_MS,
 } from '../src/gameplay/introScript.js';
 
-test('ordem: convocação com asterisco, invasão, cancelamento, promoção e Zeca',()=>{
+test('ordem: convocação, notícias e promoção antes da onda 0 e de Zé Maria',()=>{
  const scenes=introductionSlides();
  assert.deepEqual(scenes.map(s=>s.id),
-   ['convocation','invasion','elections','promotion','zeca-1','zeca-2','zeca-3']);
+   ['convocation','invasion','elections','promotion']);
  assert.equal(scenes[0].kind,'email');
  assert.match(scenes[0].body,/MESÁRIO\*/);
  assert.doesNotMatch(scenes[0].body,/situações excepcionais|cláusula|guerra/i);
@@ -20,11 +20,11 @@ test('ordem: convocação com asterisco, invasão, cancelamento, promoção e Ze
  assert.match(scenes[3].footnote,/^\*Em situações excepcionais/);
  assert.match(scenes[3].footnote,/consentimento/);
  assert.match(scenes[3].status,/AUTOMATICAMENTE/);
- assert.match(scenes[4].body,/até ontem você era mesário/);
- assert.match(scenes[5].body,/mecânico de obuseiro/);
- assert.match(scenes[5].body,/Mexia com ônibus/);
- assert.match(scenes[6].body,/não entendo nada/);
- assert.match(scenes[6].body,/obuseiro — o canhão/);
+ assert.equal(scenes.length,4);
+ assert.equal(scenes.filter(x=>x.kind==='zeca').length,0);
+ assert.equal(scenes.at(-1).kind,'email');
+ assert.ok(scenes.every(x=>x.body===undefined||!x.body.includes('Zeca')));
+ assert.equal(scenes[3].id,'promotion');
  assert.equal(scenes[1].art,'invasion');
  assert.equal(scenes[2].art,'elections');
 });
