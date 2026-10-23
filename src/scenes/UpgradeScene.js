@@ -5,6 +5,7 @@ import {
   preloadRioBackdrop,
   drawRioBackdrop,
 } from '../config/scenery.js';
+import { getFirstUpgrade } from '../gameplay/upgrades.js';
 import {
   normalizeCampaignState,
   nextUpgradeOptions,
@@ -62,7 +63,7 @@ export class UpgradeScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(24);
 
       label(161, upgrade.flag, '26px', '#e3f7ff', { fontStyle: 'bold' });
-      label(193, upgrade.name.toUpperCase() + '  •  NÍVEL ' + upgrade.level,
+      label(193, (upgrade.shortName ?? upgrade.name).toUpperCase() + '  •  NÍVEL ' + upgrade.level,
         '12px', '#ffffff', { fontStyle: 'bold' });
       label(247, upgrade.title.toUpperCase(), '15px', '#ffe7a4',
         { fontStyle: 'bold' });
@@ -81,7 +82,7 @@ export class UpgradeScene extends Phaser.Scene {
     });
 
     const history = this.campaign.choices.length
-      ? this.campaign.choices.map((id) => id.toUpperCase()).join(' → ')
+      ? this.campaign.choices.map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' → ')
       : 'NENHUMA';
     this.add.text(W / 2, 484, 'ESCOLHAS ANTERIORES: ' + history, {
       fontFamily: 'monospace', fontSize: '13px', color: '#aec5df',

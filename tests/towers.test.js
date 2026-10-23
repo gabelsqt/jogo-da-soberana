@@ -43,7 +43,7 @@ test('segunda escolha repetida libera melhoria de nível 2 e Onda 2, SEM instala
   const titles = {
     br: 'Minha Casa, Meu Escudo',
     us: 'Dano Colateral',
-    jp: 'Corte Residual',
+    jp: 'Encore!',
     ru: 'Recuo Estratégico',
     cn: 'Compre 2, Leve 3',
   };

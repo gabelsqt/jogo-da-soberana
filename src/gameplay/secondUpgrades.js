@@ -12,7 +12,7 @@ export const SECOND_UPGRADES = {
     tower: false,
   },
   jp: {
-    title: 'Corte Residual',
+    title: 'Encore!',
     description: 'O laser abre uma fenda turquesa com bordas pulsantes, atingindo naves que a cruzam.' ,
     tower: false,
   },

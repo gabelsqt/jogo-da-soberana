@@ -122,7 +122,7 @@ test('laboratório ativa e desativa melhorias sem duplicatas nem IDs inválidos'
   assert.deepEqual(normalizeLabUpgrades(null), []);
 });
 
-test('laboratório combina Katana, Fragmentação e os outros países sem alterar atributos básicos', () => {
+test('laboratório combina Lightstick, Fragmentação e os outros países sem alterar atributos básicos', () => {
   const stats = combatStatsForLoadout(['br', 'jp', 'us', 'ru', 'cn']);
   assert.equal(stats.basicInterval, 333);
   assert.equal(stats.basicDamage, 1.75);
