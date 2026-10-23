@@ -37,7 +37,7 @@ export class MenuScene extends Phaser.Scene{
       primary:true,depth:31,onClick:startGame,
     });
     addMenuButton(this,{
-      x:W/2,y:389,width:354,height:49,text:'★  TESTAR UPGRADES',
+      x:W/2,y:389,width:354,height:49,text:'⚙  LABORATÓRIO',
       depth:31,onClick:testUpgrades,
     });
 
