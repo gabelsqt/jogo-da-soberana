@@ -115,7 +115,8 @@ export function solidAmericanWallCollision(wall,fromX,fromY,toX,toY,enemyRadius=
   // gentilmente da área ocupada (evita spawn em cima do escudo).
   if(!candidates.length && fromDistance<safeRadius &&
       fromDistance>=Math.max(0,wall.radius-barrierThickness*2) &&
-      withinAngle(toX,toY) && Math.hypot(toX-wall.x,toY-wall.y)<safeRadius){
+      withinAngle(fromX,fromY) && withinAngle(toX,toY) &&
+      Math.hypot(toX-wall.x,toY-wall.y)<safeRadius){
     const length=Math.max(EPS,Math.hypot(toX-wall.x,toY-wall.y));
     return {x:wall.x+(toX-wall.x)*safeRadius/length,
       y:wall.y+(toY-wall.y)*safeRadius/length,
