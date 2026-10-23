@@ -91,7 +91,7 @@ export class V1PlaytestScene extends Phaser.Scene {
     addMenuButton(this,{x:808,y:503,width:201,height:43,
       text:'WAVE MAKER',fontSize:'14px',
       onClick:()=>this.scene.start('WaveMakerScene',{wave:Math.min(this.arenaIndex,11)}),depth:45});
-    this.mathEditor=mountLabBalanceEditor({allocation:this.allocation});
+    this.mathEditor=mountLabBalanceEditor({allocation:this.allocation,especial:this.especial});
     this.events.once('shutdown',()=>this.mathEditor.destroy());
     this.input.keyboard.on('keydown-ENTER',event=>{
       if(/INPUT|TEXTAREA/.test(event.target?.tagName??''))return;
@@ -133,6 +133,7 @@ export class V1PlaytestScene extends Phaser.Scene {
       // editáveis e os níveis distribuídos para comparação A/B.
     }
     this[kind]=country;
+    this.mathEditor?.updateIdentity(this.especial);
     if(kind==='principal'&&this.especial===null)this.notice='Agora defina o tiro ESPECIAL.';
     else this.notice='Identidades confirmadas. Distribua P1–P4 e S1–S4.';
     this.refresh();
