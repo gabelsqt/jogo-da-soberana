@@ -5,7 +5,7 @@ import {battleSpeakers,selectBattleBanter,createBattleBanterState,
  enqueueBattleBanter,currentBattleBanter,BANTER_DURATION_MS,BANTER_COOLDOWN_MS,
 } from '../src/gameplay/battleBanter.js';
 const game=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
-test('Zeca aparece sempre e traição exclui representante do país traidor',()=>{
+test('Zé Maria aparece sempre e traição exclui representante do país traidor',()=>{
  assert.deepEqual(battleSpeakers(['us','ru'],'us'),['br','ru']);
  assert.deepEqual(battleSpeakers(['jp','us','cn'],'jp'),['br','us','cn']);
  assert.deepEqual(battleSpeakers(Array(10).fill('br')),['br']);
@@ -20,7 +20,7 @@ test('falas são curtas, sem spam e desaparecem sozinhas',()=>{
  const context={choices:['us','br','ru'],traitor:'ru'};
  const first=enqueueBattleBanter(state,'start',context,1000);
  assert.equal(first.speaker,'br');
- assert.equal(first.name,'Zeca Carrara');
+ assert.equal(first.name,'Zé Maria');
  assert.equal(currentBattleBanter(state,1000).text,first.text);
  assert.equal(currentBattleBanter(state,1000+BANTER_DURATION_MS),null);
  assert.equal(enqueueBattleBanter(state,'danger',context,1000+6500),null);
