@@ -4887,10 +4887,13 @@ export class GameScene extends Phaser.Scene {
     // Uma barreira por vez: o lançamento anterior também é substituído.
     for(const old of this.americanWalls)old.graphics?.destroy();
     this.americanWalls=[];
-    const wall={...point,...center,...cfg,flashUntil:0,
+    const openMs=this.labMathEnabled?(this.labExtra?.usWallOpenMs??AMERICAN_WALL_OPEN_MS):AMERICAN_WALL_OPEN_MS;
+    const wall={...point,...center,...cfg,flashUntil:0,openMs,
+      labPushSpeed:this.labMathEnabled?this.labExtra?.usWallPushSpeed:undefined,
+      reflectionDamage:this.labMathEnabled?this.labExtra?.usWallReflectDamage:undefined,
       targetX:point.x,targetY:point.y,muzzleX,muzzleY,
       startedAt:this.time.now,travelMs,currentArc:0,arrived:false,
-      expiresAt:this.time.now+travelMs+AMERICAN_WALL_OPEN_MS+cfg.durationMs,
+      expiresAt:this.time.now+travelMs+openMs+cfg.durationMs,
       lastPush:new Map(),graphics:this.add.graphics().setDepth(56)};
     this.americanWalls.push(wall);
     playSfx('specialShot',{throttle:180,volumeScale:.60});
@@ -5050,7 +5053,7 @@ export class GameScene extends Phaser.Scene {
     const orb=this.add.circle(x,y,5,0xe3fbff,0.98)
       .setStrokeStyle(2.5,0x4ea9ff,0.94).setDepth(46);
     this.wallReflections.push({sprite:orb,x,y,...vector,
-      bornAt:this.time.now,damage:US_WALL_REFLECTION_DAMAGE});
+      bornAt:this.time.now,damage:wall.reflectionDamage??US_WALL_REFLECTION_DAMAGE});
     // Pequeno núcleo branco vindo do arco e rumando para o agressor.
     const ping=this.add.circle(x,y,12,0xffffff,0.30)
       .setStrokeStyle(2,0xbbefff,0.75).setDepth(47);
