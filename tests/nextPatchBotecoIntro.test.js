@@ -48,19 +48,19 @@ test('cinco biografias provisórias aparecem em etapas e não substituem upgrade
   assert.match(scene,/ability\.description/);
   assert.match(scene,/representativeStoryFor\(id,Math\.min\(option\.level,10\)\)/);
 });
-test('nova abertura substitui login, preserva notícias e apresenta Zeca',()=>{
+test('abertura por e-mail preserva notícias e apresenta Zé Maria depois da onda 0.5',()=>{
   const menu=source('src/scenes/MenuScene.js'),scene=source('src/scenes/IntroScene.js');
   assert.match(menu,/this\.scene\.start\('IntroScene'/);
   assert.doesNotMatch(menu,/installNameGate/);
   assert.doesNotMatch(scene,/installComputerLogin|openNewsButton/);
-  assert.match(scene,/assetUrl\('assets\/lideres\/br_retrato\.png'\)/);
+  assert.doesNotMatch(introductionSlides().map(x=>x.body).join(' '),/Zeca Carrara/);
   assert.match(scene,/this\.music\.play\('news',\{loop:false\}\)/);
   assert.match(scene,/if\(!this\.newsThemePlayed\)/);
   assert.match(scene,/playSfx\('introKey'/);
-  assert.equal(introductionSlides().length,7);
+  assert.equal(introductionSlides().length,4);
   assert.ok(INTRO_PAGE_MS>0);
   assert.equal(introductionSlides()[1].kind,'news');
-  assert.equal(introductionSlides().at(-1).id,'zeca-3');
+  assert.equal(introductionSlides().at(-1).id,'promotion');
 });
 test('telejornal sóbrio: paleta azul-noturno e cronômetro IBM Plex Mono',()=>{
   assert.equal(CUBO_COLORS.navy,0x0b1621);
