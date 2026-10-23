@@ -1,8 +1,12 @@
-# Soberania — Jogo para a Soberana Game Jam
+# Operação Soberania — Jogo para a Soberana Game Jam
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.900 (interface sem botão de pausa)
+## Versão atual — 0.901 (Laboratório Matemático)
+
+O menu **LABORATÓRIO** agora exige a escolha das identidades do tiro principal e do tiro especial antes de distribuir melhorias independentes P1–P4/S1–S4. O botão **⚙ BALANCEAMENTO** abre a lista de parâmetros numéricos editáveis dos **40 upgrades**. Os ajustes conectados ao combate são reaplicados durante a arena; o perfil pode ser **exportado/importado em JSON**, restaurado e salvo no navegador. As mecânicas híbridas e alguns campos ainda estão sinalizados como **EM PREPARAÇÃO**, sem afetar a campanha normal. Veja [guia e limitações da v0.901](docs/versao-0.901.md).
+
+## Versão anterior — 0.900 (interface sem botão de pausa)
 
 O botão visível **PAUSAR [P]** foi retirado da tela, inclusive seu desenho alternativo para ambientes sem DOM. A pausa continua disponível pelas teclas **P** e **Esc**, com o menu normal de pausa e retomada. Sem alterações nas mecânicas, HUD da Cubo News ou música. [Notas da v0.900](docs/versao-0.900.md).
 
