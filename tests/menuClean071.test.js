@@ -33,7 +33,7 @@ test('tela inicial expõe fundo do Rio sem moldura ou faixa Cubo News',()=>{
   assert.match(source,/addMenuMusicControl\(this/);
   assert.match(source,/this\.add\.text\(W\/2,116,'Operação Soberania',titleStyle\)/);
   assert.match(source,/COMEÇAR CAMPANHA/);
-  assert.match(source,/TESTAR UPGRADES/);
+  assert.match(source,/LABORATÓRIO/);
   assert.doesNotMatch(source,/addCuboBroadcastFrame|addCuboPanel|addCuboPixelText/);
   assert.doesNotMatch(source,/this\.add\.rectangle\(W\/2,H\/2,W,H/);
   assert.match(source,/keydown-ENTER/);
