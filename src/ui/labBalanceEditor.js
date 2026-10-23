@@ -4,7 +4,7 @@ const STORAGE_KEY='operacao-soberania-lab-matematico-v1';
 const PENDING_FIELDS=new Set([
   'us.P3.push','us.P3.pushTime','us.S2.pushMax',
   'ru.P4.bossMultiplier','ru.S4.targets','ru.S4.radius','ru.S4.damageFactor',
-  'jp.P3.echoEvery','jp.P3.echoFactor','jp.S4.targetCap',
+  'jp.S4.targetCap',
 ]);
 const STYLE_ID='soberania-lab-math-style';
 let memoryProfile=null;
