@@ -25,7 +25,7 @@ export class PrologueSurvivalScene extends Phaser.Scene{
     this.load.image('prologue-invader-type1',assetUrl('assets/inimigos/tipo1/frame_01.png'));
   }
   create(){
-    bindSceneMusic(this,'battle');drawRioBackdrop(this);
+    bindSceneMusic(this,'early');drawRioBackdrop(this);
     const title=this.add.rectangle(W/2,39,W,78,0x071526,.91).setDepth(100);
     this.add.text(W/2,22,'ONDA 0.5 — O CÉU TOMADO',{
       fontFamily:'monospace',fontSize:'20px',fontStyle:'bold',color:'#ffe0af',
