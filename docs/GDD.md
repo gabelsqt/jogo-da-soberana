@@ -1063,3 +1063,54 @@ O PNG do Cruzador-Colmeia agora é RGBA verdadeiro em 896×512. O feedback de da
 - Os feixes tradicionais do Lightstick recebem também duas bordas elétricas oscilantes e discretas durante cada pulso (efeito visual, sem alteração de dano).
 - **Tiro principal coreano usa som de laser retrô independente** em lugar da metralhadora comum. Vale com qualquer upgrade coreano ativo, inclusive builds híbridas; na transformação russa, o som de sopro continua prevalecendo.
 - Mantidos os limites e orçamentos de dano do globo aprovados na v0.864 (**6/12/22/36 por salva**, cooldown 180 ms), duração de 4 segundos, contagem 3/6/12/24 raios e mecânicas de todos os países.
+
+---
+
+## Atualização canônica de narrativa e personagens — 23/10/2026 (PLANEJAMENTO)
+
+> **Precedência:** decisões aprovadas pelo criador, ainda **não implementadas**. Esta seção substitui referências anteriores incompatíveis a Zeca Carrara, sua convocação, prólogo, Boteco e personagem brasileiro. O nome atual do jogo é **Operação Soberania**. Manter os sistemas aprovados dos demais países e das ondas posteriores; reconciliar numeração/progressão no futuro, sem alterar mecanicamente o jogo agora.
+
+### José Maria — Zé Maria, representante do Brasil
+
+- **Identidade:** José Maria, chamado **Zé Maria**, dono da **Oficina do Zé Maria**; civil, não militar nem convocado. Oficina tradicional e familiar de bairro, célebre por fazer andar Marea, Peugeot 206 e qualquer lata velha; resolve praticamente qualquer problema mecânico. Antigo mecânico de confiança do General.
+- **Personalidade:** 48–55 anos, alegria contagiante, prestativo e confiante na própria competência. É contratado para recuperar o Obuseiro e fica também para proteger a cidade. Aceita propostas estrangeiras de início; só nas ondas finais passa a desconfiar dos representantes. Suas propostas brasileiras são alternativas plenamente válidas.
+- **Design permanente:** homem grande, largo, forte, barrigudo; rosto redondo, bochechas cheias, pele marrom escuro quente (base de referência `#985B3A`), olhos castanhos abertos e amigáveis, bigodão espesso. Cabelo afro curto, crespo e **achatado pelo boné**, com volume nas laterais, sem grandes cachos esféricos. Boné verde bastante surrado e amassado (variação visual 16 aprovada).
+- **Uniforme:** macacão verde usado, com discretas manchas de graxa, gola aberta, camiseta branca antiga, mangas dobradas até os cotovelos, patch **retangular “ZÉ MARIA”**, botinas marrons gastas, relógio **analógico de ponteiros** com pulseira de couro marrom.
+- **Itens invariáveis:** no bolso do peito, uma **chave Phillips** e uma **caneta Bic azul**. Na mão, **chave inglesa ajustável de 12”**, prateada, com mandíbula móvel e rosca de ajuste aparente. Não substituí-la por chave fixa, grifo ou outro instrumento.
+- **Improvisação brasileira:** adapta uma coleção de peças automotivas improváveis/incompatíveis. Tem experiência com foguetes e rojões de comemoração de vitórias no futebol, que informa as soluções de armamento brasileiro. Não reduzir o Brasil a alternativa inferior.
+- **Arte:** retratos em pixel art JRPG anos 1990/PS1; **todas as cenas narrativas em pixel art**. Consistência rigorosa dos traços e dos acessórios.
+
+### Prólogo revisto: onda 0, Tipo 6 e onda 0.5
+
+1. **Onda 0 — falsa superioridade:** o **mesmo modelo visual de canhão base** opera provisoriamente com cadência extrema e dano muito alto. Inimigos comuns caem com facilidade. No final surge um **Tipo 6**; trata-se do **mesmo chefe que retornará mais tarde**. Seu laser causa sobrecarga e deixa o Obuseiro **gravemente danificado, não completamente destruído**. Cena obrigatória, não derrota por falha do jogador.
+2. **Onda 0.5 — “O Céu Tomado”:** começa **imediatamente** após o laser e dura **15 segundos**. O Obuseiro mantém somente o tiro básico, **muito lento e fraco**. Grandes grupos de alienígenas **Tipo 1 descem lentamente em massa**, lotando o céu. Não disparam nem causam dano nessa sequência, mas não podem ser todos eliminados. Objetivo é sobreviver, sem punição injusta por batalha impossível. **Ao amanhecer todos fogem simultaneamente para os portais, inexplicavelmente.** Direção sonora: tensão musical crescente e ruptura na fuga; música específica não definida.
+3. **Telefonema:** depois da retirada, o General constata os danos e que muitos militares/especialistas morreram na invasão; sem outra equipe de apoio, **liga imediatamente para Zé Maria**, seu antigo mecânico.
+4. **Chegada:** Zé Maria chega dirigindo um **caminhão-guincho azul antigo**, mostrado em curta cena de pixel art. O General reage com **alívio imediato**. Piada escolhida de Zé Maria ao ver o Obuseiro: **“Se eu fiz um Marea andar, faço isso aqui funcionar.”**
+
+### Reconstrução e primeiras escolhas de país
+
+- Zé Maria faz o diagnóstico **ouvindo o mecanismo e dando batidas leves**, identificando o defeito pela experiência.
+- A primeira reconstrução é apresentada por **três quadros/cenas sucessivas de pixel art**: diagnóstico, montagem/instalação e teste do disparo. Não transformar a sequência em três quadros simultâneos. Manter estilo em todas as cutscenes.
+- **Antes da onda 1:** primeiro conserto instala o **TIRO PRINCIPAL** do país escolhido; opções incluem as peças estrangeiras e a adaptação de veículos e rojões do Zé Maria.
+- **Antes da onda 2:** segundo conserto instala o **TIRO ESPECIAL** correspondente à escolha. Estas duas seleções são momentos fundamentais de gameplay e não podem ser omitidas nos menus futuros.
+- Os quatro representantes estrangeiros **já estão esperando o General no Boteco**; Zé Maria pode instalar suas peças, mas lembra que possui soluções próprias. Desconfiança mais forte só nas ondas finais.
+- **Compatibilidade pendente:** formalizar como a onda 0.5 e as escolhas de tiro principal/especial convivem com a progressão numérica e os upgrades seguintes já documentados. Não assumir modificações automáticas nas dez escolhas por campanha.
+
+### O Boteco e a antiga instalação
+
+- Boteco **diretamente abaixo da área do Obuseiro**, com acesso por **elevador antigo de carga**.
+- É um **boteco carioca simples, tradicional e com vista bonita**, no cenário pixel art **já aprovado e existente**. Preservar o layout, a mesa, a TV CRT, as cadeiras e a composição visual; **não redesenhar como bunker**.
+- O Boteco **ocupou parte de uma instalação militar antiga e abandonada**. Motivos originais de sua construção, abandono e reativação ainda não foram definidos.
+- É o local das negociações recorrentes com os cinco representantes. Preservar a transição existente planejada entre o combate e a televisão do Boteco, compatibilizando-a com o elevador de carga quando houver storyboard.
+
+### Seu Anselmo — dono do Boteco
+
+- **Seu Anselmo** é um ex-militar aposentado, dono do Boteco e **amigo de longa data de Zé Maria**. Calmo, imperturbável e econômico nas palavras.
+- **Na década de 1980**, foi o **responsável pela instalação militar** e participou da defesa do Rio contra **invasões alienígenas anteriores**. Logo, a invasão atual não é a primeira.
+- **Finge não saber** da instalação e de sua história porque **quer viver em paz**, não se intrometer e cuidar do Boteco.
+- Atua como **coadjuvante**, com comentários curtos entre negociações e **revelações discretas nas ondas finais**. Não roubar a trama dos representantes nem do General.
+- **Em aberto:** se ajudará em alguma batalha; o que aconteceu exatamente nos anos 1980, como terminou a invasão anterior e quais equipamentos/segredos permanecem ativos. Não fixar “nunca participa de batalha” como proibição.
+
+### Estado e pendências
+
+**Somente GDD — sem código, assets, novas imagens ou implementação.** Diálogos de exemplo de conversas anteriores são provisórios, exceto a frase aprovada do Marea. Pendem: storyboard completo; parâmetros do canhão forte/lento; integração da onda 0.5; reconciliação do calendário de upgrades; faixa musical; passado completo de Anselmo e finalidade antiga da instalação. Esta seção é fonte de verdade para novas implementações diante de trechos históricos conflitantes no restante do GDD.
