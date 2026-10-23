@@ -2,7 +2,14 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.897 (música da Cubo News só na introdução)
+## Versão atual — 0.898 (Grande Muro aprimorado + recuperação de transições)
+
+- **Grande Muro americano:** o contato agora afasta os inimigos de verdade, com impulso forte e deslocamento persistente da hitbox, preservando o dano zero do próprio muro.
+- **Reflexão:** disparos básicos dos invasores Tipos 1 e 2 ricocheteiam como projéteis aliados, retornam na direção dos inimigos e podem abatê-los. Bombas/lasers pesados continuam só bloqueados; lasers do Tipo 6 ainda podem romper o muro.
+- **Contador:** salvaguardas redundantes para não prender o jogo ao final da animação de amanhecer ou à abertura das ondas se um callback/tween falhar. Os avisos amarelos de WebGL/áudio no Firefox não indicam, sozinhos, travamento.
+- [Detalhes v0.898](docs/versao-0.898.md).
+
+## Versão anterior — 0.897 (música da Cubo News só na introdução)
 
 A trilha da Cubo News toca **uma única vez, sem loop**, no primeiro plantão da introdução. As demais notícias (incluindo abertura da onda 0 e prévia da onda 11) conservam seus diálogos e efeitos, mas **não** reiniciam a música da emissora. A batalha mantém sua trilha nacional/de onda desde a contagem regressiva. [Notas de implementação v0.897](docs/versao-0.897.md).
 
