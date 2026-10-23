@@ -16,7 +16,8 @@ export function wallPushImpulse(wall,enemy) {
   const nx=Math.cos(angle),ny=Math.sin(angle);
   const dirX=nx*.8+Math.cos(main)*.2,dirY=ny*.8+Math.sin(main)*.2;
   const mag=Math.max(.001,Math.hypot(dirX,dirY));
-  return {vx:US_WALL_PUSH_SPEED*dirX/mag,vy:US_WALL_PUSH_SPEED*dirY/mag};
+  const strength=wall.labPushSpeed??US_WALL_PUSH_SPEED;
+  return {vx:strength*dirX/mag,vy:strength*dirY/mag};
 }
 export function addWallPush(state,impulse) {
   const start=state??{x:0,y:0,vx:0,vy:0};
@@ -32,8 +33,9 @@ export function advanceWallPush(state,dt) {
   // Sem teleporte, e a posição volta suavemente ao percurso de navegação.
   const drag=Math.exp(-4.2*t);
   const vx=(s.vx??0)*drag,vy=(s.vy??0)*drag;
-  const x=clamp((s.x??0)+(s.vx+vx)*t*.5,-US_WALL_PUSH_MAX_OFFSET,US_WALL_PUSH_MAX_OFFSET);
-  const y=clamp((s.y??0)+(s.vy+vy)*t*.5,-US_WALL_PUSH_MAX_OFFSET,US_WALL_PUSH_MAX_OFFSET);
+  const maxOffset=Math.max(1,s.maxOffset??US_WALL_PUSH_MAX_OFFSET);
+  const x=clamp((s.x??0)+(s.vx+vx)*t*.5,-maxOffset,maxOffset);
+  const y=clamp((s.y??0)+(s.vy+vy)*t*.5,-maxOffset,maxOffset);
   const drift=Math.exp(-.65*t);
   return {x:x*drift,y:y*drift,
     vx:Math.abs(vx)<.2?0:vx,vy:Math.abs(vy)<.2?0:vy};
