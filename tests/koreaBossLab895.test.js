@@ -51,10 +51,10 @@ test('campanha preserva dez escolhas globais, sem benefício indevido de laborat
 });
 
 test('menu de testes realmente envia toda a combinação ao combate e reinício',()=>{
-  assert.match(menuSource,/changeV1LabLevel\(this\.levels,country,delta\)/);
+  assert.match(menuSource,/changeStage\(country,track,delta\)/);
   assert.match(menuSource,/this\.rows\.push/);
-  assert.match(menuSource,/v1LabLevels:build\.labLevels/);
-  assert.match(menuSource,/v1LabPrimary:build\.labPrimary/);
+  assert.match(menuSource,/v1LabLevels:levels/);
+  assert.match(menuSource,/v1LabPrimary:this\.especial/);
   assert.match(sceneSource,/if\(v1Lab\)this\.combatCampaign=v1Lab/);
   assert.match(sceneSource,/v1LabLevels:\{\.\.\.this\.v1LabLevels\}/);
 });
