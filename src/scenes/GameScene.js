@@ -1054,7 +1054,7 @@ export class GameScene extends Phaser.Scene {
       '“O IMPERADOR DA TERRA DEVE FECHAR OS BRAÇOS! ESSE GESTO É GUERRA!”',
       'O alvo é o Cristo Redentor. Para os invasores, braços abertos declaram guerra.',
       'E só atacam à noite porque, durante o dia, estão curtindo as praias do Rio.',
-      'ZECA: “Dez noites de guerra por um abraço e um banho de mar?!”',
+      'ZÉ MARIA: “Dez noites de guerra por um abraço e um banho de mar?!”',
     ];
     let page=0;
     const body=this.add.text(W/2,238,'',{
@@ -6242,15 +6242,15 @@ export class GameScene extends Phaser.Scene {
       .setInteractive().setDepth(246);
     addCuboBroadcastFrame(this,{
       section:'Cubo News • Conversa reservada',
-      headline:'ZECA CARRARA TEM UM PLANO',
+      headline:'ZÉ MARIA TEM UM PLANO',
       footer:'A decisão é sua • Nenhum contrato estrangeiro envolvido',
       depth:261,
     });
-    this.add.text(W/2,110,'O ZECA TEM UMA PROPOSTA',{
+    this.add.text(W/2,110,'ZÉ MARIA TEM UMA PROPOSTA',{
       fontFamily:'monospace',fontSize:'28px',fontStyle:'bold',color:'#ffe2a6',
     }).setOrigin(0.5).setDepth(250);
     this.add.text(W/2,233,
-      'ZECA: "Conheço uns motoristas que resolvem isso.\n'+
+      'ZÉ MARIA: "Conheço uns motoristas que resolvem isso.\n'+
       'A gente pega de volta tudo que eles levaram.\n'+
       'O Supremo não cabe no carro. Esse vai ficar.\n\n'+
       'Mas é uma corrida só, chefe. Se perder de novo, acabou."',{
@@ -6258,7 +6258,7 @@ export class GameScene extends Phaser.Scene {
         align:'center',wordWrap:{width:840},lineSpacing:11,
       }).setOrigin(0.5).setDepth(250);
     addMenuButton(this,{x:W/2,y:368,width:440,height:49,
-      text:'▶  ACEITAR AJUDA DO ZECA',primary:true,depth:255,
+      text:'▶  ACEITAR AJUDA DE ZÉ MARIA',primary:true,depth:255,
       onClick:()=>this.scene.start('ZecaRecoveryScene',{
         campaign:this.campaign,selectedBetrayer:this.selectedBetrayer,
       }),
@@ -6296,7 +6296,7 @@ export class GameScene extends Phaser.Scene {
         'O BRASIL LUTOU SOZINHO.']
       : lastChance
         ? [reason==='timeout'?'A ÚLTIMA CHANCE ACABOU.':'O CANHÃO CAIU NA ÚLTIMA BATALHA.',
-          'ZECA: "'+(copy?.farewell??'A gente fez o que podia, chefe.')+'"']
+          'ZÉ MARIA: "'+(copy?.farewell??'A gente fez o que podia, chefe.')+'"']
         : [reason==='timeout'?'O PRAZO ACABOU ANTES DE DERRUBAR O TRAIDOR.':'O TRAIDOR QUEBROU AS DEFESAS.',
           available?'NEM TODO MUNDO ACEITOU O RESULTADO.':'O BRASIL FOI COLONIZADO.']).join(String.fromCharCode(10));
     this.add.text(W/2,238,caption,{
@@ -6328,7 +6328,7 @@ export class GameScene extends Phaser.Scene {
       g.fillStyle(0x55322f).fillRect(px-13,py-9,12,3);
       g.fillStyle(0x55322f).fillRect(px+3,py-9,12,3);
       g.fillStyle(0x42251f).fillRect(px-8,py+16,16,4);
-      this.add.text(px,py+51,'ZECA?',{
+      this.add.text(px,py+51,'ZÉ MARIA?',{
         fontFamily:'monospace',fontSize:'14px',fontStyle:'bold',color:'#ffe2aa',
       }).setOrigin(0.5).setDepth(242);
       portrait.on('pointerdown',(pointer,_x,_y,event)=>{
