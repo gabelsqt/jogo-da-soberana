@@ -69,12 +69,12 @@ export class PrologueRepairScene extends Phaser.Scene{
     this.input.keyboard?.on('keydown-SPACE',()=>this.next());
     this.show();
   }
-  add(object){this.items.push(object);return object;}
+  keep(object){this.items.push(object);return object;}
   clear(){for(const obj of this.items)obj.destroy();this.items=[];}
   cannon(x,y,scale=1){
-    this.add(this.addImage('repair-cannon-base',x,y+25*scale,120*scale,58*scale,20));
-    this.add(this.addImage('repair-cannon-barrel',x,y-30*scale,37*scale,90*scale,23));
-    this.add(this.addImage('repair-cannon-head',x,y-5*scale,69*scale,70*scale,24));
+    this.keep(this.addImage('repair-cannon-base',x,y+25*scale,120*scale,58*scale,20));
+    this.keep(this.addImage('repair-cannon-barrel',x,y-30*scale,37*scale,90*scale,23));
+    this.keep(this.addImage('repair-cannon-head',x,y-5*scale,69*scale,70*scale,24));
   }
   addImage(texture,x,y,w,h,depth){
     return this.add.image(x,y,texture).setDisplaySize(w,h).setDepth(depth);
@@ -82,11 +82,11 @@ export class PrologueRepairScene extends Phaser.Scene{
   show(){
     this.clear();
     const text=this.pages[this.index];
-    const panel=this.add(this.add.rectangle(W/2,278,830,330,0x122539,.96)
+    const panel=this.keep(this.add.rectangle(W/2,278,830,330,0x122539,.96)
       .setStrokeStyle(3,0x90adad).setDepth(10));
-    const p=this.add(this.add.rectangle(W/2,380,790,98,0x061321,.95)
+    const p=this.keep(this.add.rectangle(W/2,380,790,98,0x061321,.95)
       .setStrokeStyle(2,0xe1b46f).setDepth(61));
-    const title=this.add(this.add.text(W/2,366,text,{
+    const title=this.keep(this.add.text(W/2,366,text,{
       fontFamily:'monospace',fontSize:'19px',fontStyle:'bold',
       color:'#ffe3b6',align:'center',wordWrap:{width:740},
     }).setOrigin(.5).setDepth(64));
@@ -105,44 +105,43 @@ export class PrologueRepairScene extends Phaser.Scene{
         'O circuito responde. O tiro especial está instalado e pode ser usado desde o início da onda 2.',
       ],
     };
-    this.add(this.add.text(W/2,439,subtitles[this.stage][this.index],{
+    this.keep(this.add.text(W/2,439,subtitles[this.stage][this.index],{
       fontFamily:'monospace',fontSize:'13px',color:'#b7d6e4',
       align:'center',wordWrap:{width:762},lineSpacing:4,
     }).setOrigin(.5).setDepth(65));
-    const caption=this.add(this.add.text(W/2,112,
+    const caption=this.keep(this.add.text(W/2,112,
       (this.index+1)+' / '+this.pages.length,{
         fontFamily:'monospace',fontSize:'15px',color:'#b7e9cb',
       }).setOrigin(.5).setDepth(50));
     if(this.stage==='arrival'&&this.index===0){
-      this.add(this.add.rectangle(305,237,280,104,0x172c3e).setDepth(20));
-      this.add(this.add.text(310,224,'☎ CHAMADA PARA',{
+      this.keep(this.add.rectangle(305,237,280,104,0x172c3e).setDepth(20));
+      this.keep(this.add.text(310,224,'☎ CHAMADA PARA',{
         fontFamily:'monospace',fontSize:'16px',color:'#a7e6d1',
       }).setOrigin(.5).setDepth(32));
-      this.add(this.add.text(310,251,'OFICINA DO ZÉ MARIA',{
+      this.keep(this.add.text(310,251,'OFICINA DO ZÉ MARIA',{
         fontFamily:'monospace',fontSize:'18px',color:'#ffe5b8',
       }).setOrigin(.5).setDepth(32));
-      createPixelMechanic(this,715,230); // removido pela mudança de cena
-      this.items.push(this.children.list.at(-1));
+      this.keep(createPixelMechanic(this,715,230));
     }else if(this.stage==='arrival'&&this.index===1){
       const truck=drawTowTruck(this);this.items.push(truck);
     }else{
       this.cannon(W/2,250,.9);
       if(this.stage==='arrival'&&this.index===2){
-        const arm=this.add(this.add.graphics().setDepth(26));
+        const arm=this.keep(this.add.graphics().setDepth(26));
         arm.lineStyle(4,0xe2aa7d);arm.lineBetween(330,235,397,265);
-        this.add(this.add.text(275,239,'TOC TOC',{
+        this.keep(this.add.text(275,239,'TOC TOC',{
           fontFamily:'monospace',fontSize:'19px',color:'#ffdd8a',
         }).setDepth(37));
       }else if(this.stage==='principal'){
         const color={br:0x37c878,us:0x4897f5,ru:0xe8b84c,
           cn:0xe84d51,jp:0xa46cf0}[this.country]??0xffffff;
-        this.add(this.add.rectangle(670,252,100,43,color,.85).setDepth(26));
-        this.add(this.add.text(670,252,this.country.toUpperCase(),{
+        this.keep(this.add.rectangle(670,252,100,43,color,.85).setDepth(26));
+        this.keep(this.add.text(670,252,this.country.toUpperCase(),{
           fontFamily:'monospace',fontSize:'19px',fontStyle:'bold',color:'#0b1a2b',
         }).setOrigin(.5).setDepth(28));
-        if(this.index===1)this.add(this.add.circle(W/2,166,9,0xffe0a3).setDepth(30));
+        if(this.index===1)this.keep(this.add.circle(W/2,166,9,0xffe0a3).setDepth(30));
       }else if(this.stage==='special'){
-        this.add(this.add.circle(W/2,160,25,0xa7e6f6,.75).setDepth(30));
+        this.keep(this.add.circle(W/2,160,25,0xa7e6f6,.75).setDepth(30));
       }
     }
   }
