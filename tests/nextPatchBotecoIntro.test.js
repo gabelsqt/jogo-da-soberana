@@ -31,7 +31,7 @@ test('cinco retratos sobre cadeiras e foco no canto superior esquerdo',()=>{
   assert.match(scene,/setAlpha\(active\?1:0\.27\)/);
   assert.match(scene,/this\.tweens\.add\(\{targets:tile\.node/);
   assert.match(scene,/this\.previewLabel/);
-  assert.match(scene,/Prévia animada do upgrade \(em breve\)/);
+  assert.match(scene,/SELECIONE P OU S PARA CONFIRMAR O ACORDO/);
   assert.match(scene,/this\.acceptButton\.label\.setText/);
   assert.match(scene,/this\.backButton/);
 });
@@ -44,9 +44,9 @@ test('cinco biografias provisórias aparecem em etapas e não substituem upgrade
     assert.equal(representativeStoryFor(id,9),representativeStoryFor(id,10));
   }
   const scene=source('src/scenes/UpgradeScene.js');
-  assert.match(scene,/option\.title/);
-  assert.match(scene,/option\.description/);
-  assert.match(scene,/representativeStoryFor\(id,option\.level\)/);
+  assert.match(scene,/ability\.title/);
+  assert.match(scene,/ability\.description/);
+  assert.match(scene,/representativeStoryFor\(id,Math\.min\(option\.level,10\)\)/);
 });
 test('nova abertura substitui login, preserva notícias e apresenta Zeca',()=>{
   const menu=source('src/scenes/MenuScene.js'),scene=source('src/scenes/IntroScene.js');
