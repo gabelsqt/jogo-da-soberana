@@ -45,7 +45,7 @@ test('muro intercepta e reflete tiro rápido em direção ao invasor',()=>{
  assert.equal(americanWallTouches(wall,480,220),true);
  assert.equal(americanWallIntersects(wall,480,185,480,270,8.25),true);
  const vector=wallReflectionVector(wall,480,220,{sprite:{active:true,x:480,y:100}});
- assert.equal(vector.vx,0);
+ assert.ok(Math.abs(vector.vx)<1e-8,'direção vertical tem tolerância de precisão');
  assert.ok(vector.vy<0);
  assert.ok(Math.abs(Math.hypot(vector.vx,vector.vy)-US_WALL_REFLECTION_SPEED)<1e-7);
  assert.ok(US_WALL_REFLECTION_DAMAGE>=1);
