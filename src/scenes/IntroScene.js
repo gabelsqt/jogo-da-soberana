@@ -39,6 +39,7 @@ export class IntroScene extends Phaser.Scene {
       {width:720,height:168});
     this.load.svg('intro-elections',assetUrl('assets/intro/urna-cancelado.svg'),
       {width:720,height:168});
+    // O armamento e a oficina serão mostrados depois na sequência de batalha.
     this.load.image('intro-obuseiro-base',assetUrl('assets/canhao/base.png'));
     this.load.image('intro-obuseiro-head',assetUrl('assets/canhao/head_4.png'));
     this.load.image('intro-obuseiro-barrel',assetUrl('assets/canhao/barrel_4.png'));
