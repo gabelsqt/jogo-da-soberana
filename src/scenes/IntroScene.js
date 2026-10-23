@@ -13,7 +13,7 @@ import {
 } from '../gameplay/introScript.js';
 
 // A apresentação é um fluxo cinematográfico sem login: e-mail de mesário,
-// plantão, segundo e-mail com a cláusula *revelada só na promoção*, Zeca.
+// plantão, segundo e-mail com a cláusula revelada após a promoção.
 export class IntroScene extends Phaser.Scene {
   constructor(){super({key:'IntroScene'});}
   init(data={}){
@@ -34,7 +34,7 @@ export class IntroScene extends Phaser.Scene {
   }
   preload(){
     preloadRioBackdrop(this);
-    this.load.image('intro-zeca',assetUrl('assets/lideres/br_retrato.png'));
+    // Zé Maria aparece apenas depois da onda 0.5, nunca antes da invasão.
     this.load.svg('intro-invasion',assetUrl('assets/intro/invasao-cristo.svg'),
       {width:720,height:168});
     this.load.svg('intro-elections',assetUrl('assets/intro/urna-cancelado.svg'),
@@ -124,7 +124,7 @@ export class IntroScene extends Phaser.Scene {
     }
     if(this.music.key==='news')this.music.stop();
     if(slide.kind==='email')this.drawEmail(slide);
-    else this.drawZeca(slide);
+    else this.drawEmail(slide);
     this.beginTyping(this.body,slide.body,'body');
   }
   drawEmail(slide){
