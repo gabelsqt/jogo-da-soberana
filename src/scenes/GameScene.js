@@ -13,6 +13,8 @@ import { supremeCodeFor, advanceSupremeCode } from '../gameplay/supremeCodeInput
 import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
+import {chinaLineFocus,chinaLineDuration,chinaLineShotInterval,chinaLineShotAngle} from '../gameplay/chinaLineVolley.js';
+import {koreanSalvoAngles,nextKoreanRicochet,koreanRicochetDamage} from '../gameplay/koreanLaserSalvo.js';
 import {computeLabMath} from '../gameplay/labMathRuntime.js';
 import {normalizeLabBalance,normalizeLabAllocation} from '../gameplay/labBalanceProfile.js';
 import {mountLabBalanceEditor} from '../ui/labBalanceEditor.js';
@@ -3879,6 +3881,11 @@ export class GameScene extends Phaser.Scene {
     else playSfx('cannon',{throttle:95,volumeScale:0.48});
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     const nextShot = this.basicShotCount + 1;
+    if(this.labMathEnabled&&this.v1LabPrincipal==='jp'){
+      this.basicShotCount=nextShot;
+      this.fireLabKoreanVolley(angle);
+      return;
+    }
     if (this.isV1Campaign && this.combat.koreaContinuous) {
       this.basicShotCount=nextShot;
       // Não cria balas físicas: o Lightstick torna-se o disparo principal.
@@ -4443,64 +4450,78 @@ export class GameScene extends Phaser.Scene {
   }
 
 
-  // Feixe chinês experimental: reúne os projéteis reais (não é o laser coreano).
-  // Conversão total: tiros separados são suspensos até terminar a dispersão.
-  updateLabChinaBeam(pointer){
-    const beam=this.cnConvergence;
-    if(!beam)return;
-    const t=this.time.now-beam.startedAt;
-    const focus=this.labExtra?.cnFocusMs??2500;
-    const total=3000+focus;
-    if(t>=total || this.tutorialComplete){
-      beam.graphics?.destroy();this.cnConvergence=null;return;
+  // Especial chinês experimental: os tiros físicos formam uma fila colinear.
+  // A animação de 1,5 s afunila e reabre a DISPERSÃO, sem feixe contínuo.
+  updateLabChinaLine(pointer){
+    const line=this.cnConvergence;
+    if(!line)return;
+    const age=this.time.now-line.startedAt;
+    const focusMs=this.labExtra?.cnFocusMs??2500;
+    if(age>=chinaLineDuration(focusMs)||this.tutorialComplete){
+      this.cnConvergence=null;return;
     }
-    const power=t<1500?t/1500:t<1500+focus?1:(total-t)/1500;
-    const angle=restrictedAimAngle(CANNON.x,CANNON.y,pointer.x,pointer.y);
-    const ox=CANNON.x,oy=CANNON.y-22,dx=Math.cos(angle),dy=Math.sin(angle);
-    const maxLength=950;
-    let closest=null,closestAt=maxLength;
-    for(const enemy of this.enemies){
-      if(!enemy.sprite?.active)continue;
-      const ex=enemy.sprite.x-ox,ey=enemy.sprite.y-oy;
-      const along=ex*dx+ey*dy;
-      if(along<0||along>=closestAt)continue;
-      const across=Math.abs(-ex*dy+ey*dx);
-      const radius=this.enemyCombatRadius(enemy);
-      if(across>radius+5)continue;
-      closest=enemy;closestAt=Math.max(0,along-Math.sqrt(Math.max(0,(radius+5)**2-across**2)));
+    const focus=chinaLineFocus(age,focusMs);
+    const interval=chinaLineShotInterval(this.combat.basicInterval,
+      this.combat.bulletsPerShot,this.combat.chinaSplitCount>1,
+      this.labExtra?.cnCopyDamage??.5,this.labExtra?.cnRateFactor??1);
+    if(this.time.now-line.lastShotAt<interval)return;
+    line.lastShotAt=this.time.now;
+    const aim=restrictedAimAngle(CANNON.x,CANNON.y,pointer.x,pointer.y);
+    const angle=Phaser.Math.Clamp(chinaLineShotAngle(aim,focus,line.shots++),
+      -Math.PI+Math.PI/12,-Math.PI/12);
+    const shot=this.createProjectile(angle,false);
+    if(!shot)return;
+    // Cópias integram a fila, sem gerarem novas bifurcações fora do eixo.
+    shot.chinaSplit=false;
+    shot.chinaLineShot=true;
+    shot.chinaLineArmorMultiplier=this.labExtra?.cnArmorMultiplier??1;
+    shot.damage*=this.labExtra?.cnShotMultiplier??1;
+    // A munição permanece fisicamente individual; não aplica dano instantâneo.
+    if(line.shots%5===1)playSfx('cannon',{throttle:95,volumeScale:.25});
+  }
+
+  // Principal coreano: saraivada de pequenos lasers independentes.
+  // Após cada impacto, cada laser pode ricochetear para outro inimigo.
+  fireLabKoreanVolley(angle){
+    const count=this.labExtra?.jpVolleyCount??3;
+    const angles=koreanSalvoAngles(angle,count,count>6?.045:.10);
+    for(let i=0;i<angles.length;i++){
+      const direction=Phaser.Math.Clamp(angles[i],-Math.PI+Math.PI/12,-Math.PI/12);
+      const bullet=this.createProjectile(direction,false);
+      if(!bullet)continue;
+      bullet.koreanBouncesLeft=this.labExtra?.jpBounces??0;
+      bullet.koreanBounceRange=this.labExtra?.jpBounceRange??180;
+      bullet.koreanBounceRetention=this.labExtra?.jpBounceRetention??.7;
+      bullet.damage*=this.labWinner==='jp'?.6:1;
+      // Sem fenda de Lightstick, sem rastro contínuo.
     }
-    const hitX=ox+dx*closestAt,hitY=oy+dy*closestAt;
-    const g=beam.graphics;g.clear();
-    const width=2+power*11;
-    g.lineStyle(width+10,0xf33d49,.12+power*.14);g.lineBetween(ox,oy,hitX,hitY);
-    g.lineStyle(width,0xff5755,.3+power*.6);g.lineBetween(ox,oy,hitX,hitY);
-    g.lineStyle(Math.max(1,power*3),0xffe7b0,power);g.lineBetween(ox,oy,hitX,hitY);
-    if(power<1){
-      // Linhas convergem gradualmente e separam-se no final da ativação.
-      for(let i=-2;i<=2;i++){
-        const gap=i*(1-power)*9;
-        g.lineStyle(2,0xff9d55,.25+.4*(1-power));
-        g.lineBetween(ox-dy*gap,oy+dx*gap,
-          hitX-dy*gap*.1,hitY+dx*gap*.1);
-      }
+    playSfx('krBasicShot',{throttle:70,volumeScale:.55});
+    this.showMuzzleFlash(angle,shotVfxFor(this.activeUpgradeIds()));
+  }
+
+  drawLabKoreanHologram(angle,active){
+    if(!this.labKoreanHologram&&active)
+      this.labKoreanHologram=this.add.graphics().setDepth(45);
+    const g=this.labKoreanHologram;if(!g)return;
+    g.clear();if(!active)return;
+    const time=this.time.now*.0045;
+    const x=CANNON.x+Math.cos(angle)*34,y=CANNON.y+Math.sin(angle)*34;
+    const dx=Math.cos(angle),dy=Math.sin(angle);
+    // Projeção holográfica ancorada à boca do canhão, sem rastro dos tiros.
+    for(let layer=0;layer<3;layer++){
+      const distance=9+layer*11+(time*13)%11;
+      const px=x+dx*distance,py=y+dy*distance;
+      const radius=6+layer*5+2*Math.sin(time+layer);
+      g.lineStyle(2,[0x66f1ff,0xce9cff,0xff96ee][layer],.55);
+      g.strokeEllipse(px,py,radius*2,radius*1.3);
+      g.lineStyle(1,0xe6ffff,.36);
+      g.lineBetween(px-dy*radius,py+dx*radius,px+dy*radius,py-dx*radius);
     }
-    const interval=this.labExtra?.cnPulseMs??250;
-    if(!closest||power<=0||this.time.now-beam.lastPulseAt<interval)return;
-    beam.lastPulseAt=this.time.now;
-    const split=this.combat.chinaSplitCount>1?1+(this.labExtra?.cnCopyDamage??.5):1;
-    const primaryDps=this.combat.basicDamage*this.combat.bulletsPerShot*split*
-      1000/Math.max(40,this.combat.basicInterval);
-    let dps=Math.min(primaryDps*2.25,
-      primaryDps*1.25*(250/interval)*(this.labExtra?.cnPulseMultiplier??1));
-    const boss=closest.type===6;
-    if(boss)dps=Math.min(primaryDps*3,
-      dps*(this.labExtra?.cnArmorMultiplier??1));
-    const damage=dps*(interval/1000)*power;
-    const index=this.enemies.indexOf(closest);
-    if(index<0)return;
-    if(boss)hitType6Segment(this,closest,ox,oy,hitX+dx*15,hitY+dy*15,
-      damage,Math.max(5,width/2));
-    else this.impactInvader(index,damage,0,'#ffe6a3',false);
+    for(let side=-1;side<=1;side+=2){
+      const ox=x-dy*side*12,oy=y+dx*side*12;
+      g.lineStyle(2,side>0?0x72ecff:0xef8bff,.48);
+      g.lineBetween(ox,oy,ox+dx*44,oy+dy*44);
+    }
   }
 
   shootSpecial(pointer) {
@@ -4513,9 +4534,7 @@ export class GameScene extends Phaser.Scene {
       :specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
     this.lastSpecialFire=this.time.now;
     if(this.labMathEnabled&&country==='cn'){
-      this.cnConvergence?.graphics?.destroy();
-      this.cnConvergence={startedAt:this.time.now,lastPulseAt:-Infinity,
-        graphics:this.add.graphics().setDepth(75)};
+      this.cnConvergence={startedAt:this.time.now,lastShotAt:-Infinity,shots:0};
       return;
     }
     if(country==='us'){
@@ -5135,7 +5154,8 @@ export class GameScene extends Phaser.Scene {
     const vfx = special ? null : (effects ?? shotVfxFor(this.activeUpgradeIds()));
     const julyShot=!special&&patriotic;
     // Identidade coreana: pulso laser visual em cada tiro físico, sem mudar física.
-    const koreanLaserPulse=!special&&this.isV1Campaign&&this.combat.plasmaEvery>0;
+    const koreanLaserBolt=!special&&this.labMathEnabled&&this.v1LabPrincipal==='jp';
+    const koreanLaserPulse=!special&&!this.labMathEnabled&&this.isV1Campaign&&this.combat.plasmaEvery>0;
     const usRocket=!special&&this.isV1Campaign&&this.combat.usRocketRadius>0;
     // Somente a representação gráfica é limitada. Balas invisíveis continuam com física e dano.
     const visible = special || this.visibleProjectileCount < MAX_VISUAL_PROJECTILES;
@@ -5143,6 +5163,11 @@ export class GameScene extends Phaser.Scene {
     const dot = !visible ? {x, y, destroy(){}} : special
       ? this.add.circle(x, y, 5, 0x72eaf8).setDepth(35)
       : usRocket ? this.createAmericanRocketSprite(x,y,angle,this.combat.usRocketRadius)
+      : koreanLaserBolt
+        ? this.add.rectangle(x,y,this.labWinner==='jp'?4:3,
+            this.labWinner==='jp'?22:15,
+            this.labWinner==='jp'?[0x9cf5ff,0xffb3f6,0xd18dff][this.basicShotCount%3]:0xb78aff)
+          .setStrokeStyle(1,0xffffff,.9).setRotation(angle+Math.PI/2).setDepth(35)
       : julyShot
         ? this.add.circle(x,y,9,0xf5f8ff)
           .setStrokeStyle(3,0x427ee3,0.96).setDepth(36)
@@ -5161,7 +5186,8 @@ export class GameScene extends Phaser.Scene {
     const speed = special ? 300 : this.combat.basicSpeed;
     // Uma única Graphics por bala, redesenhada enquanto ela se move.
     // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
-    const trail = visible && vfx && (vfx.heavy || vfx.multiple || koreanLaserPulse || julyShot || usRocket)
+    const trail = visible && vfx && !koreanLaserBolt &&
+      (vfx.heavy || vfx.multiple || koreanLaserPulse || julyShot || usRocket)
       ? this.add.graphics().setDepth(34) : null;
     const bullet = {
       sprite: dot,
@@ -5170,7 +5196,7 @@ export class GameScene extends Phaser.Scene {
       trail,
       vfx,
       centerGlow,
-      koreanLaserPulse,
+      koreanLaserPulse,koreanLaserBolt,
       patriotic:julyShot,
       usRocket,
       usBlastRadius:usRocket?this.combat.usRocketBlastRadius:0,
@@ -5868,7 +5894,8 @@ export class GameScene extends Phaser.Scene {
             const key=enemy.uid+':'+target;
             if(target!==null&&bullet.hitEnemyIds.has(key))continue;
             const hit=hitType6Bullet(this,enemy,bullet.sprite.x,bullet.sprite.y,
-              bullet.damage,Math.max(7,bullet.usRadius),previousX,previousY);
+              bullet.damage*(bullet.chinaLineArmorMultiplier??1),
+              Math.max(7,bullet.usRadius),previousX,previousY);
             if(!hit.blocked)continue;
             if(hit.target!==null)bullet.hitEnemyIds.add(enemy.uid+':'+hit.target);
             if(hit.target!==null&&hit.target!=='barrier')
@@ -5885,6 +5912,7 @@ export class GameScene extends Phaser.Scene {
                 this.detonateAmericanJuly(bullet.sprite.x,bullet.sprite.y,enemy.uid,bullet.damage);
               remove=true;break;
             }
+            if(bullet.koreanLaserBolt){remove=true;break;}
             if(bullet.fragmentation)this.explodeFragments(bullet.sprite.x,bullet.sprite.y,
               enemy.uid);
             if(bullet.knockback>0)this.showHeavyImpact(bullet.sprite.x,bullet.sprite.y);
@@ -5909,9 +5937,12 @@ export class GameScene extends Phaser.Scene {
             this.freezeRussianEnemy(enemy,this.combat.russianFreezeMs);
 
           }
+          const bulletDamage=bullet.damage*
+            (bullet.chinaLineArmorMultiplier&&enemy.type===5&&enemy.shield>0
+              ?bullet.chinaLineArmorMultiplier:1);
           const hitDamage=this.combat.russianFreezeMs>0
-            ?sputnikPrimaryDamage(enemy,this.elapsed,bullet.damage,this.specialBuild)
-            :bullet.damage;
+            ?sputnikPrimaryDamage(enemy,this.elapsed,bulletDamage,this.specialBuild)
+            :bulletDamage;
           const destroyed = this.impactInvader(
             j, hitDamage, knockback, bullet.impactColor,
             true, this.combat.strategicRecoil ? 720 : 400,
@@ -5935,6 +5966,27 @@ export class GameScene extends Phaser.Scene {
             const replica = this.createProjectile(direction, false, 0, bullet.vfx, false, 0,
               bullet.generation + 1, {x:deathPosition.x+8,y:deathPosition.y-8});
             replica?.hitEnemyIds.add(directTargetId);
+          }
+          if(bullet.koreanLaserBolt){
+            const next=bullet.koreanBouncesLeft>0
+              ?nextKoreanRicochet(deathPosition.x,deathPosition.y,
+                this.enemies,bullet.hitEnemyIds,bullet.koreanBounceRange):null;
+            if(next){
+              const angle=Math.atan2(next.sprite.y-deathPosition.y,
+                next.sprite.x-deathPosition.x);
+              const speed=this.combat.basicSpeed;
+              bullet.vx=Math.cos(angle)*speed;
+              bullet.vy=Math.sin(angle)*speed;
+              bullet.sprite.setRotation(angle+Math.PI/2);
+              bullet.damage=koreanRicochetDamage(bullet.damage,bullet.koreanBounceRetention);
+              bullet.koreanBouncesLeft--;
+              const flash=this.add.circle(deathPosition.x,deathPosition.y,6,0xdcb2ff,.65)
+                .setDepth(48);
+              this.tweens.add({targets:flash,alpha:0,scale:1.8,duration:110,
+                onComplete:()=>flash.destroy()});
+              remove=false;
+            }else remove=true;
+            break;
           }
           if (bullet.fragmentation || bullet.patriotic || bullet.usRocket) {
             if(!bullet.patriotic)this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
@@ -6776,7 +6828,10 @@ export class GameScene extends Phaser.Scene {
       firing&&this.elapsed>=this.cannonFrozenUntil;
     if(this.iceBreathGraphics)this.drawRussianBreath(this.aimAngle,breathActive);
     setSfxLoopActive('ruIceBreath',breathActive,{volumeScale:0.43});
-    if(this.labMathEnabled&&this.cnConvergence)this.updateLabChinaBeam(pointer);
+    if(this.labMathEnabled&&this.cnConvergence)this.updateLabChinaLine(pointer);
+    if(this.labMathEnabled&&this.v1LabPrincipal==='jp')
+      this.drawLabKoreanHologram(this.aimAngle,
+        this.labWinner==='jp'&&firing);
     if(firing&&!(this.labMathEnabled&&this.cnConvergence))this.shootBasic(pointer);
     // O ciclo de calor continua mesmo quando o jogador solta o disparo.
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
