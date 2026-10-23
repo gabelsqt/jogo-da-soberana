@@ -65,10 +65,17 @@ export function computeLabMath({profile={},allocation={},principal='br',especial
   if(has('br','P',2)){stats.basicDamage*=v('br','P',2,'damage',1.35);extra.projectileRadiusMultiplier=v('br','P',2,'radius',1.25);}
   if(has('br','P',3))stats.horizontalSpread=v('br','P',3,'spread',14);
   if(has('br','P',4)){stats.heat=true;stats.brazilHeatPeak=v('br','P',4,'heat',150)/100;extra.brPeakMs=v('br','P',4,'plateau',2100);}
-  if(has('us','P',1))stats.usRocketRadius=v('us','P',1,'radius',13);
-  if(has('us','P',2))stats.usRocketBlastRadius=v('us','P',2,'blastRadius',40);
+  if(has('us','P',1)){
+    if(principal==='us')stats.usRocketRadius=v('us','P',1,'radius',13);
+    else extra.projectileRadiusMultiplier*=v('us','P',1,'radius',13)/9;
+  }
+  if(has('us','P',2)&&principal==='us')
+    stats.usRocketBlastRadius=v('us','P',2,'blastRadius',40);
   if(has('us','P',3)){extra.usShockDistance=v('us','P',3,'push',70);extra.usShockTime=v('us','P',3,'pushTime',450);}
-  if(has('us','P',4)){stats.basicDamage*=v('us','P',4,'damage',1.6);stats.usRocketBlastDamage=v('us','P',4,'blastDamage',2.1);}
+  if(has('us','P',4)){
+    stats.basicDamage*=v('us','P',4,'damage',1.6);
+    if(principal==='us')stats.usRocketBlastDamage=v('us','P',4,'blastDamage',2.1);
+  }
   if(has('ru','P',1)){stats.basicDamage*=v('ru','P',1,'damage',2)/1.75;stats.russianFreezeMs=v('ru','P',1,'freezeMs',1400);}
   if(has('ru','P',2)){stats.russianShatterDamage=v('ru','P',2,'shatterDamage',3);stats.russianShatterRadius=v('ru','P',2,'shatterRadius',60);}
   if(has('ru','P',3)){stats.russianFreezeMs=v('ru','P',3,'freezeMs',2200);stats.basicSpeed=v('ru','P',3,'speed',600);}
