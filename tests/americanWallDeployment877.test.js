@@ -61,7 +61,7 @@ test('prévia, viagem, abertura, defesa e temporizador conectados à cena',()=>{
     'americanWallArcCenter(point.x,point.y,point.angle,cfg.radius)',
     'cannonSpritePose(point.angle','americanWallTravelDuration(muzzleX,muzzleY',
     "animation.phase==='travel'","animation.phase==='deploy'",
-    'wall.currentArc=animation.arc','AMERICAN_WALL_OPEN_MS+cfg.durationMs',
+    'wall.currentArc=animation.arc','openMs+cfg.durationMs',
     'playSfx(\'shieldOn\''])
     assert.ok(s.includes(text),text);
 });
