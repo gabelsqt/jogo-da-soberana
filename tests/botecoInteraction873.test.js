@@ -16,7 +16,7 @@ test('áreas invisíveis não bloqueiam retratos nem botões das propostas',()=>
   assert.match(scene,/this.focusDim=this.add.rectangle[\s\S]*?\.setDepth\(33\)\.setVisible\(false\);/);
   assert.match(scene,/this\.acceptButton\.disableInteractive\(\);\s*this\.backButton\.disableInteractive\(\);/);
   assert.match(scene,/this\.focusDim\.setVisible\(true\)\.setInteractive\(\);/);
-  assert.match(scene,/this\.focused=null;this\.focusDim\.disableInteractive\(\)\.setVisible\(false\);/);
+  assert.match(scene,/this\.focused=null;this\.selectedTrack=null;this\.focusDim\.disableInteractive\(\)\.setVisible\(false\);/);
   assert.match(scene,/this\.botecoOverlay\?\.destroy\(true\);this\.botecoOverlay=null;/);
   assert.match(scene,/this\.acceptButton\.setInteractive\(\{useHandCursor:true\}\)/);
 });
