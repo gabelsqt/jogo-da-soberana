@@ -61,9 +61,9 @@ test('boteco conecta digitação a Zeca, propostas e aceite sem alterar upgrades
   assert.match(src,/this\.dialogueTyper\.start\(this\.botecoLine,line/);
   assert.match(src,/if\(this\.dialogueTyper\?\.complete\(\)\)return/);
   assert.match(src,/this\.dialogueTyper\.start\(this\.flavorText/);
-  assert.match(src,/representativeStoryFor\(id,option\.level\)/);
+  assert.match(src,/representativeStoryFor\(id,Math\.min\(option\.level,10\)\)/);
   assert.match(src,/representativeLine\(id,'accepted'\)/);
   assert.match(src,/keydown-SPACE/);
   assert.match(src,/this\.events\.once\('shutdown',\(\)=>this\.dialogueTyper\?\.cancel\(\)\)/);
-  assert.match(src,/chooseV1Upgrade\(this\.campaign,id\)/);
+  assert.match(src,/chooseArmamentUpgrade\(this\.campaign,id,this\.selectedTrack\)/);
 });
