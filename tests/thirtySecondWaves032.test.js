@@ -68,5 +68,5 @@ test('GameScene congela combate no zero, mostra mensagem, portal e carrega mesa 
   assert.match(scene, /AMANHECEU! O RIO RESISTIU!/);
   assert.match(scene, /CÉU LIMPO! VITÓRIA ANTECIPADA!/);
   assert.match(scene, /this\.time\.delayedCall\(1700/);
-  assert.match(scene, /scene\.start\('UpgradeScene'/);
+  assert.match(scene, /scene\.start\('BotecoElevatorScene'/);
 });
