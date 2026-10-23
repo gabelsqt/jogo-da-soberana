@@ -62,8 +62,8 @@ test('somente feixes Tipo 6 continuam ignorando quebra normal; proteção não c
  assert.match(handle,/solidAmericanWallCollision\(wall,fromX,fromY,/);
  assert.match(handle,/enemy\.sprite\.setPosition\(hit\.x,hit\.y\)/);
  assert.doesNotMatch(handle,/damageTarget|impactInvader/);
- const dive=scene.slice(scene.indexOf("      } else if (enemy.phase === 'wallRepelled')"),
-   scene.indexOf('      // Estima velocidade real',scene.indexOf("      } else if (enemy.phase === 'wallRepelled')"));
+ const diveStart=scene.indexOf("      } else if (enemy.phase === 'wallRepelled')");
+ const dive=scene.slice(diveStart,scene.indexOf('      // Estima velocidade real',diveStart));
  assert.ok(dive.indexOf('this.blockEnemyWithAmericanWall(')<
    dive.indexOf('this.removeEnemy(i);'),
    'o muro deve corrigir a trajetória ANTES de remover e danificar');
