@@ -1004,6 +1004,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   startWaveCountdown() {
+    this.waveOpeningStartedAt=this.time.now;
+    this.waveOpeningFinish=null;
     // A vinheta da Cubo News é exclusiva do primeiro plantão da introdução.
     // Desde a contagem regressiva da onda 0, usa-se a trilha de combate.
     this.music.play(waveMusic(this.mode, this.campaign));
@@ -1026,6 +1028,8 @@ export class GameScene extends Phaser.Scene {
     const startCombat = () => {
       if (combatStarted || !this.scene.isActive('GameScene') || this.tutorialComplete) return;
       combatStarted=true;
+      this.waveOpeningFinish=null;
+      this.waveOpeningStartedAt=null;
       this.countdownActive = false;
       // A formação acontece NO INÍCIO do combate em todas as ondas.
       this.hexShieldTransition='forming';
@@ -1037,6 +1041,7 @@ export class GameScene extends Phaser.Scene {
       for (const tower of this.supportTowers) tower.lastAttackAt = this.time.now;
       this.scheduleWaveEvents();
     };
+    this.waveOpeningFinish=startCombat;
     if(this.voyageActive){
       // A chegada espacial já é a cutscene de abertura, não há nova contagem.
       this.time.delayedCall(400,startCombat);
@@ -6170,6 +6175,8 @@ export class GameScene extends Phaser.Scene {
   beginDawnWithdrawal(){
     if(this.sunrisePlaying||this.tutorialComplete)return;
     this.sunrisePlaying=true;
+    this.sunriseStartedAt=this.time.now;
+    this.sunriseFinished=false;
     this.countdownActive=true;
     // A etiqueta alienígena proíbe combater sob a luz do sol.
     // Nenhum projétil novo, dano ou animação de onda ocorre até a saída.
@@ -6188,12 +6195,18 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({targets:enemy.sprite,y:-130,x:enemy.sprite.x+
         (enemy.sprite.x<W/2?-40:40),alpha:0,duration:1450,ease:'Sine.In'});
     }
-    this.time.delayedCall(1750,()=>{
-      label.destroy();
-      if(!this.scene.isActive('GameScene'))return;
-      this.countdownActive=false;
-      this.showWaveComplete('survived');
-    });
+    this.sunriseLabel=label;
+    this.time.delayedCall(1750,()=>this.finishDawnWithdrawal());
+  }
+
+  finishDawnWithdrawal(){
+    if(!this.sunrisePlaying||this.sunriseFinished||this.tutorialComplete||
+      !this.scene.isActive('GameScene'))return;
+    this.sunriseFinished=true;
+    this.sunriseLabel?.destroy();
+    this.sunriseLabel=null;
+    this.countdownActive=false;
+    this.showWaveComplete('survived');
   }
 
   saveWaveMakerReport(outcome){
@@ -6536,6 +6549,17 @@ export class GameScene extends Phaser.Scene {
       stopNationalSpecialSfxLoops();
     }
     if (this.countdownActive){
+      // Failsafes independentes dos callbacks das animações DOM/Phaser.
+      if(this.sunrisePlaying&&!this.sunriseFinished &&
+        this.time.now-(this.sunriseStartedAt??this.time.now)>=1900){
+        this.finishDawnWithdrawal();return;
+      }
+      if(this.waveOpeningStartedAt!==null &&
+        this.waveOpeningStartedAt!==undefined &&
+        this.time.now-this.waveOpeningStartedAt>=5800 &&
+        typeof this.waveOpeningFinish==='function'){
+        this.waveOpeningFinish();return;
+      }
       this.drawShield(); // escudo se desliga e se forma com o jogo pausado
       return;
     }
