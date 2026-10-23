@@ -288,18 +288,22 @@ export class UpgradeScene extends Phaser.Scene {
   showBotecoDialogue(){
     const first=this.completedWave===0;
     this.botecoPages=first?[
-      ['CUBO NEWS','O CANHÃO FOI DESTRUÍDO DEPOIS DA PRIMEIRA NOITE. A DEFESA PRECISA DE UM NOVO SISTEMA DE ARMAS.'],
-      ['ZÉ MARIA','Consertar eu conserto. Mas primeiro vamos escolher o tipo de tiro que ele vai usar.'],
-      ['ZÉ MARIA','Esse primeiro acordo define o TIRO PRINCIPAL do canhão. Depois não dá pra trocar.'],
-      ['CUBO NEWS','CINCO REPRESENTANTES APRESENTAM SUAS TECNOLOGIAS MILITARES.'],
+      ['SEU ANSELMO','Pode sentar. Esse elevador de carga é velho, mas funciona.'],
+      ['ZÉ MARIA','Os representantes estrangeiros já estavam esperando. Mas eu também tenho minhas peças.'],
+      ['ZÉ MARIA','Primeiro conserto: escolha o TIRO PRINCIPAL. Depois eu instalo e testo.'],
     ]:this.phase==='special'?[
-      ['ZÉ MARIA','Agora que o tiro principal está instalado, falta uma segunda arma.'],
-      ['ZÉ MARIA','O segundo acordo define o TIRO ESPECIAL do botão direito. Ele fica disponível imediatamente.'],
-      ['CONSELHEIRO','Escolha qualquer país, inclusive o primeiro. As duas identidades continuarão até o final da campanha.'],
+      ['SEU ANSELMO','Mais uma noite. A mesa é a mesma, o mundo lá fora nem tanto.'],
+      ['ZÉ MARIA','O principal está funcionando. Falta escolher o TIRO ESPECIAL.'],
+      ['ZÉ MARIA','Pode ser o mesmo país. O botão direito funciona a partir da onda 2.'],
+    ]:this.completedWave>=8?[
+      ['SEU ANSELMO','Uma vez, nos anos oitenta, já vi o céu ficar assim.'],
+      ['ZÉ MARIA','Anselmo, você nunca me falou disso.'],
+      ['SEU ANSELMO','Pois é. Melhor pedir mais uma rodada.'],
+      ['ZÉ MARIA','Escolha o país e o destino: PRINCIPAL [P] ou ESPECIAL [S].'],
     ]:[
-      ['ZÉ MARIA','As duas armas já estão definidas. Os próximos países oferecem MELHORIAS, não armas novas.'],
-      ['ZÉ MARIA','Escolha uma proposta e decida onde instalar o efeito: PRINCIPAL [P] ou ESPECIAL [S].'],
-      ['CONSELHEIRO','Cada país tem quatro estágios em cada arma. P1 vem antes de P2, S1 antes de S2.'],
+      ['SEU ANSELMO','O boteco fica embaixo do obuseiro. De cima para cá, só pelo elevador de carga.'],
+      ['ZÉ MARIA','Agora a gente melhora o PRINCIPAL [P] ou o ESPECIAL [S].'],
+      ['ZÉ MARIA','Cada país tem quatro etapas para cada arma. Você escolhe a ordem.'],
     ];
     this.botecoPage=0;
     this.botecoOverlay=this.add.container(0,0).setDepth(190);
@@ -325,8 +329,7 @@ export class UpgradeScene extends Phaser.Scene {
     this.botecoSpeaker.setText(speaker);
     this.botecoLine.setText('');
     const leaders={...Object.fromEntries(Object.entries(REPRESENTATIVES).map(
-      ([id,representative])=>[representative.name.toUpperCase(),id])),
-      'ZECA CARRARA':'br','ZÉ MARIA':'br'};
+      ([id,representative])=>[representative.name.toUpperCase(),id]))};
     const id=leaders[speaker.toUpperCase()];
     const key=id?(this.textures.exists('leader-'+id+'-full-screen')?
       'leader-'+id+'-full-screen':'leader-'+id+'-full'):null;
@@ -511,7 +514,13 @@ export class UpgradeScene extends Phaser.Scene {
       delay:22,
       onComplete:()=>{
         this.time.delayedCall(850,()=>{
-          if(this.scene.isActive())this.scene.start('GameScene',{
+          if(!this.scene.isActive())return;
+          if(this.phase==='principal'||this.phase==='special')
+            this.scene.start('PrologueRepairScene',{
+              stage:this.phase==='principal'?'principal':'special',
+              campaign:next,country:id,
+            });
+          else this.scene.start('GameScene',{
             mode:`wave${next.choices.length}`,campaign:next,
           });
         });
