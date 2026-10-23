@@ -185,6 +185,15 @@ export class UpgradeScene extends Phaser.Scene {
       15,'#dce8ee',null,{fontStyle:'bold'}).setOrigin(0.5).setDepth(17);
 
     this.options=armamentOffers(this.campaign,FIRST_UPGRADES);
+    const assigned=this.campaign.armament;
+    const nameOf=id=>FIRST_UPGRADES.find(item=>item.id===id)?.shortName??id?.toUpperCase();
+    const status=this.phase==='principal'?'1/10 • A ARMA PRINCIPAL SERÁ DEFINIDA AGORA'
+      :this.phase==='special'
+        ?'2/10 • PRINCIPAL: '+nameOf(assigned?.principal)+' • ESCOLHA O ESPECIAL'
+        :'PRINCIPAL: '+nameOf(assigned?.principal)+' • ESPECIAL: '+
+          nameOf(assigned?.especial)+' • '+(this.campaign.choices.length+1)+'/10';
+    makeText(this,W/2,111,status,12,'#ffe7b6',900,
+      {fontStyle:'bold',align:'center'}).setOrigin(.5).setDepth(17);
     this.portraits=this.options.map((option,index)=>portrait(this,option,index));
     // Comentários curtos após a noite; na onda zero há a derrota roteirizada.
     this.introDialogueActive=true;
@@ -467,8 +476,11 @@ export class UpgradeScene extends Phaser.Scene {
       field.label+': '+field.value+' '+field.unit).join('  •  '));
     this.acceptButton.label.setText('ACEITAR '+track+proposal.stage+' [ENTER]');
     this.acceptButton.setInteractive({useHandCursor:true});
+    const loyal=this.campaign.choices.length===9&&
+      this.campaign.choices.every(id=>id===this.focused);
     this.previewLabel.setText('DESTINO SELECIONADO: '+
-      (track==='P'?'TIRO PRINCIPAL':'TIRO ESPECIAL'));
+      (track==='P'?'TIRO PRINCIPAL':'TIRO ESPECIAL')+
+      (loyal?' • NÍVEL 10: SUPREMO + DUAS TRANSFORMAÇÕES':''));
   }
   unfocus(){
     if(this.chosen||!this.focused)return;
