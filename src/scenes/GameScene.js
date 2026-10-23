@@ -4474,6 +4474,8 @@ export class GameScene extends Phaser.Scene {
     // Cópias integram a fila, sem gerarem novas bifurcações fora do eixo.
     shot.chinaSplit=false;
     shot.chinaLineShot=true;
+    shot.koreanBouncesLeft=0;
+    shot.koreanRicochet=false;
     shot.chinaLineArmorMultiplier=this.labExtra?.cnArmorMultiplier??1;
     shot.damage*=this.labExtra?.cnShotMultiplier??1;
     // A munição permanece fisicamente individual; não aplica dano instantâneo.
@@ -5197,6 +5199,10 @@ export class GameScene extends Phaser.Scene {
       vfx,
       centerGlow,
       koreanLaserPulse,koreanLaserBolt,
+      koreanRicochet:false,
+      koreanBouncesLeft:!special&&this.labMathEnabled?(this.labExtra?.jpBounces??0):0,
+      koreanBounceRange:this.labExtra?.jpBounceRange??180,
+      koreanBounceRetention:this.labExtra?.jpBounceRetention??.7,
       patriotic:julyShot,
       usRocket,
       usBlastRadius:usRocket?this.combat.usRocketBlastRadius:0,
@@ -5967,7 +5973,7 @@ export class GameScene extends Phaser.Scene {
               bullet.generation + 1, {x:deathPosition.x+8,y:deathPosition.y-8});
             replica?.hitEnemyIds.add(directTargetId);
           }
-          if(bullet.koreanLaserBolt){
+          if(bullet.koreanLaserBolt||bullet.koreanRicochet||bullet.koreanBouncesLeft>0){
             const next=bullet.koreanBouncesLeft>0
               ?nextKoreanRicochet(deathPosition.x,deathPosition.y,
                 this.enemies,bullet.hitEnemyIds,bullet.koreanBounceRange):null;
@@ -5980,9 +5986,13 @@ export class GameScene extends Phaser.Scene {
               bullet.sprite.setRotation?.(angle+Math.PI/2);
               bullet.damage=koreanRicochetDamage(bullet.damage,bullet.koreanBounceRetention);
               bullet.koreanBouncesLeft--;
-              const flash=this.add.circle(deathPosition.x,deathPosition.y,6,0xdcb2ff,.65)
-                .setDepth(48);
-              this.tweens.add({targets:flash,alpha:0,scale:1.8,duration:110,
+              bullet.koreanRicochet=true;
+              const flash=this.add.graphics().setDepth(48);
+              flash.lineStyle(3,0xce8aff,.8);
+              flash.lineBetween(deathPosition.x,deathPosition.y,
+                Math.min(W,deathPosition.x+(next.sprite.x-deathPosition.x)*.28),
+                Math.max(0,deathPosition.y+(next.sprite.y-deathPosition.y)*.28));
+              this.tweens.add({targets:flash,alpha:0,duration:110,
                 onComplete:()=>flash.destroy()});
               remove=false;
             }else remove=true;
