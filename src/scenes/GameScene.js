@@ -16,6 +16,7 @@ import Phaser from 'phaser';
 import {chinaLineFocus,chinaLineDuration,chinaLineShotInterval,chinaLineShotAngle} from '../gameplay/chinaLineVolley.js';
 import {koreanSalvoAngles,nextKoreanRicochet,koreanRicochetDamage} from '../gameplay/koreanLaserSalvo.js';
 import {computeLabMath} from '../gameplay/labMathRuntime.js';
+import {PROLOGUE_CANNON} from '../gameplay/prologueStory.js';
 import {armamentAllocation} from '../gameplay/progression.js';
 import {normalizeLabBalance,normalizeLabAllocation} from '../gameplay/labBalanceProfile.js';
 import {mountLabBalanceEditor} from '../ui/labBalanceEditor.js';
@@ -294,6 +295,16 @@ export class GameScene extends Phaser.Scene {
       this.labWinner=result.winner;
       if(!this.v1LabSpecial)this.specialBuild.primary=null;
     }else if(this.labMathEnabled)this.applyLabMath(this.labMathProfile);
+    // O prólogo é uma falsa superioridade intencional: armamento ainda
+    // sem identidade nacional, mas temporariamente muito poderoso.
+    if(this.mode==='wave0'&&!this.v1Playtest&&!this.unifiedLab){
+      this.combat.basicInterval=PROLOGUE_CANNON.strong.intervalMs;
+      this.combat.basicDamage=PROLOGUE_CANNON.strong.damage;
+      this.combat.basicSpeed=Math.max(1100,this.combat.basicSpeed);
+      this.combat.bulletsPerShot=1;
+      this.combat.specialCooldown=Infinity;
+      if(this.specialBuild)this.specialBuild.primary=null;
+    }
   }
 
   applyLabMath(profile){
@@ -4548,6 +4559,7 @@ export class GameScene extends Phaser.Scene {
   shootSpecial(pointer) {
     if (this.tutorialComplete || this.countdownActive || this.supremeTyping ||
       this.supremeCinematic || this.elapsed<this.cannonFrozenUntil)return;
+    if(this.mode==='wave0'&&!this.v1Playtest)return;
     if(this.campaignMathEnabled&&!this.v1LabSpecial)return;
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
     const country=this.isV1Campaign?this.specialBuild?.primary:null;
@@ -6047,6 +6059,9 @@ export class GameScene extends Phaser.Scene {
 
   damageCannon(amount) {
     if (this.tutorialComplete) return;
+    if(this.mode==='wave0'&&!this.v1Playtest&&!this.unifiedLab){
+      this.shield=Math.max(10,this.shield-amount*.04);return;
+    }
     this.lastDamageAt = this.time.now;
     const oldShield=this.shield;
     if (this.mode === 'upgradeLab' || this.mode === 'lab') {
@@ -6540,8 +6555,11 @@ export class GameScene extends Phaser.Scene {
     const veil=this.add.rectangle(W/2,H/2,W,H,0x030913,0.72)
       .setDepth(depth).setInteractive();
     const ship=this.add.container(W/2,-115).setDepth(depth+2);
-    const hull=this.add.ellipse(0,0,560,126,0x182534)
-      .setStrokeStyle(6,0xa0acb5);
+    // Mesma carcaça/spritesheet do Tipo 6 que retornará na onda 10.
+    const hull=this.textures.exists(TYPE6_HULL_SHEET.key)
+      ?this.add.image(0,-5,TYPE6_HULL_SHEET.key,0).setDisplaySize(650,217)
+      :this.add.ellipse(0,0,560,126,0x182534)
+        .setStrokeStyle(6,0xa0acb5);
     const dome=this.add.ellipse(0,-38,240,92,0x344757)
       .setStrokeStyle(4,0xee4d65);
     const core=this.add.circle(0,18,37,0xf5485b).setStrokeStyle(8,0x721d33);
@@ -6558,7 +6576,7 @@ export class GameScene extends Phaser.Scene {
       .setDepth(depth+4).setVisible(false);
     const finish=()=>{
       [veil,ship,notice,beam,impact].forEach(item=>item.destroy());
-      this.scene.start('UpgradeScene',{campaign:this.campaign,completedWave:0});
+      this.scene.start('PrologueSurvivalScene',{campaign:this.campaign});
     };
     this.tweens.add({targets:ship,y:154,duration:1600,ease:'Cubic.Out',
       onComplete:()=>{
@@ -6571,7 +6589,7 @@ export class GameScene extends Phaser.Scene {
             this.tweens.add({targets:impact,scale:12,alpha:0,duration:620,
               onComplete:()=>{
                 beam.setVisible(false);
-                notice.setText('CANHÃO BRASILEIRO DESTRUÍDO • DEFESA EM REORGANIZAÇÃO');
+                notice.setText('OBUSEIRO GRAVEMENTE AVARIADO • ARMAMENTO EM SOBRECARGA');
                 this.time.delayedCall(1400,finish);
               }});
           }});
@@ -6591,7 +6609,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     if (!this.unifiedLab && /^wave[0-9]$/.test(this.mode)) {
-      this.scene.start('UpgradeScene', {
+      this.scene.start('BotecoElevatorScene', {
         campaign: this.campaign,
         completedWave: Number(this.mode.at(-1)),
       });
@@ -6710,7 +6728,7 @@ export class GameScene extends Phaser.Scene {
       } else if (this.elapsed < 15000) {
         this.updateHudText(this.tutorialText,'Mira azul = explosão do especial • Botão direito: dispara');
       } else {
-        this.updateHudText(this.tutorialText,'Proteja o canhão! Escudos regeneram sem dano.');
+        this.updateHudText(this.tutorialText,'ARMAMENTO PROVISÓRIO EM POTÊNCIA MÁXIMA • DEFENDA O RIO');
       }
     } else if (this.mode.startsWith('wave')) {
       const history = this.combatCampaign.choices.map((id) =>
