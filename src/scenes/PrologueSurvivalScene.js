@@ -50,7 +50,7 @@ export class PrologueSurvivalScene extends Phaser.Scene{
     this.damageGraphics.lineStyle(2,0xeb743e,.65);
     this.damageGraphics.lineBetween(x-30,y-24,x-18,y-5);
     this.portalGraphics=this.add.graphics().setDepth(16);
-    this.input.keyboard?.on('keydown-ESC',()=>this.finish(),this);
+    // A transição de 15 s é roteirizada e não pode ser pulada por engano.
     this.events.once('shutdown',()=>{this.invaders=[];this.shots=[];});
   }
   update(_time,delta){
