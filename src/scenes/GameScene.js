@@ -5792,11 +5792,10 @@ export class GameScene extends Phaser.Scene {
           if(!shotHitsArraialBalloon(previousX,previousY,
             bullet.sprite.x,bullet.sprite.y,n.x,n.y,
             Math.max(3,bullet.usRadius??0)))continue;
-          const stage=arraialStage(n.bursts++);
-          if(this.labMathEnabled&&this.specialBuild?.primary==='br'){
-            stage.fireworks=this.labExtra?.brFireworks??1;
-            stage.damage=this.labExtra?.brFireworkDamage??1;
-          }
+          const baseStage=arraialStage(n.bursts++);
+          const stage=this.labMathEnabled&&this.specialBuild?.primary==='br'
+            ?{...baseStage,fireworks:this.labExtra?.brFireworks??1,
+              damage:this.labExtra?.brFireworkDamage??1}:baseStage;
           for(let spark=0;spark<stage.fireworks;spark++){
             const p=randomArraialBurst(n.x,n.y,n.radius);
             this.arraialFirework(p.x,p.y,n.bursts+spark,true,stage);
