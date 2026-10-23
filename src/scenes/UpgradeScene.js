@@ -2,8 +2,9 @@ import {playSfx} from '../audio/sfx.js';
 import Phaser from 'phaser';
 import {bindSceneMusic} from '../audio/music.js';
 import {GAME_WIDTH as W,GAME_HEIGHT as H} from '../config/scenery.js';
-import {nextV1Options,chooseV1Upgrade} from '../gameplay/v1Upgrades.js';
-import {normalizeCampaignState} from '../gameplay/progression.js';
+import {nextV1Options,chooseV1Upgrade,V1_UPGRADES} from '../gameplay/v1Upgrades.js';
+import {LAB_BALANCE_FIELDS} from '../gameplay/labBalanceProfile.js';
+import {normalizeCampaignState,armamentPhase,armamentOffers,chooseArmamentUpgrade} from '../gameplay/progression.js';
 import {FIRST_UPGRADES} from '../gameplay/upgrades.js';
 import {
   REPRESENTATIVES,representativeLine,representativeStoryFor,
@@ -143,6 +144,8 @@ export class UpgradeScene extends Phaser.Scene {
     this.completedWave=Number.isInteger(data.completedWave)?data.completedWave:
       this.campaign.choices.length;
     this.chosen=false;this.focused=null;
+    this.phase=armamentPhase(this.campaign);
+    this.selectedTrack=null;
     this.dialogueTyper=null;
   }
   preload(){
@@ -165,16 +168,23 @@ export class UpgradeScene extends Phaser.Scene {
     // A arte diurna é central: cabeçalho discreto, sem cobrir a janela do Rio.
     addCuboBroadcastFrame(this,{
       section:'Mesa de negociações',
-      headline:'Onda '+this.completedWave+' concluída • Escolha quem vai apoiar o Brasil',
-      footer:'Cinco representantes • O acordo só é fechado após sua confirmação',
+      headline:'Onda '+this.completedWave+' concluída • '+
+        (this.phase==='principal'?'Defina o seu TIRO PRINCIPAL':
+          this.phase==='special'?'Defina o seu TIRO ESPECIAL':
+          'Escolha país e destino do próximo upgrade'),
+      footer:'Cinco representantes • Toda decisão será confirmada antes da próxima onda',
       depth:14,
     });
     this.add.rectangle(W/2,81,770,30,COLOR.ink,0.84).setDepth(16)
       .setStrokeStyle(1,COLOR.amber);
-    makeText(this,W/2,81,'Clique no retrato de um representante para ouvir a proposta',
-      17,'#dce8ee',null,{fontStyle:'bold'}).setOrigin(0.5).setDepth(17);
+    makeText(this,W/2,81,this.phase==='principal'
+      ?'1ª ESCOLHA: selecione a identidade permanente do tiro principal'
+      :this.phase==='special'
+        ?'2ª ESCOLHA: selecione o especial do botão direito, liberado agora'
+        :'3ª–10ª ESCOLHA: escolha o país e a arma que receberá P ou S',
+      15,'#dce8ee',null,{fontStyle:'bold'}).setOrigin(0.5).setDepth(17);
 
-    this.options=nextV1Options(this.campaign,FIRST_UPGRADES);
+    this.options=armamentOffers(this.campaign,FIRST_UPGRADES);
     this.portraits=this.options.map((option,index)=>portrait(this,option,index));
     // Comentários curtos após a noite; na onda zero há a derrota roteirizada.
     this.introDialogueActive=true;
@@ -204,10 +214,18 @@ export class UpgradeScene extends Phaser.Scene {
     this.upgradeDescription=makeText(this,348,224,'',13,'#dce8ee',555)
       .setDepth(46).setVisible(false);
     this.previewBox=outlinePlaceholder(this,290,280,664,113).setVisible(false);
-    this.previewLabel=makeText(this,623,319,'Prévia animada do upgrade (em breve)',
-      16,'#93aabe',null,{fontStyle:'bold'}).setOrigin(0.5).setDepth(46).setVisible(false);
-    this.previewHint=makeText(this,623,349,'Espaço reservado para demonstrar as mudanças no canhão',
-      12,'#8fa7b9').setOrigin(0.5).setDepth(46).setVisible(false);
+    this.previewLabel=makeText(this,623,301,'Escolha entre as duas melhorias',
+      14,'#dce8ee',null,{fontStyle:'bold'}).setOrigin(0.5).setDepth(46).setVisible(false);
+    this.previewHint=makeText(this,623,380,'',
+      11,'#a9d4cb').setOrigin(0.5).setDepth(46).setVisible(false);
+    this.primaryChoiceButton=this.createButton(453,344,310,'MELHORAR PRINCIPAL [P]',false,
+      ()=>this.selectTrack('P')).setVisible(false).disableInteractive();
+    this.specialChoiceButton=this.createButton(794,344,310,'MELHORAR ESPECIAL [S]',false,
+      ()=>this.selectTrack('S')).setVisible(false).disableInteractive();
+    this.primaryChoiceHint=makeText(this,453,399,'',11,'#b4d9f2',320,
+      {align:'center'}).setOrigin(.5,0).setDepth(46).setVisible(false);
+    this.specialChoiceHint=makeText(this,794,399,'',11,'#ffdeb1',320,
+      {align:'center'}).setOrigin(.5,0).setDepth(46).setVisible(false);
     this.acceptButton=this.createButton(734,448,320,'Aceitar upgrade [ENTER]',true,
       ()=>this.focused&&this.selectUpgrade(this.focused)).setVisible(false);
     this.backButton=this.createButton(393,448,215,'Voltar [ESC]',false,
@@ -217,7 +235,9 @@ export class UpgradeScene extends Phaser.Scene {
     this.overlayItems=[
       this.focusPanel,this.countryTag,this.characterName,this.flavorText,
       this.upgradeTitle,this.upgradeDescription,this.previewBox,
-      this.previewLabel,this.previewHint,this.acceptButton,this.backButton,
+      this.previewLabel,this.previewHint,this.primaryChoiceButton,
+      this.specialChoiceButton,this.primaryChoiceHint,this.specialChoiceHint,
+      this.acceptButton,this.backButton,
     ];
     for(const tile of this.portraits){
       if(tile.option.locked){tile.node.setAlpha(0.5).disableInteractive();continue;}
@@ -236,6 +256,14 @@ export class UpgradeScene extends Phaser.Scene {
       }
     });
     this.input.keyboard.on('keydown-ESC',()=>{if(!this.chosen)this.unfocus();});
+    this.input.keyboard.on('keydown-P',()=>{
+      if(this.phase==='upgrades'&&this.focused&&!this.introDialogueActive)
+        this.selectTrack('P');
+    });
+    this.input.keyboard.on('keydown-S',()=>{
+      if(this.phase==='upgrades'&&this.focused&&!this.introDialogueActive)
+        this.selectTrack('S');
+    });
     this.input.keyboard.on('keydown-SPACE',event=>{
       if(!this.introDialogueActive&&!this.focused)return;
       event.preventDefault();
@@ -251,13 +279,18 @@ export class UpgradeScene extends Phaser.Scene {
   showBotecoDialogue(){
     const first=this.completedWave===0;
     this.botecoPages=first?[
-      ['CUBO NEWS','O CANHÃO FOI DESTRUÍDO APÓS A VITÓRIA NA PRIMEIRA NOITE. A DEFESA PRECISA DE REFORÇOS.'],
-      ['ZECA CARRARA','A gente venceu a noite inteira pra perder o canhão na prorrogação?'],
-      ['CUBO NEWS','CINCO CONSELHEIROS ESTRANGEIROS CHEGAM JUNTOS AO BOTECO OFERECENDO AJUDA.'],
-      ['ZECA CARRARA','Sejam bem-vindos. Mas alguém aqui sabe consertar um canhão?'],
+      ['CUBO NEWS','O CANHÃO FOI DESTRUÍDO DEPOIS DA PRIMEIRA NOITE. A DEFESA PRECISA DE UM NOVO SISTEMA DE ARMAS.'],
+      ['ZÉ MARIA','Consertar eu conserto. Mas primeiro vamos escolher o tipo de tiro que ele vai usar.'],
+      ['ZÉ MARIA','Esse primeiro acordo define o TIRO PRINCIPAL do canhão. Depois não dá pra trocar.'],
+      ['CUBO NEWS','CINCO REPRESENTANTES APRESENTAM SUAS TECNOLOGIAS MILITARES.'],
+    ]:this.phase==='special'?[
+      ['ZÉ MARIA','Agora que o tiro principal está instalado, falta uma segunda arma.'],
+      ['ZÉ MARIA','O segundo acordo define o TIRO ESPECIAL do botão direito. Ele fica disponível imediatamente.'],
+      ['CONSELHEIRO','Escolha qualquer país, inclusive o primeiro. As duas identidades continuarão até o final da campanha.'],
     ]:[
-      ['ZECA CARRARA','Mais uma noite sobrevivida. Se isso continuar, vou cobrar adicional noturno.'],
-      ['CONSELHEIRO','O Brasil continua de pé. Podemos melhorar ainda mais sua defesa.'],
+      ['ZÉ MARIA','As duas armas já estão definidas. Os próximos países oferecem MELHORIAS, não armas novas.'],
+      ['ZÉ MARIA','Escolha uma proposta e decida onde instalar o efeito: PRINCIPAL [P] ou ESPECIAL [S].'],
+      ['CONSELHEIRO','Cada país tem quatro estágios em cada arma. P1 vem antes de P2, S1 antes de S2.'],
     ];
     this.botecoPage=0;
     this.botecoOverlay=this.add.container(0,0).setDepth(190);
@@ -284,7 +317,7 @@ export class UpgradeScene extends Phaser.Scene {
     this.botecoLine.setText('');
     const leaders={...Object.fromEntries(Object.entries(REPRESENTATIVES).map(
       ([id,representative])=>[representative.name.toUpperCase(),id])),
-      'ZECA CARRARA':'br'};
+      'ZECA CARRARA':'br','ZÉ MARIA':'br'};
     const id=leaders[speaker.toUpperCase()];
     const key=id?(this.textures.exists('leader-'+id+'-full-screen')?
       'leader-'+id+'-full-screen':'leader-'+id+'-full'):null;
@@ -359,18 +392,88 @@ export class UpgradeScene extends Phaser.Scene {
         duration:BOTECO_FOCUS.duration,ease:'Cubic.Out'});
     }
     const option=current.option;
-    this.countryTag.setText(REPRESENTATIVES[id].label+' • NÍVEL '+option.level);
-    this.characterName.setText(REPRESENTATIVES[id].name??'Representante');
+    this.selectedTrack=null;
+    const representative=REPRESENTATIVES[id];
+    this.countryTag.setText(representative.label+
+      (this.phase==='principal'?' • IDENTIDADE PRINCIPAL':
+        this.phase==='special'?' • IDENTIDADE ESPECIAL':
+        ' • PRÓXIMA MELHORIA NACIONAL '+option.level));
+    this.characterName.setText(representative.name??'Representante');
+    const trackNames={P:'PRINCIPAL',S:'ESPECIAL'};
+    if(this.phase==='principal'){
+      const ability=V1_UPGRADES[id][0];
+      this.upgradeTitle.setText('TIRO PRINCIPAL: '+ability.title);
+      this.upgradeDescription.setText(ability.description);
+    }else if(this.phase==='special'){
+      const ability=V1_UPGRADES[id][1];
+      const specialNames={cn:'FILA DE PROJÉTEIS ALINHADOS',
+        jp:'BOLA DE DISCOTECA ORBITAL'};
+      this.upgradeTitle.setText('TIRO ESPECIAL: '+(specialNames[id]??ability.title));
+      this.upgradeDescription.setText(id==='cn'
+        ?'Botão direito: projéteis separados convergem em 1,5 s para uma linha reta, seguem alinhados e se separam em 1,5 s.'
+        :ability.description);
+    }else{
+      this.upgradeTitle.setText('ESCOLHA ONDE INSTALAR A MELHORIA');
+      this.upgradeDescription.setText('Cada representante oferece uma propriedade para o PRINCIPAL ou para o ESPECIAL. Escolha uma das duas.');
+    }
     this.dialogueTyper.start(this.flavorText,
-      '“'+representativeStoryFor(id,option.level)+'”');
-    this.upgradeTitle.setText(option.title);
-    this.upgradeDescription.setText(option.description);
-    this.acceptButton.label.setText('Aceitar '+REPRESENTATIVES[id].label+' [ENTER]');
+      '“'+representativeStoryFor(id,Math.min(option.level,10))+'”');
+    this.primaryChoiceButton.setVisible(this.phase==='upgrades');
+    this.specialChoiceButton.setVisible(this.phase==='upgrades');
+    this.primaryChoiceHint.setVisible(this.phase==='upgrades');
+    this.specialChoiceHint.setVisible(this.phase==='upgrades');
+    if(this.phase==='upgrades'){
+      for(const track of ['P','S']){
+        const proposal=option.proposals[track];
+        const button=track==='P'?this.primaryChoiceButton:this.specialChoiceButton;
+        const hint=track==='P'?this.primaryChoiceHint:this.specialChoiceHint;
+        const fields=LAB_BALANCE_FIELDS.filter(f=>f.country===id&&
+          f.track===track&&f.stage===proposal.stage);
+        const desc=fields[0]?.description??'Árvore completa';
+        button.label.setText(track+proposal.stage+' • '+trackNames[track]+
+          (proposal.locked?' [LOTADO]':''));
+        button.setAlpha(proposal.locked?.45:1);
+        if(proposal.locked)button.disableInteractive();
+        else button.setInteractive({useHandCursor:true});
+        hint.setText(proposal.locked?proposal.reason:
+          desc+'\n'+fields.slice(0,2).map(f=>f.value+' '+f.unit).join(' • '));
+      }
+      this.previewLabel.setText('SELECIONE P OU S PARA CONFIRMAR O ACORDO');
+      this.previewHint.setText('P e S avançam independentemente; cada arma comporta 4 efeitos.');
+      this.acceptButton.label.setText('Selecione P ou S acima');
+      this.acceptButton.disableInteractive();
+    }else{
+      this.primaryChoiceButton.disableInteractive();
+      this.specialChoiceButton.disableInteractive();
+      this.previewLabel.setText(this.phase==='principal'
+        ?'Define a aparência e a mecânica permanente do disparo normal.'
+        :'Desbloqueia imediatamente o especial do botão direito.');
+      this.previewHint.setText('A identidade não poderá ser alterada durante esta campanha.');
+      this.acceptButton.label.setText('Confirmar identidade [ENTER]');
+      this.acceptButton.setInteractive({useHandCursor:true});
+    }
+  }
+  selectTrack(track){
+    if(this.chosen||this.introDialogueActive||this.phase!=='upgrades'||!this.focused)return;
+    const proposal=this.options.find(option=>option.id===this.focused)?.proposals?.[track];
+    if(!proposal||proposal.locked)return;
+    this.selectedTrack=track;
+    const id=this.focused;
+    const fields=LAB_BALANCE_FIELDS.filter(f=>f.country===id&&
+      f.track===track&&f.stage===proposal.stage);
+    this.upgradeTitle.setText(track+proposal.stage+' — '+
+      (fields[0]?.description??'Melhoria experimental'));
+    this.upgradeDescription.setText(fields.map(field=>
+      field.label+': '+field.value+' '+field.unit).join('  •  '));
+    this.acceptButton.label.setText('ACEITAR '+track+proposal.stage+' [ENTER]');
+    this.acceptButton.setInteractive({useHandCursor:true});
+    this.previewLabel.setText('DESTINO SELECIONADO: '+
+      (track==='P'?'TIRO PRINCIPAL':'TIRO ESPECIAL'));
   }
   unfocus(){
     if(this.chosen||!this.focused)return;
     this.dialogueTyper?.cancel();
-    this.focused=null;this.focusDim.disableInteractive().setVisible(false);
+    this.focused=null;this.selectedTrack=null;this.focusDim.disableInteractive().setVisible(false);
     this.focusPanel.disableInteractive();
     this.acceptButton.disableInteractive();
     this.backButton.disableInteractive();
@@ -384,7 +487,8 @@ export class UpgradeScene extends Phaser.Scene {
   }
   selectUpgrade(id){
     if(this.chosen||this.introDialogueActive||!this.focused)return;
-    const next=chooseV1Upgrade(this.campaign,id);
+    if(this.phase==='upgrades'&&!this.selectedTrack)return;
+    const next=chooseArmamentUpgrade(this.campaign,id,this.selectedTrack);
     if(!next)return;
     this.chosen=true;
     playSfx('upgrade',{throttle:500});
