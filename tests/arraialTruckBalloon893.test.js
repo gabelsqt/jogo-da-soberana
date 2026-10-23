@@ -91,7 +91,8 @@ test('o splash causa dano normal em inimigos e projéteis, inclusive bombas resi
 test('estouro final cobre a área, exibe frase e não deixa balão persistente',()=>{
  const update=game.slice(game.indexOf('  updateArraial() {'),
    game.indexOf('  updateArraialFlames() {'));
- assert.match(update,/this\.arraialDamage\(n\.x,n\.y,n\.radius,ARRAIAL\.finaleDamage/);
+ assert.match(update,/this\.arraialDamage\(n\.x,n\.y,n\.radius/);
+ assert.match(update,/labExtra\?\.brFinalDamage/);
  assert.match(update,/arraialFinalPhrase\(\)/);
  assert.match(update,/phraseGfx\.destroy\(\)/);
  assert.match(update,/n\.graphics\.destroy\(\); this\.arraialNuclei\.splice\(i,1\)/);
