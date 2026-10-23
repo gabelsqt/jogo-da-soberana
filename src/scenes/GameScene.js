@@ -437,8 +437,7 @@ export class GameScene extends Phaser.Scene {
     // O login inicial usa um input HTML. Seu foco não pode sobreviver à
     // transição e capturar letras/ESPAÇO durante o combate ou o Supremo.
     const focused=globalThis.document?.activeElement;
-    if(focused?.closest?.('#player-name-panel') ||
-      focused?.classList?.contains('soberana-pause-hud'))focused.blur?.();
+    if(focused?.closest?.('#player-name-panel'))focused.blur?.();
     this.music = bindSceneMusic(this, waveMusic(this.mode, this.campaign));
     // Nunca deixar loops de sons russos tocando na pausa ou após trocar de cena.
     this.events.on('pause',stopRussianSfxLoops);
