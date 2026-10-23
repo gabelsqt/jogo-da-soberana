@@ -13,6 +13,9 @@ import { supremeCodeFor, advanceSupremeCode } from '../gameplay/supremeCodeInput
 import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
+import {computeLabMath} from '../gameplay/labMathRuntime.js';
+import {normalizeLabBalance,normalizeLabAllocation} from '../gameplay/labBalanceProfile.js';
+import {mountLabBalanceEditor} from '../ui/labBalanceEditor.js';
 import {registerAmericanJulyHit,americanJulyReady,consumeAmericanJulyShot} from '../gameplay/usJuly.js';
 import {americanWallPlacement,americanWallArcCenter,americanWallTravelDuration,
   americanWallAnimation,americanWallTouches,americanWallIntersects,
@@ -215,6 +218,12 @@ export class GameScene extends Phaser.Scene {
       ?v1LabBuild(data.v1LabLevels,data.v1LabPrimary):null;
     this.v1LabLevels=v1Lab?.labLevels??null;
     this.v1LabPrimary=v1Lab?.labPrimary??null;
+    this.labMathEnabled=Boolean(this.v1Playtest&&data.v1LabAllocation
+      &&data.v1LabPrincipal&&data.v1LabSpecial);
+    this.v1LabPrincipal=data.v1LabPrincipal??null;
+    this.v1LabSpecial=data.v1LabSpecial??null;
+    this.v1LabAllocation=normalizeLabAllocation(data.v1LabAllocation);
+    this.labMathProfile=normalizeLabBalance(data.v1LabBalance);
     if(v1Lab)this.combatCampaign=v1Lab;
     this.waveDurationMs=this.mode.startsWith('wave')
       ? MODES[this.mode].minDuration:WAVE_DURATION_MS;
@@ -263,12 +272,28 @@ export class GameScene extends Phaser.Scene {
       this.thirdIds = [];
       this.fourthIds = [];
     }
+    if(this.labMathEnabled)this.applyLabMath(this.labMathProfile);
+  }
+
+  applyLabMath(profile){
+    if(!this.labMathEnabled)return;
+    this.labMathProfile=normalizeLabBalance(profile);
+    const result=computeLabMath({profile:this.labMathProfile,
+      allocation:this.v1LabAllocation,
+      principal:this.v1LabPrincipal,especial:this.v1LabSpecial});
+    this.combat=result.stats;
+    this.specialBuild=result.build;
+    this.labExtra=result.extra;
+    this.labWinner=result.winner;
   }
 
   getRunOptions() {
     if(this.v1Playtest && this.v1LabLevels)return {
       mode:this.mode, v1Playtest:true, campaign:normalizeCampaignState(this.campaign),
       v1LabLevels:{...this.v1LabLevels}, v1LabPrimary:this.v1LabPrimary,
+      ...(this.labMathEnabled?{v1LabPrincipal:this.v1LabPrincipal,
+        v1LabSpecial:this.v1LabSpecial,v1LabAllocation:this.v1LabAllocation,
+        v1LabBalance:this.labMathProfile}:{}),
       selectedBetrayer:this.selectedBetrayer,
     };
     if (this.unifiedLab) return { mode: this.mode, labConfig: this.labConfig,
@@ -326,7 +351,8 @@ export class GameScene extends Phaser.Scene {
     if(this.v1Playtest && this.v1LabLevels){
       // A árvore V1 é escolhida no laboratório novo, não no painel legado.
       this.scene.start('V1PlaytestScene',{
-        levels:{...this.v1LabLevels},primary:this.v1LabPrimary,arenaIndex:12,
+        principal:this.v1LabPrincipal??null,especial:this.v1LabSpecial??null,
+        allocation:this.v1LabAllocation,arenaIndex:12,
       });
       return;
     }
@@ -604,6 +630,14 @@ export class GameScene extends Phaser.Scene {
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
+    if(this.labMathEnabled){
+      this.mathEditor=mountLabBalanceEditor({
+        allocation:this.v1LabAllocation,
+        onChange:profile=>this.applyLabMath(profile),
+        onReturn:()=>this.openUpgradeLab(),
+      });
+      this.events.once('shutdown',()=>this.mathEditor?.destroy());
+    }
     this.banterState=createBattleBanterState();
     this.createBattleBanterPanel();
     if(this.voyageActive){
@@ -3812,7 +3846,10 @@ export class GameScene extends Phaser.Scene {
     // Aceleração automática em ondas: aquece, sustenta o pico e desacelera.
     const heatCycle = 5200;
     const phase = (this.time.now % heatCycle) / heatCycle;
-    const wave = phase < 0.36 ? phase / 0.36 : phase < 0.64 ? 1 : (1 - phase) / 0.36;
+    const plateauFraction=Math.max(.05,Math.min(.8,(this.labExtra?.brPeakMs??1456)/heatCycle));
+    const riseFraction=(1-plateauFraction)/2;
+    const wave=phase<riseFraction?phase/riseFraction:
+      phase<riseFraction+plateauFraction?1:(1-phase)/riseFraction;
     const heat = this.combat.heat ? Math.max(0, wave) * (this.combat.brazilHeatPeak || 0.65) : 0;
     const turbo = this.time.now < (this.brazilTurboUntil || 0) ? this.combat.brazilTurboMultiplier : 1;
     if (this.time.now - this.lastBasicFire < this.combat.basicInterval / ((1 + heat) * turbo)) return;
@@ -3872,7 +3909,9 @@ export class GameScene extends Phaser.Scene {
     if(july.patriotic)this.showAmericanJulyMuzzle(aimed);
     // O laser coreano mantém a direção da mira original (a oscilação da
     // Gambiarra altera apenas as balas básicas, não a arma laser).
-    if (this.combat.plasmaEvery > 0 && this.basicShotCount % (this.isV1Campaign ? this.combat.plasmaEvery * 2 : this.combat.plasmaEvery) === 0) {
+    const laserPeriod=this.labMathEnabled&&this.labExtra?.jpLaserEvery
+      ?this.labExtra.jpLaserEvery:(this.isV1Campaign?this.combat.plasmaEvery*2:this.combat.plasmaEvery);
+    if (this.combat.plasmaEvery > 0 && laserPeriod>0 && this.basicShotCount % laserPeriod === 0) {
       this.fireLightstickBeam(angle);
     }
     if (this.isV1Campaign && this.combat.missileEvery && nextShot % this.combat.missileEvery === 0) {
@@ -4394,6 +4433,67 @@ export class GameScene extends Phaser.Scene {
     return true;
   }
 
+
+  // Feixe chinês experimental: reúne os projéteis reais (não é o laser coreano).
+  // Conversão total: tiros separados são suspensos até terminar a dispersão.
+  updateLabChinaBeam(pointer){
+    const beam=this.cnConvergence;
+    if(!beam)return;
+    const t=this.time.now-beam.startedAt;
+    const focus=this.labExtra?.cnFocusMs??2500;
+    const total=3000+focus;
+    if(t>=total || this.tutorialComplete){
+      beam.graphics?.destroy();this.cnConvergence=null;return;
+    }
+    const power=t<1500?t/1500:t<1500+focus?1:(total-t)/1500;
+    const angle=restrictedAimAngle(CANNON.x,CANNON.y,pointer.x,pointer.y);
+    const ox=CANNON.x,oy=CANNON.y-22,dx=Math.cos(angle),dy=Math.sin(angle);
+    const maxLength=950;
+    let closest=null,closestAt=maxLength;
+    for(const enemy of this.enemies){
+      if(!enemy.sprite?.active)continue;
+      const ex=enemy.sprite.x-ox,ey=enemy.sprite.y-oy;
+      const along=ex*dx+ey*dy;
+      if(along<0||along>=closestAt)continue;
+      const across=Math.abs(-ex*dy+ey*dx);
+      const radius=this.enemyCombatRadius(enemy);
+      if(across>radius+5)continue;
+      closest=enemy;closestAt=Math.max(0,along-Math.sqrt(Math.max(0,(radius+5)**2-across**2)));
+    }
+    const hitX=ox+dx*closestAt,hitY=oy+dy*closestAt;
+    const g=beam.graphics;g.clear();
+    const width=2+power*11;
+    g.lineStyle(width+10,0xf33d49,.12+power*.14);g.lineBetween(ox,oy,hitX,hitY);
+    g.lineStyle(width,0xff5755,.3+power*.6);g.lineBetween(ox,oy,hitX,hitY);
+    g.lineStyle(Math.max(1,power*3),0xffe7b0,power);g.lineBetween(ox,oy,hitX,hitY);
+    if(power<1){
+      // Linhas convergem gradualmente e separam-se no final da ativação.
+      for(let i=-2;i<=2;i++){
+        const gap=i*(1-power)*9;
+        g.lineStyle(2,0xff9d55,.25+.4*(1-power));
+        g.lineBetween(ox-dy*gap,oy+dx*gap,
+          hitX-dy*gap*.1,hitY+dx*gap*.1);
+      }
+    }
+    const interval=this.labExtra?.cnPulseMs??250;
+    if(!closest||power<=0||this.time.now-beam.lastPulseAt<interval)return;
+    beam.lastPulseAt=this.time.now;
+    const split=this.combat.chinaSplitCount>1?1+(this.labExtra?.cnCopyDamage??.5):1;
+    const primaryDps=this.combat.basicDamage*this.combat.bulletsPerShot*split*
+      1000/Math.max(40,this.combat.basicInterval);
+    let dps=Math.min(primaryDps*2.25,
+      primaryDps*1.25*(250/interval)*(this.labExtra?.cnPulseMultiplier??1));
+    const boss=closest.type===6;
+    if(boss)dps=Math.min(primaryDps*3,
+      dps*(this.labExtra?.cnArmorMultiplier??1));
+    const damage=dps*(interval/1000)*power;
+    const index=this.enemies.indexOf(closest);
+    if(index<0)return;
+    if(boss)hitType6Segment(this,closest,ox,oy,hitX+dx*15,hitY+dy*15,
+      damage,Math.max(5,width/2));
+    else this.impactInvader(index,damage,0,'#ffe6a3',false);
+  }
+
   shootSpecial(pointer) {
     if (this.tutorialComplete || this.countdownActive || this.supremeTyping ||
       this.supremeCinematic || this.elapsed<this.cannonFrozenUntil)return;
@@ -4403,6 +4503,12 @@ export class GameScene extends Phaser.Scene {
       ?americanWallPlacement(pointer.x,pointer.y,CANNON.x,CANNON.y,W,H)
       :specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
     this.lastSpecialFire=this.time.now;
+    if(this.labMathEnabled&&country==='cn'){
+      this.cnConvergence?.graphics?.destroy();
+      this.cnConvergence={startedAt:this.time.now,lastPulseAt:-Infinity,
+        graphics:this.add.graphics().setDepth(75)};
+      return;
+    }
     if(country==='us'){
       this.createAmericanWall(target.x,target.y,this.specialBuild);
       // Misturas com Rússia/China/Coreia/Brasil preservam seus componentes,
@@ -5068,7 +5174,8 @@ export class GameScene extends Phaser.Scene {
       impactColor: style.impactColor,
       hitEnemyIds: new Set(),
       distanceTravelled:0,
-      usRadius:usRocket?this.combat.usRocketRadius:julyShot?10:7,
+      usRadius:usRocket?this.combat.usRocketRadius:julyShot?10:
+        7*(this.labExtra?.projectileRadiusMultiplier??1),
       chinaSplit:!special && !julyShot && generation===0 &&
         this.combat.chinaSplitCount>1,
     };
@@ -5204,8 +5311,8 @@ export class GameScene extends Phaser.Scene {
     this.arraialNuclei.push({
       x,y,graphics,bornAt:this.time.now,bursts:0,
       // Upgrades pares brasileiros ampliam a região, não a força de cada rojão.
-      radius:ARRAIAL.orbitRadius+10*
-        Math.max(0,(this.specialBuild?.stages?.br??1)-1),
+      radius:this.labMathEnabled?(this.labExtra?.brBalloonRadius??ARRAIAL.orbitRadius):
+        ARRAIAL.orbitRadius+10*Math.max(0,(this.specialBuild?.stages?.br??1)-1),
     });
   }
 
@@ -5234,8 +5341,16 @@ export class GameScene extends Phaser.Scene {
   arraialFirework(x, y, hue, damaging = true, stage = arraialStage(0)) {
     // TODO: a morte de inimigos NÃO deve depender de um orçamento de VFX.
     // A colisão e o dano acontecem sempre, mesmo com 50 tiros/segundo.
-    if(damaging)this.arraialDamage(x,y,ARRAIAL.fireworkRadius,
+    if(damaging)this.arraialDamage(x,y,
+      this.labMathEnabled?(this.labExtra?.brFireworkRadius??ARRAIAL.fireworkRadius):ARRAIAL.fireworkRadius,
       stage.damage,'#ffe8b7');
+    if(damaging&&this.labMathEnabled&&(this.labExtra?.brElectricRate??0)>0&&
+       this.time.now-(this.labLastElectricAt??-Infinity)>=
+         1000/this.labExtra.brElectricRate){
+      this.labLastElectricAt=this.time.now;
+      this.arraialDamage(x,y,this.labExtra.brElectricRange,
+        this.labExtra.brElectricDamage,'#fffab2');
+    }
     playSfx('brFireworkBurst',{throttle:95,volumeScale:0.50});
     if(this.arraialBurstVisuals>=ARRAIAL.maxBurstVisuals)return;
     this.arraialBurstVisuals++;
@@ -5279,7 +5394,8 @@ export class GameScene extends Phaser.Scene {
     for(let i=this.arraialNuclei.length-1;i>=0;i--){
       const n=this.arraialNuclei[i], age=this.time.now-n.bornAt;
       if(age>=ARRAIAL.duration){
-        this.arraialDamage(n.x,n.y,n.radius,ARRAIAL.finaleDamage,'#fff2aa');
+        this.arraialDamage(n.x,n.y,n.radius,
+          this.labMathEnabled?(this.labExtra?.brFinalDamage??ARRAIAL.finaleDamage):ARRAIAL.finaleDamage,'#fff2aa');
         playSfx('brFireworkBurst',{throttle:0,volumeScale:0.86});
         // Frase pequena composta somente de pixels: sem objeto Text ou HUD.
         const phrase=arraialPhrasePixels(arraialFinalPhrase());
@@ -5677,6 +5793,10 @@ export class GameScene extends Phaser.Scene {
             bullet.sprite.x,bullet.sprite.y,n.x,n.y,
             Math.max(3,bullet.usRadius??0)))continue;
           const stage=arraialStage(n.bursts++);
+          if(this.labMathEnabled&&this.specialBuild?.primary==='br'){
+            stage.fireworks=this.labExtra?.brFireworks??1;
+            stage.damage=this.labExtra?.brFireworkDamage??1;
+          }
           for(let spark=0;spark<stage.fireworks;spark++){
             const p=randomArraialBurst(n.x,n.y,n.radius);
             this.arraialFirework(p.x,p.y,n.bursts+spark,true,stage);
@@ -5691,7 +5811,7 @@ export class GameScene extends Phaser.Scene {
         for(const offset of [-0.075,0.075]){
           const child=this.createProjectile(originalAngle+offset,false,0,bullet.vfx,
             bullet.centerGlow,0,bullet.generation+1,{x:bullet.sprite.x,y:bullet.sprite.y});
-          child.damage=bullet.damage;
+          child.damage=bullet.damage*(this.labMathEnabled?(this.labExtra?.cnCopyDamage??1):1);
         }
         remove=true;
       }
@@ -6645,7 +6765,8 @@ export class GameScene extends Phaser.Scene {
       firing&&this.elapsed>=this.cannonFrozenUntil;
     if(this.iceBreathGraphics)this.drawRussianBreath(this.aimAngle,breathActive);
     setSfxLoopActive('ruIceBreath',breathActive,{volumeScale:0.43});
-    if(firing)this.shootBasic(pointer);
+    if(this.labMathEnabled&&this.cnConvergence)this.updateLabChinaBeam(pointer);
+    if(firing&&!(this.labMathEnabled&&this.cnConvergence))this.shootBasic(pointer);
     // O ciclo de calor continua mesmo quando o jogador solta o disparo.
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
     // volta ao lugar sem alterar a origem física das balas.
