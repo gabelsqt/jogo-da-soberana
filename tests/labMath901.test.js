@@ -12,9 +12,9 @@ test('40 sequential P/S upgrades across 5 countries are registered',()=>{
 });
 
 test('balance JSON is clamped and cannot create invalid numbers',()=>{
-  const values=normalizeLabBalance({'br.P1.heat':9000,'cn.S1.pulseMs':-20,'us.P4.damage':'2.5','unknown':15});
+  const values=normalizeLabBalance({'br.P1.heat':9000,'cn.S1.rateFactor':-20,'us.P4.damage':'2.5','unknown':15});
   assert.equal(values['br.P1.heat'],250);
-  assert.equal(values['cn.S1.pulseMs'],50);
+  assert.equal(values['cn.S1.rateFactor'],.25);
   assert.equal(values['us.P4.damage'],2.5);
   assert.equal(values.unknown,undefined);
 });
@@ -31,14 +31,14 @@ test('independent sequential allocations yield only one national level 10',()=>{
 test('Laboratory applies editable math to primary and special independently',()=>{
   const allocation=emptyLabAllocation();
   allocation.cn.P=4;allocation.cn.S=4;
-  const p=normalizeLabBalance({'cn.P4.intervalMs':190,'cn.S2.focusMs':5100,'cn.S1.pulseMs':170});
+  const p=normalizeLabBalance({'cn.P4.intervalMs':190,'cn.S2.focusMs':5100,'cn.S1.rateFactor':.65});
   const {stats,extra,build,winner}=computeLabMath({
     profile:p,allocation,principal:'cn',especial:'cn',
   });
   assert.equal(stats.bulletsPerShot,10);
   assert.equal(stats.basicInterval,190);
   assert.equal(extra.cnFocusMs,4500); // Final nacional define transformação do tempo central.
-  assert.equal(extra.cnPulseMs,170);
+  assert.equal(extra.cnRateFactor,.65);
   assert.equal(winner,'cn');
   assert.equal(build.primary,'cn');
   assert.equal(stats.ultimate,'cn');
@@ -69,4 +69,27 @@ test('live math edits change the actual combat values after recomputation',()=>{
   assert.equal(changed.extra.brBalloonRadius,200);
   assert.equal(changed.extra.brFireworks,8);
   assert.equal(changed.winner,null);
+});
+
+test('Korean P1–P4 turn lasers into finite ricocheting salvos',()=>{
+  const allocation=emptyLabAllocation();allocation.jp.P=4;
+  const lab=computeLabMath({profile:normalizeLabBalance({
+    'jp.P4.bounces':5,'jp.P4.count':8,'jp.P4.range':410,
+  }),allocation,principal:'jp',especial:'cn'});
+  assert.equal(lab.extra.jpVolleyCount,8);
+  assert.equal(lab.extra.jpBounces,5);
+  assert.equal(lab.extra.jpBounceRange,410);
+  assert.equal(lab.stats.plasmaEvery,0);
+  assert.equal(lab.stats.koreaContinuous,false);
+  assert.equal(lab.stats.residualSlash,false);
+});
+
+test('national Korean level 10 becomes a 9-laser holographic salvo, not continuous Lightstick',()=>{
+  const allocation=emptyLabAllocation();allocation.jp.P=4;allocation.jp.S=4;
+  const lab=computeLabMath({allocation,principal:'jp',especial:'jp'});
+  assert.equal(lab.winner,'jp');
+  assert.equal(lab.stats.basicInterval,160);
+  assert.equal(lab.stats.koreaContinuous,false);
+  assert.equal(lab.extra.jpVolleyCount,9);
+  assert.equal(lab.stats.ultimate,'jp');
 });
