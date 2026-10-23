@@ -43,14 +43,14 @@ test('notícias exibem quadros pixel art internos sem texto extra de tragédia',
   assert.match(intro,/this.add.image\(W\/2,412,key\)/);
 });
 
-test('Zeca fala em três caixas, com uma frase por página e um texto por vez',()=>{
+test('Zé Maria aparece depois da onda 0.5, mantendo tipografia na abertura',()=>{
   const zeca=introductionSlides().filter(slide=>slide.kind==='zeca');
-  assert.equal(zeca.length,3);
+  assert.equal(zeca.length,0);
   assert.ok(zeca.every(page=>!page.body.includes('\n')));
-  assert.match(zeca[0].body,/até ontem você era mesário/);
-  assert.match(zeca[1].body,/Mexia com ônibus/);
-  assert.match(zeca[1].body,/mecânico de obuseiro/);
-  assert.match(zeca[2].body,/obuseiro — o canhão aí — tá funcionando/);
+  assert.match(intro,/this\.clearSlide\(\)/);
+  assert.match(intro,/this\.beginTyping\(this\.body,slide\.body,'body'\)/);
+  assert.doesNotMatch(introductionSlides().map(x=>x.body).join(' '),/Zeca|Zé Maria/);
+  assert.equal(introductionSlides().at(-1).id,'promotion');
   assert.match(intro,/this\.clearSlide\(\)/);
   assert.match(intro,/this\.beginTyping\(this\.body,slide\.body,'body'\)/);
 });
