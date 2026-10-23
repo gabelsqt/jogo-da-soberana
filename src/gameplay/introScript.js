@@ -1,4 +1,4 @@
-// Operação Soberania — abertura por e-mails, plantão e apresentação do Zeca.
+// Operação Soberania — convocação e invasão; Zé Maria chega após a onda 0.5.
 // Antes da onda 10, invasores não falam nem explicam suas intenções.
 export const INTRO_CHAR_DELAY_MS=32;
 export const INTRO_PAGE_MS=2900; // pausa de leitura após digitação nas demais páginas
@@ -41,21 +41,6 @@ export function introductionSlides(){
       promotion:'GENERAL DE GUERRA',
       footnote:'*Em situações excepcionais, a convocação para mesário poderá ser convertida em qualquer função de interesse nacional, inclusive de natureza militar, sem necessidade de consentimento.',
       status:'ACEITE REGISTRADO AUTOMATICAMENTE',
-    },
-    {
-      kind:'zeca',id:'zeca-1',tag:'PRIMEIRO CONTATO • EQUIPE DE MANUTENÇÃO',
-      headline:'ZECA CARRARA',
-      body:'Opa! Você que é o general? Rapaz, me falaram que até ontem você era mesário!',
-    },
-    {
-      kind:'zeca',id:'zeca-2',tag:'PRIMEIRO CONTATO • EQUIPE DE MANUTENÇÃO',
-      headline:'ZECA CARRARA',
-      body:'Eu sou o Zeca. Mexia com ônibus. Aí acharam que mecânico de obuseiro era a mesma coisa e me jogaram aqui.',
-    },
-    {
-      kind:'zeca',id:'zeca-3',tag:'PRIMEIRO CONTATO • EQUIPE DE MANUTENÇÃO',
-      headline:'ZECA CARRARA',
-      body:'Ó, de nave alienígena eu não entendo nada. Mas esse obuseiro — o canhão aí — tá funcionando. Já é um começo, né?',
     },
   ];
 }
