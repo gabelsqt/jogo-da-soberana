@@ -56,7 +56,9 @@ test('arma, botão direito, invulnerabilidade, repulsão e bandeira integrados',
   'GRANDE MURO','rightButtonDown()','americanWallIntersects','americanWallTouches',
   '0xef4865','0xffffff'])assert.ok(src.includes(part),part);
  assert.match(src,/if\(enemy.type===6\|\|!enemy.sprite\?\.active\)continue/);
- assert.match(src,/enemy.shockOffset.vy\+=Math.sin\(angle\)\*260/);
+ assert.match(src,/enemy\.wallPush=addWallPush\(enemy\.wallPush,/);
+ assert.match(src,/wallPushImpulse\(wall,enemy\.sprite\)/);
+ assert.match(src,/this\.reflectAmericanWallShot\(shot,wall\)/);
  assert.doesNotMatch(src,/wall\.hp\s*[-+]?=/);
  assert.match(src,/wall\.flashUntil=this\.time\.now\+130/);
  assert.match(src,/if\(bullet.usRocket\)/);
