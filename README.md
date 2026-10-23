@@ -2,7 +2,11 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.899 (Grande Muro fisicamente intransponível)
+## Versão atual — 0.900 (interface sem botão de pausa)
+
+O botão visível **PAUSAR [P]** foi retirado da tela, inclusive seu desenho alternativo para ambientes sem DOM. A pausa continua disponível pelas teclas **P** e **Esc**, com o menu normal de pausa e retomada. Sem alterações nas mecânicas, HUD da Cubo News ou música. [Notas da v0.900](docs/versao-0.900.md).
+
+## Versão anterior — 0.899 (Grande Muro fisicamente intransponível)
 
 A repulsão do Grande Muro ganhou **colisão física contínua**: um inimigo que cruzaria o arco entre quadros é reposicionado na face externa da barreira, incluindo as pontas arredondadas. As naves em mergulho não conseguem danificar o canhão depois de atravessar o muro: a colisão acontece antes da aplicação do dano e elas retomam o ataque somente após o recuo. O escudo mantém os **120°**, sua duração, os ricochetes e a exceção dos lasers de cerco do Tipo 6. Os inimigos ainda podem contornar o arco **por fora das extremidades**. Veja [detalhes v0.899](docs/versao-0.899.md).
 
