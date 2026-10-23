@@ -2,7 +2,11 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.898 (Grande Muro aprimorado + recuperação de transições)
+## Versão atual — 0.899 (Grande Muro fisicamente intransponível)
+
+A repulsão do Grande Muro ganhou **colisão física contínua**: um inimigo que cruzaria o arco entre quadros é reposicionado na face externa da barreira, incluindo as pontas arredondadas. As naves em mergulho não conseguem danificar o canhão depois de atravessar o muro: a colisão acontece antes da aplicação do dano e elas retomam o ataque somente após o recuo. O escudo mantém os **120°**, sua duração, os ricochetes e a exceção dos lasers de cerco do Tipo 6. Os inimigos ainda podem contornar o arco **por fora das extremidades**. Veja [detalhes v0.899](docs/versao-0.899.md).
+
+## Versão anterior — 0.898 (Grande Muro aprimorado + recuperação de transições)
 
 - **Grande Muro americano:** o contato agora afasta os inimigos de verdade, com impulso forte e deslocamento persistente da hitbox, preservando o dano zero do próprio muro.
 - **Reflexão:** disparos básicos dos invasores Tipos 1 e 2 ricocheteiam como projéteis aliados, retornam na direção dos inimigos e podem abatê-los. Bombas/lasers pesados continuam só bloqueados; lasers do Tipo 6 ainda podem romper o muro.
