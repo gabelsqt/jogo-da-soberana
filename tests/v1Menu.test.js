@@ -24,7 +24,7 @@ test('Laboratório exige identidades, expõe estágios matemáticos e testagem',
 });
 test('boteco V1 não exibe diálogos legados de animais',()=>{
  const scene=readFileSync(new URL('../src/scenes/UpgradeScene.js',import.meta.url),'utf8');
- assert.match(scene,/nextV1Options\(this\.campaign,\s*FIRST_UPGRADES\)/);
- assert.match(scene,/representativeStoryFor\(id,option\.level\)/);
+ assert.match(scene,/armamentOffers\(this\.campaign,FIRST_UPGRADES\)/);
+ assert.match(scene,/representativeStoryFor\(id,Math\.min\(option\.level,10\)\)/);
  assert.doesNotMatch(scene,/upgradeRepresentativeLine\(/);
 });
