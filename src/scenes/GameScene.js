@@ -640,7 +640,7 @@ export class GameScene extends Phaser.Scene {
     this.createHud();
     if(this.labMathEnabled){
       this.mathEditor=mountLabBalanceEditor({
-        allocation:this.v1LabAllocation,
+        allocation:this.v1LabAllocation,especial:this.v1LabSpecial,
         onChange:profile=>this.applyLabMath(profile),
         onReturn:()=>this.openUpgradeLab(),
       });
