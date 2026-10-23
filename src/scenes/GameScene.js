@@ -16,6 +16,7 @@ import Phaser from 'phaser';
 import {chinaLineFocus,chinaLineDuration,chinaLineShotInterval,chinaLineShotAngle} from '../gameplay/chinaLineVolley.js';
 import {koreanSalvoAngles,nextKoreanRicochet,koreanRicochetDamage} from '../gameplay/koreanLaserSalvo.js';
 import {computeLabMath} from '../gameplay/labMathRuntime.js';
+import {armamentAllocation} from '../gameplay/progression.js';
 import {normalizeLabBalance,normalizeLabAllocation} from '../gameplay/labBalanceProfile.js';
 import {mountLabBalanceEditor} from '../ui/labBalanceEditor.js';
 import {registerAmericanJulyHit,americanJulyReady,consumeAmericanJulyShot} from '../gameplay/usJuly.js';
@@ -274,7 +275,25 @@ export class GameScene extends Phaser.Scene {
       this.thirdIds = [];
       this.fourthIds = [];
     }
-    if(this.labMathEnabled)this.applyLabMath(this.labMathProfile);
+    // As campanhas novas usam a matemática P/S do Laboratório,
+    // sem oferecer controles experimentais durante a partida.
+    this.campaignMathEnabled=!this.v1Playtest&&!this.unifiedLab&&
+      Boolean(this.campaign.armament?.principal)&&this.isV1Campaign;
+    this.modernMathEnabled=this.labMathEnabled||this.campaignMathEnabled;
+    if(this.campaignMathEnabled){
+      this.v1LabPrincipal=this.campaign.armament.principal;
+      this.v1LabSpecial=this.campaign.armament.especial;
+      this.v1LabAllocation=normalizeLabAllocation(armamentAllocation(this.campaign));
+      const result=computeLabMath({profile:{},
+        allocation:this.v1LabAllocation,
+        principal:this.v1LabPrincipal,
+        especial:this.v1LabSpecial??this.v1LabPrincipal});
+      this.combat=result.stats;
+      this.specialBuild=result.build;
+      this.labExtra=result.extra;
+      this.labWinner=result.winner;
+      if(!this.v1LabSpecial)this.specialBuild.primary=null;
+    }else if(this.labMathEnabled)this.applyLabMath(this.labMathProfile);
   }
 
   applyLabMath(profile){
@@ -3671,7 +3690,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   activeUpgradeIds() {
-    if(this.labMathEnabled)return [this.v1LabPrincipal];
+    if(this.modernMathEnabled)return [this.v1LabPrincipal];
     if(this.v1Playtest && this.v1LabLevels)
       return Object.keys(this.v1LabLevels).filter(id=>this.v1LabLevels[id]>=1);
     if (this.unifiedLab) return Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 1);
@@ -3881,7 +3900,7 @@ export class GameScene extends Phaser.Scene {
     else playSfx('cannon',{throttle:95,volumeScale:0.48});
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     const nextShot = this.basicShotCount + 1;
-    if(this.labMathEnabled&&this.v1LabPrincipal==='jp'){
+    if(this.modernMathEnabled&&this.v1LabPrincipal==='jp'){
       this.basicShotCount=nextShot;
       this.fireLabKoreanVolley(angle);
       return;
@@ -3925,7 +3944,7 @@ export class GameScene extends Phaser.Scene {
     if(july.patriotic)this.showAmericanJulyMuzzle(aimed);
     // O laser coreano mantém a direção da mira original (a oscilação da
     // Gambiarra altera apenas as balas básicas, não a arma laser).
-    const laserPeriod=this.labMathEnabled&&this.labExtra?.jpLaserEvery
+    const laserPeriod=this.modernMathEnabled&&this.labExtra?.jpLaserEvery
       ?this.labExtra.jpLaserEvery:(this.isV1Campaign?this.combat.plasmaEvery*2:this.combat.plasmaEvery);
     if (this.combat.plasmaEvery > 0 && laserPeriod>0 && this.basicShotCount % laserPeriod === 0) {
       this.fireLightstickBeam(angle);
@@ -4529,13 +4548,14 @@ export class GameScene extends Phaser.Scene {
   shootSpecial(pointer) {
     if (this.tutorialComplete || this.countdownActive || this.supremeTyping ||
       this.supremeCinematic || this.elapsed<this.cannonFrozenUntil)return;
+    if(this.campaignMathEnabled&&!this.v1LabSpecial)return;
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
     const country=this.isV1Campaign?this.specialBuild?.primary:null;
     const target=country==='us'
       ?americanWallPlacement(pointer.x,pointer.y,CANNON.x,CANNON.y,W,H)
       :specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
     this.lastSpecialFire=this.time.now;
-    if(this.labMathEnabled&&country==='cn'){
+    if(this.modernMathEnabled&&country==='cn'){
       this.cnConvergence={startedAt:this.time.now,lastShotAt:-Infinity,shots:0};
       return;
     }
@@ -4917,10 +4937,10 @@ export class GameScene extends Phaser.Scene {
     // Uma barreira por vez: o lançamento anterior também é substituído.
     for(const old of this.americanWalls)old.graphics?.destroy();
     this.americanWalls=[];
-    const openMs=this.labMathEnabled?(this.labExtra?.usWallOpenMs??AMERICAN_WALL_OPEN_MS):AMERICAN_WALL_OPEN_MS;
+    const openMs=this.modernMathEnabled?(this.labExtra?.usWallOpenMs??AMERICAN_WALL_OPEN_MS):AMERICAN_WALL_OPEN_MS;
     const wall={...point,...center,...cfg,flashUntil:0,openMs,
-      labPushSpeed:this.labMathEnabled?this.labExtra?.usWallPushSpeed:undefined,
-      reflectionDamage:this.labMathEnabled?this.labExtra?.usWallReflectDamage:undefined,
+      labPushSpeed:this.modernMathEnabled?this.labExtra?.usWallPushSpeed:undefined,
+      reflectionDamage:this.modernMathEnabled?this.labExtra?.usWallReflectDamage:undefined,
       targetX:point.x,targetY:point.y,muzzleX,muzzleY,
       startedAt:this.time.now,travelMs,currentArc:0,arrived:false,
       expiresAt:this.time.now+travelMs+openMs+cfg.durationMs,
@@ -5156,8 +5176,8 @@ export class GameScene extends Phaser.Scene {
     const vfx = special ? null : (effects ?? shotVfxFor(this.activeUpgradeIds()));
     const julyShot=!special&&patriotic;
     // Identidade coreana: pulso laser visual em cada tiro físico, sem mudar física.
-    const koreanLaserBolt=!special&&this.labMathEnabled&&this.v1LabPrincipal==='jp';
-    const koreanLaserPulse=!special&&!this.labMathEnabled&&this.isV1Campaign&&this.combat.plasmaEvery>0;
+    const koreanLaserBolt=!special&&this.modernMathEnabled&&this.v1LabPrincipal==='jp';
+    const koreanLaserPulse=!special&&!this.modernMathEnabled&&this.isV1Campaign&&this.combat.plasmaEvery>0;
     const usRocket=!special&&this.isV1Campaign&&this.combat.usRocketRadius>0;
     // Somente a representação gráfica é limitada. Balas invisíveis continuam com física e dano.
     const visible = special || this.visibleProjectileCount < MAX_VISUAL_PROJECTILES;
@@ -5200,7 +5220,7 @@ export class GameScene extends Phaser.Scene {
       centerGlow,
       koreanLaserPulse,koreanLaserBolt,
       koreanRicochet:false,
-      koreanBouncesLeft:!special&&this.labMathEnabled?(this.labExtra?.jpBounces??0):0,
+      koreanBouncesLeft:!special&&this.modernMathEnabled?(this.labExtra?.jpBounces??0):0,
       koreanBounceRange:this.labExtra?.jpBounceRange??180,
       koreanBounceRetention:this.labExtra?.jpBounceRetention??.7,
       patriotic:julyShot,
@@ -5355,7 +5375,7 @@ export class GameScene extends Phaser.Scene {
     this.arraialNuclei.push({
       x,y,graphics,bornAt:this.time.now,bursts:0,
       // Upgrades pares brasileiros ampliam a região, não a força de cada rojão.
-      radius:this.labMathEnabled?(this.labExtra?.brBalloonRadius??ARRAIAL.orbitRadius):
+      radius:this.modernMathEnabled?(this.labExtra?.brBalloonRadius??ARRAIAL.orbitRadius):
         ARRAIAL.orbitRadius+10*Math.max(0,(this.specialBuild?.stages?.br??1)-1),
     });
   }
@@ -5386,9 +5406,9 @@ export class GameScene extends Phaser.Scene {
     // TODO: a morte de inimigos NÃO deve depender de um orçamento de VFX.
     // A colisão e o dano acontecem sempre, mesmo com 50 tiros/segundo.
     if(damaging)this.arraialDamage(x,y,
-      this.labMathEnabled?(this.labExtra?.brFireworkRadius??ARRAIAL.fireworkRadius):ARRAIAL.fireworkRadius,
+      this.modernMathEnabled?(this.labExtra?.brFireworkRadius??ARRAIAL.fireworkRadius):ARRAIAL.fireworkRadius,
       stage.damage,'#ffe8b7');
-    if(damaging&&this.labMathEnabled&&(this.labExtra?.brElectricRate??0)>0&&
+    if(damaging&&this.modernMathEnabled&&(this.labExtra?.brElectricRate??0)>0&&
        this.time.now-(this.labLastElectricAt??-Infinity)>=
          1000/this.labExtra.brElectricRate){
       this.labLastElectricAt=this.time.now;
@@ -5439,7 +5459,7 @@ export class GameScene extends Phaser.Scene {
       const n=this.arraialNuclei[i], age=this.time.now-n.bornAt;
       if(age>=ARRAIAL.duration){
         this.arraialDamage(n.x,n.y,n.radius,
-          this.labMathEnabled?(this.labExtra?.brFinalDamage??ARRAIAL.finaleDamage):ARRAIAL.finaleDamage,'#fff2aa');
+          this.modernMathEnabled?(this.labExtra?.brFinalDamage??ARRAIAL.finaleDamage):ARRAIAL.finaleDamage,'#fff2aa');
         playSfx('brFireworkBurst',{throttle:0,volumeScale:0.86});
         // Frase pequena composta somente de pixels: sem objeto Text ou HUD.
         const phrase=arraialPhrasePixels(arraialFinalPhrase());
@@ -5837,7 +5857,7 @@ export class GameScene extends Phaser.Scene {
             bullet.sprite.x,bullet.sprite.y,n.x,n.y,
             Math.max(3,bullet.usRadius??0)))continue;
           const baseStage=arraialStage(n.bursts++);
-          const stage=this.labMathEnabled&&this.specialBuild?.primary==='br'
+          const stage=this.modernMathEnabled&&this.specialBuild?.primary==='br'
             ?{...baseStage,fireworks:this.labExtra?.brFireworks??1,
               damage:this.labExtra?.brFireworkDamage??1}:baseStage;
           for(let spark=0;spark<stage.fireworks;spark++){
@@ -5854,7 +5874,7 @@ export class GameScene extends Phaser.Scene {
         for(const offset of [-0.075,0.075]){
           const child=this.createProjectile(originalAngle+offset,false,0,bullet.vfx,
             bullet.centerGlow,0,bullet.generation+1,{x:bullet.sprite.x,y:bullet.sprite.y});
-          child.damage=bullet.damage*(this.labMathEnabled?(this.labExtra?.cnCopyDamage??1):1);
+          child.damage=bullet.damage*(this.modernMathEnabled?(this.labExtra?.cnCopyDamage??1):1);
         }
         remove=true;
       }
@@ -6838,11 +6858,11 @@ export class GameScene extends Phaser.Scene {
       firing&&this.elapsed>=this.cannonFrozenUntil;
     if(this.iceBreathGraphics)this.drawRussianBreath(this.aimAngle,breathActive);
     setSfxLoopActive('ruIceBreath',breathActive,{volumeScale:0.43});
-    if(this.labMathEnabled&&this.cnConvergence)this.updateLabChinaLine(pointer);
-    if(this.labMathEnabled&&this.v1LabPrincipal==='jp')
+    if(this.modernMathEnabled&&this.cnConvergence)this.updateLabChinaLine(pointer);
+    if(this.modernMathEnabled&&this.v1LabPrincipal==='jp')
       this.drawLabKoreanHologram(this.aimAngle,
         this.labWinner==='jp'&&firing);
-    if(firing&&!(this.labMathEnabled&&this.cnConvergence))this.shootBasic(pointer);
+    if(firing&&!(this.modernMathEnabled&&this.cnConvergence))this.shootBasic(pointer);
     // O ciclo de calor continua mesmo quando o jogador solta o disparo.
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
     // volta ao lugar sem alterar a origem física das balas.
