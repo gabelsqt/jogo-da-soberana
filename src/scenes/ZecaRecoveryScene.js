@@ -24,7 +24,7 @@ export class ZecaRecoveryScene extends Phaser.Scene {
     this.add.rectangle(W/2,H/2,W,H,0x0a1420).setDepth(1);
     addCuboBroadcastFrame(this,{
       section:'PLANTÃO • OPERAÇÃO DESVIO DE CARGA',
-      headline:'Contato brasileiro de Zeca resolve logística de última hora',
+      headline:'Contato da Oficina do Zé Maria resolve logística de última hora',
       footer:'Cubo News • Última tentativa de defesa nacional',
       depth:35,
     });
@@ -62,7 +62,7 @@ export class ZecaRecoveryScene extends Phaser.Scene {
       fontFamily:'monospace',fontSize:'11px',color:'#e9d6ba',
     }).setOrigin(0.5).setDepth(17);
 
-    const text=`ZECA: "${this.copy.line}"\n\n"O Supremo ficou. Não dava pra levar aquilo num carro.\nAgora é a última corrida, chefe."`;
+    const text=`ZÉ MARIA: "${this.copy.line}"\n\n"O Supremo ficou. Não dava pra levar aquilo num carro.\nAgora é a última corrida, chefe."`;
     this.add.text(W/2,403,text,{
       fontFamily:'monospace',fontSize:'15px',color:'#eaf3ff',
       align:'center',wordWrap:{width:850},lineSpacing:5,
