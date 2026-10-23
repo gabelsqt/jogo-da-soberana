@@ -50,7 +50,80 @@ export function normalizeCampaignState(state = {}) {
   const choices = Array.isArray(state?.choices)
     ? state.choices.filter((id) => COUNTRIES.includes(id)).slice(0, 10)
     : [];
-  return { choices };
+  // A identidade e as atribuições P/S pertencem apenas às campanhas
+  // iniciadas no novo boteco. Saves legados continuam com {choices}.
+  if(!state?.armament||typeof state.armament!=='object')return {choices};
+  const principal=COUNTRIES.includes(state.armament.principal)
+    ?state.armament.principal:null;
+  const especial=principal&&COUNTRIES.includes(state.armament.especial)
+    ?state.armament.especial:null;
+  const upgrades=[];
+  const counter=Object.fromEntries(COUNTRIES.map(id=>[id,{P:0,S:0}]));
+  const slots={P:0,S:0};
+  for(const item of Array.isArray(state.armament.upgrades)?state.armament.upgrades:[]){
+    if(!especial||upgrades.length>=8)break;
+    if(!COUNTRIES.includes(item?.country)||!['P','S'].includes(item?.track))continue;
+    if(slots[item.track]>=4||counter[item.country][item.track]>=4)continue;
+    const stage=++counter[item.country][item.track];
+    slots[item.track]++;
+    upgrades.push({country:item.country,track:item.track,stage});
+  }
+  // Os registros das dez escolhas determinam os níveis nacionais e a
+  // condição do Supremo. Não aceitar níveis inventados no JSON da partida.
+  const canonical=[...(principal?[principal]:[]),...(especial?[especial]:[]),
+    ...upgrades.map(item=>item.country)].slice(0,10);
+  return {choices:canonical,armament:{principal,especial,upgrades}};
+}
+
+export function armamentPhase(state={}){
+  const current=normalizeCampaignState(state);
+  if(!current.armament?.principal)return 'principal';
+  if(!current.armament.especial)return 'special';
+  return 'upgrades';
+}
+export function armamentAllocation(state={}){
+  const allocation=Object.fromEntries(COUNTRIES.map(id=>[id,{P:0,S:0}]));
+  for(const item of normalizeCampaignState(state).armament?.upgrades??[])
+    allocation[item.country][item.track]++;
+  return allocation;
+}
+export function armamentOffers(state={},catalog=[]){
+  const current=normalizeCampaignState(state),phase=armamentPhase(current);
+  const allocation=armamentAllocation(current);
+  const used={P:0,S:0};
+  for(const {P,S} of Object.values(allocation)){used.P+=P;used.S+=S;}
+  return catalog.map(country=>{
+    if(phase!=='upgrades')return {...country,locked:false,level:
+      (current.choices.filter(id=>id===country.id).length+1)};
+    const proposals={};
+    for(const track of ['P','S']){
+      const stage=allocation[country.id][track]+1;
+      const locked=used[track]>=4||stage>4;
+      proposals[track]={country:country.id,track,stage,locked,
+        reason:locked?'QUATRO MELHORIAS JÁ INSTALADAS NESTA ARMA':''};
+    }
+    return {...country,level:current.choices.filter(id=>id===country.id).length+1,
+      locked:proposals.P.locked&&proposals.S.locked,proposals};
+  });
+}
+export function chooseArmamentUpgrade(state={},country,track=null){
+  if(!COUNTRIES.includes(country))return null;
+  const current=normalizeCampaignState(state);
+  if(current.choices.length>=10)return null;
+  const phase=armamentPhase(current);
+  if(phase==='principal')return {choices:[country],
+    armament:{principal:country,especial:null,upgrades:[]}};
+  if(phase==='special')return {choices:[current.armament.principal,country],
+    armament:{...current.armament,especial:country,upgrades:[]}};
+  if(track!=='P'&&track!=='S')return null;
+  const allocation=armamentAllocation(current);
+  const installed=Object.values(allocation).reduce(
+    (total,row)=>total+row[track],0);
+  if(installed>=4||allocation[country][track]>=4)return null;
+  const upgrades=[...current.armament.upgrades,{
+    country,track,stage:allocation[country][track]+1}];
+  return normalizeCampaignState({choices:[...current.choices,country],
+    armament:{...current.armament,upgrades}});
 }
 
 export function countryLevel(state, countryId) {
