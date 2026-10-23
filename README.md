@@ -2,7 +2,11 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.901 (Laboratório Matemático)
+## Versão atual — 0.902 (Saraivadas coreanas e alinhamento chinês)
+
+No **Laboratório**, o especial chinês agora dispara uma **fila de projéteis reais alinhados**, sem feixe, com convergência e dispersão de 1,5 s cada. A Coreia usa **saraivadas de lasers individuais** que ricocheteiam progressivamente com P1–P4, sem rastro Lightstick. Na transformação nacional, o canhão dispara 9 lasers por salva com projeção holográfica. Todos esses efeitos estão no painel matemático e são isolados da campanha. [Notas da v0.902](docs/versao-0.902.md).
+
+## Versão anterior — 0.901 (Laboratório Matemático)
 
 O menu **LABORATÓRIO** agora exige a escolha das identidades do tiro principal e do tiro especial antes de distribuir melhorias independentes P1–P4/S1–S4. O botão **⚙ BALANCEAMENTO** abre a lista de parâmetros numéricos editáveis dos **40 upgrades**. Os ajustes conectados ao combate são reaplicados durante a arena; o perfil pode ser **exportado/importado em JSON**, restaurado e salvo no navegador. As mecânicas híbridas e alguns campos ainda estão sinalizados como **EM PREPARAÇÃO**, sem afetar a campanha normal. Veja [guia e limitações da v0.901](docs/versao-0.901.md).
 
