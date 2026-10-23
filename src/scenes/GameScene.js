@@ -18,7 +18,7 @@ import {registerAmericanJulyHit,americanJulyReady,consumeAmericanJulyShot} from 
 import {americanWallPlacement,americanWallArcCenter,americanWallTravelDuration,
   americanWallAnimation,americanWallTouches,americanWallIntersects,
   americanWallBreaksFromBeam,AMERICAN_WALL_COOLDOWN_MS,AMERICAN_WALL_OPEN_MS} from '../gameplay/americanArsenal.js';
-import {wallPushImpulse,addWallPush,advanceWallPush,
+import {wallPushImpulse,addWallPush,advanceWallPush,solidAmericanWallCollision,
   canReflectWallShot,wallReflectionVector,
   US_WALL_PUSH_COOLDOWN_MS,US_WALL_REFLECTION_DAMAGE,
   US_WALL_REFLECTION_LIFETIME_MS,US_WALL_REFLECTION_CAP,
@@ -2512,6 +2512,7 @@ export class GameScene extends Phaser.Scene {
       }
       // Desfaz o deslocamento visual anterior para não interferir no percurso
       // calculado pela nave (incluindo curvas, voos rasantes e órbitas).
+      const worldFromX=enemy.sprite.x,worldFromY=enemy.sprite.y;
       const previousShock = enemy.shockOffset;
       // Remove o deslocamento do frame anterior ANTES de calcular a rota.
       // Hit shake e artilharia de choque permanecem efeitos independentes.
@@ -2530,6 +2531,7 @@ export class GameScene extends Phaser.Scene {
         // na posição real do inimigo até descongelar.
         enemy.sprite.x += oldWallPush.x;
         enemy.sprite.y += oldWallPush.y;
+        this.blockEnemyWithAmericanWall(enemy,worldFromX,worldFromY);
         this.frostGraphics.lineStyle(3,0x93ebff,0.85);
         this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy)+8);
         this.frostGraphics.lineStyle(1,0xe2ffff,0.72);
@@ -2938,8 +2940,24 @@ export class GameScene extends Phaser.Scene {
           }
           enemy.spawnedMinions += count;
         }
+      } else if (enemy.phase === 'wallRepelled') {
+        // Mantém a nave do lado inimigo do muro durante o recuo.
+        // Depois ela pode tentar outro ataque, sem atravessar a barreira.
+        if(enemy.phaseAge>=0.48){
+          enemy.phase='dive';enemy.phaseAge=0;
+          this.assignInvaderTarget(enemy,enemy.target);
+        }
       } else if (enemy.phase === 'dive') {
-        if (this.moveAlongRoute(enemy, dt)) {
+        const reached=this.moveAlongRoute(enemy,dt);
+        if(this.blockEnemyWithAmericanWall(enemy,worldFromX,worldFromY)){
+          enemy.phase='wallRepelled';enemy.phaseAge=0;
+          // O recuo começou após a posição física corrigida; os offsets
+          // anteriores foram retirados neste quadro e não serão reutilizados.
+          enemy.shockOffset={x:0,y:0,vx:0,vy:0};
+          enemy.wallPush.x=0;enemy.wallPush.y=0;
+          continue;
+        }
+        if(reached) {
           this.removeEnemy(i);
           this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE *
             (this.mode==='wave1'?WAVE1_PACING.impactDamageMultiplier:1) *
@@ -2963,6 +2981,7 @@ export class GameScene extends Phaser.Scene {
       enemy.wallPush = advanceWallPush(oldWallPush,dt);
       enemy.sprite.x += enemy.shockOffset.x + enemy.wallPush.x;
       enemy.sprite.y += enemy.shockOffset.y + enemy.wallPush.y;
+      this.blockEnemyWithAmericanWall(enemy,worldFromX,worldFromY);
       // Gelo russo não aplica forças de atração: só congela e estilhaça no abate.
       enemy.russianPullOffset={x:0,y:0};
       // Tipo 3 usa os quadros 4–7 para fazer curvas e 0–3 para voar reto.
@@ -4858,6 +4877,30 @@ export class GameScene extends Phaser.Scene {
     }
     this.tweens.add({targets:fx,alpha:0,scale:1.18,duration:290,
       onComplete:()=>fx.destroy()});
+  }
+
+  blockEnemyWithAmericanWall(enemy,fromX,fromY){
+    if(enemy.type===6||!enemy.sprite?.active)return false;
+    for(const wall of this.americanWalls){
+      if(this.time.now>=wall.expiresAt)continue;
+      const animation=americanWallAnimation(wall,this.time.now);
+      if(animation.phase==='travel')continue;
+      wall.currentArc=animation.arc;
+      const hit=solidAmericanWallCollision(wall,fromX,fromY,
+        enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type));
+      if(!hit)continue;
+      enemy.sprite.setPosition(hit.x,hit.y);
+      if(this.time.now-(wall.lastPush.get(enemy.uid)??-Infinity)>=
+        US_WALL_PUSH_COOLDOWN_MS){
+        wall.lastPush.set(enemy.uid,this.time.now);
+        enemy.wallPush=addWallPush(enemy.wallPush,
+          wallPushImpulse(wall,enemy.sprite));
+        wall.flashUntil=this.time.now+130;
+        playSfx('shieldHit',{throttle:140,volumeScale:.55});
+      }
+      return true;
+    }
+    return false;
   }
 
   updateAmericanWalls(){
