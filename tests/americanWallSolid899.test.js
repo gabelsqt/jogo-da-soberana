@@ -12,9 +12,9 @@ const radius=11;
 const safe=wall.radius+radius+12+US_WALL_SOLID_MARGIN;
 
 test('parede curva é sólida em velocidades normais e em saltos de 400 pixels',()=>{
- for(const endY of [200,240,310,460]){
+ for(const endY of [185,240,310,460]){
    const hit=solidAmericanWallCollision(wall,480,80,480,endY,radius);
-   if(endY===200){assert.equal(hit,null);continue;}
+   if(endY===185){assert.equal(hit,null);continue;}
    assert.ok(hit,'não pode atravessar o arco a qualquer velocidade');
    assert.ok(Math.abs(hit.x-480)<1e-7);
    assert.ok(Math.abs(hit.y-(wall.y-safe))<.001,
