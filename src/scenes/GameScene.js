@@ -9,7 +9,6 @@ import { appendWaveResult } from '../gameplay/waveTestResults.js';
 import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS, DISCO_REFLECTION_COOLDOWN_MS } from '../gameplay/discoGlobe.js';
 import { animateDiscoReflectionArcs, DISCO_REFLECTION_MAX_VISUAL_RAYS } from '../gameplay/discoReflectionVfx.js';
 import { destroyMenuButton } from '../ui/menuButton.js';
-import { mountPauseHudButton } from '../ui/pauseHudButton.js';
 import { supremeCodeFor, advanceSupremeCode } from '../gameplay/supremeCodeInput.js';
 import { createCannonDestruction } from '../ui/cannonDestruction.js';
 import { bindSceneMusic, waveMusic } from '../audio/music.js';
@@ -1824,23 +1823,7 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    // O HUD de pausa é um botão DOM no viewport, não um objeto da câmera.
-    // Assim a abertura com zoom e o redimensionamento não o cortam no topo.
-    const pauseButton = mountPauseHudButton(this,()=>this.pauseGame());
-    // Fallback para testes/embeds sem os elementos HTML do jogo.
-    if(!pauseButton){
-      const fallback = this.add.rectangle(W/2,68,156,36,0x18364c,0.95)
-        .setStrokeStyle(2,0x74bace).setDepth(102)
-        .setInteractive({useHandCursor:true});
-      this.add.text(W/2,68,'Ⅱ  PAUSAR [P]',{
-        ...font,fontSize:'13px',fontStyle:'bold',
-      }).setOrigin(0.5).setDepth(103);
-      fallback.on('pointerdown',(pointer,_x,_y,event)=>{
-        if(!pointer.leftButtonDown())return;
-        event?.stopPropagation();
-        this.pauseGame();
-      });
-    }
+    // Pausa é acionada exclusivamente por P/Esc, sem ocupar a tela.
   }
 
   pauseGame() {
