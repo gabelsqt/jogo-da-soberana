@@ -347,6 +347,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   openUpgradeLab() {
+    if(this.labMathEnabled){
+      this.scene.start('V1PlaytestScene',{
+        principal:this.v1LabPrincipal,especial:this.v1LabSpecial,
+        allocation:this.v1LabAllocation,arenaIndex:this.mode.startsWith('wave')
+          ?Number(this.mode.slice(4)):12,
+      });
+      return;
+    }
     if (this.mode !== 'upgradeLab') return;
     if(this.v1Playtest && this.v1LabLevels){
       // A árvore V1 é escolhida no laboratório novo, não no painel legado.
@@ -3661,6 +3669,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   activeUpgradeIds() {
+    if(this.labMathEnabled)return [this.v1LabPrincipal];
     if(this.v1Playtest && this.v1LabLevels)
       return Object.keys(this.v1LabLevels).filter(id=>this.v1LabLevels[id]>=1);
     if (this.unifiedLab) return Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 1);
