@@ -2,7 +2,11 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.903 (duas identidades e escolha P/S no boteco)
+## Versão atual — 0.904 (prólogo, onda 0.5, Zé Maria e Boteco)
+
+O prólogo agora apresenta a **onda 0 com armamento temporariamente muito potente**, seguido do **Tipo 6 provocando sobrecarga no Obuseiro**, da **onda 0.5 de sobrevivência (15 segundos)** e da retirada coletiva inexplicável ao amanhecer. O General telefona a **Zé Maria**, que chega em um **guincho azul** e diagnostica o canhão. A primeira escolha no Boteco define o tiro principal, instalado e testado antes da onda 1; a segunda instala o especial antes da onda 2. Boteco preservado com elevador de carga e falas de **Seu Anselmo** sobre a instalação e as invasões dos anos 1980. Arte de Zé Maria, guincho, elevador e reconstrução permanece temporariamente procedural. [Notas da v0.904](docs/versao-0.904.md).
+
+## Versão anterior — 0.903 (duas identidades e escolha P/S no boteco)
 
 A campanha agora define **a identidade do tiro principal na 1ª escolha**, depois da onda 0, e **a identidade do tiro especial na 2ª escolha**, depois da onda 1. Da 3ª à 10ª escolha, cada representante oferece **duas alternativas mecânicas: upgrade P para o principal ou upgrade S para o especial**, com progressão P1–P4 e S1–S4 independentes e confirmação explícita. As armas mantêm suas identidades, o especial é liberado imediatamente após a 2ª escolha e o Supremo mais as duas transformações só são concedidos às **dez escolhas do mesmo país**. [Notas e limitações da v0.903](docs/versao-0.903.md).
 
