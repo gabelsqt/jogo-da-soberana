@@ -18,6 +18,11 @@ import {registerAmericanJulyHit,americanJulyReady,consumeAmericanJulyShot} from 
 import {americanWallPlacement,americanWallArcCenter,americanWallTravelDuration,
   americanWallAnimation,americanWallTouches,americanWallIntersects,
   americanWallBreaksFromBeam,AMERICAN_WALL_COOLDOWN_MS,AMERICAN_WALL_OPEN_MS} from '../gameplay/americanArsenal.js';
+import {wallPushImpulse,addWallPush,advanceWallPush,
+  canReflectWallShot,wallReflectionVector,
+  US_WALL_PUSH_COOLDOWN_MS,US_WALL_REFLECTION_DAMAGE,
+  US_WALL_REFLECTION_LIFETIME_MS,US_WALL_REFLECTION_CAP,
+} from '../gameplay/americanWallDefense.js';
 import { ARRAIAL, withinBlast, withinFlame, firePulseRadius,
   arraialFinalPhrase, randomArraialBurst, shotHitsArraialBalloon,
   arraialStage, arraialPhrasePixels,
@@ -524,6 +529,7 @@ export class GameScene extends Phaser.Scene {
     // O Phaser reutiliza a cena ao reiniciar: nunca herdar Sputniks anteriores.
     this.russianSputniks = [];
     this.americanWalls = [];
+    this.wallReflections = [];
     this.enemies = [];
     this.projectiles = [];
     this.visibleProjectileCount = 0;
@@ -2219,6 +2225,7 @@ export class GameScene extends Phaser.Scene {
       velocityX: 0,
       velocityY: 0,
       shockOffset: { x: 0, y: 0, vx: 0, vy: 0 },
+      wallPush: { x: 0, y: 0, vx: 0, vy: 0 },
       // Reação visual não acrescenta recuo físico nem altera o percurso.
       lastHitAt: -Infinity,
       hitVisualOffsetX: 0,
@@ -2504,13 +2511,20 @@ export class GameScene extends Phaser.Scene {
       // Remove o deslocamento do frame anterior ANTES de calcular a rota.
       // Hit shake e artilharia de choque permanecem efeitos independentes.
       const previousPull = enemy.russianPullOffset || {x:0,y:0};
-      enemy.sprite.x -= previousShock.x + enemy.hitVisualOffsetX + previousPull.x;
-      enemy.sprite.y -= previousShock.y + previousPull.y;
+      const oldWallPush=enemy.wallPush??{x:0,y:0,vx:0,vy:0};
+      enemy.sprite.x -= previousShock.x + enemy.hitVisualOffsetX +
+        previousPull.x + oldWallPush.x;
+      enemy.sprite.y -= previousShock.y + previousPull.y +
+        oldWallPush.y;
       if (enemy.frozenUntil > this.elapsed) {
         // A nave fica totalmente parada, inclusive contadores de ataques e rotas.
         enemy.hitVisualOffsetX = 0;
         enemy.shockOffset = {x:0,y:0,vx:0,vy:0};
         enemy.russianPullOffset = {x:0,y:0};
+        // Congelamento interrompe o percurso, mas preserva o recuo do muro
+        // na posição real do inimigo até descongelar.
+        enemy.sprite.x += oldWallPush.x;
+        enemy.sprite.y += oldWallPush.y;
         this.frostGraphics.lineStyle(3,0x93ebff,0.85);
         this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy)+8);
         this.frostGraphics.lineStyle(1,0xe2ffff,0.72);
@@ -2941,8 +2955,9 @@ export class GameScene extends Phaser.Scene {
       enemy.velocityX = Phaser.Math.Linear(enemy.velocityX, instantVx, smooth);
       enemy.velocityY = Phaser.Math.Linear(enemy.velocityY, instantVy, smooth);
       enemy.shockOffset = advanceShockOffset(previousShock, dt);
-      enemy.sprite.x += enemy.shockOffset.x;
-      enemy.sprite.y += enemy.shockOffset.y;
+      enemy.wallPush = advanceWallPush(oldWallPush,dt);
+      enemy.sprite.x += enemy.shockOffset.x + enemy.wallPush.x;
+      enemy.sprite.y += enemy.shockOffset.y + enemy.wallPush.y;
       // Gelo russo não aplica forças de atração: só congela e estilhaça no abate.
       enemy.russianPullOffset={x:0,y:0};
       // Tipo 3 usa os quadros 4–7 para fazer curvas e 0–3 para voar reto.
@@ -3095,6 +3110,9 @@ export class GameScene extends Phaser.Scene {
         sprite: projectile,
         hp: 1,
         target,
+        // Apenas os disparos básicos de Tipo 1/2 podem ser devolvidos.
+        reflectable:enemy.type<=2 && !enemy.finalBoss,
+        sourceEnemyId:enemy.uid,
         damage:profile?.damage??(this.mode==='wave1'&&enemy.type<=2
           ?WAVE1_PACING.bulletDamage:enemy.type<=2?14:ENEMY_BULLET_DAMAGE),
         radius:8.25,
@@ -3118,6 +3136,8 @@ export class GameScene extends Phaser.Scene {
       shot.sprite.x += shot.vx * dt * freezeFactor;
       shot.sprite.y += shot.vy * dt * freezeFactor;
       if(this.hitAmericanWallWithBullet(shot,previousX,previousY)){
+        // O projétil hostil é consumido; um ricochete nasce em outra lista,
+        // controlada pelo jogador, sem causar dano à cidade.
         this.removeEnemyBullet(i,true);continue;
       }
       if (this.specialBlasts.some((blast) => blastCatchesTarget(
@@ -4853,12 +4873,13 @@ export class GameScene extends Phaser.Scene {
         if(enemy.type===6||!enemy.sprite?.active)continue;
         if(!americanWallTouches(wall,enemy.sprite.x,enemy.sprite.y,
           enemyContactRadius(enemy.type)))continue;
-        if(this.time.now-(wall.lastPush.get(enemy.uid)??-Infinity)<500)continue;
+        if(this.time.now-(wall.lastPush.get(enemy.uid)??-Infinity)<
+          US_WALL_PUSH_COOLDOWN_MS)continue;
         wall.lastPush.set(enemy.uid,this.time.now);
-        // Só empurra; NÃO chama impactInvader nem reduz HP inimigo.
-        const angle=Math.atan2(enemy.sprite.y-wall.y,enemy.sprite.x-wall.x);
-        enemy.shockOffset.vx+=Math.cos(angle)*260;
-        enemy.shockOffset.vy+=Math.sin(angle)*260;
+        // Agora desloca realmente a hitbox no mundo; não só o tremor
+        // cosmético que o cálculo de rota apagava no quadro seguinte.
+        enemy.wallPush=addWallPush(enemy.wallPush,
+          wallPushImpulse(wall,enemy.sprite));
         wall.flashUntil=this.time.now+130;
         playSfx('shieldHit',{throttle:140,volumeScale:.52});
       }
@@ -4872,11 +4893,68 @@ export class GameScene extends Phaser.Scene {
       if(!americanWallIntersects(wall,x1,y1,shot.sprite.x,shot.sprite.y,
         shot.radius??8))continue;
       wall.flashUntil=this.time.now+130;
+      if(canReflectWallShot(shot))this.reflectAmericanWallShot(shot,wall);
       playSfx('shieldHit',{throttle:130,volumeScale:.57});
       this.paintAmericanWall(wall);
-      return true; // Qualquer tiro comum é absorvido, sem perder resistência.
+      return true; // Tiros leves refletem; os pesados são só absorvidos.
     }
     return false;
+  }
+
+  reflectAmericanWallShot(shot,wall){
+    if(this.wallReflections.length>=US_WALL_REFLECTION_CAP)return;
+    const x=shot.sprite.x,y=shot.sprite.y;
+    const source=this.enemies.find(enemy=>enemy.uid===shot.sourceEnemyId &&
+      enemy.sprite?.active && enemy.type!==6);
+    const candidate=source??this.enemies.filter(enemy=>
+      enemy.type!==6&&enemy.sprite?.active).sort((a,b)=>
+      Math.hypot(a.sprite.x-x,a.sprite.y-y)-
+      Math.hypot(b.sprite.x-x,b.sprite.y-y))[0];
+    const vector=wallReflectionVector(wall,x,y,candidate);
+    const orb=this.add.circle(x,y,5,0xe3fbff,0.98)
+      .setStrokeStyle(2.5,0x4ea9ff,0.94).setDepth(46);
+    this.wallReflections.push({sprite:orb,x,y,...vector,
+      bornAt:this.time.now,damage:US_WALL_REFLECTION_DAMAGE});
+    // Pequeno núcleo branco vindo do arco e rumando para o agressor.
+    const ping=this.add.circle(x,y,12,0xffffff,0.30)
+      .setStrokeStyle(2,0xbbefff,0.75).setDepth(47);
+    this.tweens.add({targets:ping,scale:1.7,alpha:0,duration:210,
+      onComplete:()=>ping.destroy()});
+  }
+
+  updateAmericanWallReflections(dt){
+    for(let i=this.wallReflections.length-1;i>=0;i--){
+      const shot=this.wallReflections[i];
+      if(!shot.sprite?.active){this.wallReflections.splice(i,1);continue;}
+      const previousX=shot.sprite.x,previousY=shot.sprite.y;
+      shot.sprite.x+=shot.vx*dt;shot.sprite.y+=shot.vy*dt;
+      let hit=false;
+      for(let j=this.enemies.length-1;j>=0;j--){
+        const enemy=this.enemies[j];
+        if(!enemy.sprite?.active)continue;
+        if(enemy.type===6){
+          // Respeita a barreira e os módulos; não atravessa o casco.
+          if(hitType6Segment(this,enemy,previousX,previousY,
+            shot.sprite.x,shot.sprite.y,shot.damage,5)){hit=true;break;}
+          continue;
+        }
+        if(!segmentHitsCircle(previousX,previousY,
+          shot.sprite.x,shot.sprite.y,enemy.sprite.x,enemy.sprite.y,
+          this.enemyCombatRadius(enemy)+5))continue;
+        this.impactInvader(j,shot.damage,0,'#b7f1ff',false);
+        hit=true;break;
+      }
+      if(hit||this.time.now-shot.bornAt>US_WALL_REFLECTION_LIFETIME_MS||
+        shot.sprite.y< -35||shot.sprite.y>H+35||
+        shot.sprite.x< -35||shot.sprite.x>W+35){
+        shot.sprite.destroy();this.wallReflections.splice(i,1);
+      }
+    }
+  }
+
+  clearAmericanWallReflections(){
+    for(const shot of this.wallReflections??[])shot.sprite?.destroy();
+    this.wallReflections=[];
   }
 
   // Laser de Cerco e feixe final do núcleo Tipo 6: únicas exceções.
@@ -6539,6 +6617,7 @@ export class GameScene extends Phaser.Scene {
     this.updateAmericanWalls();
     this.updateEnemyBullets(dt);
     if (this.gameOver) return;
+    this.updateAmericanWallReflections(dt);
     this.updatePlayerProjectiles(dt);
     this.updateResidualSlashes();
     this.updateElectricFences();
