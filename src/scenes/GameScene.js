@@ -5977,7 +5977,7 @@ export class GameScene extends Phaser.Scene {
               const speed=this.combat.basicSpeed;
               bullet.vx=Math.cos(angle)*speed;
               bullet.vy=Math.sin(angle)*speed;
-              bullet.sprite.setRotation(angle+Math.PI/2);
+              bullet.sprite.setRotation?.(angle+Math.PI/2);
               bullet.damage=koreanRicochetDamage(bullet.damage,bullet.koreanBounceRetention);
               bullet.koreanBouncesLeft--;
               const flash=this.add.circle(deathPosition.x,deathPosition.y,6,0xdcb2ff,.65)
