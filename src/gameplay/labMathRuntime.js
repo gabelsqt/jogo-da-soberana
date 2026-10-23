@@ -21,7 +21,7 @@ export function computeLabMath({profile={},allocation={},principal='br',especial
   stats.usRocketRadius=principal==='us'?9:0;
   stats.usRocketBlastRadius=principal==='us'?29:0;
   stats.usRocketBlastDamage=principal==='us'?1.4:0;
-  stats.plasmaEvery=principal==='jp'?3:0;
+  stats.plasmaEvery=0; // Laser coreano experimental usa saraivadas físicas.
   stats.laserDamage=3;
   stats.russianFreezeMs=principal==='ru'?1000:0;
   stats.russianShatterDamage=principal==='ru'?2:0;
@@ -30,6 +30,7 @@ export function computeLabMath({profile={},allocation={},principal='br',especial
   stats.bulletsPerShot=principal==='cn'?2:1;
   stats.chinaSplitCount=1;
   stats.koreaContinuous=false;
+  stats.residualSlash=false; // Sem rastro/fenda do Lightstick no Laboratório.
   stats.transformed=null;
   stats.ultimate=null;
   stats.specialCooldown=especial==='us'?14000:8000;
@@ -53,9 +54,10 @@ export function computeLabMath({profile={},allocation={},principal='br',especial
     brBalloonRadius:100,brFireworkRadius:27,brFireworks:1,brFireworkDamage:1,
     brElectricDamage:0,brElectricRange:0,brElectricRate:0,brFinalDamage:5,
     brPeakMs:1456,cnCopyDamage:1,cnFocusMs:2500,
-    cnPulseMs:250,cnArmorMultiplier:1,cnPulseMultiplier:1,
-    jpEchoEvery:0,jpEchoFactor:0,jpMaxTargetFraction:1,
-    jpLaserEvery:principal==='jp'?6:0,ruChainTargets:0,
+    cnRateFactor:1,cnArmorMultiplier:1,cnShotMultiplier:1,
+    jpBounces:0,jpBounceRange:180,jpBounceRetention:.7,
+    jpVolleyCount:principal==='jp'?3:0,jpMaxTargetFraction:1,
+    ruChainTargets:0,
     ruChainRadius:0,ruChainFactor:0,
   };
   const has=(id,track,n)=>(allocation?.[id]?.[track]??0)>=n;
@@ -84,10 +86,16 @@ export function computeLabMath({profile={},allocation={},principal='br',especial
   if(has('cn','P',2)){stats.chinaSplitCount=2;extra.cnCopyDamage=v('cn','P',2,'copyDamage',.5);}
   if(has('cn','P',3))stats.bulletsPerShot=v('cn','P',3,'count',5);
   if(has('cn','P',4))stats.basicInterval=v('cn','P',4,'intervalMs',240);
-  if(has('jp','P',1)){extra.jpLaserEvery=v('jp','P',1,'every',5);stats.plasmaEvery=1;}
-  if(has('jp','P',2))stats.laserDamage=v('jp','P',2,'damage',4);
-  if(has('jp','P',3)){extra.jpEchoEvery=v('jp','P',3,'echoEvery',3);extra.jpEchoFactor=v('jp','P',3,'echoFactor',.5);}
-  if(has('jp','P',4)){extra.jpLaserEvery=v('jp','P',4,'every',3);stats.plasmaEvery=1;}
+  if(has('jp','P',1)){
+    extra.jpBounces=v('jp','P',1,'bounces',1);
+    extra.jpBounceRange=v('jp','P',1,'range',180);
+    extra.jpBounceRetention=v('jp','P',1,'retention',.7);
+  }
+  for(let n=2;n<=4;n++)if(has('jp','P',n)){
+    extra.jpBounces=v('jp','P',n,'bounces',n);
+    extra.jpBounceRange=v('jp','P',n,'range',[0,0,215,260,320][n]);
+    extra.jpVolleyCount=v('jp','P',n,'count',[0,0,4,5,6][n]);
+  }
   // ESPECIAL: os valores adaptam somente a identidade especial escolhida.
   // Propriedades de países diferentes permanecem no perfil para próximas
   // iterações; não criam especiais adicionais invisíveis no laboratório.
@@ -130,10 +138,10 @@ export function computeLabMath({profile={},allocation={},principal='br',especial
       extra.ruChainFactor=v('ru','S',4,'damageFactor',.5);
     }
   }
-  if(has('cn','S',1))extra.cnPulseMs=v('cn','S',1,'pulseMs',200);
+  if(has('cn','S',1))extra.cnRateFactor=v('cn','S',1,'rateFactor',.8);
   if(has('cn','S',2))extra.cnFocusMs=v('cn','S',2,'focusMs',3500);
   if(has('cn','S',3))extra.cnArmorMultiplier=v('cn','S',3,'armorMultiplier',1.35);
-  if(has('cn','S',4))extra.cnPulseMultiplier=v('cn','S',4,'pulseMultiplier',1.2);
+  if(has('cn','S',4))extra.cnShotMultiplier=v('cn','S',4,'shotMultiplier',1.2);
   if(especial==='jp'){
     for(let n=1;n<=3;n++)if(has('jp','S',n)){
       build.krReflections=v('jp','S',n,'count',[0,6,12,24][n]);
@@ -152,8 +160,13 @@ export function computeLabMath({profile={},allocation={},principal='br',especial
     if(winner==='br'){stats.basicInterval*=.65;stats.basicDamage*=1.25;extra.brBalloonRadius=140;extra.brFinalDamage=9;}
     if(winner==='us'){stats.basicInterval*=.8;stats.usRocketRadius=20;stats.usRocketBlastRadius=56;build.usWall.radius=125;build.usWall.durationMs=8000;}
     if(winner==='ru'){stats.basicDamage*=2.6;stats.russianFreezeMs=3000;build.ruSputnikRadius=80;build.ruSputnikDurationMs=6000;}
-    if(winner==='cn'){stats.bulletsPerShot=10;stats.chinaSplitCount=2;extra.cnFocusMs=4500;extra.cnPulseMultiplier*=1.15;}
-    if(winner==='jp'){stats.koreaContinuous=true;stats.basicInterval=160;build.krSalvoDamage=27;build.krReflectDamage=27/build.krReflections;}
+    if(winner==='cn'){stats.bulletsPerShot=10;stats.chinaSplitCount=2;extra.cnFocusMs=4500;extra.cnShotMultiplier*=1.15;}
+    if(winner==='jp'){
+      stats.koreaContinuous=false;stats.basicInterval=160;
+      extra.jpVolleyCount=9;extra.jpBounces=Math.max(extra.jpBounces,4);
+      extra.jpBounceRange=Math.max(extra.jpBounceRange,320);
+      build.krSalvoDamage=27;build.krReflectDamage=27/build.krReflections;
+    }
   }
   stats.basicInterval=Math.max(winner==='br'?32:55,Math.round(stats.basicInterval));
   return {stats,build,extra,winner};
