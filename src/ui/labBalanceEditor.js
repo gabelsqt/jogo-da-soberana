@@ -1,5 +1,11 @@
 import {LAB_COUNTRIES,LAB_BALANCE_FIELDS,LAB_BALANCE_DEFAULTS,normalizeLabBalance} from '../gameplay/labBalanceProfile.js';
 const STORAGE_KEY='operacao-soberania-lab-matematico-v1';
+// Campos ainda registrados no perfil, sem efeito jogável correspondente.
+const PENDING_FIELDS=new Set([
+  'us.P3.push','us.P3.pushTime','us.S2.pushMax',
+  'ru.P4.bossMultiplier','ru.S4.targets','ru.S4.radius','ru.S4.damageFactor',
+  'jp.P3.echoEvery','jp.P3.echoFactor','jp.S4.targetCap',
+]);
 const STYLE_ID='soberania-lab-math-style';
 let memoryProfile=null;
 export function readLabBalance(){
@@ -50,7 +56,8 @@ function downloadProfile(profile){
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-export function mountLabBalanceEditor({allocation={},onChange=()=>{},onReturn=null}={}){
+export function mountLabBalanceEditor({allocation={},especial=null,
+  onChange=()=>{},onReturn=null}={}){
   installStyle();
   let profile=readLabBalance(),country='br',track='P',alive=true;
   const launcher=button('⚙ BALANCEAMENTO',()=>setOpen(true),'sob-math-open');
@@ -108,7 +115,7 @@ export function mountLabBalanceEditor({allocation={},onChange=()=>{},onReturn=nu
     }
     scroll.replaceChildren();
     const hint=document.createElement('p');hint.className='sob-math-hint';
-    hint.textContent='Valores experimentais: o arquivo JSON pode ser salvo, editado externamente e importado novamente. Alterações nos atributos conectados ao combate valem para os próximos disparos e ativações. Outros parâmetros são propostas em preparação.';
+    hint.textContent='Perfil experimental: altere números, exporte/importe JSON e veja mudanças nos próximos disparos. Campos marcados EM PREPARAÇÃO ainda não mudam o jogo. Efeitos do especial de outro país ainda não se combinam completamente.';
     scroll.append(hint);
     for(let stage=1;stage<=4;stage++){
       const fields=LAB_BALANCE_FIELDS.filter(f=>f.country===country&&f.track===track&&f.stage===stage);
@@ -125,6 +132,12 @@ export function mountLabBalanceEditor({allocation={},onChange=()=>{},onReturn=nu
         input.id='sob-math-'+f.key;input.type='number';input.step=String(f.step);
         input.min=String(f.min);input.max=String(f.max);input.value=String(profile[f.key]);
         const unit=document.createElement('output');unit.textContent=f.unit;
+        const linked=!PENDING_FIELDS.has(f.key) && (track!=='S'||!especial||country===especial);
+        if(!linked){
+          const marker=document.createElement('small');marker.textContent='EM PREPARAÇÃO';
+          marker.style.color='#ffda91';marker.style.marginRight='5px';
+          label.append(' ',marker);
+        }
         input.addEventListener('change',()=>{
           const raw=Number(input.value);
           if(!Number.isFinite(raw)||input.value===''){input.value=String(profile[f.key]);return;}
@@ -140,5 +153,6 @@ export function mountLabBalanceEditor({allocation={},onChange=()=>{},onReturn=nu
   render();
   return {open:()=>setOpen(true),getProfile:()=>({...profile}),
     updateAllocation:next=>{allocation=next;if(panel.classList.contains('sob-open'))render();},
+    updateIdentity:next=>{especial=next;if(panel.classList.contains('sob-open'))render();},
     destroy:()=>{alive=false;launcher.remove();panel.remove();}};
 }
