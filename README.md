@@ -2,7 +2,11 @@
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
 
-## Versão atual — 0.902 (Saraivadas coreanas e alinhamento chinês)
+## Versão atual — 0.903 (duas identidades e escolha P/S no boteco)
+
+A campanha agora define **a identidade do tiro principal na 1ª escolha**, depois da onda 0, e **a identidade do tiro especial na 2ª escolha**, depois da onda 1. Da 3ª à 10ª escolha, cada representante oferece **duas alternativas mecânicas: upgrade P para o principal ou upgrade S para o especial**, com progressão P1–P4 e S1–S4 independentes e confirmação explícita. As armas mantêm suas identidades, o especial é liberado imediatamente após a 2ª escolha e o Supremo mais as duas transformações só são concedidos às **dez escolhas do mesmo país**. [Notas e limitações da v0.903](docs/versao-0.903.md).
+
+## Versão anterior — 0.902 (Saraivadas coreanas e alinhamento chinês)
 
 No **Laboratório**, o especial chinês agora dispara uma **fila de projéteis reais alinhados**, sem feixe, com convergência e dispersão de 1,5 s cada. A Coreia usa **saraivadas de lasers individuais** que ricocheteiam progressivamente com P1–P4, sem rastro Lightstick. Na transformação nacional, o canhão dispara 9 lasers por salva com projeção holográfica. Todos esses efeitos estão no painel matemático e são isolados da campanha. [Notas da v0.902](docs/versao-0.902.md).
 
