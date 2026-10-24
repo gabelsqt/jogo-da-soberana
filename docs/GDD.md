@@ -1250,13 +1250,13 @@ O PNG do Cruzador-Colmeia agora é RGBA verdadeiro em 896×512. O feedback de da
 | --- | ---: | --- | --- | --- |
 | **Zé Maria (Brasil)** | **1,73 m** | Forte, barrigudinho, braços grossos | **Polegar para cima e chave inglesa apoiada no ombro** | Verde |
 | **Victor McDollar (EUA)** | **1,94 m** | Muito musculoso, quase um super-herói | **Braços muito abertos**, exibindo grandiosidade | Azul |
-| **Kátia Strófika (Rússia)** | **1,80 m** | Atlética, ombros fortes | **Braços cruzados e olhar severo** | Dourado |
+| **Kátia Strófika (Rússia)** | **1,80 m** | Muito musculosa, ombros largos; graça de ginasta | **Braços cruzados e olhar severo** | Dourado |
 | **Mingda Mai (China)** | **1,59 m** | Pequena e elegante | **Oferecendo uma caixa com um sorriso** | Vermelho |
 | **Kim Lin Du (Coreia do Sul)** | **1,79 m** | Magro e atlético, físico de dançarino | **Finger heart** e sorriso ensaiado | Roxo |
 
 **Zé Maria — retrato principal visualmente fechado:** pele marrom-escura, rosto simpático, sorriso largo com dentes à mostra, olhos acolhedores, **afro curto arredondado e crespo visível**, **bigodão grosso curvado nas pontas**, corpo robusto; **macacão verde gasto, aberto no pescoço, com camiseta BEGE por baixo**; chave inglesa prateada na outra mão. O retrato principal usa polegar para cima e ferramenta no ombro. **Estas escolhas posteriores substituem, para a arte padrão, o boné que achatava o afro e a camiseta branca descritos em 23/10/2026.** Manter a profissão civil de mecânico, o conceito de roupa de trabalho e, salvo revisão explícita, a ferramenta como **chave inglesa ajustável de 12 polegadas**, além dos acessórios menores anteriormente aprovados que couberem no enquadramento. Não retomar a aparência obsoleta de Zeca Carrara.
 
-**Demais figurinos e direção:** Victor com visual de showman americano, cabelo louro volumoso, terno azul-marinho, gravata vermelha e sorriso confiante (óculos escuros conforme a versão visual aprovada); Kátia com uniforme militar de inverno e expressão disciplinada; Mingda com identidade visual comercial vermelha/dourada e sorriso de negociadora; Kim com roupa branca inspirada em idol, acentos roxos e visual de estrela de K-pop. Refinamentos de silhueta devem preservar as diferenças de porte físico aprovadas acima.
+**Demais figurinos e direção:** Victor com visual de showman americano, cabelo louro volumoso, terno azul-marinho, gravata vermelha e sorriso confiante (óculos escuros conforme a versão visual aprovada); Kátia com uniforme militar de inverno, medalhas esportivas no pescoço e expressão disciplinada; Mingda com identidade visual comercial vermelha/dourada e sorriso de negociadora; Kim com roupa branca inspirada em idol, acentos roxos e visual de estrela de K-pop. Refinamentos de silhueta devem preservar as diferenças de porte físico aprovadas acima.
 
 ### Atuação facial aprovada
 
@@ -1316,3 +1316,19 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 ### Estado
 
 **Aprovado apenas no GDD como planejamento.** Nenhuma arte final, spritesheet, código ou integração foi gerada. A direção de arte está pronta para orientar produção futura, que exige autorização específica.
+
+
+### Kátia Strófika — personalidade, passado esportivo e relações (24/10/2026; aprovado, planejamento)
+
+- **Identidade:** além de comandante russa austera, Kátia é uma **ex-atleta multiesportiva extremamente premiada**, obcecada por vencer. Foi campeã de uma quantidade deliberadamente absurda de modalidades incompatíveis entre si, particularmente **força, resistência e dança**, incluindo **ginástica artística**. Outros títulos podem ser revelados gradativamente em diálogos; evitar fixar uma contagem total de medalhas.
+- **Físico:** **muito musculosa**, ombros largos, braços fortes de halterofilista e presença intimidadora, **sem perder graça, equilíbrio, flexibilidade e precisão de ginasta**. Sua postura é disciplinada, mas sua movimentação pode ser inesperadamente elegante e acrobática. Esta definição **refina e prevalece** sobre a descrição anterior “atlética, ombros fortes” da tabela de proporções; manter altura oficial de **1,80 m**, uniforme militar de inverno, trança loira, gorro de inverno, expressão severa e identidade cromática dourada.
+- **Medalhas:** usa **medalhas esportivas visivelmente penduradas no pescoço mesmo durante a guerra**. São distintas de condecorações militares e devem ser legíveis no retrato, sem esconder completamente o uniforme. O excesso de medalhas pode ser tratado com humor.
+- **Competitividade:** despreza empates e vitórias morais; quer **derrotar completamente o adversário** e ganhar a qualquer custo no sentido de buscar superioridade total na competição e na guerra. Isso **não estabelece** disposição de sacrificar aliados (alternativa não escolhida). Enxerga ondas, batalhas e desafios como provas de recorde. Converte **qualquer conversa** em comparação de tempos, títulos, marcas pessoais e resultados esportivos.
+- **Humor:** fala com seriedade e secura mesmo ao citar conquistas esportivas improváveis. Não precisa fazer piadas de propósito; a comicidade decorre de medir todas as situações com a régua dos recordes. Continua exigente, mas reconhece mérito autêntico.
+- **Relação com Zé Maria:** respeita sua **força física real, adquirida no trabalho**, sua competência como mecânico e a capacidade de **instalar, consertar e manter o canhão**, mesmo improvisando ferramentas e soluções em condições difíceis. Pode compará-lo a um atleta de força que nunca treinou profissionalmente.
+- **Relação com o protagonista/jogador:** inicialmente o considera amador ou tecnicamente inferior, mas passa a admirá-lo por **nunca desistir**, continuar combatendo após dificuldades e insistir em defender a cidade até o fim. Elogios são **raros, diretos e sinceros**; reconhece na perseverança outra forma de força. Seu respeito pela determinação não elimina sua obsessão por ganhar.
+- **Exemplos de tom (não necessariamente falas finais):** “Sobreviver é medalha de participação.”; “Você não é o mais forte. Não é o mais rápido. Mas nunca desiste. Isso eu respeito.”; ao saber que Zé Maria montou o canhão com ferramentas de oficina, elogia sua força e sugere levantamento de peso.
+
+### Terminologia canônica do armamento (24/10/2026)
+
+- O equipamento de defesa controlado pelo jogador chama-se **canhão** em toda a narrativa, diálogos, UI e documentação, **não obuseiro**. A confirmação do criador substitui denominações anteriores. Zé Maria instala e repara o **canhão**. Corrigir textos antigos na futura revisão/implementação; este registro documental não implica edição automática dos arquivos de jogo nem alteração de identificadores técnicos internos.
