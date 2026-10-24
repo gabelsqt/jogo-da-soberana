@@ -1,3 +1,8 @@
+## Revisão 0.910 — pausa touch
+
+- Botão translúcido de pausa (Ⅱ) no canto superior direito da área lógica 960 × 540, posição (916, 40), independente do analógico e de TIRO/ESP.
+- Aciona a PauseScene existente; interrompe o disparo ao pausar. Não altera o comando de pausa por teclado no desktop.
+
 ## Revisão 0.909 — controles touch e onda 0.5
 
 - Analógico touch movido de (100, 435) para (160, 420) na tela lógica 960 × 540, oferecendo mais margem à esquerda.
