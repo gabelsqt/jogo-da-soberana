@@ -17,7 +17,7 @@ export function americanRocketConfig(level=0){
 export function americanWallConfig(level=0){
   if(level<2)return null;
   const stage=level>=8?3:level>=6?2:level>=4?1:0;
-  return {radius:[85,110,140,175][stage],
+  return {radius:[110,145,185,230][stage],
     durationMs:AMERICAN_WALL_DURATION_MS,
     cooldownMs:AMERICAN_WALL_COOLDOWN_MS,arc:AMERICAN_WALL_ARC};
 }
