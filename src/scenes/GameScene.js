@@ -660,7 +660,7 @@ export class GameScene extends Phaser.Scene {
     installShieldSprites(this);
     // A proteção hexagonal é inteiramente desenhada no Phaser, sem texturas externas.
     this.hexShieldGraphics=this.add.graphics().setDepth(25);
-    this.hexShieldTransition='active';
+    this.hexShieldTransition='hidden';
     this.hexShieldTransitionAt=this.time.now;
     this.hexShieldFlashUntil=0;
     this.enemyHealthGraphics = this.add.graphics().setDepth(27);
@@ -1092,7 +1092,7 @@ export class GameScene extends Phaser.Scene {
     // Toda nova fase desmonta o escudo antes da contagem regressiva.
     // A cúpula se forma de novo quando a batalha começa, não apenas
     // quando o prédio-foguete pousa na rota Full Brazil.
-    this.hexShieldTransition='disabling';
+    this.hexShieldTransition='hidden';
     this.hexShieldTransitionAt=this.time.now;
     this.hexShieldFlashUntil=0;
     this.lastHexShieldDrawAt=-Infinity;
@@ -1807,16 +1807,16 @@ export class GameScene extends Phaser.Scene {
 
   createBattleBanterPanel(){
     // Zona morta inferior esquerda: HUD não-interativo, um recado por vez.
-    this.banterBackground=this.add.rectangle(139,421,268,96,0x0b1a2d,0.88)
+    this.banterBackground=this.add.rectangle(150,423,252,100,0x0b1a2d,0.88)
       .setStrokeStyle(2,0x608ca8).setDepth(104).setVisible(false);
-    this.banterPortrait=this.add.image(39,421,'battle-portrait-br')
+    this.banterPortrait=this.add.image(57,423,'battle-portrait-br')
       .setDisplaySize(58,78).setDepth(105).setVisible(false);
-    this.banterName=this.add.text(74,382,'',{
+    this.banterName=this.add.text(91,387,'',{
       fontFamily:'monospace',fontSize:'12px',fontStyle:'bold',color:'#ffe2ad',
     }).setDepth(105).setVisible(false);
-    this.banterText=this.add.text(74,403,'',{
+    this.banterText=this.add.text(91,408,'',{
       fontFamily:'monospace',fontSize:'11px',color:'#ecf4ff',
-      wordWrap:{width:194},lineSpacing:3,
+      wordWrap:{width:175},lineSpacing:3,
     }).setDepth(105).setVisible(false);
     this.lastBanterKey=null;
     this.banterWriter=createDialogueTypewriter(this,{
@@ -6206,6 +6206,11 @@ export class GameScene extends Phaser.Scene {
     // Os escudos das torres continuam usando os sprites atuais.
     updateShieldSprites(this,CANNON.x,CANNON.y+10,this.supportTowers);
     this.cannonDomeSprite?.setVisible(false);
+    // Antes da onda zero (e durante a contagem), nenhum escudo é desenhado.
+    if(this.hexShieldTransition==='hidden'){
+      this.hexShieldGraphics.clear();
+      return;
+    }
     let phase=this.hexShieldTransition??'active',progress=1;
     const elapsed=this.time.now-(this.hexShieldTransitionAt??this.time.now);
     if(phase==='disabling'){
