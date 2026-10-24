@@ -1227,3 +1227,92 @@ O PNG do Cruzador-Colmeia agora é RGBA verdadeiro em 896×512. O feedback de da
 ### Estado e pendências
 
 **Somente GDD — sem código, assets, novas imagens ou implementação.** Diálogos de exemplo de conversas anteriores são provisórios, exceto a frase aprovada do Marea. Pendem: storyboard completo; parâmetros do canhão forte/lento; integração da onda 0.5; reconciliação do calendário de upgrades; faixa musical; passado completo de Anselmo e finalidade antiga da instalação. Esta seção é fonte de verdade para novas implementações diante de trechos históricos conflitantes no restante do GDD.
+
+
+---
+
+## Direção de arte canônica dos cinco representantes — 24/10/2026 (PLANEJAMENTO, NÃO IMPLEMENTADO)
+
+> **Precedência visual:** decisões aprovadas pelo criador em 24/10/2026. Esta seção prevalece sobre descrições visuais anteriores incompatíveis, inclusive na seção de 23/10/2026. **Não** altera a história, personalidade, mecânicas ou diálogos aprovados. Nenhum sprite, código ou imagem foi produzido nesta atualização.
+
+### Referência estética comum
+
+- Referência visual escolhida pelo criador: **segunda imagem de teste de Zé Maria**, pixel art de JRPG 16-bit/início da era PS1, pixels grandes e nítidos, contraste forte, detalhes controlados e **dithering discreto** nas sombras. Evitar suavização/blur.
+- Personagens de corpo inteiro com proporções de **JRPG clássico, aproximadamente 4–5 cabeças de altura**.
+- **Retratos estáticos nos diálogos**; reservar animação de personagens para cutscenes.
+- **Um único figurino oficial por personagem durante toda a campanha**.
+- Cada personagem terá quatro vistas de corpo inteiro (**frente, costas, esquerda, direita**) e seus gestos característicos; essas vistas não implicam obrigação de ciclos de caminhada.
+- Alturas oficiais são referências de escala **entre personagens**, não de tamanho de retrato.
+
+### Fichas físicas, alturas e gestos oficiais
+
+| Representante | Altura real | Porte físico | Gesto/pose característica | Identidade cromática |
+| --- | ---: | --- | --- | --- |
+| **Zé Maria (Brasil)** | **1,73 m** | Forte, barrigudinho, braços grossos | **Polegar para cima e chave inglesa apoiada no ombro** | Verde |
+| **Victor McDollar (EUA)** | **1,94 m** | Muito musculoso, quase um super-herói | **Braços muito abertos**, exibindo grandiosidade | Azul |
+| **Kátia Strófika (Rússia)** | **1,80 m** | Atlética, ombros fortes | **Braços cruzados e olhar severo** | Dourado |
+| **Mingda Mai (China)** | **1,59 m** | Pequena e elegante | **Oferecendo uma caixa com um sorriso** | Vermelho |
+| **Kim Lin Du (Coreia do Sul)** | **1,79 m** | Magro e atlético, físico de dançarino | **Finger heart** e sorriso ensaiado | Roxo |
+
+**Zé Maria — retrato principal visualmente fechado:** pele marrom-escura, rosto simpático, sorriso largo com dentes à mostra, olhos acolhedores, **afro curto arredondado e crespo visível**, **bigodão grosso curvado nas pontas**, corpo robusto; **macacão verde gasto, aberto no pescoço, com camiseta BEGE por baixo**; chave inglesa prateada na outra mão. O retrato principal usa polegar para cima e ferramenta no ombro. **Estas escolhas posteriores substituem, para a arte padrão, o boné que achatava o afro e a camiseta branca descritos em 23/10/2026.** Manter a profissão civil de mecânico, o conceito de roupa de trabalho e, salvo revisão explícita, a ferramenta como **chave inglesa ajustável de 12 polegadas**, além dos acessórios menores anteriormente aprovados que couberem no enquadramento. Não retomar a aparência obsoleta de Zeca Carrara.
+
+**Demais figurinos e direção:** Victor com visual de showman americano, cabelo louro volumoso, terno azul-marinho, gravata vermelha e sorriso confiante (óculos escuros conforme a versão visual aprovada); Kátia com uniforme militar de inverno e expressão disciplinada; Mingda com identidade visual comercial vermelha/dourada e sorriso de negociadora; Kim com roupa branca inspirada em idol, acentos roxos e visual de estrela de K-pop. Refinamentos de silhueta devem preservar as diferenças de porte físico aprovadas acima.
+
+### Atuação facial aprovada
+
+- **Zé Maria:** expressões calorosas, naturais e espontâneas.
+- **Victor:** expressões extremamente teatrais e exageradas.
+- **Kátia:** séria, mas com emoções claramente legíveis.
+- **Mingda:** muito expressiva e energética.
+- **Kim:** duas faces na interpretação geral — idol em público, ambicioso em privado; **a expressão exclusiva escolhida NÃO é “máscara caída”**.
+
+### Pacote de 12 expressões por representante
+
+**Onze categorias comuns**, na ordem fixa:
+1. Neutro
+2. Feliz
+3. Gargalhando
+4. Surpreso
+5. Preocupado
+6. Irritado
+7. Desconfiado
+8. Convencido
+9. Triste
+10. Assustado
+11. Determinado
+
+**Quadro 12 — exclusivo:**
+- **Zé Maria:** **Decepcionado**, tristeza sincera, sorriso desaparece, olhar abatido.
+- **Victor:** **Grandioso**, triunfo teatral, sorriso monumental e braços abertos.
+- **Kátia:** **Desprezo glacial**, superioridade silenciosa, olhar cortante e mínimo sorriso de desdém.
+- **Mingda:** **Oferta irrecusável**, entusiasmo comercial, olhos brilhantes e sorriso expansivo.
+- **Kim:** **Estrela absoluta**, êxtase durante o show, sorriso radiante e entusiasmo de palco.
+
+Total: **5 × 12 = 60 retratos** (**55 de categorias compartilhadas + 5 exclusivos**). As categorias compartilhadas têm a mesma função narrativa, mas interpretação visual específica de cada personalidade.
+
+### Especificação técnica dos retratos e spritesheets
+
+- **Quadro individual:** **256 × 256 px**, enquadramento **do peito para cima**.
+- **Fundo:** **cor sólida do país correspondente**, não fundo transparente, conforme decisão explícita. Identidade: Brasil verde, EUA azul, Rússia dourado, China vermelho, Coreia do Sul roxo. **Valores HEX exatos ainda não foram aprovados**; cores apresentadas em protótipos são referências.
+- **Uma spritesheet por personagem**: **4 colunas × 3 linhas**, **1024 × 768 px**, com os 12 retratos dispostos da esquerda para a direita e de cima para baixo na ordem 1–12 acima. Última célula: expressão exclusiva.
+- Estilo de pixel art: pixels nítidos e sombreamento com dithering discreto; manter consistência de luz, escala do rosto, figurino e enquadramento entre as 12 células e os cinco personagens.
+
+### Escala aprovada dos sprites de corpo inteiro
+
+**Zé Maria = 64 px de altura.** Demais alturas proporcionais a seus valores oficiais, com arredondamento para pixels inteiros:
+
+`altura_sprite = arredondar(64 × altura_real_cm / 173)`
+
+| Personagem | Altura do sprite |
+| --- | ---: |
+| Zé Maria | **64 px** |
+| Victor | **72 px** |
+| Kátia | **67 px** |
+| Mingda | **59 px** |
+| Kim | **66 px** |
+
+Essas alturas são alvos para o **personagem desenhado**, não necessariamente dimensões fixas do canvas, que pode ter margem para cabelo, ferramentas, adereços ou gestos. O enquadramento e a escala devem manter a leitura das diferenças reais.
+
+### Estado
+
+**Aprovado apenas no GDD como planejamento.** Nenhuma arte final, spritesheet, código ou integração foi gerada. A direção de arte está pronta para orientar produção futura, que exige autorização específica.
