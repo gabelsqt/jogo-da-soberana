@@ -1,3 +1,10 @@
+## Revisão 0.921 — reconstrução do escudo e efeitos nacionais
+
+- Escudo do canhão: quando chega a zero HP, inicia recomposição visual progressiva da cúpula ao longo de **6000 ms**. Durante a montagem, permanece sem HP funcional; ao fim, retorna à capacidade total e executa o clarão branco e o SFX de ativação usados no início da onda.
+- Laser principal coreano: caminhos de ricochete redesenhados com **curva quadrática amostrada em 18 trechos** e três camadas (halo difuso, luz colorida e núcleo branco). P4 alterna rosa/ciano/violeta.
+- Congelamento russo: flocos de neve hexagonais com seis braços, ramificações e núcleo cristalino ao redor do alvo; os ramos se tornam mais detalhados conforme os estágios do tiro russo. Sem mudança no congelamento mecânico.
+- Validar visualmente em celular/desktop, sobretudo a animação de retorno do escudo após destruição e o custo do frost quando há muitos inimigos congelados.
+
 ## Revisão 0.920 — Correntes e cópias dos lasers coreanos
 
 - Principal da Coreia: laser físico ~22% mais lento e mais grosso, com comprimento/largura crescentes em P1–P4.
