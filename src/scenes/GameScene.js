@@ -4951,20 +4951,54 @@ export class GameScene extends Phaser.Scene {
       if(this.elapsed>=globe.expiresAt){
         globe.graphics.destroy();globe.label.destroy();this.discoGlobes.splice(i,1);continue;
       }
-      const g=globe.graphics,r=DISCO_RADIUS;
+      const g=globe.graphics,r=DISCO_RADIUS,x=globe.x,y=globe.y;
+      const t=this.elapsed*.001;
+      const pulse=.5+.5*Math.sin(t*5.4);
+      const palette=[0x72edff,0xff78d7,0xb39aff,0xffd9a0];
       g.clear();
-      g.fillStyle(0xa75aff,0.035);g.fillCircle(globe.x,globe.y,250);
-      g.lineStyle(2,0xb78bff,0.2+Math.sin(this.elapsed*.005)*.08);g.strokeCircle(globe.x,globe.y,250);
-      g.fillStyle(0xc452ef,0.16);g.fillCircle(globe.x,globe.y,r+7);
-      g.fillStyle(0x563778,0.95);g.fillCircle(globe.x,globe.y,r);
-      g.lineStyle(2,0xf8d9ff,0.95);g.strokeCircle(globe.x,globe.y,r);
-      // Facetas retangulares com brilho móvel: silhueta de bola de discoteca.
-      for(let row=-2;row<=2;row++)for(let col=-2;col<=2;col++){
-        if(row*row+col*col>5)continue;
-        const lit=(row+col+Math.floor(this.elapsed/130))%4===0;
-        g.fillStyle(lit?0xffffff:0xc58ce8,lit?0.95:0.5);
-        g.fillRect(globe.x+col*9-3,globe.y+row*9-3,6,6);
+      // Halo de alcance real; discreto para deixar legíveis os inimigos.
+      g.fillStyle(0xb24bff,.028+.014*pulse).fillCircle(x,y,250);
+      g.lineStyle(1.5,0xdab6ff,.17+.09*pulse).strokeCircle(x,y,250);
+      // Feixes de holofote oscilantes, como luzes de um palco de K-pop.
+      for(let k=0;k<4;k++){
+        const angle=t*.75+k*Math.PI/2,reach=r+27+5*pulse;
+        g.lineStyle(5,palette[k],.12+.08*pulse);
+        g.lineBetween(x+Math.cos(angle)*r*.68,y+Math.sin(angle)*r*.68,
+          x+Math.cos(angle)*reach,y+Math.sin(angle)*reach);
+        g.fillStyle(palette[k],.46+.20*pulse);
+        g.fillCircle(x+Math.cos(angle)*reach,y+Math.sin(angle)*reach,2.2);
       }
+      // Dois anéis orbitais em perspectiva, sobrepostos à bola espelhada.
+      g.lineStyle(3,0x9b59ef,.23).strokeEllipse(x,y,r*2.9,r*.86);
+      g.lineStyle(1.4,0x8df1ff,.43+.15*pulse).strokeEllipse(x,y,r*2.55,r*.65);
+      g.fillStyle(0x8b41eb,.15).fillCircle(x,y,r+9);
+      g.fillStyle(0x211d48,.98).fillCircle(x,y,r);
+      g.lineStyle(3,0x7cecff,.73).strokeCircle(x,y,r);
+      g.lineStyle(2,0xf7c4ff,.55+.30*pulse).strokeCircle(x,y,r-3);
+      // Facetas curvas: blocos escalonados projetados sobre uma esfera.
+      // Não esticar sprites nem criar objetos/tweens novos a cada frame.
+      const rowCount=7;
+      for(let row=0;row<rowCount;row++){
+        const ny=(row-3)/3.6;
+        const width=Math.sqrt(Math.max(0,1-ny*ny))*r*.88;
+        const yRow=y+ny*r*.88;
+        const count=Math.max(3,Math.round(width/5));
+        for(let col=0;col<count;col++){
+          const nx=(col+.5)/count*2-1;
+          const px=x+nx*width;
+          const longitude=nx*Math.PI*.75+t*1.2;
+          const facing=.5+.5*Math.cos(longitude);
+          const shimmer=Math.sin(t*7+row*2.4+col*1.8);
+          const color=palette[(row+col+Math.floor(t*2))%palette.length];
+          g.fillStyle(shimmer>.68?0xffffff:color,
+            .32+.48*facing+(shimmer>.68?.19:0));
+          const cellWidth=Math.max(2,(width*2/count)-1.4);
+          g.fillRoundedRect(px-cellWidth*.46,yRow-2.7,
+            cellWidth,5.2,1);
+        }
+      }
+      g.fillStyle(0xffffff,.35+.36*pulse).fillCircle(x-r*.27,y-r*.32,3);
+      g.lineStyle(1,0xeedaff,.65).strokeEllipse(x-r*.21,y-r*.28,r*.39,r*.18);
       globe.label.setText(((globe.expiresAt-this.elapsed)/1000).toFixed(1)+'s');
     }
   }
