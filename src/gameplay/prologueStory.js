@@ -26,3 +26,13 @@ export function prologueSwarmSlot(index){
   return {x:(side?590:90)+(slot%5)*65,y:100+Math.floor(slot/5)*43,
     entryX:side?1020:-60,delayMs:slot*120};
 }
+
+export const PROLOGUE_WITHDRAWAL_MS=6500;
+// A retirada mantém a nave visível até chegar perto do portal.
+export function prologueWithdrawalPose(index,startX,startY,elapsed){
+  const delay=Math.floor(index/2)*40;
+  const p=Math.max(0,Math.min(1,(elapsed-delay)/5000));
+  const ease=p*p*(3-2*p),targetX=index%2?750:210;
+  return {x:startX+(targetX-startX)*ease,y:startY+(65-startY)*ease,
+    alpha:p<.82?1:Math.max(0,(1-p)/.18)};
+}

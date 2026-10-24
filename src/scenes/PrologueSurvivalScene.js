@@ -5,7 +5,7 @@ import {assetUrl} from '../config/assetUrl.js';
 import {GAME_WIDTH as W,GAME_HEIGHT as H,
   preloadRioBackdrop,drawRioBackdrop} from '../config/scenery.js';
 import {PROLOGUE_SURVIVAL_MS,PROLOGUE_SWARM_COUNT,
-  PROLOGUE_CANNON,prologueSwarmSlot} from '../gameplay/prologueStory.js';
+  PROLOGUE_CANNON,prologueSwarmSlot,PROLOGUE_WITHDRAWAL_MS,prologueWithdrawalPose} from '../gameplay/prologueStory.js';
 
 // Continuação da onda 0 após o impacto do Tipo 6, sem nova onda ou upgrade.
 // Mantém o mesmo sprite de Obuseiro do campo de combate. Invasores não
@@ -48,7 +48,8 @@ export class PrologueSurvivalScene extends Phaser.Scene{
     for(let i=0;i<PROLOGUE_SWARM_COUNT;i++){
       const slot=prologueSwarmSlot(i);
       const sprite=this.add.image(slot.entryX,slot.y,'prologue-invader-type1')
-        .setDisplaySize(56,40).setDepth(19);
+        .setDepth(19);
+      sprite.setScale(72/sprite.height); // Mesmo tamanho do Tipo 1 normal; proporção nativa.
       this.invaders.push({sprite,x:slot.entryX,y:slot.y,slot,seed:i,alive:true});
     }
     this.events.once('shutdown',()=>{this.invaders=[];this.shots=[];});
@@ -85,11 +86,10 @@ export class PrologueSurvivalScene extends Phaser.Scene{
     for(const invader of this.invaders){
       if(!invader.alive)continue;
       if(this.withdrawal){
-        const p=this.withdrawElapsed/1000;
-        const targetX=invader.x<W/2?210:750;
-        invader.x+=(targetX-invader.x)*Math.min(.10,dt/180);
-        invader.y-=(170+invader.seed%70)*dt/1000;
-        invader.sprite.setAlpha(Math.max(0,1-p*.75));
+        const pose=prologueWithdrawalPose(invader.seed,invader.withdrawX,
+          invader.withdrawY,this.withdrawElapsed);
+        invader.x=pose.x;invader.y=pose.y;
+        invader.sprite.setAlpha(pose.alpha);
       }else{
         const p=Phaser.Math.Clamp((this.elapsed-invader.slot.delayMs)/2400,0,1);
         const ease=1-Math.pow(1-p,3);
@@ -113,13 +113,14 @@ export class PrologueSurvivalScene extends Phaser.Scene{
         g.lineStyle(5,0xbd4269,.65);g.strokeEllipse(x,85,104,57);
         g.fillStyle(0x741b50,.24);g.fillEllipse(x,85,95,49);
       }
-      if(this.withdrawElapsed>=2600)this.finish();
+      if(this.withdrawElapsed>=PROLOGUE_WITHDRAWAL_MS)this.finish();
     }
   }
 
   startWithdrawal(){
     if(this.withdrawal)return;
     this.withdrawal=true;this.withdrawElapsed=0;
+    for(const invader of this.invaders){invader.withdrawX=invader.x;invader.withdrawY=invader.y;}
     this.add.rectangle(W/2,H/2,W,H,0xffd5a3,.14).setDepth(90);
     this.add.text(W/2,156,'OS INVASORES RECUAM SEM EXPLICAÇÃO',{
       fontFamily:'monospace',fontSize:'21px',fontStyle:'bold',color:'#ffedc4',

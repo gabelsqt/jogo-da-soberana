@@ -1,3 +1,4 @@
+import {cannonShieldColor} from './shieldDome049.js';
 import {
   TYPE6_PALETTES, TYPE6_WIDTH, TYPE6_HEIGHT,
   type6ModuleVisualState,
@@ -213,8 +214,7 @@ export function drawType6Ship(g,state,ageMs=0,useHullSprite=false,useModuleSprit
       g.fillStyle(p.light,0.38+0.60*pulse).fillRect(x-16,y-6,32,12);
       if(module.shield>0){
         const fraction=module.shield/module.maxShield;
-        const color=fraction>0.75?0x388bff:fraction>0.50?0x35c86d:
-          fraction>0.25?0xf1cb35:0xf04a52;
+        const color=cannonShieldColor(module.shield,module.maxShield);
         g.lineStyle(4,color,0.55+0.22*pulse);
         g.strokeRoundedRect(x-61,y-46,122,92,9);
         g.lineStyle(2,color,0.17+0.16*pulse);
@@ -231,8 +231,7 @@ export function drawType6Ship(g,state,ageMs=0,useHullSprite=false,useModuleSprit
       if(module.broken||module.shield<=0)continue;
       const x=module.offsetX,y=module.offsetY;
       const fraction=module.shield/module.maxShield;
-      const color=fraction>0.75?0x388bff:fraction>0.50?0x35c86d:
-        fraction>0.25?0xf1cb35:0xf04a52;
+      const color=cannonShieldColor(module.shield,module.maxShield);
       g.lineStyle(4,color,0.55+0.22*pulse);
       g.strokeRoundedRect(x-61,y-46,122,92,9);
       g.lineStyle(2,color,0.17+0.16*pulse);
@@ -272,7 +271,7 @@ export function drawType6Ship(g,state,ageMs=0,useHullSprite=false,useModuleSprit
   const b=state.barrier;
   if(b.active&&b.hp>0){
     const fraction=Math.max(0,b.hp/b.maxHp);
-    const tint=fraction>0.70?p.barrier:fraction>0.40?0xeec95d:0xff3b56;
+    const tint=cannonShieldColor(b.hp,b.maxHp);
     // Meio domo INVERTIDO (∪): extremidades próximas ao casco e arco
     // curvando-se para BAIXO. A colisão continua usando o retângulo
     // original da barreira (somente o desenho foi alterado).
@@ -289,7 +288,7 @@ export function drawType6Ship(g,state,ageMs=0,useHullSprite=false,useModuleSprit
     const ripple=shieldRippleAt(ageMs,b.hitAt);
     if(ripple>0){
       const phase=1-ripple,flash=shieldSoftFlashAt(ageMs,b.hitAt);
-      g.lineStyle(3+flash*1.8,flash?0xf5ffff:p.barrier,0.78*ripple)
+      g.lineStyle(3+flash*1.8,flash?0xf5ffff:tint,0.78*ripple)
         .strokePoints(arch.map(point=>({
           x:point.x*(1+0.018*phase),
           y:point.y+Math.sin((point.x/68)+phase*Math.PI*3)*9*ripple+5*phase,

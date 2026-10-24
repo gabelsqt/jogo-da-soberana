@@ -25,7 +25,7 @@ export class V1PlaytestScene extends Phaser.Scene {
     this.add.rectangle(W/2,H/2,W,H,0x0b1621,.94).setDepth(30);
     addCuboBroadcastFrame(this,{section:'Laboratório de armamentos',
       headline:'Boletim técnico • Balanceamento matemático',
-      footer:'Perfil experimental • Sem alterações na campanha',depth:50});
+      footer:'Ao concluir: seguir campanha com esta combinação ou voltar ao laboratório',depth:50});
     addCuboPixelText(this,{x:W/2,y:79,text:'Laboratório',size:3,
       color:'#e2a45e',depth:36,maxWidth:720});
     this.intro=this.add.text(W/2,113,'',{

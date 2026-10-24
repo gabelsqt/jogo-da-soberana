@@ -82,7 +82,7 @@ import {
 import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
 import {addCuboBroadcastFrame} from '../ui/cuboNewsTheme.js';
-import {CANNON_DOME_RADIUS,cannonDomeIntercept} from '../gameplay/shieldDome049.js';
+import {CANNON_DOME_RADIUS,cannonDomeIntercept,cannonShieldColor} from '../gameplay/shieldDome049.js';
 import { installShieldSprites, updateShieldSprites, shatterShieldSprite } from '../gameplay/shieldSprites.js';
 import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
@@ -612,6 +612,7 @@ export class GameScene extends Phaser.Scene {
     this.nextBlastId = 1;
     this.elapsed = 0;
     this.countdownActive = false;
+    this.waveOpeningFinish=null;this.waveOpeningStartedAt=null;
     this.labEnemyLevel = 1;
     this.eventsSpawned = 0;
     // v0.35: a campanha usa grupos reais, com progressão dentro de cada noite.
@@ -1076,6 +1077,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   startWaveCountdown() {
+    if(this.waveOpeningFinish)return;
     this.waveOpeningStartedAt=this.time.now;
     this.waveOpeningFinish=null;
     // A vinheta da Cubo News é exclusiva do primeiro plantão da introdução.
@@ -1100,6 +1102,8 @@ export class GameScene extends Phaser.Scene {
     const startCombat = () => {
       if (combatStarted || !this.scene.isActive('GameScene') || this.tutorialComplete) return;
       combatStarted=true;
+      // Encerrar o DOM e restaurar a câmera ANTES de liberar qualquer arma/spawn.
+      this.cuboNewsHud?.cancelDawnIntro?.();
       this.waveOpeningFinish=null;
       this.waveOpeningStartedAt=null;
       this.countdownActive = false;
@@ -3407,17 +3411,16 @@ export class GameScene extends Phaser.Scene {
     if(!g)return;
     g.clear().setPosition(enemy.sprite.x,enemy.sprite.y);
     if(enemy.shield<=0)return;
-    const p=Math.max(0,enemy.shield/enemy.maxShield);
     const ripple=shieldRippleAt(this.time.now,enemy.shieldHitAt);
     const blink=shieldSoftFlashAt(this.time.now,enemy.shieldHitAt);
     // A cúpula pulsa levemente, ondula após impactos e pisca por apenas
     // 65 ms; nunca torna o casco inteiro branco.
     const wobble=Math.sin(this.time.now*.011)*1.5 + Math.sin(this.time.now*.035)*ripple*4;
-    const color=p>0.6?0x62deff:p>0.3?0xffd86f:0xff6880;
+    const color=cannonShieldColor(enemy.shield,enemy.maxShield);
     g.fillStyle(color,0.045+0.085*ripple).fillEllipse(0,0,150+wobble,96+wobble);
     g.lineStyle(2.6+1.6*ripple,blink?0xeaffff:color,0.68+0.22*ripple)
       .strokeEllipse(0,0,150+wobble,96+wobble);
-    g.lineStyle(1.2,0xbcefff,0.21+0.25*ripple)
+    g.lineStyle(1.2,color,0.21+0.25*ripple)
       .strokeEllipse(0,0,139-wobble,86-wobble);
     if(ripple>0){
       const phase=1-ripple;
@@ -4989,7 +4992,7 @@ export class GameScene extends Phaser.Scene {
     };
     // Faixa azul, estrelas brancas e listras seguem A CURVATURA de 120°.
     draw(wall.radius,31,0x123675,.34);
-    draw(wall.radius,24,0x1974eb,.75);
+    draw(wall.radius,24,cannonShieldColor(1,1),.75);
     draw(wall.radius+10,5,0xef4865,.96);
     draw(wall.radius+4,4,0xffffff,.91);
     draw(wall.radius-4,4,0xee475c,.90);
@@ -6112,7 +6115,7 @@ export class GameScene extends Phaser.Scene {
       graphics.fillRect(x - 1, y - 1, width + 2, 10);
       graphics.fillStyle(tower.health > 0 ? 0x76e5b5 : 0xff716f, 1);
       graphics.fillRect(x, y, width * (tower.health / tower.healthMax), 4);
-      graphics.fillStyle(0x70d7f4, 0.90);
+      graphics.fillStyle(cannonShieldColor(tower.shield,tower.shieldMax), 0.90);
       graphics.fillRect(x, y + 5, width * (tower.shield / tower.shieldMax), 3);
     }
   }
@@ -6446,10 +6449,10 @@ export class GameScene extends Phaser.Scene {
     for(const enemy of this.enemies){
       if(!enemy.sprite?.active)continue;
       this.tweens.add({targets:enemy.sprite,y:-130,x:enemy.sprite.x+
-        (enemy.sprite.x<W/2?-40:40),alpha:0,duration:1450,ease:'Sine.In'});
+        (enemy.sprite.x<W/2?-40:40),alpha:0,duration:3800,ease:'Sine.In'});
     }
     this.sunriseLabel=label;
-    this.time.delayedCall(1750,()=>this.finishDawnWithdrawal());
+    this.time.delayedCall(4200,()=>this.finishDawnWithdrawal());
   }
 
   finishDawnWithdrawal(){
@@ -6471,17 +6474,9 @@ export class GameScene extends Phaser.Scene {
   }
   showWaveComplete(outcome = 'cleared') {
     if (this.tutorialComplete) return;
-    if (this.waveMakerTest) {
-      this.saveWaveMakerReport(outcome);
-      this.clearDiscoGlobes();this.music.stop();this.tutorialComplete=true;
-      this.statusText.setText('TESTE CONCLUÍDO — '+outcome.toUpperCase());
-      addMenuButton(this,{x:W/2,y:365,width:340,height:48,
-        text:'VOLTAR AO WAVE MAKER',depth:240,primary:true,
-        onClick:()=>this.scene.start('WaveMakerScene',{
-          wave:Number(this.mode.slice(4)),labConfig:this.labConfig,
-        }),
-      });
-      return;
+    if(this.unifiedLab||this.v1Playtest){
+      if(this.waveMakerTest)this.saveWaveMakerReport(outcome);
+      this.showLabWaveComplete(outcome);return;
     }
     this.clearDiscoGlobes();
     this.music.stop();
@@ -6600,6 +6595,40 @@ export class GameScene extends Phaser.Scene {
               }});
           }});
       }});
+  }
+
+  showLabWaveComplete(outcome){
+    this.clearDiscoGlobes();this.music.stop();this.tutorialComplete=true;
+    this.cuboNewsHud?.cancelDawnIntro?.();
+    this.add.rectangle(W/2,H/2,W,H,0x061022,.84).setDepth(230).setInteractive();
+    this.add.text(W/2,180,'FASE CONCLUÍDA',{
+      fontFamily:'monospace',fontSize:'27px',color:'#e5f5ff',fontStyle:'bold',
+    }).setOrigin(.5).setDepth(231);
+    this.add.text(W/2,230,'Seguir mantém a combinação e os valores do laboratório.',{
+      fontFamily:'monospace',fontSize:'14px',color:'#b9d4dd',
+    }).setOrigin(.5).setDepth(231);
+    const wave=Number(this.mode.slice(4));
+    if(Number.isInteger(wave)&&wave<11)addMenuButton(this,{
+      x:W/2,y:300,width:390,height:48,text:'SEGUIR CAMPANHA',primary:true,depth:235,
+      onClick:()=>{
+        const next={...this.getRunOptions(),mode:'wave'+(wave+1)};
+        // A próxima fase usa a agenda normal, não o snapshot do Wave Maker.
+        delete next.waveMakerTest;delete next.waveMakerEvents;delete next.waveMakerDuration;
+        if(next.labConfig)next.labConfig={...next.labConfig,wave:wave+1};
+        this.scene.start('GameScene',next);
+      },
+    });
+    addMenuButton(this,{x:W/2,y:370,width:390,height:48,
+      text:this.waveMakerTest?'VOLTAR AO WAVE MAKER':'VOLTAR AO LABORATÓRIO',depth:235,
+      onClick:()=>{
+        if(this.waveMakerTest)this.scene.start('WaveMakerScene',{wave,labConfig:this.labConfig});
+        else if(this.v1Playtest)this.scene.start('V1PlaytestScene',{
+          principal:this.v1LabPrincipal,especial:this.v1LabSpecial,
+          allocation:this.v1LabAllocation,arenaIndex:Number.isInteger(wave)?wave:12,
+        });
+        else this.scene.start('LabSetupScene',{config:this.labConfig});
+      },
+    });
   }
 
   advanceAfterWave() {
@@ -6813,7 +6842,7 @@ export class GameScene extends Phaser.Scene {
     if (this.countdownActive){
       // Failsafes independentes dos callbacks das animações DOM/Phaser.
       if(this.sunrisePlaying&&!this.sunriseFinished &&
-        this.time.now-(this.sunriseStartedAt??this.time.now)>=1900){
+        this.time.now-(this.sunriseStartedAt??this.time.now)>=4600){
         this.finishDawnWithdrawal();return;
       }
       if(this.waveOpeningStartedAt!==null &&

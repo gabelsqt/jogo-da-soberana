@@ -1,3 +1,5 @@
+> Revisão 0.906: retirada do prólogo em 6,5 s, Tipo 1 proporcional com altura 72 px; combate somente depois da animação do relógio; conclusão no laboratório oferece seguir as ondas com a combinação experimental ou voltar ao editor; escudos com HP usam azul (>75%), verde (>50%), amarelo (>25%) e vermelho (≤25%) em toda a superfície.
+
 > Revisão 0.905 — abertura em apartamento simples de classe média baixa no Rio, em uma manhã tranquila: laptop abre e liga, e-mail de convocação; plantão na televisão informa que as Forças Armadas foram destruídas e os mesários estão sendo alocados nas armas antiaéreas. A antiga “onda 0.5” é a segunda parte contínua da onda 0, sem título ou cronômetro próprios. Após o Tipo 6, canhão fumegante sem escudo, disparos quase inoperantes e 60 Tipo 1 grandes em dois grupos de 30 no céu. Sprite destruído fica para revisão futura. Clarão branco do domo reduzido de 840 ms para 180 ms. Esta revisão prevalece sobre referências anteriores a 0.5/84 inimigos.
 
 # Game Soberana — GDD (decisões de identidade e Supremos)

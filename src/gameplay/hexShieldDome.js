@@ -91,7 +91,7 @@ export function drawHexShieldDome(graphics,{
   const currentArc=arc.slice(0,arcCount);
   if(mode==='forming'&&stage.arc>0&&stage.arc<1)
     currentArc.push(hexShieldArcTip(stage.arc,cx,cy,visualRadius));
-  const rim=0x5cd8ff, status=cannonShieldColor(shield,maxShield);
+  const status=cannonShieldColor(shield,maxShield),rim=status;
   const pulse=mode==='active'?.045*(1+Math.sin(now*.0043)):.015;
 
   // Primeira fase: o arco azul é traçado da ESQUERDA para a DIREITA.
@@ -102,7 +102,7 @@ export function drawHexShieldDome(graphics,{
     graphics.strokePoints(currentArc,false);
     graphics.lineStyle(3,rim,rimOpacity*.94);
     graphics.strokePoints(currentArc,false);
-    graphics.lineStyle(1.2,0xc8f9ff,rimOpacity*.72);
+    graphics.lineStyle(1.2,status,rimOpacity*.72);
     graphics.strokePoints(currentArc,false);
   }
 
@@ -115,14 +115,14 @@ export function drawHexShieldDome(graphics,{
       const b=hexShieldArcTip(Math.max(0,stage.arc-(i-1)*.012),
         cx,cy,visualRadius);
       const strength=(8-i)/7;
-      graphics.lineStyle(1.2+1.8*strength,0x3ccbff,opacity*.46*strength);
+      graphics.lineStyle(1.2+1.8*strength,status,opacity*.46*strength);
       graphics.lineBetween(a.x,a.y,b.x,b.y);
     }
-    graphics.fillStyle(0x25c5ff,opacity*.10);
+    graphics.fillStyle(status,opacity*.10);
     graphics.fillCircle(tip.x,tip.y,16);
-    graphics.fillStyle(0x4fddff,opacity*.27);
+    graphics.fillStyle(status,opacity*.27);
     graphics.fillCircle(tip.x,tip.y,10);
-    graphics.fillStyle(0xb4f5ff,opacity*.80);
+    graphics.fillStyle(status,opacity*.80);
     graphics.fillCircle(tip.x,tip.y,4.5);
     graphics.fillStyle(0xffffff,opacity*.95);
     graphics.fillCircle(tip.x,tip.y,2);
@@ -130,7 +130,7 @@ export function drawHexShieldDome(graphics,{
 
   if(stage.cells<=0)return;
   // Preenchimento mínimo para mostrar o canhão ATRÁS da cúpula.
-  graphics.fillStyle(0x1588c5,.024*opacity*stage.cells);
+  graphics.fillStyle(status,.024*opacity*stage.cells);
   graphics.fillPoints([{x:cx-visualRadius,y:cy},...arc,{x:cx+visualRadius,y:cy}],true);
 
   // Segunda fase: linhas, preenchimento e ponto central idênticos em
@@ -142,14 +142,14 @@ export function drawHexShieldDome(graphics,{
     const vertices=cell.points.map(p=>({
       x:cx+p.x*visualScale,y:cy+p.y*visualScale,
     }));
-    graphics.fillStyle(0x1c81b9,localOpacity*.049);
+    graphics.fillStyle(status,localOpacity*.049);
     graphics.fillPoints(vertices,true);
-    graphics.lineStyle(1,0x71d1f1,localOpacity*.46);
+    graphics.lineStyle(1,status,localOpacity*.46);
     graphics.strokePoints(vertices,true);
     // Pequena bolinha EM TODOS os centros, com a mesma pulsação.
-    graphics.fillStyle(0xcef7ff,localOpacity*.69);
+    graphics.fillStyle(status,localOpacity*.69);
     graphics.fillCircle(cx+cell.x*visualScale,cy+cell.y*visualScale,1.8);
-    graphics.fillStyle(0xf1ffff,localOpacity*.24);
+    graphics.fillStyle(status,localOpacity*.24);
     graphics.fillCircle(cx+cell.x*visualScale,cy+cell.y*visualScale,.75);
     if(whiteFlash>0){
       graphics.lineStyle(1.6,0xffffff,whiteFlash*.85);

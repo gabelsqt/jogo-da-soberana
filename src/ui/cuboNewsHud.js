@@ -54,11 +54,20 @@ export function createCuboNewsHud(scene){
 
   if(introLabel)introLabel.textContent='Tempo até o amanhecer';
   let destroyed=false,introActive=false;
+  let introGeneration=0,holdEvent=null;
+  const introTweens=[];
+  function stopIntroAnimation(){
+    introGeneration++;
+    holdEvent?.remove?.();holdEvent=null;
+    for(const tween of introTweens)tween?.stop?.();
+    introTweens.length=0;
+  }
   let lastHeadline='',lastSubtitle='',lastSiren=-Infinity,lastSecond=null,lastCritical=null;
   const camera=scene.cameras?.main;
   const resetCamera=()=>camera?.setZoom?.(1);
   function finishIntro(done){
     if(destroyed)return;
+    stopIntroAnimation();
     introActive=false;resetCamera();
     if(intro){intro.hidden=true;intro.classList.remove('cubo-dawn-traveling');}
     if(introNumber){introNumber.style.transform='';introNumber.style.opacity='';}
@@ -68,7 +77,7 @@ export function createCuboNewsHud(scene){
   }
   function destroy(){
     if(destroyed)return;
-    destroyed=true;
+    destroyed=true;stopIntroAnimation();
     if(introActive)resetCamera();
     introActive=false;
     if(intro){intro.hidden=true;intro.classList.remove('cubo-dawn-traveling');}
@@ -103,9 +112,10 @@ export function createCuboNewsHud(scene){
       finishIntro();
     },
     beginDawnIntro(totalMs,onComplete){
-      if(destroyed||introActive){onComplete?.();return;}
+      if(destroyed||introActive)return;
       if(!intro||!introNumber||!timerReader){if(timer){timer.style.opacity='1';timer.style.visibility='visible';}onComplete?.();return;}
       introActive=true;
+      const generation=++introGeneration;
       const value=formatCuboTime(totalMs);
       root.classList.add('cubo-intro-running');
       intro.classList.remove('cubo-dawn-traveling');
@@ -114,9 +124,10 @@ export function createCuboNewsHud(scene){
       introNumber.style.opacity='1';
       timer.style.opacity='0';timer.style.visibility='hidden';
       introNumber.textContent=value;
+      timerReader.textContent=value;
       camera?.setZoom?.(DAWN_WORLD_ZOOM);
-      scene.time.delayedCall(DAWN_HOLD_MS,()=>{
-        if(destroyed||!introActive)return;
+      holdEvent=scene.time.delayedCall(DAWN_HOLD_MS,()=>{
+        if(destroyed||!introActive||generation!==introGeneration)return;
         const from=introNumber.getBoundingClientRect();
         const to=timerReader.getBoundingClientRect();
         const dx=to.left+to.width/2-(from.left+from.width/2);
@@ -124,13 +135,14 @@ export function createCuboNewsHud(scene){
         const scale=from.width>0?Math.max(0.18,Math.min(1,to.width/from.width)):0.4;
         intro.classList.add('cubo-dawn-traveling');
         const motion={x:0,y:0,scale:1,progress:0};
-        if(camera)scene.tweens.add({
+        if(camera)introTweens.push(scene.tweens.add({
           targets:camera,zoom:1,duration:DAWN_TRAVEL_MS,ease:'Cubic.InOut',
-        });
-        scene.tweens.add({
+        }));
+        introTweens.push(scene.tweens.add({
           targets:motion,x:dx,y:dy,scale,progress:1,
           duration:DAWN_TRAVEL_MS,ease:'Cubic.InOut',
           onUpdate:()=>{
+            if(destroyed||!introActive||generation!==introGeneration)return;
             introNumber.style.transform=
               `translate(-50%, -50%) translate(${motion.x}px, ${motion.y}px) scale(${motion.scale})`;
             // Não revelar o relógio durante o deslocamento: a faixa HTML
@@ -138,8 +150,10 @@ export function createCuboNewsHud(scene){
             introNumber.style.opacity='1';
             timer.style.visibility='hidden';
           },
-          onComplete:()=>finishIntro(onComplete),
-        });
+          onComplete:()=>{
+            if(!destroyed&&introActive&&generation===introGeneration)finishIntro(onComplete);
+          },
+        }));
       });
     },
     update(elapsed,total,story,{frozen=false,active=true,voyageProgress=null}={}){

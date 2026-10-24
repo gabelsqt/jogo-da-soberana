@@ -100,6 +100,9 @@ test('HUD de televisão IBM Plex Sans e zoom não criam GameObjects de interface
     assert.equal(later.length,1);
     assert.equal(later[0].delay,DAWN_HOLD_MS);
     assert.equal(started,0);
+    hud.beginDawnIntro(30000,()=>started+=100);
+    assert.equal(started,0,'reentrada não pode liberar combate com número central');
+    assert.equal(later.length,1,'reentrada não agenda uma segunda animação');
     later[0].fn();
     assert.equal(tweens.length,2);
     assert.equal(tweens[0].targets,camera);
@@ -116,6 +119,13 @@ test('HUD de televisão IBM Plex Sans e zoom não criam GameObjects de interface
     assert.equal(root.classList.contains('cubo-warning'),false);
     hud.beginDawnIntro(60000,()=>started++);
     assert.equal(camera.zoom,DAWN_WORLD_ZOOM);
+    const stale=later.at(-1).fn;
+    hud.cancelDawnIntro();
+    assert.equal(intro.hidden,true);
+    assert.equal(timer.style.visibility,'visible');
+    stale();
+    assert.equal(started,1,'callback cancelado não libera combate novamente');
+    assert.equal(intro.hidden,true,'callback antigo não restaura número central');
     handlers.shutdown();
     assert.equal(camera.zoom,1);
     assert.equal(root.hidden,true);

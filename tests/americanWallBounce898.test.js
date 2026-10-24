@@ -59,7 +59,7 @@ test('muro intercepta e reflete tiro rápido em direção ao invasor',()=>{
 
 test('onda não depende só de tween/callback para terminar: proteção no 1',()=>{
  const method=scene.slice(scene.indexOf('  update(_time, delta) {'));
- assert.match(method,/this\.time\.now-\(this\.sunriseStartedAt\?\?this\.time\.now\)>=1900/);
+ assert.match(method,/this\.time\.now-\(this\.sunriseStartedAt\?\?this\.time\.now\)>=4600/);
  assert.match(method,/this\.finishDawnWithdrawal\(\);return/);
  assert.match(scene,/this\.waveOpeningFinish=startCombat/);
  assert.match(scene,/this\.waveOpeningStartedAt=this\.time\.now/);
