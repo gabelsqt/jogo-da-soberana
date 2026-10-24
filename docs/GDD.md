@@ -1479,3 +1479,28 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - **Outras poses:** flexionar bíceps, cruzar braços salientando tríceps; poses de fisiculturismo ao vencer. **Ideia reservada para o futuro, não visual padrão:** numa cena de vitória ela poderá tirar o casaco para mostrar a musculatura, mediante definição posterior.
 - **Linguagem visual:** pixel art JRPG 16-bit/início da era PS1 já aprovada para o elenco, cores vibrantes, pixels nítidos, contraste forte e acabamento consistente. Manter o mesmo rosto, cabelo, gorro, traje e acessórios em todas as variantes.
 - **Referências de imagens:** (1) retrato de Kátia refinado sem capa, gerado na conversa em 24/10/2026; (2) imagem de Kátia agachada em pose gopnik gerada logo depois. Essas são as referências visuais principais para reproduções futuras; não reinterpretar livremente o figurino.
+
+
+## Padrão canônico de spritesheets — 16 expressões e separação obrigatória (24/10/2026; APROVADO)
+
+> **Precedência:** a decisão expressa de **16 expressões por personagem** substitui o pacote anterior de 12 expressões e sua grade 4×3. Esta seção estabelece também uma regra **global**, válida para TODAS as futuras spritesheets do projeto (personagens, inimigos, efeitos, elementos mecânicos e outros), sem redesenhar retroativamente assets existentes.
+
+### Retratos de personagens: matriz 4×4
+
+- **16 expressões por personagem** em **4 colunas × 4 linhas**, indexadas em ordem de leitura (esquerda→direita, cima→baixo).
+- Preservar as 12 categorias já aprovadas na mesma ordem: **01 neutro; 02 feliz; 03 gargalhando; 04 surpreso; 05 preocupado; 06 irritado; 07 desconfiado; 08 convencido; 09 triste; 10 assustado; 11 determinado; 12 exclusivo A** (Zé Maria: decepcionado; Victor: grandioso; Kátia: desprezo glacial; Mingda: oferta irrecusável; Kim: estrela absoluta).
+- Acrescentar: **13 orgulhoso; 14 envergonhado; 15 pensativo; 16 exclusivo B**, interpretados de forma coerente com cada personalidade. Expressão 16 exclusiva B e a interpretação específica das novas expressões podem ser refinadas individualmente mais tarde; não considerá-las figurinos diferentes.
+- **Quadro de conteúdo nominal: 256×256 px por expressão**. Para reservar separação entre quadros, adotar inicialmente **gutter de 16 px** e **margens externas de 16 px**; sprites completos não podem invadir essas áreas. Dimensões propostas do atlas final: **1104×1104 px** (4×256 + 3×16 + 2×16). Cada retrato pode ser recortado em retângulo 256×256 sem sobreposição. A textura individual mantém pixels nítidos e proporções consistentes.
+- Regra de fundo dos retratos: cor sólida da identidade nacional aprovada, com separação física visível entre células na folha de produção; não acrescentar linhas, textos ou molduras dentro dos recortes de 256×256. O espaçamento pode ficar transparente para facilitar extração e evitar vazamento de pixels.
+- Seu Nelson usa o mesmo padrão técnico se receber spritesheet de expressões; suas categorias específicas podem ser aprovadas separadamente.
+
+### Regra global de atlas (todos os spritesheets novos)
+
+1. **Sempre deixar área livre entre sprites/células**: nenhum cabelo, arma, partícula, sombra, pose ou acessório pode encostar ou atravessar a área reservada do quadro vizinho. Nunca gerar personagens colados uns aos outros.
+2. **Células de recorte uniformes e retangulares**, com origem e dimensões documentadas. Em cada atlas, definir formalmente: largura e altura da célula, número de colunas/linhas, margem externa e gutter horizontal/vertical; manter os valores constantes ao longo daquela folha.
+3. **Gutter padrão de partida: 16 px; margem externa: 16 px** para atlas de retratos de 256 px; em sprites menores, ajustar proporcionalmente mantendo no mínimo uma faixa livre de pixels visível (e registrá-la no manifest). Os 16 px NÃO são obrigatórios para sprites minúsculos.
+4. **Fundo do intervalo preferencialmente transparente**, com fundo/arte limitada à célula. Não inserir rótulos na própria área dos sprites. Exportar PNG sem interpolação/blur.
+5. **Metadados de importação:** quando integrar via Phaser, configurar corte por coordenadas de célula com margin/spacing compatíveis (ou atlas JSON explícito); **não** presumir que uma folha com gutter possa ser dividida diretamente sem considerar margens. Verificar a extração da primeira e última célula.
+6. **Integridade visual:** manter a mesma escala, centro do rosto, altura dos olhos, luz, figurino e tamanho de pixel em todas as expressões de um mesmo personagem. Variar emoção e gesto, não identidade.
+
+**Status:** especificação de produção aprovada. Nenhuma spritesheet binária ou código foi alterado por esta decisão.
