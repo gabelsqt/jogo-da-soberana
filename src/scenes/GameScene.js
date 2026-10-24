@@ -4535,60 +4535,141 @@ export class GameScene extends Phaser.Scene {
 
   createMobileControls(){
     if(!this.sys.game.device.input.touch)return;
-    this.input.addPointer(2); // analógico e botões simultâneos
+    this.input.addPointer(3);
     this.mobileAimAngle=-Math.PI/2;
     this.mobileFire=false;
+    this.mobileSpecialArmed=false;
+    this.mobileEditing=false;
     this.mobileStickPointer=null;
     this.mobileFirePointer=null;
-    const base=this.add.circle(160,420,68,0x1c4261,.20)
+    this.mobileDrag=null;
+    const defaults={aim:{x:160,y:420},fire:{x:855,y:438},
+      special:{x:754,y:479},pause:{x:916,y:40}};
+    let saved={};
+    try{saved=JSON.parse(localStorage.getItem('soberania-touch-layout-v1')||'{}')||{};}catch(_error){}
+    const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+    const layout=Object.fromEntries(Object.entries(defaults).map(([key,p])=>[
+      key,{x:clamp(Number(saved[key]?.x)||p.x,75,W-75),
+        y:clamp(Number(saved[key]?.y)||p.y,35,H-35)}
+    ]));
+    const save=()=>{try{localStorage.setItem('soberania-touch-layout-v1',JSON.stringify(layout));}catch(_error){}};
+    const base=this.add.circle(layout.aim.x,layout.aim.y,68,0x1c4261,.20)
       .setStrokeStyle(2,0xb5edff,.4).setDepth(290).setInteractive();
-    const knob=this.add.circle(160,420,27,0x8edfff,.33)
+    const knob=this.add.circle(layout.aim.x,layout.aim.y,27,0x8edfff,.33)
       .setStrokeStyle(2,0xffffff,.6).setDepth(291);
-    const move=p=>{
-      const dx=p.x-160,dy=p.y-420,d=Math.hypot(dx,dy),f=Math.min(1,52/Math.max(1,d));
-      knob.setPosition(160+dx*f,420+dy*f);
+    const fire=this.add.circle(layout.fire.x,layout.fire.y,43,0x3bc2df,.24)
+      .setStrokeStyle(2,0xbef5ff,.6).setDepth(290).setInteractive();
+    const fireLabel=this.add.text(layout.fire.x,layout.fire.y,'TIRO',{
+      fontFamily:'monospace',fontSize:'12px',color:'#ffffff'
+    }).setOrigin(.5).setDepth(291);
+    const special=this.add.circle(layout.special.x,layout.special.y,34,0xc383fc,.25)
+      .setStrokeStyle(2,0xffddff,.6).setDepth(290).setInteractive();
+    const specialLabel=this.add.text(layout.special.x,layout.special.y,'ESP',{
+      fontFamily:'monospace',fontSize:'12px',color:'#ffffff'
+    }).setOrigin(.5).setDepth(291);
+    const pause=this.add.circle(layout.pause.x,layout.pause.y,28,0x183b57,.28)
+      .setStrokeStyle(2,0xcdeeff,.55).setDepth(290).setInteractive();
+    const pauseLabel=this.add.text(layout.pause.x,layout.pause.y,'Ⅱ',{
+      fontFamily:'sans-serif',fontSize:'24px',fontStyle:'bold',color:'#ffffff'
+    }).setOrigin(.5).setDepth(291);
+    const edit=this.add.rectangle(848,40,68,30,0x183b57,.36)
+      .setStrokeStyle(1,0xcdeeff,.55).setDepth(290).setInteractive();
+    const editLabel=this.add.text(848,40,'MOVER',{
+      fontFamily:'monospace',fontSize:'12px',color:'#ffffff'
+    }).setOrigin(.5).setDepth(291);
+    const objects={aim:[base,knob],fire:[fire,fireLabel],
+      special:[special,specialLabel],pause:[pause,pauseLabel]};
+    const setPosition=(key,x,y)=>{
+      layout[key]={x:clamp(x,key==='aim'?75:34,W-(key==='aim'?75:34)),
+        y:clamp(y, key==='aim'?75:34,H-(key==='aim'?75:34))};
+      for(const obj of objects[key])obj.setPosition(layout[key].x,layout[key].y);
+    };
+    const moveStick=p=>{
+      const center=layout.aim,dx=p.x-center.x,dy=p.y-center.y;
+      const d=Math.hypot(dx,dy),f=Math.min(1,52/Math.max(1,d));
+      knob.setPosition(center.x+dx*f,center.y+dy*f);
       if(d>8)this.mobileAimAngle=Phaser.Math.Clamp(Math.atan2(dy,dx),
         -Math.PI+Math.PI/12,-Math.PI/12);
     };
-    base.on('pointerdown',(p,_x,_y,e)=>{e?.stopPropagation();this.mobileStickPointer=p.id;move(p);});
-    this.input.on('pointermove',p=>{if(p.id===this.mobileStickPointer)move(p);});
-    this.input.on('pointerup',p=>{if(p.id===this.mobileStickPointer){this.mobileStickPointer=null;knob.setPosition(160,420);}});
-    const fire=this.add.circle(855,438,43,0x3bc2df,.24)
-      .setStrokeStyle(2,0xbef5ff,.6).setDepth(290).setInteractive();
-    const label=this.add.text(855,438,'TIRO',{fontFamily:'monospace',fontSize:'12px',
-      color:'#ffffff',align:'center'}).setOrigin(.5).setDepth(291);
-    const stopFire=p=>{
-      if(p.id!==this.mobileFirePointer)return;
-      this.mobileFirePointer=null;this.mobileFire=false;
-      fire.setFillStyle(0x3bc2df,.24);
+    const editDrag=(key,p)=>{
+      this.mobileDrag={key,id:p.id,offsetX:p.x-layout[key].x,offsetY:p.y-layout[key].y};
     };
+    base.on('pointerdown',(p,_x,_y,e)=>{
+      e?.stopPropagation();
+      if(this.mobileEditing){editDrag('aim',p);return;}
+      this.mobileStickPointer=p.id;moveStick(p);
+    });
     fire.on('pointerdown',(p,_x,_y,e)=>{
-      e?.stopPropagation();this.mobileFirePointer=p.id;this.mobileFire=true;
+      e?.stopPropagation();
+      if(this.mobileEditing){editDrag('fire',p);return;}
+      this.mobileFirePointer=p.id;this.mobileFire=true;
       fire.setFillStyle(0x32d7aa,.38);
     });
-    this.input.on('pointerup',stopFire);
-    this.input.on('gameout',()=>{this.mobileFirePointer=null;this.mobileFire=false;fire.setFillStyle(0x3bc2df,.24);});
-    this.events.once('shutdown',()=>{this.mobileFire=false;this.mobileFirePointer=null;});
-    const special=this.add.circle(754,479,34,0xc383fc,.25)
-      .setStrokeStyle(2,0xffddff,.6).setDepth(290).setInteractive();
-    this.add.text(754,479,'ESP',{fontFamily:'monospace',fontSize:'12px',
-      color:'#ffffff'}).setOrigin(.5).setDepth(291);
-    special.on('pointerdown',(_p,_x,_y,e)=>{
+    special.on('pointerdown',(p,_x,_y,e)=>{
       e?.stopPropagation();
-      this.shootSpecial({x:CANNON.x+Math.cos(this.mobileAimAngle)*450,
-        y:CANNON.y+Math.sin(this.mobileAimAngle)*450});
+      if(this.mobileEditing){editDrag('special',p);return;}
+      if(!this.mobileSpecialArmed){
+        this.mobileSpecialArmed=true;
+        special.setFillStyle(0xf0a6ff,.48);
+        specialLabel.setText('ALVO');
+      }else{
+        this.activateMobileSpecial({
+          x:CANNON.x+Math.cos(this.mobileAimAngle)*450,
+          y:CANNON.y+Math.sin(this.mobileAimAngle)*450
+        });
+      }
     });
-    // Pausa acessível no celular, longe do analógico e dos disparos.
-    const pause=this.add.circle(916,40,28,0x183b57,.28)
-      .setStrokeStyle(2,0xcdeeff,.55).setDepth(290).setInteractive();
-    this.add.text(916,40,'Ⅱ',{fontFamily:'sans-serif',fontSize:'24px',
-      fontStyle:'bold',color:'#ffffff'}).setOrigin(.5).setDepth(291);
-    pause.on('pointerdown',(_p,_x,_y,e)=>{
+    pause.on('pointerdown',(p,_x,_y,e)=>{
       e?.stopPropagation();
-      this.mobileFire=false;
-      this.mobileFirePointer=null;
+      if(this.mobileEditing){editDrag('pause',p);return;}
+      this.mobileFire=false;this.mobileFirePointer=null;
       fire.setFillStyle(0x3bc2df,.24);
+      this.mobileSpecialArmed=false;special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
       this.pauseGame();
+    });
+    edit.on('pointerdown',(_p,_x,_y,e)=>{
+      e?.stopPropagation();
+      this.mobileEditing=!this.mobileEditing;
+      this.mobileFire=false;this.mobileFirePointer=null;
+      this.mobileSpecialArmed=false;special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
+      fire.setFillStyle(0x3bc2df,.24);
+      editLabel.setText(this.mobileEditing?'SALVAR':'MOVER');
+      edit.setFillStyle(this.mobileEditing?0x318b8d:0x183b57,this.mobileEditing?.55:.36);
+      if(!this.mobileEditing)save();
+    });
+    this.input.on('pointermove',p=>{
+      if(this.mobileDrag?.id===p.id){
+        const d=this.mobileDrag;setPosition(d.key,p.x-d.offsetX,p.y-d.offsetY);
+      }else if(this.mobileStickPointer===p.id)moveStick(p);
+    });
+    this.input.on('pointerup',p=>{
+      if(this.mobileDrag?.id===p.id){this.mobileDrag=null;save();}
+      if(this.mobileStickPointer===p.id){
+        this.mobileStickPointer=null;knob.setPosition(layout.aim.x,layout.aim.y);
+      }
+      if(this.mobileFirePointer===p.id){
+        this.mobileFirePointer=null;this.mobileFire=false;fire.setFillStyle(0x3bc2df,.24);
+      }
+    });
+    this.input.on('gameout',()=>{
+      this.mobileFire=false;this.mobileFirePointer=null;
+      fire.setFillStyle(0x3bc2df,.24);
+      this.mobileStickPointer=null;knob.setPosition(layout.aim.x,layout.aim.y);
+    });
+    // Após preparar o especial, tocar no cenário escolhe o ponto exato.
+    this.input.on('pointerdown',p=>{
+      if(!this.mobileSpecialArmed||this.mobileEditing)return;
+      if(p.x<0||p.x>W||p.y<0||p.y>H)return;
+      this.activateMobileSpecial({x:p.x,y:p.y});
+    });
+    this.activateMobileSpecial=target=>{
+      if(!this.mobileSpecialArmed||this.mobileEditing)return;
+      this.mobileSpecialArmed=false;
+      special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
+      this.shootSpecial(target);
+    };
+    this.events.once('shutdown',()=>{
+      this.mobileFire=false;this.mobileFirePointer=null;save();
     });
   }
 
