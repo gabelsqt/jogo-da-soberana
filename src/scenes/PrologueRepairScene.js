@@ -92,16 +92,16 @@ export class PrologueRepairScene extends Phaser.Scene{
     }).setOrigin(.5).setDepth(64));
     const subtitles={
       arrival:[
-        'Militares e especialistas não sobreviveram à invasão. Sem equipe de apoio, o General liga para seu antigo mecânico.',
-        'O General finalmente respira aliviado. Zé Maria desce do guincho azul: “Se eu fiz um Marea andar, faço isso aqui funcionar.”',
-        'Zé Maria encosta o ouvido no obuseiro, dá duas batidinhas e reconhece o defeito. “Obuseiro é esse canhão aí, General.”',
+        'O canhão foi destruído. No Boteco vazio, Seu Nelson pergunta: “Conhece alguém que conserte isso?” Você liga para Zé Maria.',
+        'Zé Maria atende e chega de caminhão-guincho azul: “Se eu fiz um Marea andar, faço isso aqui funcionar.”',
+        'Zé Maria encosta o ouvido no canhão, dá duas batidinhas e reconhece o defeito. “É... vai dar trabalho.”',
       ],
       principal:[
         'Zé Maria adapta peças ao sistema principal escolhido. Solução brasileira ou importada, tudo passa pela oficina.',
         'Três... dois... um... O primeiro disparo funciona. O canhão está recuperado e pronto para a onda 1.',
       ],
       special:[
-        'O segundo acordo equipa o obuseiro com o especial do botão direito. Não substitui o tiro principal.',
+        'O segundo acordo equipa o canhão com o especial do botão direito. Não substitui o tiro principal.',
         'O circuito responde. O tiro especial está instalado e pode ser usado desde o início da onda 2.',
       ],
     };
