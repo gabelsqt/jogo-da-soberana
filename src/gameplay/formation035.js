@@ -15,11 +15,11 @@ export const STANDARD_INVADER_FLIGHT_FACTOR = 0.78;
 /** Cinemática da onda 0: 1 portal sozinho, depois pares simultâneos.
  * Cinco pontos reais distintos, sem encaixe nos três corredores antigos. */
 export const WAVE0_PORTAL_SEQUENCE = Object.freeze([
-  Object.freeze({at:800, portalX:480, count:4}),
-  Object.freeze({at:4600, portalX:235, count:4}),
-  Object.freeze({at:4600, portalX:725, count:4}),
-  Object.freeze({at:9600, portalX:125, count:4}),
-  Object.freeze({at:9600, portalX:835, count:4}),
+  Object.freeze({at:800, portalX:480, count:6}),
+  Object.freeze({at:4600, portalX:235, count:6}),
+  Object.freeze({at:4600, portalX:725, count:6}),
+  Object.freeze({at:9600, portalX:125, count:6}),
+  Object.freeze({at:9600, portalX:835, count:6}),
 ]);
 
 
@@ -102,7 +102,7 @@ export function getV035WaveEvents(mode, legacyEvents) {
   const wave = campaignWaveIndex(mode);
   if (wave === null) return legacyEvents.map(event => ({ ...event }));
   // Cinco portais coreografados: um central e depois dois pares.
-  // São 20 naves no tutorial, mantendo a entrada de tiros retardada.
+  // São 30 naves no tutorial, mantendo a entrada de tiros retardada.
   if (wave === 0) {
     return WAVE0_PORTAL_SEQUENCE.map(({at,portalX,count})=>({
       at,portalX,type:1,pattern:'swarm',count,level:1,
@@ -158,15 +158,15 @@ export function swarmDanceCenter(group, elapsed) {
   switch (group.pattern) {
     case 'traverse':
       return { x: x + direction * (t * 350 - 175),
-        y: mix(-28, 183, t) + 17 * Math.sin(t * Math.PI * 2) };
+        y: mix((group.portalY ?? 68)+46, 213, t) + 17 * Math.sin(t * Math.PI * 2) };
     case 'cross':
       return { x: x + Math.sin(t * Math.PI * 2) * 165,
-        y: mix(-28, 191, t) + 20 * Math.sin(t * Math.PI * 4) };
+        y: mix((group.portalY ?? 68)+46, 215, t) + 20 * Math.sin(t * Math.PI * 4) };
     case 'spiral': {
       const radius = 125 * (1 - 0.6 * t);
       const angle = t * Math.PI * 3;
       return { x: x + Math.cos(angle) * radius - 125,
-        y: mix(-28, 172, t) + Math.sin(angle) * 37 * t };
+        y: mix((group.portalY ?? 68)+46, 205, t) + Math.sin(angle) * 37 * t };
     }
     case 'lowSweep':
       // Onda 1: o conjunto entra perto de y=120 e desce de forma legível.
@@ -177,10 +177,10 @@ export function swarmDanceCenter(group, elapsed) {
         y:120+115*t+5*Math.sin(t*Math.PI*2)};
     case 'circle':
       return {x:x+Math.sin(t*Math.PI*2)*94,
-        y:mix(48,184,t)-Math.cos(t*Math.PI*2)*26};
+        y:mix((group.portalY ?? 68)+46,210,t)-Math.cos(t*Math.PI*2)*26};
     default:
       return { x: x + Math.sin(t * Math.PI * 3) * 115,
-        y: mix(-28, 179, t) };
+        y: mix((group.portalY ?? 68)+46, 210, t) };
   }
 }
 
