@@ -1504,3 +1504,11 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 6. **Integridade visual:** manter a mesma escala, centro do rosto, altura dos olhos, luz, figurino e tamanho de pixel em todas as expressões de um mesmo personagem. Variar emoção e gesto, não identidade.
 
 **Status:** especificação de produção aprovada. Nenhuma spritesheet binária ou código foi alterado por esta decisão.
+
+
+## Moldura de retrato de Kátia — dourado (24/10/2026; APROVADO E IMPLEMENTADO)
+
+- **Decisão:** moldura **dourada**, padrão fixo, para a representante russa Kátia Strófika no Boteco, tanto no retrato de seleção quanto no retrato exibido durante diálogos. Cor de referência da implementação: `#E3B94E` (`0xE3B94E`).
+- A borda dourada expressa a identidade cromática nacional da Rússia e se distingue do uniforme roxo-escuro, das medalhas e dos demais personagens. A decisão é sobre **a moldura do retrato**, não recolorização do figurino ou alteração do conteúdo dos 16 quadros.
+- **Código:** `src/scenes/UpgradeScene.js` define a cor da borda na seleção e durante falas, preservando o fallback das imagens existentes. Foi corrigida também a variável local usada para carregar o atlas opcional da Kátia na seleção.
+- **Observação:** a integração visual completa das novas expressões ainda depende da publicação do PNG do atlas no repositório e de teste com o jogo em execução.
