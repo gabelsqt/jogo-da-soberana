@@ -1417,3 +1417,17 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - **Relação e antecedentes preservados:** amigo de longa data de **Zé Maria**; veterano de acontecimentos alienígenas dos anos **1980**, ligado a uma instalação militar. Seu passado deve ser revelado de modo contido; a nova decisão de revelação final prevalece sobre insinuações que revelem cedo demais o segredo central.
 - **Grande revelação em um confronto de final definitivo contra os alienígenas:** quando o **Alien Supremo** se revela, ele **reconhece Seu Nelson como alguém que já o ajudou no passado em uma batalha contra outros inimigos do espaço**. Trata-se de relação surpreendente entre os dois, que recontextualiza o passado do veterano. **Não estabelecer ainda** como, por que, onde, em que termos se deu a ajuda ou quem eram os outros inimigos: esses detalhes seguem abertos. A revelação não significa que Seu Nelson retorne ao combate atualmente.
 - **Status:** somente planejamento aprovado; não houve alteração de cenas, diálogos finais, arte, sprites ou código.
+
+
+## Boteco — apresentações, relações e cenas coletivas (24/10/2026; APROVADO, SOMENTE PLANEJAMENTO)
+
+> Decisões explícitas do criador. Prevalecem sobre orientações anteriores incompatíveis para a estrutura narrativa do Boteco, mas não mudam automaticamente o fluxo de upgrades nem autorizam programação. Cenas e falas exatas continuam pendentes de roteiro.
+
+1. **Estrutura híbrida:** preservar **negociações individuais** com os representantes e acrescentar **pequenas conversas coletivas ocasionais**. A prioridade dramática inicial são **as apresentações dos personagens**: **cada personagem deve aparecer com retrato de corpo inteiro e ter uma pequena cena própria de apresentação**, distinguível das negociações comuns. Respeitar a direção visual canônica de corpo inteiro; isso não substitui os retratos de diálogo 256×256 já aprovados, usados em outros contextos.
+2. **Evolução dos vínculos:** as amizades crescem **gradualmente ao longo das ondas**, com elogios, confiança e provocações progressivamente mais pessoais. Evitar uma virada abrupta de intimidade e preservar a regra de que **todos os representantes estrangeiros traem o jogador** independentemente do afeto acumulado.
+3. **Tom:** **humor frequente**, derivado das personalidades, alternado com **momentos sinceros e dramáticos**. Evitar transformar toda fala em piada ou interromper excessivamente cenas emocionais.
+4. **Seu Nelson:** permanece **quase sempre calado** nas conversas coletivas e **solta uma frase breve e certeira ao final**. Preservar sua ironia, economia de palavras e o segredo sobre a ligação antiga com o Alien Supremo.
+5. **Antecipação das traições:** utilizar **pistas pequenas, ambíguas e discretas**, reconhecíveis sobretudo em uma **segunda campanha**. Não revelar explicitamente os planos de conquista durante as apresentações ou as conversas ordinárias.
+6. **Frequência das interações:** além das negociações, haverá **uma cena coletiva após cada onda**, com diálogos e composição adequados ao ritmo. Essas cenas podem ser curtas, mesmo que o volume total de diálogos seja maior. A opção de poucas cenas extras não é a escolhida.
+
+**Pendências de criação, não decisões adicionais:** roteirizar as cenas de apresentação individuais e a progressão das cenas coletivas onda a onda; ajustar duração, transições, posicionamento dos retratos de corpo inteiro e convivência com a UX do Boteco já existente. **Nenhum sprite, diálogo jogável ou código foi implementado por este registro.**
