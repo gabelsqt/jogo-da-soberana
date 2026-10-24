@@ -1537,3 +1537,8 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - Grade 4×4 de 16 expressões, retratos de 256×256 px, espaçamento e margens transparentes de 16 px (atlas total de 1104×1104 px), moldura vermelha.
 - As expressões incluem ajustar os óculos e conter uma risada, características da personagem.
 - `UpgradeScene.js` carrega `mingda-expressions` como atlas opcional e usa o retrato neutro no Boteco. Quando ainda não há PNG, permanece o retrato existente. O JSON foi integrado em `public/assets/lideres/mingda_mai_expressoes_4x4.json`. Falta publicar o PNG e validar visualmente no jogo.
+
+
+## Kim Lin Du: retratos aprovados em 24/10/2026
+
+Visual: idol sul-coreano jovem, simpático, cabelo prateado/lilás, uniforme branco com detalhes roxos e dourados. Expressões menos arrogantes e mais amáveis. O quadro 16 mostra Kim piscando e fazendo coração com os dedos, com um coração rosa pequeno. Padrão de atlas 4x4, 16 expressões, 256px por retrato, gutters/margens de 16px, tamanho 1104x1104px. Moldura roxa. UpgradeScene carrega kim-expressions e mantém fallback para retrato legado. PNG ainda precisa ser publicado no caminho public/assets/lideres/kim_lin_du_expressoes_4x4.png. JSON Phaser 3 hash correspondente já no GitHub.
