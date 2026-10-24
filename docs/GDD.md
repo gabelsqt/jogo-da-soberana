@@ -1403,3 +1403,17 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - **Ideia adicional explicitamente adiada para o fim das prioridades:** explorar **um placar de pontos e/ou mecânicas esportivas** na batalha contra Kátia. É um **conceito em aberto, não mecânica aprovada detalhadamente**; deixar como último item de desenvolvimento, sem implementar ou fixar pontuação, regras ou equilíbrio agora.
 - **Reação à derrota:** **aceita a derrota com dignidade e entrega simbolicamente uma medalha ao protagonista**. Não insistir em revanche imediata na versão canônica desta cena.
 - **Status:** decisões canônicas de planejamento. As falas e a encenação exatas ainda dependerão de roteiro; nenhum código, sprite ou sistema de pontos deve ser alterado por este registro.
+
+
+## Seu Nelson — identidade definitiva, visual e revelação final (24/10/2026; APROVADO, SOMENTE PLANEJAMENTO)
+
+> **Precedência:** **Seu Nelson** substitui **Seu Anselmo** como identidade atual do dono do Boteco. Não é Zé Maria, que permanece o mecânico brasileiro. Reaproveita a inspiração visual da antiga versão de Zeca Carrara sem retomar esse nome/personagem. Descrições antigas incompatíveis são históricas. A revelação do fim não deve ser antecipada em diálogos comuns.
+
+- **Nome definitivo:** **Seu Nelson**, apenas; não adotar sobrenome Carrara nem conservar Anselmo como nome oficial.
+- **Visual canônico de referência:** **terceira imagem** da rodada de quatro conceitos visuais de Seu Nelson aprovada pelo criador. Estilo pixel art JRPG 16-bit/início PS1 compatível com os demais. Homem mais velho, cabelos escuros/grisalhos penteados para trás, bigode marcante, blazer bege, camisa estampada retrô, corrente dourada, acessórios elegantes e pequeno distintivo/condecoração militar. Aparência de malandro/bicheiro carioca charmoso com indícios de passado militar e forte senso de justiça. A imagem é referência de conceito, não sprite final implementado.
+- **Função na campanha:** **dono do Boteco e conselheiro experiente**. Não ampliar automaticamente para articulador de rede criminosa, operador militar estratégico ou combatente.
+- **Personalidade cotidiana:** **calmo, irônico e econômico nas palavras**. Não perde a tranquilidade diante de acontecimentos absurdos; preserva senso de justiça e lealdade aos moradores.
+- **Participação na guerra atual:** **não luta mais e ajuda apenas com conselhos**. Não prever seu retorno a combate nem participação direta como mecânica sem decisão posterior.
+- **Relação e antecedentes preservados:** amigo de longa data de **Zé Maria**; veterano de acontecimentos alienígenas dos anos **1980**, ligado a uma instalação militar. Seu passado deve ser revelado de modo contido; a nova decisão de revelação final prevalece sobre insinuações que revelem cedo demais o segredo central.
+- **Grande revelação em um confronto de final definitivo contra os alienígenas:** quando o **Alien Supremo** se revela, ele **reconhece Seu Nelson como alguém que já o ajudou no passado em uma batalha contra outros inimigos do espaço**. Trata-se de relação surpreendente entre os dois, que recontextualiza o passado do veterano. **Não estabelecer ainda** como, por que, onde, em que termos se deu a ajuda ou quem eram os outros inimigos: esses detalhes seguem abertos. A revelação não significa que Seu Nelson retorne ao combate atualmente.
+- **Status:** somente planejamento aprovado; não houve alteração de cenas, diálogos finais, arte, sprites ou código.
