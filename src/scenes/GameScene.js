@@ -441,10 +441,18 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     preloadRioBackdrop(this);
-    // Retratos já existentes do menu de upgrades; nenhum novo sprite gerado.
-    for(const id of ['br','us','ru','jp','cn'])
+    // Usar durante a batalha os mesmos retratos aprovados no Boteco.
+    const battleAtlases=[
+      ['br','ze_maria'],['us','victor_mcdollar'],['ru','katia'],
+      ['cn','mingda_mai'],['jp','kim_lin_du'],
+    ];
+    for(const [id,name] of battleAtlases){
       this.load.image('battle-portrait-'+id,
         assetUrl('assets/lideres/'+id+'_personagem.png'));
+      this.load.atlas('battle-expressions-'+id,
+        assetUrl('assets/lideres/'+name+'_expressoes_4x4.png'),
+        assetUrl('assets/lideres/'+name+'_expressoes_4x4.json'));
+    }
     this.load.image('cannon-base',assetUrl('assets/canhao/base.png'));
     for(let i=0;i<9;i++){
       this.load.image('cannon-head-'+i,assetUrl('assets/canhao/head_'+i+'.png'));
@@ -1859,8 +1867,12 @@ export class GameScene extends Phaser.Scene {
     this.banterName.setText(line.name);
     this.banterWriter.start(this.banterText,line.text,{delay:28});
     this.banterBackground.setStrokeStyle(2,line.color);
-    if(this.textures.exists('battle-portrait-'+line.speaker))
-      this.banterPortrait.setTexture('battle-portrait-'+line.speaker);
+    const atlasKey='battle-expressions-'+line.speaker;
+    if(this.textures.exists(atlasKey)&&this.textures.get(atlasKey).has('neutro')){
+      this.banterPortrait.setTexture(atlasKey,'neutro').setDisplaySize(72,72);
+    }else if(this.textures.exists('battle-portrait-'+line.speaker)){
+      this.banterPortrait.setTexture('battle-portrait-'+line.speaker).setDisplaySize(54,74);
+    }
   }
 
   createHud() {
