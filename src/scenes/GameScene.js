@@ -4995,6 +4995,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   drawV1SpecialPulse(x,y,radius,color) {
+    // Mobile: limitar a criação de anéis cosméticos em salvas de especiais.
+    // O dano e as colisões são processados em pulseV1Area sem depender do anel.
+    if(this.sys.game.device.input.touch){
+      if(this.time.now-(this.lastMobileSpecialPulseFxAt??-Infinity)<90)return;
+      this.lastMobileSpecialPulseFxAt=this.time.now;
+    }
     const ring=this.add.circle(x,y,radius,color,0.14)
       .setStrokeStyle(3,color,0.85).setDepth(55).setScale(0.25);
     this.tweens.add({targets:ring,scale:1.15,alpha:0,duration:360,
@@ -5188,6 +5194,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   drawV1DiscoReflectionArcs(x,y,targets,rainbow=false) {
+    // Só reduz desenho/objetos temporários; os acertos continuam completos.
+    if(this.sys.game.device.input.touch){
+      if(this.time.now-(this.lastMobileDiscoFxAt??-Infinity)<110)return;
+      this.lastMobileDiscoFxAt=this.time.now;
+      animateDiscoReflectionArcs(this,x,y,targets.slice(0,6),{rainbow});
+      return;
+    }
     animateDiscoReflectionArcs(this,x,y,targets,{rainbow});
   }
 
