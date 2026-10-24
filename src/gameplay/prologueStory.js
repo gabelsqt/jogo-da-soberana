@@ -7,7 +7,7 @@ export const PROLOGUE_CANNON={
   damaged:{damage:0,intervalMs:2100,enemyCanAttack:false},
 };
 export const REPAIR_STAGES=Object.freeze({
-  arrival:['O GENERAL CHAMA SEU ANTIGO MECÂNICO',
+  arrival:['SEU NELSON PERGUNTA SE VOCÊ CONHECE ALGUÉM QUE POSSA AJUDAR',
     'ZÉ MARIA CHEGA DE CAMINHÃO-GUINCHO',
     'DIAGNÓSTICO: OUVIDO E BATIDINHAS NO MECANISMO'],
   principal:['MONTAGEM: INSTALAÇÃO DO TIRO PRINCIPAL',
