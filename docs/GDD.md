@@ -1529,3 +1529,11 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - Atlas de 16 expressões 4×4, 256×256 px por quadro, 16 px de margens externas e espaçamento, 1104×1104 px total; moldura da arte dourada.
 - `UpgradeScene.js` reconhece `SEU NELSON` independentemente dos representantes e usa `nelson-expressions` nos diálogos quando o PNG estiver presente; caso contrário, permanece sem novo retrato, sem afetar as outras falas.
 - O PNG `public/assets/lideres/seu_nelson_expressoes_4x4.png` precisa ser instalado no repositório; JSON já integrado. Troca dinâmica de emoções é etapa futura.
+
+
+## Mingda Mai — retratos aprovados (24/10/2026)
+
+- Arte aprovada: representante chinesa de olhar persuasivo e comercial, cabelo preto preso em coque com adereços vermelhos, dourados e pingentes, vestido vermelho com ornamentos dourados. Personalidade de quem sempre está prestes a fechar um ótimo negócio.
+- Grade 4×4 de 16 expressões, retratos de 256×256 px, espaçamento e margens transparentes de 16 px (atlas total de 1104×1104 px), moldura vermelha.
+- As expressões incluem ajustar os óculos e conter uma risada, características da personagem.
+- `UpgradeScene.js` carrega `mingda-expressions` como atlas opcional e usa o retrato neutro no Boteco. Quando ainda não há PNG, permanece o retrato existente. O JSON foi integrado em `public/assets/lideres/mingda_mai_expressoes_4x4.json`. Falta publicar o PNG e validar visualmente no jogo.
