@@ -255,6 +255,18 @@ export class IntroScene extends Phaser.Scene {
       color:'#bfd8e4',wordWrap:{width:810},lineSpacing:3,
     }).setOrigin(0.5);
     const key=slide.art==='invasion'?'intro-invasion':'intro-elections';
+    // Placeholder visual: Carnaval carbonizado de desenho animado, sem ferimentos.
+    if(slide.id==='carnaval'){
+      const smoke=this.keep(this.add.rectangle(W/2,412,720,168,0x232733,.96).setDepth(18));
+      for(let i=0;i<9;i++){
+        const x=182+i*75,y=432+(i%3)*8;
+        this.keep(this.add.ellipse(x,y,54,79,0x10151c).setDepth(19));
+        this.keep(this.add.ellipse(x-9,y-13,10,14,0xffffff).setDepth(20));
+        this.keep(this.add.ellipse(x+9,y-13,10,14,0xffffff).setDepth(20));
+      }
+      this.label(W/2,347,'SILÊNCIO • OLHOS SE ABREM NA FULIGEM',{fontFamily:CUBO_FONT,fontSize:'15px',color:'#f1e8dc'},21).setOrigin(.5);
+      return;
+    }
     // As imagens narram sem legendas: selfie → ataque → vítimas;
     // urna brasileira estampada CANCELADO na notícia seguinte.
     this.box(W/2,412,734,180,0x080f1b).setDepth(16)
