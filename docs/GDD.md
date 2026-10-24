@@ -1,3 +1,10 @@
+## Revisão 0.918 — Discoteca K-pop (implementação visual)
+
+- Bola de Discoteca Orbital redesenhada em Phaser Graphics: esfera espelhada com facetas escalonadas, brilho cintilante e rotação de cores ciano/rosa/violeta/dourado.
+- Anéis de palco em perspectiva, quatro holofotes móveis, halo pulsante de 250 px e contorno luminoso. Atualização reutiliza o Graphics existente, sem criar sprites/tweens por frame.
+- Reflexos múltiplos e ricochetes permanecem inalterados; o estágio final continua multicolorido.
+- Pendente validação visual/performance em desktop e celular.
+
 ## Revisão 0.917 — Progressão do laser coreano
 
 - Estágios P1–P4 do principal coreano: aumento moderado de cadência de **0%/+6%/+12%/+18%** e de dano de **0%/+8%/+16%/+25%**, mantendo 1/2/4/7 saltos e retenção de 85% por salto.
