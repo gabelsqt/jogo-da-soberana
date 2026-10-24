@@ -1350,3 +1350,20 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - **Entrada da traição:** apresenta **um contrato de aquisição do Brasil** e anuncia a invasão como simples formalidade contratual. Continua **alegre e oferecendo produtos e descontos como se nada tivesse mudado**, inclusive com a adaga em mãos.
 - **Derrota:** sua reação principal é **reclamar do prejuízo financeiro**: frota, investimentos, estoque e infraestrutura perdidos. Não alterar essa reação para discurso de arrependimento ou desistência do comércio.
 - **Tom de diálogo ilustrativo, ainda não aprovado palavra por palavra:** Zé Maria protesta que ninguém concordou com a aquisição; Mingda descreve isso como “pequeno detalhe contratual”, aponta a adaga e apresenta as tropas como sua “equipe de negociação”. Após perder, lamenta os investimentos destruídos.
+
+
+## Regra permanente de manutenção do GDD — 24/10/2026
+
+**Instrução explícita do criador para todo o projeto:** toda decisão tomada/aprovada durante as conversas de Operação Soberania deve ser registrada no GDD **tanto no GitHub quanto no Google Drive**, sem depender de um pedido adicional para “implementar no GDD”. Registrar decisão, data, contexto, precedência sobre versões conflitantes e situação (planejamento versus implementado). Não confundir atualização documental com autorização para implementar sprites, textos jogáveis ou código. Manter ambos sincronizados em cada rodada de decisões; se uma das gravações falhar, comunicar claramente a divergência e não alegar sincronização.
+
+## Victor McDollar — identidade e traição aprovadas — 24/10/2026 (SOMENTE PLANEJAMENTO)
+
+- **Histórico:** ex-apresentador de televisão que chegou ao poder por carisma e autopromoção. Sabe que exagera; considera propaganda e controle da narrativa instrumentos deliberados de poder.
+- **Personalidade e humor:** declara que tudo que faz é “o maior”, “o melhor” ou “o mais importante da história”; discurso espalhafatoso, autoconfiança teatral e sorrisos públicos. Jamais precisa reconhecer uma derrota como derrota.
+- **Relação com Zé Maria:** considera o mecânico seu **melhor amigo**, embora Zé Maria não concorde. Diz que ele é o **melhor mecânico do mundo** e quer levá-lo aos Estados Unidos para construir **a maior e melhor oficina**, possivelmente com o nome McDollar.
+- **Relação com o protagonista:** gosta dele porque acredita que foi o próprio Victor quem o transformou em herói; elogia o jogador apropriando-se de parte do crédito por suas vitórias.
+- **Motivação da conquista:** tomar o Brasil para construir **o maior muro do mundo** ao redor do país e transformá-lo numa fortaleza americana, além de usar **recursos minerais e energéticos brasileiros para enriquecer os EUA**. A promessa de muro total é **obsessão verbal**, sem projeto real coerente; isso não cancela o especial americano **Grande Muro** (escudo mecânico de 120°).
+- **Revelação da traição:** oferece ao protagonista **um cargo em seu governo**; quando o jogador recusa, **ordena a invasão**. Continua **sorridente** e vende a operação como uma **oportunidade histórica**.
+- **Derrota:** proclama que **venceu moralmente** e exige **uma cerimônia de premiação**. Não usar, como conclusão canônica, a alternativa de retirada estratégica.
+- **Orientação de fala, não roteiro final:** elogios grandiosos, linguagem de propaganda, promessas contraditórias sobre o muro, convites à oficina, inversão oportunista de qualquer revés em vitória moral.
+- **Status:** decisões documentadas; **não implementar** cenas, retratos, diálogos finais ou código sem autorização própria.
