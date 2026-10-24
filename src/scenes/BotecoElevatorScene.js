@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import {GAME_WIDTH as W,GAME_HEIGHT as H} from '../config/scenery.js';
 import {bindSceneMusic} from '../audio/music.js';
 
-// Transição discreta de elevador entre o Obuseiro e o Boteco já existente.
+// Transição discreta de elevador entre o canhão e o Boteco já existente.
 // O Boteco mantém sua arte original e não é transformado em um bunker.
 export class BotecoElevatorScene extends Phaser.Scene{
   constructor(){super({key:'BotecoElevatorScene'});}
