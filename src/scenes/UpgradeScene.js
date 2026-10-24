@@ -104,13 +104,15 @@ function portrait(scene,option,index){
   const id=option.id;
   const katiaAtlas=id==='ru'&&scene.textures.exists('katia-expressions')&&
     scene.textures.get('katia-expressions').has('neutro');
+  const zeAtlas=id==='br'&&scene.textures.exists('ze-maria-expressions')&&
+    scene.textures.get('ze-maria-expressions').has('neutro');
   const frame=scene.add.graphics();
   frame.fillStyle(0x101d2b,0.98).fillRoundedRect(-56,-67,112,143,6);
   frame.lineStyle(3,color,1).strokeRoundedRect(-56,-67,112,143,6);
-  const portraitKey=katiaAtlas?'katia-expressions':scene.textures.exists('leader-'+id+'-full-screen')?
+  const portraitKey=zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':scene.textures.exists('leader-'+id+'-full-screen')?
     'leader-'+id+'-full-screen':'leader-'+id+'-full';
   const loaded=scene.textures.exists(portraitKey);
-  const image=loaded?scene.add.image(0,-10,portraitKey,katiaAtlas?'neutro':undefined).setDisplaySize(106,106):null;
+  const image=loaded?scene.add.image(0,-10,portraitKey,(katiaAtlas||zeAtlas)?'neutro':undefined).setDisplaySize(106,106):null;
   if(!image){
     frame.fillStyle(color,0.72).fillCircle(0,-27,23);
     frame.fillStyle(color,0.72).fillRoundedRect(-39,-3,78,36,14);
@@ -155,6 +157,9 @@ export class UpgradeScene extends Phaser.Scene {
     // Os retratos são arquivos opcionais: a silhueta provisória continua funcionando
     // quando o pacote de PNGs ainda não foi instalado localmente.
     // Atlas opcional da Kátia: volta ao retrato anterior caso o PNG ainda não esteja publicado.
+    this.load.atlas('ze-maria-expressions',
+      assetUrl('assets/lideres/ze_maria_expressoes_4x4.png'),
+      assetUrl('assets/lideres/ze_maria_expressoes_4x4.json'));
     this.load.atlas('katia-expressions',
       assetUrl('assets/lideres/katia_expressoes_4x4.png'),
       assetUrl('assets/lideres/katia_expressoes_4x4.json'));
@@ -347,15 +352,17 @@ export class UpgradeScene extends Phaser.Scene {
     const id=leaders[speaker.toUpperCase()];
     const katiaAtlas=id==='ru'&&this.textures.exists('katia-expressions')&&
       this.textures.get('katia-expressions').has('neutro');
-    const key=katiaAtlas?'katia-expressions':id?(this.textures.exists('leader-'+id+'-full-screen')?
+    const zeAtlas=id==='br'&&this.textures.exists('ze-maria-expressions')&&
+      this.textures.get('ze-maria-expressions').has('neutro');
+    const key=zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':id?(this.textures.exists('leader-'+id+'-full-screen')?
       'leader-'+id+'-full-screen':'leader-'+id+'-full'):null;
     const show=Boolean(key&&this.textures.exists(key));
-    this.botecoPortraitFrame.setStrokeStyle(2,id==='ru'?0xe3b94e:COLOR.amber);
+    this.botecoPortraitFrame.setStrokeStyle(2,id==='ru'?0xe3b94e:id==='br'?0x40d76b:COLOR.amber);
     this.botecoPortraitFrame.setVisible(show);
     this.botecoPortrait.setVisible(show);
     if(show)this.botecoPortrait
-      .setTexture(katiaAtlas?'katia-expressions':id==='br'&&this.textures.exists('leader-br-dialogue')
-        ?'leader-br-dialogue':key,katiaAtlas?'neutro':undefined)
+      .setTexture(zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':id==='br'&&this.textures.exists('leader-br-dialogue')
+        ?'leader-br-dialogue':key,(katiaAtlas||zeAtlas)?'neutro':undefined)
       // setTexture preserva a escala do placeholder (boteco-dia, 960×540):
       // SEM setDisplaySize o retrato 128×128 aparece minúsculo.
       .setDisplaySize(174,174);
