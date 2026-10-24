@@ -4530,8 +4530,12 @@ export class GameScene extends Phaser.Scene {
     const bullet=this.createProjectile(angle,false);
     if(!bullet)return;
     bullet.koreanLaserBolt=true;
-    bullet.koreanBouncesLeft=[1,2,4,7][stage];
-    bullet.koreanBounceRange=150;
+    bullet.koreanBouncesLeft=[2,4,6,9][stage];
+    bullet.koreanCopiesLeft=[0,1,2,3][stage];
+    bullet.koreanChainId=this.basicShotCount;
+    bullet.koreanBounceRange=190;
+    bullet.vx*=.78;bullet.vy*=.78;
+    if(bullet.visual&&bullet.sprite?.setDisplaySize)bullet.sprite.setDisplaySize(8+stage*2,24+stage*5);
     bullet.koreanBounceRetention=.85;
     bullet.koreanVisualStage=stage+1;
     bullet.damage*=[1,1.08,1.16,1.25][stage];
@@ -6240,7 +6244,37 @@ export class GameScene extends Phaser.Scene {
             if(next){
               const angle=Math.atan2(next.sprite.y-deathPosition.y,
                 next.sprite.x-deathPosition.x);
-              const speed=this.combat.basicSpeed;
+              const speed=this.combat.basicSpeed*.78;
+              // Cada corrente pode ramificar, mas tem orçamento finito.
+              if(bullet.koreanCopiesLeft>0&&this.projectiles.length<95){
+                const excluded=new Set(bullet.hitEnemyIds);
+                excluded.add(next.uid);
+                const alternate=nextKoreanRicochet(deathPosition.x,deathPosition.y,
+                  this.enemies,excluded,bullet.koreanBounceRange);
+                if(alternate){
+                  const alternateAngle=Math.atan2(alternate.sprite.y-deathPosition.y,
+                    alternate.sprite.x-deathPosition.x);
+                  const clone=this.createProjectile(alternateAngle,false,0,bullet.vfx,false,0,
+                    bullet.generation+1,{x:deathPosition.x,y:deathPosition.y});
+                  if(clone){
+                    clone.koreanLaserBolt=true;clone.koreanRicochet=true;
+                    clone.koreanBouncesLeft=Math.max(0,bullet.koreanBouncesLeft-1);
+                    clone.koreanCopiesLeft=0;
+                    clone.koreanBounceRange=bullet.koreanBounceRange;
+                    clone.koreanBounceRetention=bullet.koreanBounceRetention;
+                    clone.koreanVisualStage=bullet.koreanVisualStage;
+                    clone.koreanRainbow=bullet.koreanRainbow;
+                    clone.damage=bullet.damage*bullet.koreanBounceRetention*.55;
+                    clone.hitEnemyIds=new Set(bullet.hitEnemyIds);
+                    clone.vx=Math.cos(alternateAngle)*speed;
+                    clone.vy=Math.sin(alternateAngle)*speed;
+                    if(clone.visual&&clone.sprite?.setDisplaySize)
+                      clone.sprite.setDisplaySize(7+bullet.koreanVisualStage*2,22+bullet.koreanVisualStage*5);
+                    if(clone.koreanRainbow&&clone.visual)clone.trail=this.add.graphics().setDepth(36);
+                    bullet.koreanCopiesLeft--;
+                  }
+                }
+              }
               bullet.vx=Math.cos(angle)*speed;
               bullet.vy=Math.sin(angle)*speed;
               bullet.sprite.setRotation?.(angle+Math.PI/2);
