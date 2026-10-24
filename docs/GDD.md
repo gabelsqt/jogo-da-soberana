@@ -1,3 +1,9 @@
+## Revisão 0.915 — mira exclusiva pelo analógico e Grande Muro ampliado
+
+- No celular, tocar no cenário deixa de selecionar posição do especial. A direção é determinada exclusivamente pelo analógico virtual; ESP no primeiro toque arma e no segundo lança. Mouse no desktop permanece inalterado.
+- Grande Muro americano S1–S4: raios alterados de 85/110/140/175 para **110/145/185/230 px**, preservando abertura de 120°, recarga e duração.
+- Validar manualmente a ergonomia do analógico e o posicionamento de muros grandes nas bordas da tela.
+
 ## Revisão 0.914 — Grande Muro e especial touch
 
 - Grande Muro americano: raios S1–S4 ampliados de **60/79/101/125 px** para **85/110/140/175 px**, mantendo 120° de abertura e a mesma duração e recarga.
