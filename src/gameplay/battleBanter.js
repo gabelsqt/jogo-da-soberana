@@ -7,8 +7,8 @@ export const BATTLE_BANTER=Object.freeze({
     health:['O canhão tá apanhando. Tem como segurar mais um pouco?', 'Segura essa defesa aí, chefe!'],
     module:['Boa! Uma peça a menos naquele trambolho!', 'Isso! Tá desmontando o negócio!'],
     special:['O especial tá pronto. Usa na hora certa!', 'Tem reforço no gatilho, chefe!'],
-    arrival:['Um prédio voador e uma estátua de braços abertos. Dia normal!', 'Chegamos. Bora defender essa estátua também!'],
-    clear:['Mais uma cidade a salvo. Partiu a próxima!', 'Vitória! Agora só falta decolar de novo.'],
+    arrival:['Chegamos. A cidade ainda precisa da gente!', 'Pousamos. Vou conferir o canhão daqui.'],
+    clear:['Cidade protegida. Vou conferir a pressão do canhão!', 'Boa, General! O motor do prédio está pronto pra próxima.'],
   },
   us:{
     start:['Vai ser a maior batalha. Confie em mim!', 'A melhor defesa! Isso é o que a gente constrói.'],
@@ -35,23 +35,35 @@ export const BATTLE_BANTER=Object.freeze({
     special:['Oferta especial disponível! Sem taxa extra!', 'Aproveite antes que acabe o estoque!'],
   },
 });
-export function battleSpeakers(choices=[],traitor=null){
-  const available=new Set(['br',...(Array.isArray(choices)?choices:[])]);
-  if(traitor)available.delete(traitor);
-  return ['br','us','ru','jp','cn'].filter(id=>available.has(id));
+// Nunca antecipar personagens: Zé Maria só entra depois da onda 0.5 e do
+// conserto do canhão. Os estrangeiros só falam quando já foram apresentados.
+export function battleSpeakers(choices=[],traitor=null,{wave=1,voyage=false}={}){
+  if(wave<1&&!voyage)return [];
+  const recruited=new Set(['br']);
+  for(const choice of Array.isArray(choices)?choices:[]){
+    const id=typeof choice==='string'?choice:
+      (choice?.country??choice?.id??choice?.representative);
+    if(['us','ru','jp','cn'].includes(id))recruited.add(id);
+  }
+  if(traitor)recruited.delete(traitor);
+  return ['br','us','ru','jp','cn'].filter(id=>recruited.has(id));
 }
-export function selectBattleBanter(event,{choices=[],traitor=null,sequence=0,voyage=false}={}){
-  const candidates=voyage?['br']:battleSpeakers(choices,traitor);
+export function selectBattleBanter(event,{choices=[],traitor=null,sequence=0,voyage=false,wave=1}={}){
+  const candidates=battleSpeakers(choices,traitor,{wave,voyage});
   if(!candidates.length)return null;
-  // Zeca inicia a luta e acompanha toda a rota 100% brasileira.
-  const speaker=(event==='arrival'||event==='clear'||event==='health')?'br':
-    candidates[(event==='start'?0:sequence)%candidates.length];
+  // Na viagem brasileira apenas Zé Maria acompanha o canhão.
+  // Quem ainda não entrou na história nunca fala pelo rádio.
+  const pool=voyage?['br']:candidates;
+  const preferred=(event==='arrival'||event==='clear'||event==='health')?'br':null;
+  const speaker=preferred&&pool.includes(preferred)?preferred:
+    pool[(event==='start'?0:sequence)%pool.length];
+  // Avisos de viagem só existem na campanha final brasileira.
+  if((event==='arrival'||event==='clear')&&!voyage)return null;
   const lines=BATTLE_BANTER[speaker]?.[event]??BATTLE_BANTER[speaker]?.danger??[];
   if(!lines.length)return null;
   return {speaker,name:REPRESENTATIVES[speaker].name,
     color:REPRESENTATIVES[speaker].tint,
-    text:lines[Math.floor(sequence/candidates.length)%lines.length],
-    event};
+    text:lines[Math.floor(sequence/pool.length)%lines.length],event};
 }
 export const BANTER_COOLDOWN_MS=6800;
 export const BANTER_DURATION_MS=3600;
