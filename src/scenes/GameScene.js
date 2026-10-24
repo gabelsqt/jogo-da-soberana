@@ -1909,7 +1909,7 @@ export class GameScene extends Phaser.Scene {
         this.scene.isActive('PauseScene') ||
         this.scene.isActive('UpgradeLabScene')) return;
     this.scene.pause();
-    this.scene.launch('PauseScene');
+    this.scene.launch('PauseScene',{source:'GameScene'});
   }
 
   chooseDefenseTarget() {
@@ -4573,7 +4573,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily:'sans-serif',fontSize:'24px',fontStyle:'bold',color:'#ffffff'
     }).setOrigin(.5).setDepth(291);
     const edit=this.add.rectangle(848,40,68,30,0x183b57,.36)
-      .setStrokeStyle(1,0xcdeeff,.55).setDepth(290).setInteractive();
+      .setStrokeStyle(1,0xcdeeff,.55).setDepth(290).setInteractive().setVisible(false);
     const editLabel=this.add.text(848,40,'MOVER',{
       fontFamily:'monospace',fontSize:'12px',color:'#ffffff'
     }).setOrigin(.5).setDepth(291);
@@ -4627,6 +4627,14 @@ export class GameScene extends Phaser.Scene {
       this.mobileSpecialArmed=false;special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
       this.pauseGame();
     });
+    this.setMobileControlEditing=enabled=>{
+      this.mobileEditing=Boolean(enabled);
+      this.mobileFire=false;this.mobileFirePointer=null;
+      this.mobileSpecialArmed=false;
+      special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
+      fire.setFillStyle(0x3bc2df,.24);
+      if(!enabled)save();
+    };
     edit.on('pointerdown',(_p,_x,_y,e)=>{
       e?.stopPropagation();
       this.mobileEditing=!this.mobileEditing;
