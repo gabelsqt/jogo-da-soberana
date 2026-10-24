@@ -6595,7 +6595,7 @@ export class GameScene extends Phaser.Scene {
             this.tweens.add({targets:impact,scale:12,alpha:0,duration:620,
               onComplete:()=>{
                 beam.setVisible(false);
-                notice.setText('OBUSEIRO GRAVEMENTE AVARIADO • ARMAMENTO EM SOBRECARGA');
+                notice.setText('CANHÃO GRAVEMENTE AVARIADO • ARMAMENTO EM SOBRECARGA');
                 this.time.delayedCall(1400,finish);
               }});
           }});
