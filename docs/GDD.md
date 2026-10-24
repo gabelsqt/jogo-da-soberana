@@ -1,3 +1,9 @@
+## Revisão 0.917 — Progressão do laser coreano
+
+- Estágios P1–P4 do principal coreano: aumento moderado de cadência de **0%/+6%/+12%/+18%** e de dano de **0%/+8%/+16%/+25%**, mantendo 1/2/4/7 saltos e retenção de 85% por salto.
+- Em P4, projétil principal recebe rastro holográfico multicolorido animado; o último estágio dos reflexos da discoteca também alterna cores nas curvas prismáticas.
+- Geometria do globo preservada para decisão estética posterior. Validação visual pendente.
+
 ## Revisão 0.916 — amanhecer com troca de cenários na onda 0.5
 
 - O prólogo de sobrevivência (onda 0.5) passa a carregar as mesmas quatro imagens `01_pre_amanhecer.png`, `02_noite_azul.png`, `03_nascer_sol.png`, `04_dia_claro.png` usadas no restante das ondas.
