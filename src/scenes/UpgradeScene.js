@@ -161,6 +161,14 @@ export class UpgradeScene extends Phaser.Scene {
     preparePortraitTextures(this);
     prepareZecaDialoguePortrait(this);
     bindSceneMusic(this,'upgrades');
+    const pause=()=>{if(this.scene.isActive('PauseScene'))return;
+      this.scene.pause();this.scene.launch('PauseScene',{source:'UpgradeScene'});};
+    this.add.circle(919,42,29,0x15384a,.4).setStrokeStyle(2,0xdaf1ff,.75)
+      .setDepth(990).setInteractive().on('pointerdown',(_p,_x,_y,e)=>{e?.stopPropagation();pause();});
+    this.add.text(919,42,'Ⅱ',{fontFamily:'sans-serif',fontSize:'24px',color:'#ffffff'})
+      .setOrigin(.5).setDepth(991);
+    this.input.keyboard?.on('keydown-ESC',pause);
+    this.input.keyboard?.on('keydown-P',pause);
     // Um controlador para todas as falas: Zeca, convidados e negociações.
     this.dialogueTyper=createDialogueTypewriter(this,{delay:INTRO_CHAR_DELAY_MS});
     this.events.once('shutdown',()=>this.dialogueTyper?.cancel());
