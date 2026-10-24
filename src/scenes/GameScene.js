@@ -4578,6 +4578,18 @@ export class GameScene extends Phaser.Scene {
       this.shootSpecial({x:CANNON.x+Math.cos(this.mobileAimAngle)*450,
         y:CANNON.y+Math.sin(this.mobileAimAngle)*450});
     });
+    // Pausa acessível no celular, longe do analógico e dos disparos.
+    const pause=this.add.circle(916,40,28,0x183b57,.28)
+      .setStrokeStyle(2,0xcdeeff,.55).setDepth(290).setInteractive();
+    this.add.text(916,40,'Ⅱ',{fontFamily:'sans-serif',fontSize:'24px',
+      fontStyle:'bold',color:'#ffffff'}).setOrigin(.5).setDepth(291);
+    pause.on('pointerdown',(_p,_x,_y,e)=>{
+      e?.stopPropagation();
+      this.mobileFire=false;
+      this.mobileFirePointer=null;
+      fire.setFillStyle(0x3bc2df,.24);
+      this.pauseGame();
+    });
   }
 
   drawLabKoreanHologram(angle,active){
