@@ -3920,7 +3920,9 @@ export class GameScene extends Phaser.Scene {
       this.fireLabKoreanVolley(angle);
       return;
     }
-    if (this.isV1Campaign && this.combat.koreaContinuous) {
+    if (this.isV1Campaign && (this.combat.koreaContinuous ||
+      (this.specialBuild?.levels?.jp>0 && this.combat.transformed!=='cn' &&
+       this.combat.transformed!=='ru' && this.combat.transformed!=='br'))) {
       this.basicShotCount=nextShot;
       // Não cria balas físicas: o Lightstick torna-se o disparo principal.
       this.fireLabKoreanVolley(angle);
@@ -5893,7 +5895,7 @@ export class GameScene extends Phaser.Scene {
       this.drawProjectileTrail(bullet);
       let remove = false;
       if(!bullet.special){
-        const hit=hitDiscoGlobe(this.discoGlobes,previousX,previousY,
+        const hit=bullet.koreanDiscoRedirected?null:hitDiscoGlobe(this.discoGlobes,previousX,previousY,
           bullet.sprite.x,bullet.sprite.y,this.elapsed,Math.max(7,bullet.usRadius||0));
         if(hit){
           if(bullet.koreanLaserBolt||bullet.koreanRicochet){
@@ -5910,6 +5912,7 @@ export class GameScene extends Phaser.Scene {
               bullet.vy=Math.sin(angle)*this.combat.basicSpeed;
               bullet.sprite.setRotation?.(angle+Math.PI/2);
               bullet.koreanDiscoTarget=target.uid;
+              bullet.koreanDiscoRedirected=true;
               // Redirecionamento não gasta salto nem reduz o dano.
               const arc=this.add.graphics().setDepth(49);
               arc.lineStyle(2+Math.min(3,bullet.koreanVisualStage??1),0xbab0ff,.85);
@@ -6088,11 +6091,17 @@ export class GameScene extends Phaser.Scene {
               bullet.koreanBouncesLeft--;
               bullet.koreanRicochet=true;
               const flash=this.add.graphics().setDepth(48);
-              flash.lineStyle(3,0xce8aff,.8);
-              flash.lineBetween(deathPosition.x,deathPosition.y,
-                Math.min(W,deathPosition.x+(next.sprite.x-deathPosition.x)*.28),
-                Math.max(0,deathPosition.y+(next.sprite.y-deathPosition.y)*.28));
-              this.tweens.add({targets:flash,alpha:0,duration:110,
+              const stage=bullet.koreanVisualStage??1;
+              flash.lineStyle(1+stage,stage>=4?0x85e9ff:0xce8aff,.65);
+              const startX=deathPosition.x,startY=deathPosition.y;
+              const endX=next.sprite.x,endY=next.sprite.y;
+              const curveX=(startX+endX)/2,curveY=(startY+endY)/2-12-stage*4;
+              flash.beginPath();flash.moveTo(startX,startY);
+              flash.lineTo((startX+curveX)/2,(startY+curveY)/2);
+              flash.lineTo(curveX,curveY);
+              flash.lineTo((curveX+endX)/2,(curveY+endY)/2);
+              flash.lineTo(endX,endY);flash.strokePath();
+              this.tweens.add({targets:flash,alpha:0,duration:120+(bullet.koreanVisualStage??1)*60,
                 onComplete:()=>flash.destroy()});
               remove=false;
             }else remove=true;
