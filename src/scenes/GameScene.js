@@ -2793,6 +2793,10 @@ export class GameScene extends Phaser.Scene {
         const position = tacticalAttackPosition(group, enemy.formationIndex, attackAge);
         enemy.sprite.setPosition(position.x, position.y);
         if (attackAge >= group.attackDuration) {
+          if(enemy.type===2){
+            this.showHeavyImpact(enemy.sprite.x,enemy.sprite.y);
+            playSfx('explosion',{throttle:90,volumeScale:.64});
+          }
           this.removeEnemy(i);
           this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE *
             (this.mode==='wave1'?WAVE1_PACING.impactDamageMultiplier:1) *
@@ -3043,6 +3047,10 @@ export class GameScene extends Phaser.Scene {
           continue;
         }
         if(reached) {
+          if(enemy.type===2){
+            this.showHeavyImpact(enemy.sprite.x,enemy.sprite.y);
+            playSfx('explosion',{throttle:90,volumeScale:.64});
+          }
           this.removeEnemy(i);
           this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE *
             (this.mode==='wave1'?WAVE1_PACING.impactDamageMultiplier:1) *
@@ -6501,8 +6509,8 @@ export class GameScene extends Phaser.Scene {
     if(elapsed<6000)return;
     this.shield=this.shieldMax;
     this.shieldRebuildStartedAt=null;
-    this.hexShieldTransition='forming';
-    this.hexShieldTransitionAt=this.time.now-HEX_SHIELD_FORM_MS;
+    this.hexShieldTransition='active';
+    this.hexShieldTransitionAt=this.time.now;
     this.hexShieldFlashUntil=this.time.now+HEX_SHIELD_WHITE_FLASH_MS;
     playSfx('shieldReady',{throttle:250,volumeScale:.84});
   }
@@ -6542,7 +6550,7 @@ export class GameScene extends Phaser.Scene {
       // A malha cresce do chão à posição original, sem fornecer HP antes do fim.
       drawHexShieldDome(this.hexShieldGraphics,{
         cx:CANNON.x,cy:CANNON.y+10,shield:this.shieldMax,
-        maxShield:this.shieldMax,progress:t,mode:'forming',
+        maxShield:this.shieldMax,progress:t,mode:'forming',rebuild:true,
         now:this.time.now,flash:0,
       });
       return;
