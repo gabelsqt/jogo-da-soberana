@@ -108,13 +108,14 @@ function portrait(scene,option,index){
     scene.textures.get('ze-maria-expressions').has('neutro');
   const victorAtlas=id==='us'&&scene.textures.exists('victor-expressions')&&
     scene.textures.get('victor-expressions').has('neutro');
+  const mingdaAtlas=id==='cn'&&scene.textures.exists('mingda-expressions')&&scene.textures.get('mingda-expressions').has('neutro');
   const frame=scene.add.graphics();
   frame.fillStyle(0x101d2b,0.98).fillRoundedRect(-56,-67,112,143,6);
   frame.lineStyle(3,color,1).strokeRoundedRect(-56,-67,112,143,6);
-  const portraitKey=victorAtlas?'victor-expressions':zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':scene.textures.exists('leader-'+id+'-full-screen')?
+  const portraitKey=mingdaAtlas?'mingda-expressions':victorAtlas?'victor-expressions':zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':scene.textures.exists('leader-'+id+'-full-screen')?
     'leader-'+id+'-full-screen':'leader-'+id+'-full';
   const loaded=scene.textures.exists(portraitKey);
-  const image=loaded?scene.add.image(0,-10,portraitKey,(katiaAtlas||zeAtlas||victorAtlas)?'neutro':undefined).setDisplaySize(106,106):null;
+  const image=loaded?scene.add.image(0,-10,portraitKey,(katiaAtlas||zeAtlas||victorAtlas||mingdaAtlas)?'neutro':undefined).setDisplaySize(106,106):null;
   if(!image){
     frame.fillStyle(color,0.72).fillCircle(0,-27,23);
     frame.fillStyle(color,0.72).fillRoundedRect(-39,-3,78,36,14);
@@ -159,6 +160,9 @@ export class UpgradeScene extends Phaser.Scene {
     // Os retratos são arquivos opcionais: a silhueta provisória continua funcionando
     // quando o pacote de PNGs ainda não foi instalado localmente.
     // Atlas opcional da Kátia: volta ao retrato anterior caso o PNG ainda não esteja publicado.
+    this.load.atlas('mingda-expressions',
+      assetUrl('assets/lideres/mingda_mai_expressoes_4x4.png'),
+      assetUrl('assets/lideres/mingda_mai_expressoes_4x4.json'));
     this.load.atlas('nelson-expressions',
       assetUrl('assets/lideres/seu_nelson_expressoes_4x4.png'),
       assetUrl('assets/lideres/seu_nelson_expressoes_4x4.json'));
@@ -367,15 +371,16 @@ export class UpgradeScene extends Phaser.Scene {
       this.textures.get('ze-maria-expressions').has('neutro');
     const victorAtlas=id==='us'&&this.textures.exists('victor-expressions')&&
       this.textures.get('victor-expressions').has('neutro');
-    const key=nelsonAtlas?'nelson-expressions':victorAtlas?'victor-expressions':zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':id?(this.textures.exists('leader-'+id+'-full-screen')?
+    const mingdaAtlas=id==='cn'&&this.textures.exists('mingda-expressions')&&this.textures.get('mingda-expressions').has('neutro');
+    const key=mingdaAtlas?'mingda-expressions':nelsonAtlas?'nelson-expressions':victorAtlas?'victor-expressions':zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':id?(this.textures.exists('leader-'+id+'-full-screen')?
       'leader-'+id+'-full-screen':'leader-'+id+'-full'):null;
     const show=Boolean(key&&this.textures.exists(key));
-    this.botecoPortraitFrame.setStrokeStyle(2,id==='ru'?0xe3b94e:id==='br'?0x40d76b:id==='us'?0x329bff:COLOR.amber);
+    this.botecoPortraitFrame.setStrokeStyle(2,id==='ru'?0xe3b94e:id==='br'?0x40d76b:id==='us'?0x329bff:id==='cn'?0xed424e:COLOR.amber);
     this.botecoPortraitFrame.setVisible(show);
     this.botecoPortrait.setVisible(show);
     if(show)this.botecoPortrait
-      .setTexture(nelsonAtlas?'nelson-expressions':victorAtlas?'victor-expressions':zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':id==='br'&&this.textures.exists('leader-br-dialogue')
-        ?'leader-br-dialogue':key,(nelsonAtlas||katiaAtlas||zeAtlas||victorAtlas)?'neutro':undefined)
+      .setTexture(mingdaAtlas?'mingda-expressions':nelsonAtlas?'nelson-expressions':victorAtlas?'victor-expressions':zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':id==='br'&&this.textures.exists('leader-br-dialogue')
+        ?'leader-br-dialogue':key,(nelsonAtlas||katiaAtlas||zeAtlas||victorAtlas||mingdaAtlas)?'neutro':undefined)
       // setTexture preserva a escala do placeholder (boteco-dia, 960×540):
       // SEM setDisplaySize o retrato 128×128 aparece minúsculo.
       .setDisplaySize(174,174);
