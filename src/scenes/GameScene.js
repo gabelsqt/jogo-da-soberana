@@ -4539,28 +4539,36 @@ export class GameScene extends Phaser.Scene {
     this.mobileAimAngle=-Math.PI/2;
     this.mobileFire=false;
     this.mobileStickPointer=null;
-    const base=this.add.circle(100,435,68,0x1c4261,.20)
+    this.mobileFirePointer=null;
+    const base=this.add.circle(160,420,68,0x1c4261,.20)
       .setStrokeStyle(2,0xb5edff,.4).setDepth(290).setInteractive();
-    const knob=this.add.circle(100,435,27,0x8edfff,.33)
+    const knob=this.add.circle(160,420,27,0x8edfff,.33)
       .setStrokeStyle(2,0xffffff,.6).setDepth(291);
     const move=p=>{
-      const dx=p.x-100,dy=p.y-435,d=Math.hypot(dx,dy),f=Math.min(1,52/Math.max(1,d));
-      knob.setPosition(100+dx*f,435+dy*f);
+      const dx=p.x-160,dy=p.y-420,d=Math.hypot(dx,dy),f=Math.min(1,52/Math.max(1,d));
+      knob.setPosition(160+dx*f,420+dy*f);
       if(d>8)this.mobileAimAngle=Phaser.Math.Clamp(Math.atan2(dy,dx),
         -Math.PI+Math.PI/12,-Math.PI/12);
     };
     base.on('pointerdown',(p,_x,_y,e)=>{e?.stopPropagation();this.mobileStickPointer=p.id;move(p);});
     this.input.on('pointermove',p=>{if(p.id===this.mobileStickPointer)move(p);});
-    this.input.on('pointerup',p=>{if(p.id===this.mobileStickPointer){this.mobileStickPointer=null;knob.setPosition(100,435);}});
+    this.input.on('pointerup',p=>{if(p.id===this.mobileStickPointer){this.mobileStickPointer=null;knob.setPosition(160,420);}});
     const fire=this.add.circle(855,438,43,0x3bc2df,.24)
       .setStrokeStyle(2,0xbef5ff,.6).setDepth(290).setInteractive();
-    const label=this.add.text(855,438,'TIRO\nOFF',{fontFamily:'monospace',fontSize:'12px',
+    const label=this.add.text(855,438,'TIRO',{fontFamily:'monospace',fontSize:'12px',
       color:'#ffffff',align:'center'}).setOrigin(.5).setDepth(291);
-    fire.on('pointerdown',(_p,_x,_y,e)=>{
-      e?.stopPropagation();this.mobileFire=!this.mobileFire;
-      label.setText(this.mobileFire?'TIRO\nON':'TIRO\nOFF');
-      fire.setFillStyle(this.mobileFire?0x32d7aa:0x3bc2df,this.mobileFire?.38:.24);
+    const stopFire=p=>{
+      if(p.id!==this.mobileFirePointer)return;
+      this.mobileFirePointer=null;this.mobileFire=false;
+      fire.setFillStyle(0x3bc2df,.24);
+    };
+    fire.on('pointerdown',(p,_x,_y,e)=>{
+      e?.stopPropagation();this.mobileFirePointer=p.id;this.mobileFire=true;
+      fire.setFillStyle(0x32d7aa,.38);
     });
+    this.input.on('pointerup',stopFire);
+    this.input.on('gameout',()=>{this.mobileFirePointer=null;this.mobileFire=false;fire.setFillStyle(0x3bc2df,.24);});
+    this.events.once('shutdown',()=>{this.mobileFire=false;this.mobileFirePointer=null;});
     const special=this.add.circle(754,479,34,0xc383fc,.25)
       .setStrokeStyle(2,0xffddff,.6).setDepth(290).setInteractive();
     this.add.text(754,479,'ESP',{fontFamily:'monospace',fontSize:'12px',
