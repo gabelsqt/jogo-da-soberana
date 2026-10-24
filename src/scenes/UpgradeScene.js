@@ -159,6 +159,9 @@ export class UpgradeScene extends Phaser.Scene {
     // Os retratos são arquivos opcionais: a silhueta provisória continua funcionando
     // quando o pacote de PNGs ainda não foi instalado localmente.
     // Atlas opcional da Kátia: volta ao retrato anterior caso o PNG ainda não esteja publicado.
+    this.load.atlas('nelson-expressions',
+      assetUrl('assets/lideres/seu_nelson_expressoes_4x4.png'),
+      assetUrl('assets/lideres/seu_nelson_expressoes_4x4.json'));
     this.load.atlas('victor-expressions',
       assetUrl('assets/lideres/victor_mcdollar_expressoes_4x4.png'),
       assetUrl('assets/lideres/victor_mcdollar_expressoes_4x4.json'));
@@ -355,21 +358,24 @@ export class UpgradeScene extends Phaser.Scene {
     const leaders={...Object.fromEntries(Object.entries(REPRESENTATIVES).map(
       ([id,representative])=>[representative.name.toUpperCase(),id]))};
     const id=leaders[speaker.toUpperCase()];
+    const nelsonAtlas=speaker.toUpperCase()==='SEU NELSON'&&
+      this.textures.exists('nelson-expressions')&&
+      this.textures.get('nelson-expressions').has('neutro');
     const katiaAtlas=id==='ru'&&this.textures.exists('katia-expressions')&&
       this.textures.get('katia-expressions').has('neutro');
     const zeAtlas=id==='br'&&this.textures.exists('ze-maria-expressions')&&
       this.textures.get('ze-maria-expressions').has('neutro');
     const victorAtlas=id==='us'&&this.textures.exists('victor-expressions')&&
       this.textures.get('victor-expressions').has('neutro');
-    const key=victorAtlas?'victor-expressions':zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':id?(this.textures.exists('leader-'+id+'-full-screen')?
+    const key=nelsonAtlas?'nelson-expressions':victorAtlas?'victor-expressions':zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':id?(this.textures.exists('leader-'+id+'-full-screen')?
       'leader-'+id+'-full-screen':'leader-'+id+'-full'):null;
     const show=Boolean(key&&this.textures.exists(key));
     this.botecoPortraitFrame.setStrokeStyle(2,id==='ru'?0xe3b94e:id==='br'?0x40d76b:id==='us'?0x329bff:COLOR.amber);
     this.botecoPortraitFrame.setVisible(show);
     this.botecoPortrait.setVisible(show);
     if(show)this.botecoPortrait
-      .setTexture(victorAtlas?'victor-expressions':zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':id==='br'&&this.textures.exists('leader-br-dialogue')
-        ?'leader-br-dialogue':key,(katiaAtlas||zeAtlas)?'neutro':undefined)
+      .setTexture(nelsonAtlas?'nelson-expressions':victorAtlas?'victor-expressions':zeAtlas?'ze-maria-expressions':katiaAtlas?'katia-expressions':id==='br'&&this.textures.exists('leader-br-dialogue')
+        ?'leader-br-dialogue':key,(nelsonAtlas||katiaAtlas||zeAtlas||victorAtlas)?'neutro':undefined)
       // setTexture preserva a escala do placeholder (boteco-dia, 960×540):
       // SEM setDisplaySize o retrato 128×128 aparece minúsculo.
       .setDisplaySize(174,174);
