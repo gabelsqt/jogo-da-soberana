@@ -108,7 +108,7 @@ function portrait(scene,option,index){
   const portraitKey=scene.textures.exists('leader-'+id+'-full-screen')?
     'leader-'+id+'-full-screen':'leader-'+id+'-full';
   const loaded=scene.textures.exists(portraitKey);
-  const image=loaded?scene.add.image(0,-10,portraitKey).setDisplaySize(106,106):null;
+  const image=loaded?scene.add.image(0,-10,portraitKey,katiaAtlas?'neutro':undefined).setDisplaySize(106,106):null;
   if(!image){
     frame.fillStyle(color,0.72).fillCircle(0,-27,23);
     frame.fillStyle(color,0.72).fillRoundedRect(-39,-3,78,36,14);
@@ -152,6 +152,10 @@ export class UpgradeScene extends Phaser.Scene {
     this.load.image('boteco-dia',assetUrl('assets/cenario/boteco_dia.webp'));
     // Os retratos são arquivos opcionais: a silhueta provisória continua funcionando
     // quando o pacote de PNGs ainda não foi instalado localmente.
+    // Atlas opcional da Kátia: volta ao retrato anterior caso o PNG ainda não esteja publicado.
+    this.load.atlas('katia-expressions',
+      assetUrl('assets/lideres/katia_expressoes_4x4.png'),
+      assetUrl('assets/lideres/katia_expressoes_4x4.json'));
     for(const id of ['br','us','jp','ru','cn']){
       this.load.image('leader-'+id+'-full',assetUrl('assets/lideres/'+id+'_retrato.png'));
       this.load.image('leader-'+id+'-cutout',assetUrl('assets/lideres/'+id+'_personagem.png'));
@@ -339,14 +343,16 @@ export class UpgradeScene extends Phaser.Scene {
     const leaders={...Object.fromEntries(Object.entries(REPRESENTATIVES).map(
       ([id,representative])=>[representative.name.toUpperCase(),id]))};
     const id=leaders[speaker.toUpperCase()];
-    const key=id?(this.textures.exists('leader-'+id+'-full-screen')?
+    const katiaAtlas=id==='ru'&&this.textures.exists('katia-expressions')&&
+      this.textures.get('katia-expressions').has('neutro');
+    const key=katiaAtlas?'katia-expressions':id?(this.textures.exists('leader-'+id+'-full-screen')?
       'leader-'+id+'-full-screen':'leader-'+id+'-full'):null;
     const show=Boolean(key&&this.textures.exists(key));
     this.botecoPortraitFrame.setVisible(show);
     this.botecoPortrait.setVisible(show);
     if(show)this.botecoPortrait
-      .setTexture(id==='br'&&this.textures.exists('leader-br-dialogue')
-        ?'leader-br-dialogue':key)
+      .setTexture(katiaAtlas?'katia-expressions':id==='br'&&this.textures.exists('leader-br-dialogue')
+        ?'leader-br-dialogue':key,katiaAtlas?'neutro':undefined)
       // setTexture preserva a escala do placeholder (boteco-dia, 960×540):
       // SEM setDisplaySize o retrato 128×128 aparece minúsculo.
       .setDisplaySize(174,174);
