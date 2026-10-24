@@ -2,7 +2,7 @@ import {REPRESENTATIVES} from './representatives.js';
 // Falas curtas, não invasivas, escolhidas apenas entre países ainda aliados.
 export const BATTLE_BANTER=Object.freeze({
   br:{
-    start:['Bora, pessoal. Mais uma e a gente fecha a conta!', 'Tudo firme aí? Eu fico no rádio, chefe.'],
+    start:['Bora, General. Confere a mira que o canhão tá afinado!', 'Se o canhão fizer um barulho esquisito, me avisa pelo rádio.'],
     danger:['Opa! Essa nave não veio passear!', 'Cuidado com essa! Tá mirando na gente!'],
     health:['O canhão tá apanhando. Tem como segurar mais um pouco?', 'Segura essa defesa aí, chefe!'],
     module:['Boa! Uma peça a menos naquele trambolho!', 'Isso! Tá desmontando o negócio!'],
