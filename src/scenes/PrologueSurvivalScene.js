@@ -51,7 +51,7 @@ export class PrologueSurvivalScene extends Phaser.Scene{
       const slot=prologueSwarmSlot(i);
       const sprite=this.add.image(slot.entryX,slot.y,'prologue-invader-type1')
         .setDepth(19);
-      sprite.setScale(72/sprite.height); // Mesmo tamanho do Tipo 1 normal; proporção nativa.
+      sprite.setScale(72/sprite.height); // Escala uniforme: nunca esticar largura/altura separadamente.
       this.invaders.push({sprite,x:slot.entryX,y:slot.y,slot,seed:i,alive:true});
     }
     this.events.once('shutdown',()=>{this.invaders=[];this.shots=[];});
@@ -99,8 +99,11 @@ export class PrologueSurvivalScene extends Phaser.Scene{
         const advance=approach*approach*(3-2*approach);
         const formationX=invader.slot.entryX+(invader.slot.x-invader.slot.entryX)*ease;
         // A esquadrilha fecha o cerco ao canhão, sem tocar nele.
-        const targetX=W/2+(invader.seed%10-4.5)*33;
-        const targetY=345+Math.floor(invader.seed/10)*15;
+        // Avanço ameaçador em leque espaçado, evitando sobreposição que
+        // fazia os sprites parecerem deformados quando se aglomeravam.
+        const column=invader.seed%12,row=Math.floor(invader.seed/12);
+        const targetX=105+column*68;
+        const targetY=322+row*25;
         invader.x=Phaser.Math.Linear(formationX,targetX,advance);
         invader.y=Phaser.Math.Linear(invader.slot.y,targetY,advance)+Math.sin(this.elapsed*.0017+invader.seed)*2*(1-advance);
       }
