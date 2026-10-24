@@ -1,3 +1,9 @@
+## Revisão 0.914 — Grande Muro e especial touch
+
+- Grande Muro americano: raios S1–S4 ampliados de **60/79/101/125 px** para **85/110/140/175 px**, mantendo 120° de abertura e a mesma duração e recarga.
+- Mobile: o primeiro toque em ESP apenas prepara a habilidade; proteção de 180 ms impede que o mesmo evento/tap a dispare automaticamente. Toques sobre controles móveis também não contam como escolha de ponto no cenário. Segundo toque em ESP ou toque deliberado no cenário confirma o posicionamento.
+- Validar em celular o tamanho do arco, bordas da tela e seleção de ponto usando multitouch.
+
 ## Revisão 0.913 — Discoteca multiplicadora restaurada
 
 - Tiro principal da Coreia permanece um laser por disparo, com progressão de 1/2/4/7 saltos e retenção de 85% do dano a cada salto.
