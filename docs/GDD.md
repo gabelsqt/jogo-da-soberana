@@ -1,3 +1,9 @@
+## Revisão 0.922 — impactos Tipo 2 e sincronia da reconstrução
+
+- Tipo 2: ao completar mergulho ou investida tática, apresenta anel de explosão, faíscas e SFX antes de desaparecer; a chamada preexistente a `damageTarget` permanece em ambos os caminhos.
+- Regeneração do escudo: o arco externo avança durante todos os **6 segundos**, enquanto a malha preenche progressivamente. A piscada branca e a restauração do HP ocorrem assim que o desenho se completa, sem intervalo extra.
+- Pendente validação manual com inimigos Tipo 2 e com escudo rompido.
+
 ## Revisão 0.921 — reconstrução do escudo e efeitos nacionais
 
 - Escudo do canhão: quando chega a zero HP, inicia recomposição visual progressiva da cúpula ao longo de **6000 ms**. Durante a montagem, permanece sem HP funcional; ao fim, retorna à capacidade total e executa o clarão branco e o SFX de ativação usados no início da onda.
