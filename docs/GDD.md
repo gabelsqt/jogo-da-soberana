@@ -1512,3 +1512,12 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - A borda dourada expressa a identidade cromática nacional da Rússia e se distingue do uniforme roxo-escuro, das medalhas e dos demais personagens. A decisão é sobre **a moldura do retrato**, não recolorização do figurino ou alteração do conteúdo dos 16 quadros.
 - **Código:** `src/scenes/UpgradeScene.js` define a cor da borda na seleção e durante falas, preservando o fallback das imagens existentes. Foi corrigida também a variável local usada para carregar o atlas opcional da Kátia na seleção.
 - **Observação:** a integração visual completa das novas expressões ainda depende da publicação do PNG do atlas no repositório e de teste com o jogo em execução.
+
+
+## Zé Maria — expressões de retrato (24/10/2026; ARTE APROVADA)
+
+- Referência visual aprovada: mecânico brasileiro robusto, pele escura, cabelo afro curto, bigode grande curvado, macacão verde sobre camiseta clara, sorriso generoso e olhar geralmente tranquilo. Não usar óculos na cabeça, barba pontuda ou aparência militar.
+- Spritesheet: 16 expressões em grid 4×4; cada quadro 256×256 px, 16 px de margens/gutters, atlas total 1104×1104 px. Moldura verde.
+- O quadro 12 (aprovando, joinha) não deve ter tinta branca no dedo. Expressões: neutro, feliz, gargalhando, surpreso, preocupado, irritado, desconfiado, convencido, triste, assustado, determinado, aprovando, orgulhoso, envergonhado, pensativo, vitória.
+- Arquivos esperados: `public/assets/lideres/ze_maria_expressoes_4x4.png` e `.json`. `UpgradeScene.js` usa o novo atlas quando disponível e preserva o retrato legado como fallback.
+- Integração **parcial** até o PNG ser copiado para o repositório; as trocas automáticas de expressão por emoção do diálogo permanecem para etapa posterior.
