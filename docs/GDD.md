@@ -1,3 +1,9 @@
+## Revisão 0.909 — controles touch e onda 0.5
+
+- Analógico touch movido de (100, 435) para (160, 420) na tela lógica 960 × 540, oferecendo mais margem à esquerda.
+- Botão TIRO agora é **pressionar e segurar**: começa ao encostar e termina ao levantar o dedo ou sair da janela. Não é mais alternância ON/OFF.
+- Onda 0.5: invasores mantêm a proporção nativa e avançam em leque espaçado (12 colunas e 5 fileiras) para não se sobreporem de modo que pareçam deformados. Quando a luz do amanhecer começa, cada invasor recua de sua posição atual em direção aos portais enquanto o céu clareia progressivamente.
+
 ## Revisão 0.908 — Coreia ricocheteante e controles móveis
 
 - Coreia: tiro principal passa a ser **um projétil laser por disparo**, com corrente de ricochetes para o inimigo mais próximo até 150 px; mesmo alvo não pode repetir na corrente. Estágios P1–P4: 1/2/4/7 saltos, cada salto retém 85% do dano do anterior.
