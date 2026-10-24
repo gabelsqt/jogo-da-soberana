@@ -1,3 +1,10 @@
+## Revisão 0.911 — especial touch e layout móvel personalizável
+
+- **Especial touch com duas formas de ativação:** primeiro toque no botão ESP prepara a habilidade e marca o botão como ALVO. Em seguida, tocar num ponto do cenário dispara o especial naquela posição, ou tocar ESP novamente dispara na direção atual do analógico. A pontaria segue as regras de cada especial no código (inclusive limitações de distância/posicionamento).
+- **Controles reposicionáveis:** botão MOVER abre modo de edição; arrastar analógico, TIRO, ESP e pausa altera suas posições, e SALVAR encerra a edição. Coordenadas persistidas localmente no navegador por `localStorage`, com posições-padrão quando indisponível.
+- Durante a edição, os botões não ativam habilidades; o tiro em modo segurar continua sem disparo automático fora da área de toque.
+- A testar em aparelho: multitouch, sobreposição de controles, dimensão variável da tela e interação do toque no cenário com outros elementos interativos.
+
 ## Revisão 0.910 — pausa touch
 
 - Botão translúcido de pausa (Ⅱ) no canto superior direito da área lógica 960 × 540, posição (916, 40), independente do analógico e de TIRO/ESP.
