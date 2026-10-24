@@ -4665,16 +4665,7 @@ export class GameScene extends Phaser.Scene {
       fire.setFillStyle(0x3bc2df,.24);
       this.mobileStickPointer=null;knob.setPosition(layout.aim.x,layout.aim.y);
     });
-    // Após preparar o especial, tocar no cenário escolhe o ponto exato.
-    this.input.on('pointerdown',p=>{
-      if(!this.mobileSpecialArmed||this.mobileEditing)return;
-      // O mesmo toque que armou ESP não pode também lançá-lo.
-      if(this.time.now-(this.mobileSpecialArmedAt??0)<180)return;
-      // Toques nos controles não devem ser interpretados como posição de especial.
-      if(Object.values(layout).some(pos=>Math.hypot(p.x-pos.x,p.y-pos.y)<75))return;
-      if(p.x<0||p.x>W||p.y<0||p.y>H)return;
-      this.activateMobileSpecial({x:p.x,y:p.y});
-    });
+    // Touch no cenário não interfere na mira ou no especial: só analógico e ESP.
     this.activateMobileSpecial=target=>{
       if(!this.mobileSpecialArmed||this.mobileEditing)return;
       this.mobileSpecialArmed=false;
