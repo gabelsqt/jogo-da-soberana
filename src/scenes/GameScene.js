@@ -4533,6 +4533,7 @@ export class GameScene extends Phaser.Scene {
 
   createMobileControls(){
     if(!this.sys.game.device.input.touch)return;
+    this.input.addPointer(2); // analógico e botões simultâneos
     this.mobileAimAngle=-Math.PI/2;
     this.mobileFire=false;
     this.mobileStickPointer=null;
@@ -5895,8 +5896,35 @@ export class GameScene extends Phaser.Scene {
         const hit=hitDiscoGlobe(this.discoGlobes,previousX,previousY,
           bullet.sprite.x,bullet.sprite.y,this.elapsed,Math.max(7,bullet.usRadius||0));
         if(hit){
-          this.fireV1DiscoReflections(hit.globe.x,hit.globe.y,hit.globe.build,hit.globe);
-          remove=true;
+          if(bullet.koreanLaserBolt||bullet.koreanRicochet){
+            const candidates=this.enemies.filter(enemy=>enemy.sprite?.active!==false&&
+              !bullet.hitEnemyIds.has(enemy.uid)&&
+              Phaser.Math.Distance.Between(hit.globe.x,hit.globe.y,enemy.sprite.x,enemy.sprite.y)<=250);
+            candidates.sort((a,b)=>Phaser.Math.Distance.Between(hit.globe.x,hit.globe.y,a.sprite.x,a.sprite.y)-
+              Phaser.Math.Distance.Between(hit.globe.x,hit.globe.y,b.sprite.x,b.sprite.y));
+            if(candidates.length){
+              const target=candidates[0];
+              const angle=Math.atan2(target.sprite.y-hit.globe.y,target.sprite.x-hit.globe.x);
+              bullet.sprite.setPosition(hit.globe.x,hit.globe.y);
+              bullet.vx=Math.cos(angle)*this.combat.basicSpeed;
+              bullet.vy=Math.sin(angle)*this.combat.basicSpeed;
+              bullet.sprite.setRotation?.(angle+Math.PI/2);
+              bullet.koreanDiscoTarget=target.uid;
+              // Redirecionamento não gasta salto nem reduz o dano.
+              const arc=this.add.graphics().setDepth(49);
+              arc.lineStyle(2+Math.min(3,bullet.koreanVisualStage??1),0xbab0ff,.85);
+              arc.beginPath();arc.moveTo(hit.globe.x,hit.globe.y);
+              const mx=(hit.globe.x+target.sprite.x)/2;
+              const my=(hit.globe.y+target.sprite.y)/2-32;
+              arc.lineTo(mx,my);arc.lineTo(target.sprite.x,target.sprite.y);arc.strokePath();
+              this.tweens.add({targets:arc,alpha:0,duration:140+(bullet.koreanVisualStage??1)*65,
+                onComplete:()=>arc.destroy()});
+              remove=false;
+            }else remove=true;
+          }else{
+            this.fireV1DiscoReflections(hit.globe.x,hit.globe.y,hit.globe.build,hit.globe);
+            remove=true;
+          }
         }
       }
       // O jogador ALIMENTA o Arraial acertando o balão com o tiro principal.
@@ -6949,9 +6977,7 @@ export class GameScene extends Phaser.Scene {
         .setRotation(pose.rotation)
         .setPosition(pose.pivotX,pose.pivotY);
     }
-    if(this.isV1Campaign && this.combat.koreaContinuous)
-      this.drawEncoreContinuousBeam(this.aimAngle,
-        (this.mobileAimAngle!==undefined?this.mobileFire:pointer.leftButtonDown()) && !this.pointerOverEnemyLabControls(pointer));
+    // O laser coreano é um projétil único, nunca um feixe contínuo paralelo.
     const firing=(this.mobileAimAngle!==undefined?this.mobileFire:pointer.leftButtonDown())&&
       !this.pointerOverEnemyLabControls(pointer);
     const breathActive=this.isV1Campaign&&this.combat.russianFreezeMs>0&&
