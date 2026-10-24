@@ -1447,3 +1447,11 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 
 **Status:** planejamento aprovado. Não houve implementação de roteiro jogável, cutscene, elevador, sprites ou código.
 
+
+
+## Direção de arte — retratos e Victor McDollar (24/10/2026; APROVADO)
+
+- **Referência visual atual:** a última prancha conjunta de seis personagens aprovada pelo criador (Seu Nelson, Zé Maria, Victor McDollar, Kátia Strófika, Mingda Mai e Kim Lin Du). Preservar a pixel art de JRPG 16-bit/início PS1, pixels legíveis e nítidos, sombreamento controlado e consistência entre rostos, proporções, figurinos e expressões. Esta aprovação atual prevalece sobre testes de estilo anteriores incompatíveis.
+- **Ajuste global de paleta:** manter exatamente essa linguagem de pixel art, mas usar **cores ligeiramente mais vivas e variadas**, sem perder contraste, leitura nem a identidade cromática de cada país. Não transformar em pintura lisa, arte vetorial ou imagem suavizada.
+- **Victor McDollar — expressão canônica:** deve parecer **sempre extremamente satisfeito e autoconfiante**, com **sorriso largo mostrando dentes muito brancos**. O sorriso é característica visual permanente, inclusive nas variações emocionais; modular olhos e sobrancelhas sem convertê-lo num personagem habitualmente sisudo. Preservar cabelo louro volumoso, óculos escuros quando aplicáveis, terno azul-marinho, gravata vermelha, porte imponente e teatralidade.
+- **Aplicação:** seguir essas regras em novos retratos, spritesheets, apresentações de corpo inteiro, telas do Boteco e futuras variantes. Preservar as referências individuais aprovadas, sobretudo Zé Maria e Seu Nelson; não reintroduzir personagens removidos.
