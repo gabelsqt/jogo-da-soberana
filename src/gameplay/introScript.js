@@ -25,7 +25,13 @@ export function introductionSlides(){
     {
       kind:'news',id:'invasion',tag:'PLANTÃO EXTRAORDINÁRIO',
       headline:'INVASÃO ALIENÍGENA CONFIRMADA NO RIO DE JANEIRO',
-      body:'Naves desconhecidas aparecem sobre a cidade. O espaço aéreo foi fechado.',
+      body:'Naves saem da região do Cristo Redentor e atacam embarcações militares na Baía de Guanabara. Outros esquadrões avançam sobre a cidade.',
+      art:'invasion',
+    },
+    {
+      kind:'news',id:'carnaval',tag:'URGENTE • SAPUCAÍ',
+      headline:'DESFILE É ATACADO POR NAVES ALIENÍGENAS',
+      body:'Um desfile de Carnaval é atingido. Após a fumaça baixar, os integrantes aparecem cobertos de fuligem: apenas olhos brancos se abrem em silêncio.',
       art:'invasion',
     },
     {
