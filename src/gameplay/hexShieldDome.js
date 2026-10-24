@@ -9,7 +9,7 @@ export const HEX_SHIELD_CELLS_MS=950;
 export const HEX_SHIELD_FORM_MS=HEX_SHIELD_ARC_MS+HEX_SHIELD_CELLS_MS;
 export const HEX_SHIELD_COLLAPSE_MS=380;
 export const HEX_SHIELD_ARC_FRACTION=HEX_SHIELD_ARC_MS/HEX_SHIELD_FORM_MS;
-export const HEX_SHIELD_WHITE_FLASH_MS=840;
+export const HEX_SHIELD_WHITE_FLASH_MS=180;
 export const HEX_SHIELD_SWELL_MAX=.035; // +3.5%, só no desenho.
 export function hexShieldFlashScale(flash=0){
   // Um único movimento de expansão e contração durante o flash.

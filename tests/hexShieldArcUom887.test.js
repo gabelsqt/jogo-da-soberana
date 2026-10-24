@@ -87,7 +87,7 @@ test('o flash de conclusão clareia toda a malha apenas uma vez e há UOM própr
  drawHexShieldDome(white,{mode:'active',now:1700,flash:1});
  assert.ok(count(white,'fillCircle').length>count(blue,'fillCircle').length);
  assert.ok(count(white,'lineStyle').some(c=>c.args[1]===0xffffff));
- assert.equal(HEX_SHIELD_WHITE_FLASH_MS,840);
+ assert.equal(HEX_SHIELD_WHITE_FLASH_MS,180);
  assert.equal(SFX_FILES.shieldReady,'35_escudo_hexagonal_uom_grave.wav');
  assert.match(game,/this\.hexShieldFlashUntil=this\.time\.now\+HEX_SHIELD_WHITE_FLASH_MS/);
  assert.match(game,/if\(this\.shield>0\)playSfx\('shieldReady'/);

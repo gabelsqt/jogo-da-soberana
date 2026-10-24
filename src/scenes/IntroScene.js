@@ -78,7 +78,54 @@ export class IntroScene extends Phaser.Scene {
       this.stopTimers();
       this.clearSlide();
     });
-    this.show(0);
+    this.openLaptop();
+  }
+  drawApartment(){
+    // Apartamento simples, cuidado e habitado; manhã tranquila no Rio.
+    this.box(W/2,H/2,W,H,0xd3c4a4).setDepth(4);
+    this.box(W/2,434,W,170,0x8e745b).setDepth(5);
+    this.box(120,157,188,210,0x685c50).setDepth(5);
+    this.box(120,155,170,192,0xa9d7df).setDepth(6);
+    for(let i=0;i<5;i++){
+      this.box(48+i*34,215-i%3*16,28,74+i%3*32,0xb39478).setDepth(7);
+      for(let j=0;j<3;j++)this.box(48+i*34,192+j*20-i%3*16,9,11,0x625e5a).setDepth(8);
+    }
+    this.box(120,155,6,192,0x685c50).setDepth(9);
+    this.box(120,155,170,6,0x685c50).setDepth(9);
+    this.box(833,347,220,90,0x747f67).setDepth(6);
+    this.box(835,298,210,30,0x849075).setDepth(6);
+    this.box(480,478,716,34,0x855b3d).setDepth(10);
+    this.box(178,508,18,55,0x65452f).setDepth(10);
+    this.box(781,508,18,55,0x65452f).setDepth(10);
+    this.box(810,438,30,34,0xe9dfc8).setDepth(12);
+    this.label(26,18,'RIO DE JANEIRO • MAIS UMA MANHÃ COMUM',{
+      fontFamily:CUBO_FONT,fontSize:'12px',color:'#514638'},12);
+  }
+  openLaptop(){
+    this.phase='boot';this.drawApartment();
+    this.progressHint.setText('Uma manhã tranquila. O laptop está ligando…');
+    this.box(W/2,454,614,20,0x687178).setDepth(13);
+    const lid=this.box(W/2,443,580,350,0x252d35).setOrigin(.5,1).setDepth(14).setScale(1,.025);
+    this.tweens.add({targets:lid,scaleY:1,duration:1000,ease:'Sine.easeOut'});
+    this.segmentTimer=this.time.delayedCall(1100,()=>{
+      const boot=this.label(W/2,270,'INICIANDO…',{
+        fontFamily:CUBO_FONT,fontSize:'18px',color:'#a9d6df'},15).setOrigin(.5);
+      this.segmentTimer=this.time.delayedCall(1400,()=>this.show(0));
+    });
+  }
+  frameDevice(start,kind){
+    const contents=this.objects.splice(start);
+    const laptop=kind==='email';
+    const frame=this.keep(this.add.container(124,laptop?72:40,contents)
+      .setScale(.74).setDepth(20));
+    if(laptop){
+      this.box(W/2,456,670,18,0x687178).setDepth(21);
+      this.box(W/2,474,710,18,0x424c54).setDepth(21);
+    }else{
+      this.box(W/2,444,26,36,0x32383e).setDepth(19);
+      this.box(W/2,461,180,12,0x32383e).setDepth(19);
+      this.label(764,428,'●', {fontSize:'10px',color:'#87cf8e'},22);
+    }
   }
   keep(object){this.objects.push(object);return object;}
   stopTimers(){
@@ -118,14 +165,19 @@ export class IntroScene extends Phaser.Scene {
         }
         playSfx('introAlert',{throttle:300,volumeScale:0.78});
       }
+      this.drawApartment();
+      const start=this.objects.length;
       this.drawNews(slide);
+      this.frameDevice(start,'tv');
       this.phase='hold';
       this.holdTimer=this.time.delayedCall(INTRO_NEWS_HOLD_MS,()=>this.advance());
       return;
     }
     if(this.music.key==='news')this.music.stop();
-    if(slide.kind==='email')this.drawEmail(slide);
-    else this.drawEmail(slide);
+    this.drawApartment();
+    const start=this.objects.length;
+    this.drawEmail(slide);
+    this.frameDevice(start,'email');
     this.beginTyping(this.body,slide.body,'body');
   }
   drawEmail(slide){
@@ -297,7 +349,7 @@ export class IntroScene extends Phaser.Scene {
       fontSize:43,color:'#ff634d',stroke:'#542637',strokeThickness:3,
       amplitude:3.6,center:true,depth:31,
     });
-    this.promotionWave.glyphs.forEach(item=>this.keep(item));
+    this.promotionWave.glyphs.forEach(item=>this.body.parentContainer.add(item));
     this.promotionWave.setRevealed(Array.from(slide.promotion).length);
     playSfx('introNotice',{throttle:180,volumeScale:0.75});
     this.phase='footnotePending';

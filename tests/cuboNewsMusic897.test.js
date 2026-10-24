@@ -24,6 +24,7 @@ test('Cubo News toca apenas uma vez e sem loop nos plantões da introdução',()
     ],music,stopTimers(){},clearSlide(){},
     progressHint:{setText(){}},
     time:{delayedCall(){return {remove(){}};}},
+    objects:[],drawApartment(){},frameDevice(){},
     drawNews(){},drawEmail(){this.body={};},
     drawZeca(){},beginTyping(){},
   };

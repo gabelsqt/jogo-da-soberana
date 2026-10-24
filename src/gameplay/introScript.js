@@ -31,7 +31,7 @@ export function introductionSlides(){
     {
       kind:'news',id:'elections',tag:'ÚLTIMA HORA',
       headline:'ELEIÇÕES SÃO CANCELADAS EM TODO O PAÍS',
-      body:'A decisão ocorre em meio à invasão extraterrestre. A convocação dos mesários permanece em vigor.',
+      body:'As Forças Armadas foram destruídas. Os mesários convocados estão sendo alocados nas armas antiaéreas para defender as cidades.',
       art:'elections',
     },
     {

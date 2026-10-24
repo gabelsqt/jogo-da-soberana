@@ -6585,6 +6585,12 @@ export class GameScene extends Phaser.Scene {
           onComplete:()=>{
             beam.setVisible(true);beam.setDisplaySize(14,Math.max(1,CANNON.y-172));
             this.cameras.main.shake(450,0.013);
+            this.shield=0;
+            this.hexShieldFlashUntil=0;
+            this.hexShieldGraphics?.clear();
+            this.cannonDomeSprite?.setVisible(false);
+            shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
+            playSfx('shieldBreak',{throttle:450});
             impact.setVisible(true);
             this.tweens.add({targets:impact,scale:12,alpha:0,duration:620,
               onComplete:()=>{

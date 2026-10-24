@@ -1,3 +1,5 @@
+> Revisão 0.905 — abertura em apartamento simples de classe média baixa no Rio, em uma manhã tranquila: laptop abre e liga, e-mail de convocação; plantão na televisão informa que as Forças Armadas foram destruídas e os mesários estão sendo alocados nas armas antiaéreas. A antiga “onda 0.5” é a segunda parte contínua da onda 0, sem título ou cronômetro próprios. Após o Tipo 6, canhão fumegante sem escudo, disparos quase inoperantes e 60 Tipo 1 grandes em dois grupos de 30 no céu. Sprite destruído fica para revisão futura. Clarão branco do domo reduzido de 840 ms para 180 ms. Esta revisão prevalece sobre referências anteriores a 0.5/84 inimigos.
+
 # Game Soberana — GDD (decisões de identidade e Supremos)
 
 > Atualizado em 18/10/2026 — versão jogável **0.43**. Documento de design com decisões já implementadas e outras ainda em planejamento. A revisão russa (névoa criogênica, contágio e cooldown -25%) está implementada na v0.43; a tabela de upgrades atual fica em `src/gameplay/v1Upgrades.js`. Balanceamento e efeitos visuais dependem de playtest.

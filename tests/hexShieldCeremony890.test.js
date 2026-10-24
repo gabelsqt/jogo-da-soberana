@@ -70,7 +70,7 @@ test('a ponta tem 4 halos azuis e um rastro curto durante o ARCO, não nos hexá
 });
 
 test('flash branco + 500ms: expande no centro e retorna ao raio original',()=>{
-  assert.equal(HEX_SHIELD_WHITE_FLASH_MS,840);
+  assert.equal(HEX_SHIELD_WHITE_FLASH_MS,180);
   assert.equal(HEX_SHIELD_SWELL_MAX,.035);
   assert.ok(Math.abs(hexShieldFlashScale(1)-1)<1e-10);
   assert.ok(Math.abs(hexShieldFlashScale(.5)-1.035)<1e-10);
