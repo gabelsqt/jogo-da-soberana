@@ -100,12 +100,14 @@ function prepareZecaDialoguePortrait(scene){
 }
 
 function portrait(scene,option,index){
-  const color=option.locked?0x68737d:(option.color??0x668eac);
+  const color=option.locked?0x68737d:(option.id==='ru'?0xe3b94e:(option.color??0x668eac));
   const id=option.id;
+  const katiaAtlas=id==='ru'&&scene.textures.exists('katia-expressions')&&
+    scene.textures.get('katia-expressions').has('neutro');
   const frame=scene.add.graphics();
   frame.fillStyle(0x101d2b,0.98).fillRoundedRect(-56,-67,112,143,6);
   frame.lineStyle(3,color,1).strokeRoundedRect(-56,-67,112,143,6);
-  const portraitKey=scene.textures.exists('leader-'+id+'-full-screen')?
+  const portraitKey=katiaAtlas?'katia-expressions':scene.textures.exists('leader-'+id+'-full-screen')?
     'leader-'+id+'-full-screen':'leader-'+id+'-full';
   const loaded=scene.textures.exists(portraitKey);
   const image=loaded?scene.add.image(0,-10,portraitKey,katiaAtlas?'neutro':undefined).setDisplaySize(106,106):null;
@@ -348,6 +350,7 @@ export class UpgradeScene extends Phaser.Scene {
     const key=katiaAtlas?'katia-expressions':id?(this.textures.exists('leader-'+id+'-full-screen')?
       'leader-'+id+'-full-screen':'leader-'+id+'-full'):null;
     const show=Boolean(key&&this.textures.exists(key));
+    this.botecoPortraitFrame.setStrokeStyle(2,id==='ru'?0xe3b94e:COLOR.amber);
     this.botecoPortraitFrame.setVisible(show);
     this.botecoPortrait.setVisible(show);
     if(show)this.botecoPortrait
