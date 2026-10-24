@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
 import {cannonSpritePose,CANNON_BARREL_DISPLAY_SIZE} from '../gameplay/cannonSpriteAim.js';
 import {bindSceneMusic} from '../audio/music.js';
 import {assetUrl} from '../config/assetUrl.js';
@@ -20,6 +21,10 @@ export class PrologueSurvivalScene extends Phaser.Scene{
   }
   preload(){
     preloadRioBackdrop(this);
+    for(let i=0;i<DAWN_KEYS.length;i++){
+      if(!this.textures.exists(DAWN_KEYS[i]))
+        this.load.image(DAWN_KEYS[i],assetUrl('assets/cenario/amanhecer/'+DAWN_FILES[i]));
+    }
     this.load.image('prologue-cannon-base',assetUrl('assets/canhao/base.png'));
     this.load.image('prologue-cannon-head',assetUrl('assets/canhao/head_4.png'));
     this.load.image('prologue-cannon-barrel',assetUrl('assets/canhao/barrel_4.png'));
@@ -27,6 +32,11 @@ export class PrologueSurvivalScene extends Phaser.Scene{
   }
   create(){
     bindSceneMusic(this,'early');drawRioBackdrop(this);
+    // Usar a mesma sequência de quatro cenários do amanhecer das ondas.
+    // Camadas acima do fundo noturno e atrás de toda a ação.
+    this.dawnLayers=DAWN_KEYS.map(key=>this.textures.exists(key)
+      ?this.add.image(W/2,H/2,key).setDisplaySize(W,H).setDepth(0.5).setAlpha(0)
+      :null);
     this.add.text(W/2,H-18,'CANHÃO DESTRUÍDO • ESCUDO INOPERANTE',{
       fontFamily:'monospace',fontSize:'14px',color:'#ffd7b1',
       backgroundColor:'#111a31dd',padding:{x:12,y:4},
@@ -122,7 +132,13 @@ export class PrologueSurvivalScene extends Phaser.Scene{
     if(this.withdrawal){
       this.withdrawElapsed+=dt;
       const dawn=Math.min(1,this.withdrawElapsed/PROLOGUE_WITHDRAWAL_MS);
-      this.dawnOverlay.setAlpha(.08+.36*dawn);
+      if(this.dawnLayers.every(Boolean)){
+        const alphas=dawnLayerAlphas(PROLOGUE_WITHDRAWAL_MS-this.withdrawElapsed,
+          PROLOGUE_WITHDRAWAL_MS);
+        this.dawnLayers.forEach((layer,i)=>layer.setAlpha(alphas[i]));
+      }
+      // Colorização leve, sem esconder os cenários reais da transição.
+      this.dawnOverlay.setAlpha(.04+.10*dawn);
       this.dawnSun.setAlpha(.15+.7*dawn).setRadius(42+20*dawn);
       const g=this.portalGraphics;g.clear();
       for(const x of [210,750]){
