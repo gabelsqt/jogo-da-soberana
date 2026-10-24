@@ -4576,7 +4576,7 @@ export class GameScene extends Phaser.Scene {
       .setStrokeStyle(1,0xcdeeff,.55).setDepth(290).setInteractive().setVisible(false);
     const editLabel=this.add.text(848,40,'MOVER',{
       fontFamily:'monospace',fontSize:'12px',color:'#ffffff'
-    }).setOrigin(.5).setDepth(291);
+    }).setOrigin(.5).setDepth(291).setVisible(false);
     const objects={aim:[base,knob],fire:[fire,fireLabel],
       special:[special,specialLabel],pause:[pause,pauseLabel]};
     const setPosition=(key,x,y)=>{
