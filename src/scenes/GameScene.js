@@ -5803,7 +5803,7 @@ export class GameScene extends Phaser.Scene {
     // O balão é um ALVO do jogador, não uma sequência automática de fogos.
     const graphics = this.add.graphics().setDepth(39);
     this.arraialNuclei.push({
-      x,y,graphics,bornAt:this.time.now,bursts:0,
+      x,y,graphics,bornAt:this.time.now,bursts:0,lastDrawAt:-Infinity,
       // Upgrades pares brasileiros ampliam a região, não a força de cada rojão.
       radius:this.modernMathEnabled?(this.labExtra?.brBalloonRadius??ARRAIAL.orbitRadius):
         ARRAIAL.orbitRadius+10*Math.max(0,(this.specialBuild?.stages?.br??1)-1),
@@ -5846,7 +5846,11 @@ export class GameScene extends Phaser.Scene {
         this.labExtra.brElectricDamage,'#fffab2');
     }
     playSfx('brFireworkBurst',{throttle:95,volumeScale:0.50});
-    if(this.arraialBurstVisuals>=ARRAIAL.maxBurstVisuals)return;
+    // Telefone: orçamento visual baixo; explosões e dano acontecem acima.
+    const mobileFx=this.sys.game.device.input.touch;
+    if(mobileFx && this.time.now-(this.lastMobileFireworkFxAt??-Infinity)<120)return;
+    if(mobileFx)this.lastMobileFireworkFxAt=this.time.now;
+    if(this.arraialBurstVisuals >= (mobileFx?4:ARRAIAL.maxBurstVisuals))return;
     this.arraialBurstVisuals++;
     const gfx=this.add.graphics().setPosition(x,y).setDepth(46);
     const palette=stage.palette;
@@ -5900,12 +5904,14 @@ export class GameScene extends Phaser.Scene {
           x:centerX+(p.x-phrase.width/2)*scale,
           y:centerY+(p.y-phrase.height/2)*scale,
         }));
+        const mobileFx=this.sys.game.device.input.touch;
         const phraseGfx=this.add.graphics().setDepth(110);
         const phraseColors=arraialStage(n.bursts).palette;
         const drawPhrase=(scatter=0,fade=1)=>{
           if(!phraseGfx.active)return;
           phraseGfx.clear();
           coords.forEach((p,k)=>{
+            if(mobileFx && k%3!==0)return; // só simplifica a representação gráfica
             const a=k*2.39996;
             const x=p.x+Math.cos(a)*scatter*(0.5+k%4/5);
             const y=p.y+Math.sin(a)*scatter*(0.5+k%5/6);
@@ -5937,11 +5943,11 @@ export class GameScene extends Phaser.Scene {
             }else this.showEnemyBulletHit(b);
           }
           let frame=0;
-          const timer=this.time.addEvent({delay:35,repeat:8,callback:()=>{
+          const timer=this.time.addEvent({delay:mobileFx?90:35,repeat:mobileFx?3:8,callback:()=>{
             frame++;
             if(!phraseGfx.active)return;
-            drawPhrase(frame*3,Math.max(0,1-frame/9));
-            if(frame>=9)phraseGfx.destroy();
+            drawPhrase(frame*(mobileFx?8:3),Math.max(0,1-frame/(mobileFx?4:9)));
+            if(frame>=(mobileFx?4:9))phraseGfx.destroy();
           }});
         });
         // Clarão final mais expressivo, também ancorado no balão sem escala.
@@ -5959,7 +5965,7 @@ export class GameScene extends Phaser.Scene {
             finale.lineStyle(4,shades[ring],fade);
             finale.strokeCircle(0,0,radius*(0.5+ring*0.24));
           }
-          for(let k=0;k<20;k++){
+          for(let k=0;k<(mobileFx?8:20);k++){
             const angle=k*Math.PI/10;
             finale.lineStyle(3,shades[k%shades.length],fade);
             finale.lineBetween(Math.cos(angle)*radius*0.35,Math.sin(angle)*radius*0.35,
@@ -5967,7 +5973,7 @@ export class GameScene extends Phaser.Scene {
           }
         };
         paintFinal();
-        this.time.addEvent({delay:32,repeat:22,callback:()=>{
+        this.time.addEvent({delay:mobileFx?85:32,repeat:mobileFx?8:22,callback:()=>{
           if(!finale.active)return;
           if(this.time.now-startFinal>=680){finale.destroy();return;}
           paintFinal();
@@ -5975,6 +5981,8 @@ export class GameScene extends Phaser.Scene {
         n.graphics.destroy(); this.arraialNuclei.splice(i,1);
         continue;
       }
+      if(this.sys.game.device.input.touch && age-n.lastDrawAt<70)continue;
+      n.lastDrawAt=age;
       const g=n.graphics;g.clear();
       // O círculo visível marca onde as pequenas explosões podem nascer.
       const pulse=0.6+0.4*Math.sin(age*0.008);
