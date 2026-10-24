@@ -1,3 +1,9 @@
+## Revisão 0.916 — amanhecer com troca de cenários na onda 0.5
+
+- O prólogo de sobrevivência (onda 0.5) passa a carregar as mesmas quatro imagens `01_pre_amanhecer.png`, `02_noite_azul.png`, `03_nascer_sol.png`, `04_dia_claro.png` usadas no restante das ondas.
+- Ao iniciar a retirada dos invasores, a transição entre os quatro cenários ocorre em sequência durante `PROLOGUE_WITHDRAWAL_MS`; o overlay laranja fica mais discreto e não substitui a mudança real do fundo.
+- A retirada alienígena continua sincronizada ao amanhecer. Teste visual em jogo pendente.
+
 ## Revisão 0.915 — mira exclusiva pelo analógico e Grande Muro ampliado
 
 - No celular, tocar no cenário deixa de selecionar posição do especial. A direção é determinada exclusivamente pelo analógico virtual; ESP no primeiro toque arma e no segundo lança. Mouse no desktop permanece inalterado.
