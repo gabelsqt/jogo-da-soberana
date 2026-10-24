@@ -1432,7 +1432,6 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 
 **Pendências de criação, não decisões adicionais:** roteirizar as cenas de apresentação individuais e a progressão das cenas coletivas onda a onda; ajustar duração, transições, posicionamento dos retratos de corpo inteiro e convivência com a UX do Boteco já existente. **Nenhum sprite, diálogo jogável ou código foi implementado por este registro.**
 
-
 ## Nova abertura — condução do protagonista ao canhão via Boteco (24/10/2026; APROVADO, SOMENTE PLANEJAMENTO)
 
 > **Precedência narrativa:** esta decisão do criador define a ordem espacial e dramática imediatamente anterior à onda 0. Substitui versões anteriores incompatíveis nas quais o jogador chega diretamente ao canhão ou visita o Boteco somente depois da primeira batalha. Não altera automaticamente as mecânicas, o balanceamento ou o código.
@@ -1447,3 +1446,4 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 **Compatibilidade com decisões anteriores:** a abertura em apartamento simples no Rio, o laptop e e-mail de convocação e as notícias de TV podem anteceder a busca do representante do governo. A sequência específica deve ser ajustada no roteiro, sem eliminar esses elementos por inferência. As cenas individuais de apresentação com retratos de corpo inteiro e as negociações permanecem planejadas para visitas adequadas ao Boteco, não necessariamente para essa breve passagem inicial. O que acontece depois da onda 0 (inclusive reparos/onda 0.5 conforme versões canônicas) não é alterado nesta decisão.
 
 **Status:** planejamento aprovado. Não houve implementação de roteiro jogável, cutscene, elevador, sprites ou código.
+
