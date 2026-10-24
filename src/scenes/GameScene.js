@@ -4547,6 +4547,8 @@ export class GameScene extends Phaser.Scene {
     this.mobileAimAngle=-Math.PI/2;
     this.mobileFire=false;
     this.mobileSpecialArmed=false;
+    this.mobileSpecialPointer=null;
+    this.mobileSpecialStart=0;
     this.mobileEditing=false;
     this.mobileStickPointer=null;
     this.mobileFirePointer=null;
@@ -4613,34 +4615,50 @@ export class GameScene extends Phaser.Scene {
       this.mobileFirePointer=p.id;this.mobileFire=true;
       fire.setFillStyle(0x32d7aa,.38);
     });
+    const SPECIAL_NEAR=95,SPECIAL_FAR=440,SPECIAL_CHARGE_MS=1300;
+    const chargeDistance=()=>SPECIAL_NEAR+(SPECIAL_FAR-SPECIAL_NEAR)*
+      Phaser.Math.Clamp((this.time.now-this.mobileSpecialStart)/SPECIAL_CHARGE_MS,0,1);
+    const chargedTarget=()=>({
+      x:CANNON.x+Math.cos(this.mobileAimAngle)*chargeDistance(),
+      y:CANNON.y+Math.sin(this.mobileAimAngle)*chargeDistance()
+    });
+    this.mobileSpecialPreview=this.add.graphics().setDepth(285);
+    const resetSpecial=()=>{
+      this.mobileSpecialPointer=null;this.mobileSpecialArmed=false;
+      special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
+      this.mobileSpecialPreview.clear();
+    };
     special.on('pointerdown',(p,_x,_y,e)=>{
       e?.stopPropagation();
       if(this.mobileEditing){editDrag('special',p);return;}
-      if(!this.mobileSpecialArmed){
-        this.mobileSpecialArmedAt=this.time.now;
-        this.mobileSpecialArmed=true;
-        special.setFillStyle(0xf0a6ff,.48);
-        specialLabel.setText('ALVO');
-      }else{
-        this.activateMobileSpecial({
-          x:CANNON.x+Math.cos(this.mobileAimAngle)*450,
-          y:CANNON.y+Math.sin(this.mobileAimAngle)*450
-        });
-      }
+      if(this.mobileSpecialPointer!==null)return;
+      this.mobileSpecialPointer=p.id;this.mobileSpecialStart=this.time.now;
+      this.mobileSpecialArmed=true;
+      special.setFillStyle(0xf0a6ff,.48);specialLabel.setText('0%');
+    });
+    this.events.on('update',()=>{
+      if(this.mobileSpecialPointer===null||this.mobileEditing)return;
+      const target=chargedTarget(),g=this.mobileSpecialPreview;
+      g.clear();
+      g.lineStyle(2,0xf3b8ff,.66);
+      g.lineBetween(CANNON.x,CANNON.y,target.x,target.y);
+      g.fillStyle(0xdd99ff,.13);g.fillCircle(target.x,target.y,18);
+      g.lineStyle(2,0xffdcff,.88);g.strokeCircle(target.x,target.y,18);
+      specialLabel.setText(Math.round(100*Phaser.Math.Clamp(
+        (this.time.now-this.mobileSpecialStart)/SPECIAL_CHARGE_MS,0,1))+'%');
     });
     pause.on('pointerdown',(p,_x,_y,e)=>{
       e?.stopPropagation();
       if(this.mobileEditing){editDrag('pause',p);return;}
       this.mobileFire=false;this.mobileFirePointer=null;
       fire.setFillStyle(0x3bc2df,.24);
-      this.mobileSpecialArmed=false;special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
+      resetSpecial();
       this.pauseGame();
     });
     this.setMobileControlEditing=enabled=>{
       this.mobileEditing=Boolean(enabled);
       this.mobileFire=false;this.mobileFirePointer=null;
-      this.mobileSpecialArmed=false;
-      special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
+      resetSpecial();
       fire.setFillStyle(0x3bc2df,.24);
       if(!enabled)save();
     };
@@ -4648,7 +4666,7 @@ export class GameScene extends Phaser.Scene {
       e?.stopPropagation();
       this.mobileEditing=!this.mobileEditing;
       this.mobileFire=false;this.mobileFirePointer=null;
-      this.mobileSpecialArmed=false;special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
+      resetSpecial();
       fire.setFillStyle(0x3bc2df,.24);
       editLabel.setText(this.mobileEditing?'SALVAR':'MOVER');
       edit.setFillStyle(this.mobileEditing?0x318b8d:0x183b57,this.mobileEditing?.55:.36);
@@ -4660,6 +4678,10 @@ export class GameScene extends Phaser.Scene {
       }else if(this.mobileStickPointer===p.id)moveStick(p);
     });
     this.input.on('pointerup',p=>{
+      if(this.mobileSpecialPointer===p.id){
+        const target=chargedTarget();resetSpecial();
+        if(!this.mobileEditing)this.shootSpecial(target);
+      }
       if(this.mobileDrag?.id===p.id){this.mobileDrag=null;save();}
       if(this.mobileStickPointer===p.id){
         this.mobileStickPointer=null;knob.setPosition(layout.aim.x,layout.aim.y);
@@ -4669,17 +4691,11 @@ export class GameScene extends Phaser.Scene {
       }
     });
     this.input.on('gameout',()=>{
+      resetSpecial();
       this.mobileFire=false;this.mobileFirePointer=null;
       fire.setFillStyle(0x3bc2df,.24);
       this.mobileStickPointer=null;knob.setPosition(layout.aim.x,layout.aim.y);
     });
-    // Touch no cenário não interfere na mira ou no especial: só analógico e ESP.
-    this.activateMobileSpecial=target=>{
-      if(!this.mobileSpecialArmed||this.mobileEditing)return;
-      this.mobileSpecialArmed=false;
-      special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
-      this.shootSpecial(target);
-    };
     this.events.once('shutdown',()=>{
       this.mobileFire=false;this.mobileFirePointer=null;save();
     });
