@@ -1,3 +1,13 @@
+## Revisão 0.923 — Panda Express: especial chinês (primeiro protótipo jogável)
+
+- Substitui o antigo modo experimental de concentração da China quando o especial principal é chinês: drone com corpo vermelho, rosto de panda e dois braços magnéticos.
+- Um único drone por vez; pressionar ESP novamente reposiciona o drone em 500 ms com aceleração/desaceleração suaves; ele carrega a munição consigo e continua capturando no voo.
+- Raio de captura S1–S4: **100/130/160/200 px**; capacidade: **8/14/22/32 projéteis**. Os projéteis físicos são removidos temporariamente da lista ativa e orbitam individualmente o drone, preservando as instâncias e suas propriedades (dano, divisão e aparência).
+- Ao completar a capacidade, o drone espera alvos válidos, então dispara automaticamente, um tiro a cada **75/60/45/30 ms**, em direção aos inimigos mais próximos do canhão. Para de capturar durante a descarga; projéteis dirigidos buscam novo alvo quando o alvo anterior deixa de existir.
+- Após a descarga, drone desaparece. Na conclusão normal da onda, drone e munição restante são removidos com efeito de fogos coloridos.
+- A cena limpa o drone no shutdown. O protótipo utiliza Phaser Graphics; os sprites definitivos do panda ainda não foram gerados.
+- **Pendente:** teste real de build e balanceamento da captura/descarga, inclusão de feedback de espera sem inimigos, refinamento visual da espiral e dos fogos e verificação nas variantes de campanha/laboratório.
+
 ## Revisão 0.922 — impactos Tipo 2 e sincronia da reconstrução
 
 - Tipo 2: ao completar mergulho ou investida tática, apresenta anel de explosão, faíscas e SFX antes de desaparecer; a chamada preexistente a `damageTarget` permanece em ambos os caminhos.
