@@ -652,6 +652,7 @@ export class GameScene extends Phaser.Scene {
     this.cannonHealth = 100;
     this.shieldMax = 80; // v0.49: escudo padrão, nenhuma melhoria de país altera HP.
     this.shield = this.shieldMax;
+    this.shieldRebuildStartedAt=null;
     this.lastDamageAt = -10000;
     this.aimAngle = -Math.PI / 2;
 
@@ -2593,6 +2594,29 @@ export class GameScene extends Phaser.Scene {
         enemy.sprite.x += oldWallPush.x;
         enemy.sprite.y += oldWallPush.y;
         this.blockEnemyWithAmericanWall(enemy,worldFromX,worldFromY);
+        // Flocos hexagonais crescem em detalhes conforme os upgrades russos.
+        const crystalLevel=Math.max(1,Math.min(4,Math.ceil(
+          (this.specialBuild?.levels?.ru??this.labExtra?.ruPrimaryLevel??2)/2)));
+        const fx=enemy.sprite.x,fy=enemy.sprite.y;
+        const radius=this.enemyCombatRadius(enemy)+12;
+        const frost=this.frostGraphics,rotation=this.elapsed*.00032;
+        for(let arm=0;arm<6;arm++){
+          const a=rotation+arm*Math.PI/3;
+          const dx=Math.cos(a),dy=Math.sin(a);
+          frost.lineStyle(crystalLevel>=4?3:2,0x76dfff,.66);
+          frost.lineBetween(fx+dx*5,fy+dy*5,fx+dx*radius,fy+dy*radius);
+          frost.lineStyle(1.5,0xe7ffff,.91);
+          frost.lineBetween(fx+dx*10,fy+dy*10,fx+dx*(radius-2),fy+dy*(radius-2));
+          for(let branch=0;branch<crystalLevel;branch++){
+            const dist=radius*(.37+branch*.12),len=5+crystalLevel*1.5;
+            const px=fx+dx*dist,py=fy+dy*dist;
+            for(const sign of [-1,1]){
+              const ba=a+Math.PI-sign*Math.PI/3;
+              frost.lineStyle(1.5,branch%2?0xa2edff:0xffffff,.8);
+              frost.lineBetween(px,py,px+Math.cos(ba)*len,py+Math.sin(ba)*len);
+            }
+          }
+        }
         this.frostGraphics.lineStyle(3,0x93ebff,0.85);
         this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy)+8);
         this.frostGraphics.lineStyle(1,0xe2ffff,0.72);
@@ -6283,15 +6307,22 @@ export class GameScene extends Phaser.Scene {
               bullet.koreanRicochet=true;
               const flash=this.add.graphics().setDepth(48);
               const stage=bullet.koreanVisualStage??1;
-              flash.lineStyle(1+stage,stage>=4?0x85e9ff:0xce8aff,.65);
+              // Três camadas luminosas sobre uma curva real amostrada.
+              const color=stage>=4?[0xff75c6,0x78efff,0xb68dff][
+                Math.floor(this.time.now/110)%3]:0xb775ff;
               const startX=deathPosition.x,startY=deathPosition.y;
               const endX=next.sprite.x,endY=next.sprite.y;
               const curveX=(startX+endX)/2,curveY=(startY+endY)/2-12-stage*4;
-              flash.beginPath();flash.moveTo(startX,startY);
-              flash.lineTo((startX+curveX)/2,(startY+curveY)/2);
-              flash.lineTo(curveX,curveY);
-              flash.lineTo((curveX+endX)/2,(curveY+endY)/2);
-              flash.lineTo(endX,endY);flash.strokePath();
+              const points=[];
+              for(let part=0;part<=18;part++){
+                const t=part/18,u=1-t;
+                points.push({x:u*u*startX+2*u*t*curveX+t*t*endX,
+                  y:u*u*startY+2*u*t*curveY+t*t*endY});
+              }
+              for(const [width,tint,alpha] of [[12,color,.18],[6,color,.53],[2,0xffffff,.96]]){
+                flash.lineStyle(width,tint,alpha);
+                flash.strokePoints(points,false);
+              }
               this.tweens.add({targets:flash,alpha:0,duration:120+(bullet.koreanVisualStage??1)*60,
                 onComplete:()=>flash.destroy()});
               remove=false;
@@ -6335,15 +6366,19 @@ export class GameScene extends Phaser.Scene {
     if (this.mode === 'upgradeLab' || this.mode === 'lab') {
       // Laboratórios: escudo ainda pode sofrer dano, mas o teste não termina.
       this.shield = Math.max(0, this.shield - amount);
-      if(oldShield>0&&this.shield<=0)
+      if(oldShield>0&&this.shield<=0){
         shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
+        this.shieldRebuildStartedAt=this.time.now;
+      }
       this.cannonHealth = 100;
       return;
     }
     const result = applyShieldedHit(this.shield, this.cannonHealth, amount);
     this.shield = result.shield;
-    if(oldShield>0&&this.shield<=0)
+    if(oldShield>0&&this.shield<=0){
       shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
+      this.shieldRebuildStartedAt=this.time.now;
+    }
     this.cannonHealth = result.health;
     if (this.cannonHealth === 0) this.showDefeat();
   }
@@ -6459,7 +6494,21 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  updateShieldRebuild() {
+    if(this.shieldRebuildStartedAt===null||this.shieldRebuildStartedAt===undefined)return;
+    if(this.countdownActive||this.tutorialComplete)return;
+    const elapsed=this.time.now-this.shieldRebuildStartedAt;
+    if(elapsed<6000)return;
+    this.shield=this.shieldMax;
+    this.shieldRebuildStartedAt=null;
+    this.hexShieldTransition='forming';
+    this.hexShieldTransitionAt=this.time.now-HEX_SHIELD_FORM_MS;
+    this.hexShieldFlashUntil=this.time.now+HEX_SHIELD_WHITE_FLASH_MS;
+    playSfx('shieldReady',{throttle:250,volumeScale:.84});
+  }
+
   drawShield() {
+    this.updateShieldRebuild();
     // Malha holográfica não precisa recalcular dezenas de hexágonos 60×/s.
     // Máximo 30 FPS visuais; ataques e colisões seguem na taxa normal.
     if(this.hexShieldTransition==='active' &&
@@ -6487,6 +6536,16 @@ export class GameScene extends Phaser.Scene {
         this.hexShieldFlashUntil=this.time.now+HEX_SHIELD_WHITE_FLASH_MS;
         if(this.shield>0)playSfx('shieldReady',{throttle:250,volumeScale:.84});
       }
+    }
+    if(this.shieldRebuildStartedAt!==null&&this.shieldRebuildStartedAt!==undefined){
+      const t=Phaser.Math.Clamp((this.time.now-this.shieldRebuildStartedAt)/6000,0,1);
+      // A malha cresce do chão à posição original, sem fornecer HP antes do fim.
+      drawHexShieldDome(this.hexShieldGraphics,{
+        cx:CANNON.x,cy:CANNON.y+10,shield:this.shieldMax,
+        maxShield:this.shieldMax,progress:t,mode:'forming',
+        now:this.time.now,flash:0,
+      });
+      return;
     }
     drawHexShieldDome(this.hexShieldGraphics,{
       cx:CANNON.x,cy:CANNON.y+10,shield:this.shield,maxShield:this.shieldMax,
