@@ -296,20 +296,20 @@ export class UpgradeScene extends Phaser.Scene {
   showBotecoDialogue(){
     const first=this.completedWave===0;
     this.botecoPages=first?[
-      ['SEU ANSELMO','Pode sentar. Esse elevador de carga é velho, mas funciona.'],
+      ['SEU NELSON','Pode sentar. Esse elevador de carga é velho, mas funciona.'],
       ['ZÉ MARIA','Os representantes estrangeiros já estavam esperando. Mas eu também tenho minhas peças.'],
       ['ZÉ MARIA','Primeiro conserto: escolha o TIRO PRINCIPAL. Depois eu instalo e testo.'],
     ]:this.phase==='special'?[
-      ['SEU ANSELMO','Mais uma noite. A mesa é a mesma, o mundo lá fora nem tanto.'],
+      ['SEU NELSON','Mais uma noite. A mesa é a mesma, o mundo lá fora nem tanto.'],
       ['ZÉ MARIA','O principal está funcionando. Falta escolher o TIRO ESPECIAL.'],
       ['ZÉ MARIA','Pode ser o mesmo país. O botão direito funciona a partir da onda 2.'],
     ]:this.completedWave>=8?[
-      ['SEU ANSELMO','Uma vez, nos anos oitenta, já vi o céu ficar assim.'],
+      ['SEU NELSON','Uma vez, nos anos oitenta, já vi o céu ficar assim.'],
       ['ZÉ MARIA','Anselmo, você nunca me falou disso.'],
-      ['SEU ANSELMO','Pois é. Melhor pedir mais uma rodada.'],
+      ['SEU NELSON','Pois é. Melhor pedir mais uma rodada.'],
       ['ZÉ MARIA','Escolha o país e o destino: PRINCIPAL [P] ou ESPECIAL [S].'],
     ]:[
-      ['SEU ANSELMO','O boteco fica embaixo do obuseiro. De cima para cá, só pelo elevador de carga.'],
+      ['SEU NELSON','O boteco fica embaixo do canhão. De cima para cá, só pelo elevador de carga.'],
       ['ZÉ MARIA','Agora a gente melhora o PRINCIPAL [P] ou o ESPECIAL [S].'],
       ['ZÉ MARIA','Cada país tem quatro etapas para cada arma. Você escolhe a ordem.'],
     ];
