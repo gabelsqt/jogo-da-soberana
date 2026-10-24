@@ -4,7 +4,7 @@ export const PROLOGUE_SURVIVAL_MS=15000;
 export const PROLOGUE_SWARM_COUNT=60;
 export const PROLOGUE_CANNON={
   strong:{damage:12,intervalMs:65,enemyCanAttack:false},
-  damaged:{damage:.18,intervalMs:9000,enemyCanAttack:false},
+  damaged:{damage:0,intervalMs:2100,enemyCanAttack:false},
 };
 export const REPAIR_STAGES=Object.freeze({
   arrival:['O GENERAL CHAMA SEU ANTIGO MECÂNICO',
