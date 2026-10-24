@@ -1431,3 +1431,19 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 6. **Frequência das interações:** além das negociações, haverá **uma cena coletiva após cada onda**, com diálogos e composição adequados ao ritmo. Essas cenas podem ser curtas, mesmo que o volume total de diálogos seja maior. A opção de poucas cenas extras não é a escolhida.
 
 **Pendências de criação, não decisões adicionais:** roteirizar as cenas de apresentação individuais e a progressão das cenas coletivas onda a onda; ajustar duração, transições, posicionamento dos retratos de corpo inteiro e convivência com a UX do Boteco já existente. **Nenhum sprite, diálogo jogável ou código foi implementado por este registro.**
+
+
+## Nova abertura — condução do protagonista ao canhão via Boteco (24/10/2026; APROVADO, SOMENTE PLANEJAMENTO)
+
+> **Precedência narrativa:** esta decisão do criador define a ordem espacial e dramática imediatamente anterior à onda 0. Substitui versões anteriores incompatíveis nas quais o jogador chega diretamente ao canhão ou visita o Boteco somente depois da primeira batalha. Não altera automaticamente as mecânicas, o balanceamento ou o código.
+
+1. **Convocação e busca:** no começo da história, **alguém do governo vai buscar pessoalmente o protagonista**, para conduzi-lo ao posto de defesa. Sua identidade, cargo, veículo e falas ainda estão em aberto.
+2. **Destino real:** o ponto de acesso ao canhão é **o Boteco do Seu Nelson**, e não uma base militar convencional. O protagonista é levado até lá pelo representante do governo.
+3. **Chegada ao Boteco:** a primeira entrada no estabelecimento ocorre antes da primeira batalha. **Seu Nelson** é o dono do local; o encontro inicial pode ser breve, sem transformar a chegada numa rodada de upgrades ou nas apresentações completas dos representantes estrangeiros.
+4. **Elevador:** depois da chegada, **o protagonista sobe pelo elevador do Boteco até a posição do canhão**.
+5. **Revelação do canhão:** ao sair do elevador, o jogador vê o **canhão** e sua posição defensiva pela primeira vez.
+6. **Início da ação:** **só então começa a onda 0**, com a transição e contagem em ordem correta; não permitir que inimigos apareçam ou o jogador dispare antes do começo efetivo da onda.
+
+**Compatibilidade com decisões anteriores:** a abertura em apartamento simples no Rio, o laptop e e-mail de convocação e as notícias de TV podem anteceder a busca do representante do governo. A sequência específica deve ser ajustada no roteiro, sem eliminar esses elementos por inferência. As cenas individuais de apresentação com retratos de corpo inteiro e as negociações permanecem planejadas para visitas adequadas ao Boteco, não necessariamente para essa breve passagem inicial. O que acontece depois da onda 0 (inclusive reparos/onda 0.5 conforme versões canônicas) não é alterado nesta decisão.
+
+**Status:** planejamento aprovado. Não houve implementação de roteiro jogável, cutscene, elevador, sprites ou código.
