@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { getWaveEvents, WAVE_LAST_SPAWN_MS, scheduledEnemyCount, waveOutcome } from '../src/gameplay/waves.js';
 import {
-  SWARM_DANCES, SWARM_ENTRIES, TACTICAL_FORMATIONS,
+  SWARM_DANCES, SWARM_ENTRIES, TACTICAL_FORMATIONS, WAVE0_EASY_PACING,
+  WAVE0_PORTAL_SEQUENCE, STANDARD_INVADER_FLIGHT_FACTOR,
   V035_SWARM_SIZES, V035_SQUAD_SIZES, getV035WaveEvents,
   progressiveGroupCount, swarmDanceCenter, swarmDancePosition, swarmOffset,
   tacticalFormationOffset, tacticalManeuverPosition, tacticalAttackPosition,
@@ -11,7 +12,7 @@ import {
 } from '../src/gameplay/formation035.js';
 import { labEnemyEvent } from '../src/gameplay/labConfig.js';
 
-test('v0.35 preserva 30 segundos, agenda completa em 19,5s e vitória antecipada', () => {
+test('v0.35 preserva 30 segundos, agenda em até 13,5s e vitória antecipada', () => {
   for(let wave=0;wave<=9;wave++) {
     const mode='wave'+wave;
     const events=getV035WaveEvents(mode,getWaveEvents(mode));
@@ -19,7 +20,7 @@ test('v0.35 preserva 30 segundos, agenda completa em 19,5s e vitória antecipada
     assert.ok(events.every((event,i)=>
       event.at>=0 && event.at<=WAVE_LAST_SPAWN_MS &&
       (!i || event.at>=events[i-1].at)),mode);
-    assert.equal(events.at(-1).at,19500);
+    assert.ok(events.at(-1).at<=13500);
     assert.deepEqual(getV035WaveEvents(mode,getWaveEvents(mode)),events);
     const ready={ mode, elapsed:22800, spawned:events.length,
       scheduled:events.length, enemies:0,hostileShots:0 };
@@ -30,42 +31,61 @@ test('v0.35 preserva 30 segundos, agenda completa em 19,5s e vitória antecipada
   }
 });
 
-test('Tipo 1 chega em enxames progressivos reais de 3–5 até 15–18', () => {
+test('onda 0 usa cinco portais (um e depois dois pares) para 20 naves',()=>{
+  const events=getV035WaveEvents('wave0',getWaveEvents('wave0'));
+  assert.deepEqual(events.map(e=>e.count),[4,4,4,4,4]);
+  assert.deepEqual(events.map(e=>e.at),[800,4600,4600,9600,9600]);
+  assert.deepEqual(events.map(e=>e.portalX),[480,235,725,125,835]);
+  assert.deepEqual(WAVE0_PORTAL_SEQUENCE.map(({at,portalX,count})=>({at,portalX,count})),
+    events.map(({at,portalX,count})=>({at,portalX,count})));
+  assert.equal(new Set(events.map(e=>e.portalX)).size,5);
+  assert.equal(events.filter(e=>e.at===800).length,1);
+  assert.equal(events.filter(e=>e.at===4600).length,2);
+  assert.equal(events.filter(e=>e.at===9600).length,2);
+  assert.equal(scheduledEnemyCount(events),20);
+  // As quatro naves de cada portal terminam de entrar antes dos 15 s.
+  // Com os últimos dois abrindo aos 9,6 s, todos entram antes dos 15 s.
+  assert.ok(Math.max(...events.map(e=>e.at+(e.count-1)*320+500))<15000);
+  assert.equal(STANDARD_INVADER_FLIGHT_FACTOR,0.78);
+  assert.equal(WAVE0_EASY_PACING.danceDuration,6.5);
+  assert.equal(WAVE0_EASY_PACING.holdDuration,3.1);
+  assert.equal(WAVE0_EASY_PACING.firstShotDelay,1.5);
+  assert.equal(WAVE0_EASY_PACING.shotStagger,0.2);
+  assert.equal(WAVE0_EASY_PACING.diveSpeedMultiplier,0.7);
+  assert.equal(WAVE0_EASY_PACING.bulletSpeedMultiplier,0.85);
+  assert.ok(events.every(e=>e.type===1&&e.pattern==='swarm'));
+});
+
+test('ondas 3–9 usam enxames menores, sem o expansor antigo de 100 naves', () => {
   assert.deepEqual(V035_SWARM_SIZES[0],[3,5]);
   assert.deepEqual(V035_SWARM_SIZES[9],[15,18]);
   assert.equal(progressiveGroupCount(0,1,0),3);
-  assert.equal(progressiveGroupCount(0,1,1),5);
-  assert.equal(progressiveGroupCount(9,1,0),15);
   assert.equal(progressiveGroupCount(9,1,1),18);
-  assert.equal(progressiveGroupCount(9,1,0.5),17);
-  for(let wave=0;wave<=9;wave++){
+  for(let wave=3;wave<=9;wave++){
     const events=getV035WaveEvents('wave'+wave,getWaveEvents('wave'+wave));
     const swarms=events.filter(e=>e.type===1);
-    assert.ok(swarms.length>=2);
-    assert.ok(swarms.every(e=>e.pattern==='swarm'));
-    assert.ok(swarms.every(e=>e.count>=V035_SWARM_SIZES[wave][0] &&
-      e.count<=V035_SWARM_SIZES[wave][1]));
-    assert.equal(swarms[0].count,V035_SWARM_SIZES[wave][0]);
-    assert.equal(swarms.at(-1).count,V035_SWARM_SIZES[wave][1]);
-    assert.equal(scheduledEnemyCount(swarms),swarms.reduce((s,e)=>s+e.count,0));
-    assert.ok(swarms.at(-1).at-swarms.at(-2).at <
-      swarms[1].at-swarms[0].at,'entradas mais próximas no clímax');
+    assert.equal(swarms.length,4,'wave'+wave);
+    assert.ok(swarms.every(e=>e.pattern==='swarm' && e.count>=4 && e.count<=10));
+    assert.ok(swarms.at(-1).count>=swarms[0].count);
+    assert.ok(swarms.every(e=>e.at+(e.count-1)*320+500<=15000),
+      'o último integrante de cada enxame deve entrar antes de 15s');
+    assert.equal(scheduledEnemyCount(swarms),swarms.reduce((sum,e)=>sum+e.count,0));
   }
   assert.deepEqual(SWARM_ENTRIES,['together','staggered']);
-  assert.equal(SWARM_DANCES.length,5);
+  assert.deepEqual(SWARM_DANCES,['serpentine','cross','spiral','circle']);
 });
 
-test('Tipo 2 substitui entradas soltas ou órbitas por esquadrilhas de 3–8', () => {
-  assert.deepEqual(V035_SQUAD_SIZES[0],[3,4]);
-  assert.deepEqual(V035_SQUAD_SIZES[9],[6,8]);
-  assert.deepEqual(TACTICAL_FORMATIONS,['v','line','column']);
-  for(let wave=1;wave<=9;wave++){
+test('ondas 3–9 mantêm esquadrilhas coreografadas e círculos especiais', () => {
+  assert.deepEqual(V035_SQUAD_SIZES[0],[6,8]);
+  assert.deepEqual(V035_SQUAD_SIZES[9],[12,16]);
+  assert.deepEqual(TACTICAL_FORMATIONS,['triangle','square']);
+  for(let wave=3;wave<=9;wave++){
     const events=getV035WaveEvents('wave'+wave,getWaveEvents('wave'+wave));
-    const squads=events.filter(e=>e.type===2);
-    assert.ok(squads.length, 'onda '+wave);
-    assert.ok(squads.every(e=>e.pattern==='tactical' && e.group));
-    assert.ok(squads.every(e=>e.count>=V035_SQUAD_SIZES[wave][0] &&
-      e.count<=V035_SQUAD_SIZES[wave][1]));
+    const squads=events.filter(e=>e.type===2&&e.pattern==='tactical');
+    assert.ok(squads.length>=2,'wave'+wave);
+    assert.ok(squads.every(e=>e.group && e.count>=4 && e.count<=8));
+    assert.ok(events.filter(e=>e.type===2).every(e=>
+      ['tactical','orbit'].includes(e.pattern)));
   }
   assert.deepEqual(labEnemyEvent(2,10),
     {type:2,level:10,pattern:'tactical',group:true,count:8});
@@ -97,7 +117,7 @@ test('cinco danças animam o centro sem alterar posições dos sobreviventes', (
 });
 
 test('manobra tática 2–4s alterna V, linha e coluna sem preencher lacunas', () => {
-  const g={ duration:3,centerX:480,count:8,direction:-1,attackOrigin:{x:480,y:164},
+  const g={ duration:3,centerX:480,count:8,direction:-1,finalFormation:'square',attackOrigin:{x:480,y:164},
     target:{x:280,y:425},attackDuration:3.8 };
   assert.notDeepEqual(tacticalFormationOffset('v',0,8),
     tacticalFormationOffset('line',0,8));
@@ -114,7 +134,7 @@ test('manobra tática 2–4s alterna V, linha e coluna sem preencher lacunas', (
   const slot=tacticalAttackPosition(g,missingSlot,2);
   assert.ok(alive.every(p=>p.x!==slot.x||p.y!==slot.y));
   const last=tacticalAttackPosition(g,2,g.attackDuration);
-  const offset=tacticalFormationOffset('column',2,8);
+  const offset=tacticalFormationOffset('square',2,8);
   assert.ok(Math.abs(last.x-(g.target.x+offset.x))<1e-9);
   assert.ok(Math.abs(last.y-(g.target.y+offset.y))<1e-9);
 });
@@ -136,13 +156,35 @@ test('Tipo 1 escolhe a defesa próxima; Tipo 2 escolhe a vulnerável', () => {
 
 test('GameScene usa grupos completos e recarrega alvo se torre cai', () => {
   const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
-  assert.match(scene,/getV035WaveEvents\(this\.mode, getWaveEvents\(this\.mode\)\)/);
+  assert.match(scene,/getV035WaveEvents\(this\.mode,\s*getWaveEvents\(this\.mode,this\.finaleCampaign\)\)/);
   assert.match(scene,/spawnV035Group\(type, level, count, centerX = null\)/);
   assert.match(scene,/enemy\.phase = 'swarmDance'/);
   assert.match(scene,/enemy\.phase = 'tacticalManeuver'/);
-  assert.match(scene,/enemy\.phase = 'tacticalAttack'/);
+  assert.match(scene,/enemy\.phase='tacticalAttack'/);
   assert.match(scene,/enemy\.phase = 'dive'/);
   assert.match(scene,/enemy\.formationGroup/);
   assert.match(scene,/group\.target\.tower\?\.health <= 0/);
   assert.match(scene,/chooseV035GroupTarget\(group, center\)/);
+});
+
+test('Tipo 2 faz círculos completos e para em formação antes de descer', () => {
+  const group={duration:6,holdDuration:1.6,centerX:480,count:4,finalFormation:'triangle'};
+  const start=tacticalManeuverPosition(group,0,0);
+  const moving=tacticalManeuverPosition(group,0,1.1);
+  const stopped=tacticalManeuverPosition(group,0,4.4);
+  assert.notDeepEqual(moving,start);
+  assert.deepEqual(tacticalManeuverPosition(group,0,5),stopped);
+  assert.deepEqual(tacticalManeuverPosition(group,0,6),stopped);
+  assert.deepEqual(tacticalManeuverPosition(group,0,7),stopped);
+  const column=tacticalFormationOffset('triangle',0,4);
+  assert.ok(Math.abs(stopped.x-(480+column.x))<1e-9);
+  assert.ok(Math.abs(stopped.y-(125+column.y))<1e-9);
+});
+test('Tipo 1 e Tipo 2 atacam cedo depois de manobras curtas',()=>{
+  const scene=readFileSync(new URL('../src/scenes/GameScene.js',import.meta.url),'utf8');
+  assert.match(scene,/early \? \(kind==='swarm'\?3\.5:4\.0\)/);
+  assert.match(scene,/STANDARD_INVADER_FLIGHT_FACTOR/);
+  assert.match(scene,/event\.portalX\?\?null/);
+  assert.match(scene,/enemy\.phase = 'tacticalHold'/);
+  assert.match(scene,/holdDuration:early\?1\.15:1\.35/);
 });

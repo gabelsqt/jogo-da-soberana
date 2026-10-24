@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
 
+# Cada nova revisão substitui os jobs de PR anteriores da mesma branch.
+# Evita acumular dezenas de builds enquanto o patch é refinado.
+concurrency:
+  group: soberana-checks-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
@@ -17,7 +23,7 @@ jobs:
         run: npm install
       - name: Verificar regras de combate e progressão
         run: npm test
-      - name: Compilar jogo e exportar HTML único para itch.io
+      - name: Compilar jogo e exportar HTML único e ZIP para itch.io
         run: npm run build:itch
       - name: Verificar arquivo publicável
         run: |
@@ -27,9 +33,21 @@ jobs:
             exit 1
           fi
 
+      - name: Verificar pacote ZIP do itch.io
+        run: |
+          test -s itch-build/operacao-soberania-itch.zip
+          python3 -m zipfile -t itch-build/operacao-soberania-itch.zip
+          unzip -Z -1 itch-build/operacao-soberania-itch.zip | grep -x 'index.html'
+
       - name: Disponibilizar jogo HTML para teste
         uses: actions/upload-artifact@v4
         with:
           name: soberana-v1-playtest
           path: itch-build/index.html
+          retention-days: 14
+      - name: Disponibilizar pacote para itch.io
+        uses: actions/upload-artifact@v4
+        with:
+          name: operacao-soberania-itch
+          path: itch-build/operacao-soberania-itch.zip
           retention-days: 14

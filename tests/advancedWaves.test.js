@@ -31,15 +31,15 @@ function scheduledComposition(events) {
 
 const expected = {
   wave5: { level: 4, seconds: 30, counts: [28, 15, 3, 3, 0], total: 49,
-    last: 19500, title: 'ONDA 5 — CERCO AÉREO' },
+    last: 13500, title: 'ONDA 5 — CERCO AÉREO' },
   wave6: { level: 5, seconds: 30, counts: [45, 17, 9, 6, 0], total: 77,
-    last: 19500, title: 'ONDA 6 — CHUVA DE FERRO' },
+    last: 13500, title: 'ONDA 6 — CHUVA DE FERRO' },
   wave7: { level: 6, seconds: 30, counts: [44, 28, 2, 4, 0], total: 78,
-    last: 19500, title: 'ONDA 7 — ENXAME ORGANIZADO' },
+    last: 13500, title: 'ONDA 7 — ENXAME ORGANIZADO' },
   wave8: { level: 7, seconds: 30, counts: [36, 16, 3, 6, 1], total: 62,
-    last: 19500, title: 'ONDA 8 — SUPERUNIDADES' },
+    last: 13500, title: 'ONDA 8 — SUPERUNIDADES' },
   wave9: { level: 8, seconds: 30, counts: [41, 24, 5, 6, 1], total: 77,
-    last: 19500, title: 'ONDA 9 — ÚLTIMO CERCO' },
+    last: 13500, title: 'ONDA 9 — ÚLTIMO CERCO' },
 };
 
 test('Ondas 5–9 têm ritmo, composição e níveis distintos', () => {
@@ -87,13 +87,13 @@ test('as cinco ondas têm identidades próprias e usam só inimigos conhecidos',
     'Tipo 6 permanece reservado ao chefe da Onda 10');
 });
 
-test('HP Tipo 1 progride suavemente; blindagem dos demais e cores são preservadas', () => {
+test('HP Tipo 1 progride suavemente; blindagem dos Tipos 4/5 é reforçada sem mudar cores', () => {
   const hp = {
-    wave5: [3, 5, 12, 7],
-    wave6: [3, 6, 14, 8],
-    wave7: [3, 7, 16, 9],
-    wave8: [4, 8, 18, 10],
-    wave9: [4, 9, 20, 11],
+    wave5: [3, 5, 12, 11],
+    wave6: [3, 6, 14, 13],
+    wave7: [3, 7, 16, 14],
+    wave8: [4, 8, 18, 16],
+    wave9: [4, 9, 20, 17],
   };
   for (const [mode, values] of Object.entries(hp)) {
     const level = expected[mode].level;
@@ -110,8 +110,8 @@ test('HP Tipo 1 progride suavemente; blindagem dos demais e cores são preservad
       assert.equal(enemy.tintColor, ENEMY_TIER_COLORS[level]);
     }
   }
-  assert.equal(enemyStats(5, 7).hp, 52);
-  assert.equal(enemyStats(5, 8).hp, 56);
+  assert.equal(enemyStats(5, 7).hp, 67);
+  assert.equal(enemyStats(5, 8).hp, 72);
   assert.equal(enemyStats(5, 8).width, ENEMY_TYPES[5].width);
   assert.equal(enemyStats(5, 8).height, ENEMY_TYPES[5].height);
   assert.equal(new Set([4, 5, 6, 7, 8].map((n) => ENEMY_TIER_COLORS[n])).size, 5);

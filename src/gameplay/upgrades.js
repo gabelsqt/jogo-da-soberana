@@ -1,4 +1,6 @@
 // Primeira leva de upgrades: efeitos jogáveis, um por país.
+// Intervalo comum a todas as armas básicas, antes de aplicar qualquer upgrade.
+export const BASE_CANNON_INTERVAL_MS = 300;
 // O catálogo de níveis 2–10 será incorporado em versões posteriores.
 export const FIRST_UPGRADES = [
   {
@@ -34,7 +36,7 @@ export function getFirstUpgrade(id) {
 
 export function combatStatsFor(upgradeId) {
   const stats = {
-    basicInterval: 400,
+    basicInterval: BASE_CANNON_INTERVAL_MS,
     basicSpeed: 480,
     basicDamage: 1,
     pierce: 1,
@@ -129,9 +131,9 @@ export function shotVisualFor(ids = []) {
     width: selected.has('ru') ? 11 : 4, length: 20,
   };
   if (selected.has('ru')) return {
-    // Era 9 × 14 px: um aumento discreto (~20%), puramente visual.
-    // O raio de colisão continua fixo em GameScene.
-    color: 0xff846b, impactColor: '#ffbc8a', width: 11, length: 17,
+    // Corpo visual pequeno: a silhueta real será uma voluta translúcida
+    // desenhada com Phaser Graphics, sem alterar a hitbox do projétil.
+    color: 0xe1f9ff, impactColor: '#b6f0ff', width: 11, length: 17,
   };
   if (selected.has('us')) return {
     color: 0x79b9ff, impactColor: '#9dd7ff', width: 8, length: 15,
@@ -167,6 +169,7 @@ export function shotVfxFor(ids = []) {
   const improvised = chosen.has('br');
   return {
     heavy,
+    cryogenic:heavy,
     multiple,
     improvised,
     fragments: chosen.has('us'),

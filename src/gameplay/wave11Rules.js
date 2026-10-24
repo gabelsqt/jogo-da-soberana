@@ -2,9 +2,6 @@
 // 'jp' continua sendo a chave legada de gameplay da Coreia do Sul.
 const FOREIGN_COUNTRIES = ['us', 'jp', 'ru', 'cn'];
 const ALL_COUNTRIES = ['br', ...FOREIGN_COUNTRIES];
-export const BRAZIL_MAX_LEVEL = 10;
-export const SUPPORT_TOWER_LIMIT = 2;
-const TOWER_LEVELS = [3, 7];
 
 function validatedChoices(choices = []) {
   return Array.isArray(choices)
@@ -12,18 +9,24 @@ function validatedChoices(choices = []) {
     : [];
 }
 
-export function betrayalCoalition(choices = []) {
-  const counts = Object.fromEntries(FOREIGN_COUNTRIES.map((country) => [country, 0]));
-  for (const country of validatedChoices(choices)) {
-    if (Object.hasOwn(counts, country)) counts[country] += 1;
-  }
-  const greatest = Math.max(...Object.values(counts));
-  return greatest === 0 ? [] : FOREIGN_COUNTRIES.filter((country) => counts[country] === greatest);
+// Um único aliado estrangeiro participante trai. Sorteio feito ao entrar
+// na Onda 11; o resultado é passado para recomeços e finais.
+export function pickBetrayer(choices = [], random = Math.random) {
+  const candidates=[...new Set(validatedChoices(choices).filter(id=>FOREIGN_COUNTRIES.includes(id)))];
+  if(!candidates.length)return null;
+  const roll=Math.min(0.999999,Math.max(0,Number(random())||0));
+  return candidates[Math.floor(roll*candidates.length)];
+}
+export function betrayalCoalition(choices = [], selectedCountry = null) {
+  const candidates=[...new Set(validatedChoices(choices).filter(id=>FOREIGN_COUNTRIES.includes(id)))];
+  if(!candidates.length)return [];
+  const country=candidates.includes(selectedCountry)?selectedCountry:candidates[0];
+  return [country];
 }
 
-export function hostileBosses(choices = []) {
+export function hostileBosses(choices = [], selectedCountry = null) {
   const history = validatedChoices(choices);
-  return betrayalCoalition(history).map((country) => ({
+  return betrayalCoalition(history,selectedCountry).map((country) => ({
     country,
     level: history.filter((selected) => selected === country).length,
   }));
@@ -38,16 +41,16 @@ export function coalitionHpFactor(size) {
   return COALITION_HP_FACTOR[size] ?? null;
 }
 
-export function survivingCountryLevels(choices = []) {
+export function survivingCountryLevels(choices = [], selectedCountry = null) {
   const history = validatedChoices(choices);
-  const traitors = new Set(betrayalCoalition(history));
+  const traitors = new Set(betrayalCoalition(history,selectedCountry));
   return Object.fromEntries(ALL_COUNTRIES.map((country) => [
     country, traitors.has(country) ? 0 : history.filter((entry) => entry === country).length,
   ]));
 }
 
-export function installedSupportTowers(choices = [], brazilResistanceLevels = []) {
-  const levels = survivingCountryLevels(choices);
+export function installedSupportTowers(choices = [], brazilResistanceLevels = [], selectedCountry = null) {
+  const levels = survivingCountryLevels(choices,selectedCountry);
   const extra = new Set(brazilResistanceLevels.filter((level) => Number.isInteger(level) && level >= 1 && level <= 10));
   const installed = [];
   for (const country of ALL_COUNTRIES) {
@@ -62,35 +65,5 @@ export function installedSupportTowers(choices = [], brazilResistanceLevels = []
   return installed;
 }
 
-export function nextBrazilianResistanceUpgrade(choices = [], awardedLevels = []) {
-  const history = validatedChoices(choices);
-  const already = history.filter((id) => id === 'br').length;
-  const awarded = new Set(awardedLevels.filter((level) => Number.isInteger(level) && level >= 1 && level <= BRAZIL_MAX_LEVEL));
-  const installed = installedSupportTowers(history, [...awarded]);
-  const freeSlots = SUPPORT_TOWER_LIMIT - installed.length;
-  const carameloInstalled = already >= 3 || awarded.has(3);
-  for (let level = 1; level <= BRAZIL_MAX_LEVEL; level += 1) {
-    if (level <= already || awarded.has(level)) continue;
-    // Upgrade brasileiro 5 melhora o Caramelo; não faz sentido sem a torre.
-    if (level === 5 && !carameloInstalled) continue;
-    // Instalar terceira torre não é permitido; pular sem gastar tentativa.
-    if (TOWER_LEVELS.includes(level) && freeSlots <= 0) continue;
-    return level;
-  }
-  return null;
-}
-
-// Chamar somente após a derrota na Onda 11, quando jogador escolhe
-// "Continuar lutando". Reinício físico dos chefes é responsabilidade da cena.
-export function continueResistanceAfterDefeat(choices = [], awardedLevels = []) {
-  const award = nextBrazilianResistanceUpgrade(choices, awardedLevels);
-  if (award === null) {
-    return { outcome: 'colonized', awardedLevels: [...awardedLevels], awardedLevel: null };
-  }
-  return {
-    outcome: 'retry',
-    awardedLevels: [...awardedLevels, award],
-    awardedLevel: award,
-    restartEntireBattle: true,
-  };
-}
+// A antiga progressão brasileira após derrota foi removida na v0.69.
+// A recuperação única de Zeca agora vive em zecaRecovery.js.

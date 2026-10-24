@@ -26,8 +26,8 @@ test('as cinco primeiras melhorias alteram o combate como prometido', () => {
   const jp = combatStatsFor('jp');
   const ru = combatStatsFor('ru');
   const cn = combatStatsFor('cn');
-  assert.equal(base.basicInterval, 400);
-  assert.equal(br.basicInterval, 267);
+  assert.equal(base.basicInterval, 300);
+  assert.equal(br.basicInterval, 200);
   assert.equal(us.basicDamage, base.basicDamage);
   assert.equal(us.fragmentation, true);
   assert.equal(jp.basicInterval, base.basicInterval);
@@ -54,8 +54,9 @@ test('projétil extra chinês cria dois tiros simétricos', () => {
   assert.ok(edge.every((angle) => angle >= -Math.PI + Math.PI / 12));
 });
 
-test('cinco inimigos possuem HP e dimensões distintos, tipos 2-5 quadrados coloridos', () => {
-  assert.deepEqual(Object.keys(ENEMY_TYPES).map(Number), [1, 2, 3, 4, 5]);
+test('seis tipos definidos; cinco inimigos comuns e chefe colossal independente', () => {
+  assert.deepEqual(Object.keys(ENEMY_TYPES).map(Number), [1, 2, 3, 4, 5, 6]);
+  assert.equal(enemyDefinition(6).behavior, 'boss6');
   assert.equal(enemyDefinition(1).hp, 1);
   assert.equal(enemyDefinition(2).hp, 2);
   assert.ok(enemyDefinition(3).shotHp >= 1);
@@ -126,7 +127,7 @@ test('laboratório ativa e desativa melhorias sem duplicatas nem IDs inválidos'
 
 test('laboratório combina Lightstick, Fragmentação e os outros países sem alterar atributos básicos', () => {
   const stats = combatStatsForLoadout(['br', 'jp', 'us', 'ru', 'cn']);
-  assert.equal(stats.basicInterval, 267);
+  assert.equal(stats.basicInterval, 200);
   assert.equal(stats.basicDamage, 1.75);
   assert.equal(stats.pierce, 1);
   assert.equal(stats.basicSpeed, 480);
@@ -157,8 +158,8 @@ test('ondas 0 e 1 começam cedo, têm pressão contínua e grupos simultâneos',
   const basic1 = wave1.filter((e) => e.type === 1 && !e.pattern);
   assert.equal(basic0.length, 20);
   assert.equal(basic1.length, 32);
-  assert.ok(basic0.every((e, i) => i === 0 || Math.abs((e.at - basic0[i - 1].at) - 1280 * 19500 / 24570) <= 1));
-  assert.ok(basic1.every((e, i) => i === 0 || Math.abs((e.at - basic1[i - 1].at) - 960 * 19500 / 34700) <= 1));
+  assert.ok(basic0.every((e, i) => i === 0 || Math.abs((e.at - basic0[i - 1].at) - 1280 * 13500 / 24570) <= 1));
+  assert.ok(basic1.every((e, i) => i === 0 || Math.abs((e.at - basic1[i - 1].at) - 960 * 13500 / 34700) <= 1));
   assert.ok(lab.some((e) => e.type === 5));
 });
 

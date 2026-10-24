@@ -16,41 +16,114 @@ export const THIRD_UPGRADES = {
   cn: { title: 'Pacote Integrado I', description: 'Especial e escudo compartilham tecnologia de minidrones.', tower: false },
 };
 export const FIFTH_UPGRADES = {
-  br: { title: 'Projeto Caramelo', description: 'Instala o vira-lata mecanizado antienxame.', tower: true },
-  us: { title: 'Águia da Liberdade I', description: 'Instala a águia mecanizada antienxame.', tower: true },
-  jp: { title: 'Projeto Kkachi I', description: 'Instala a pega coreana mecanizada antienxame.', tower: true },
-  ru: { title: 'Lobo Siberiano', description: 'Instala o lobo mecanizado antienxame com rajadas coordenadas.', tower: true },
-  cn: { title: 'PandaPrime I', description: 'Instala o panda mecanizado antienxame.', tower: true },
+  br: { title: 'Bateria Antienxame I', description: 'Instala um sistema automático de rajadas contra enxames.', tower: true },
+  us: { title: 'Defesa de Fragmentação I', description: 'Instala mísseis automáticos de fragmentação contra enxames.', tower: true },
+  jp: { title: 'Sistema Encore I', description: 'Instala feixes automáticos de energia contra enxames.', tower: true },
+  ru: { title: 'Rajada Siberiana I', description: 'Instala rajadas automáticas e coordenadas contra enxames.', tower: true },
+  cn: { title: 'Enxame Expresso I', description: 'Instala minidrones ofensivos contra enxames.', tower: true },
 };
 
 
 // Evoluções dos animais. Parâmetros de combate provisórios para playtest.
 export const SIXTH_UPGRADES = {
-  br: { title: 'Caramelo II — Matilha Veloz', description: 'Rajadas mais rápidas e novos alvos contra enxames.', tower: false },
-  us: { title: 'Águia II — Fragmentação Dupla', description: 'Aumenta o alcance e o dano dos mísseis de fragmentação.', tower: false },
-  jp: { title: 'Kkachi II — Encore Duplo', description: 'Dois feixes atravessam formações inimigas.', tower: false },
-  ru: { title: 'Lobo II — Caçada Coordenada', description: 'Amplia as rajadas contra múltiplos alvos.', tower: false },
-  cn: { title: 'PandaPrime II — Enxame Expresso', description: 'Envia mais minidrones por ataque.', tower: false },
+  br: { title: 'Bateria Antienxame II — Ritmo Acelerado', description: 'Rajadas mais rápidas e novos alvos contra enxames.', tower: false },
+  us: { title: 'Fragmentação Dupla II', description: 'Aumenta o alcance e o dano dos mísseis de fragmentação.', tower: false },
+  jp: { title: 'Encore Duplo II', description: 'Dois feixes atravessam formações inimigas.', tower: false },
+  ru: { title: 'Rajada Siberiana II — Disparo Coordenado', description: 'Amplia as rajadas contra múltiplos alvos.', tower: false },
+  cn: { title: 'Enxame Expresso II', description: 'Envia mais minidrones por ataque.', tower: false },
 };
 export const SEVENTH_UPGRADES = {
-  br: { title: 'Capivara Blindada', description: 'Instala a capivara Destruidora, com projétil pesado.', tower: true },
-  us: { title: 'Bisão de Ferro', description: 'Instala o bisão Destruidor, com míssil perfurante.', tower: true },
-  jp: { title: 'Projeto Haechi', description: 'Instala o Haechi lendário mecanizado, com raio concentrado.', tower: true },
-  ru: { title: 'Urso de Ferro', description: 'Instala o urso Destruidor, com artilharia pesada.', tower: true },
-  cn: { title: 'Dragão Imperial', description: 'Instala o dragão Destruidor, com energia carregada.', tower: true },
+  br: { title: 'Artilharia Pesada I', description: 'Instala reforço de projétil pesado contra blindados.', tower: true },
+  us: { title: 'Perfuração de Ferro I', description: 'Instala reforço de míssil perfurante contra blindados.', tower: true },
+  jp: { title: 'Justiça Radiante I', description: 'Instala reforço de raio concentrado contra blindados.', tower: true },
+  ru: { title: 'Impacto Siberiano I', description: 'Instala reforço de artilharia pesada contra blindados.', tower: true },
+  cn: { title: 'Sobrecarga Imperial I', description: 'Instala reforço de energia carregada contra blindados.', tower: true },
 };
 export const EIGHTH_UPGRADES = {
-  br: { title: 'Capivara II — Calibre Máximo', description: 'Aumenta o dano do projétil pesado.', tower: false },
-  us: { title: 'Bisão II — Penetração Máxima', description: 'Aumenta o dano perfurante concentrado.', tower: false },
-  jp: { title: 'Haechi II — Justiça Radiante', description: 'Aumenta a potência do raio concentrado.', tower: false },
-  ru: { title: 'Urso II — Impacto Terminal', description: 'Aumenta o impacto da artilharia pesada.', tower: false },
-  cn: { title: 'Dragão II — Sobrecarga Imperial', description: 'Aumenta o dano da energia carregada.', tower: false },
+  br: { title: 'Calibre Máximo II', description: 'Aumenta o dano do projétil pesado.', tower: false },
+  us: { title: 'Penetração Máxima II', description: 'Aumenta o dano perfurante concentrado.', tower: false },
+  jp: { title: 'Justiça Radiante II', description: 'Aumenta a potência do raio concentrado.', tower: false },
+  ru: { title: 'Impacto Terminal II', description: 'Aumenta o impacto da artilharia pesada.', tower: false },
+  cn: { title: 'Sobrecarga Imperial II', description: 'Aumenta o dano da energia carregada.', tower: false },
 };
 export function normalizeCampaignState(state = {}) {
   const choices = Array.isArray(state?.choices)
     ? state.choices.filter((id) => COUNTRIES.includes(id)).slice(0, 10)
     : [];
-  return { choices };
+  // A identidade e as atribuições P/S pertencem apenas às campanhas
+  // iniciadas no novo boteco. Saves legados continuam com {choices}.
+  if(!state?.armament||typeof state.armament!=='object')return {choices};
+  const principal=COUNTRIES.includes(state.armament.principal)
+    ?state.armament.principal:null;
+  const especial=principal&&COUNTRIES.includes(state.armament.especial)
+    ?state.armament.especial:null;
+  const upgrades=[];
+  const counter=Object.fromEntries(COUNTRIES.map(id=>[id,{P:0,S:0}]));
+  const slots={P:0,S:0};
+  for(const item of Array.isArray(state.armament.upgrades)?state.armament.upgrades:[]){
+    if(!especial||upgrades.length>=8)break;
+    if(!COUNTRIES.includes(item?.country)||!['P','S'].includes(item?.track))continue;
+    if(slots[item.track]>=4||counter[item.country][item.track]>=4)continue;
+    const stage=++counter[item.country][item.track];
+    slots[item.track]++;
+    upgrades.push({country:item.country,track:item.track,stage});
+  }
+  // Os registros das dez escolhas determinam os níveis nacionais e a
+  // condição do Supremo. Não aceitar níveis inventados no JSON da partida.
+  const canonical=[...(principal?[principal]:[]),...(especial?[especial]:[]),
+    ...upgrades.map(item=>item.country)].slice(0,10);
+  return {choices:canonical,armament:{principal,especial,upgrades}};
+}
+
+export function armamentPhase(state={}){
+  const current=normalizeCampaignState(state);
+  if(!current.armament?.principal)return 'principal';
+  if(!current.armament.especial)return 'special';
+  return 'upgrades';
+}
+export function armamentAllocation(state={}){
+  const allocation=Object.fromEntries(COUNTRIES.map(id=>[id,{P:0,S:0}]));
+  for(const item of normalizeCampaignState(state).armament?.upgrades??[])
+    allocation[item.country][item.track]++;
+  return allocation;
+}
+export function armamentOffers(state={},catalog=[]){
+  const current=normalizeCampaignState(state),phase=armamentPhase(current);
+  const allocation=armamentAllocation(current);
+  const used={P:0,S:0};
+  for(const {P,S} of Object.values(allocation)){used.P+=P;used.S+=S;}
+  return catalog.map(country=>{
+    if(phase!=='upgrades')return {...country,locked:false,level:
+      (current.choices.filter(id=>id===country.id).length+1)};
+    const proposals={};
+    for(const track of ['P','S']){
+      const stage=allocation[country.id][track]+1;
+      const locked=used[track]>=4||stage>4;
+      proposals[track]={country:country.id,track,stage,locked,
+        reason:locked?'QUATRO MELHORIAS JÁ INSTALADAS NESTA ARMA':''};
+    }
+    return {...country,level:current.choices.filter(id=>id===country.id).length+1,
+      locked:proposals.P.locked&&proposals.S.locked,proposals};
+  });
+}
+export function chooseArmamentUpgrade(state={},country,track=null){
+  if(!COUNTRIES.includes(country))return null;
+  const current=normalizeCampaignState(state);
+  if(current.choices.length>=10)return null;
+  const phase=armamentPhase(current);
+  if(phase==='principal')return {choices:[country],
+    armament:{principal:country,especial:null,upgrades:[]}};
+  if(phase==='special')return {choices:[current.armament.principal,country],
+    armament:{...current.armament,especial:country,upgrades:[]}};
+  if(track!=='P'&&track!=='S')return null;
+  const allocation=armamentAllocation(current);
+  const installed=Object.values(allocation).reduce(
+    (total,row)=>total+row[track],0);
+  if(installed>=4||allocation[country][track]>=4)return null;
+  const upgrades=[...current.armament.upgrades,{
+    country,track,stage:allocation[country][track]+1}];
+  return normalizeCampaignState({choices:[...current.choices,country],
+    armament:{...current.armament,upgrades}});
 }
 
 export function countryLevel(state, countryId) {
@@ -105,12 +178,12 @@ export function nextUpgradeOptions(state) {
     if (level === 7) return {
       ...first, ...SEVENTH_UPGRADES[first.id], level,
       locked: installed >= MAX_SUPPORT_TOWERS,
-      reason: installed >= MAX_SUPPORT_TOWERS ? 'DUAS TORRES JÁ INSTALADAS' : '',
+      reason: installed >= MAX_SUPPORT_TOWERS ? 'DOIS APOIOS JÁ INSTALADOS' : '',
     };
     if (level === 5) return {
       ...first, ...FIFTH_UPGRADES[first.id], level,
       locked: installed >= MAX_SUPPORT_TOWERS,
-      reason: installed >= MAX_SUPPORT_TOWERS ? 'DUAS TORRES JÁ INSTALADAS' : '',
+      reason: installed >= MAX_SUPPORT_TOWERS ? 'DOIS APOIOS JÁ INSTALADOS' : '',
     };
     return {
       ...first, level, title: 'EM DESENVOLVIMENTO',

@@ -64,7 +64,8 @@ test('explosões escalam conforme ameaça, tipo 4 recebe recompensa maior', () =
 test('flash é feito com branco puro, restauração em tempo de jogo', () => {
   const hit = method('impactInvader(', 'activeUpgradeIds() {');
   assert.match(hit, /enemy\.hp -= damage/);
-  assert.match(hit, /if \(killed\) \{\s*this\.showEnemyDeath\(enemy\);\s*this\.removeEnemy\(index\)/);
+  assert.match(hit, /if \(killed\) \{[\s\S]*?this\.showEnemyDeath\(enemy\);[\s\S]*?this\.removeEnemy\(index\)/);
+  assert.match(hit, /if\(frozenShatter\)this\.shatterRussianEnemy\(enemy\)/);
   assert.match(hit, /enemy\.lastHitAt = this\.time\.now/);
   assert.match(hit, /enemy\.box\.setFillStyle\(0xffffff\)/);
   assert.match(hit, /enemy\.sprite\.setTintFill\(0xffffff\)/);

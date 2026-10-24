@@ -1,4 +1,38 @@
+import {cannonSpritePose,CANNON_BARREL_DISPLAY_SIZE} from '../gameplay/cannonSpriteAim.js';
+import {steerType2Rotation} from '../gameplay/type2Facing.js';
+import {TYPE5_SPRITE,type5DamageFrame} from '../gameplay/type5Sprite.js';
+import {TYPE6_HULL_SHEET} from '../gameplay/type6HullSprite.js';
+import {TYPE6_MODULE_SHEET} from '../gameplay/type6ModuleSprite.js';
+import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
+import {playSfx,setSfxLoopActive,stopRussianSfxLoops,stopNationalSpecialSfxLoops} from '../audio/sfx.js';
+import { appendWaveResult } from '../gameplay/waveTestResults.js';
+import { hitDiscoGlobe, DISCO_DURATION_MS, DISCO_RADIUS, DISCO_REFLECTION_COOLDOWN_MS } from '../gameplay/discoGlobe.js';
+import { animateDiscoReflectionArcs, DISCO_REFLECTION_MAX_VISUAL_RAYS } from '../gameplay/discoReflectionVfx.js';
+import { destroyMenuButton } from '../ui/menuButton.js';
+import { supremeCodeFor, advanceSupremeCode } from '../gameplay/supremeCodeInput.js';
+import { createCannonDestruction } from '../ui/cannonDestruction.js';
+import { bindSceneMusic, waveMusic } from '../audio/music.js';
 import Phaser from 'phaser';
+import {chinaLineFocus,chinaLineDuration,chinaLineShotInterval,chinaLineShotAngle} from '../gameplay/chinaLineVolley.js';
+import {koreanSalvoAngles,nextKoreanRicochet,koreanRicochetDamage} from '../gameplay/koreanLaserSalvo.js';
+import {computeLabMath} from '../gameplay/labMathRuntime.js';
+import {PROLOGUE_CANNON} from '../gameplay/prologueStory.js';
+import {armamentAllocation} from '../gameplay/progression.js';
+import {normalizeLabBalance,normalizeLabAllocation} from '../gameplay/labBalanceProfile.js';
+import {mountLabBalanceEditor} from '../ui/labBalanceEditor.js';
+import {registerAmericanJulyHit,americanJulyReady,consumeAmericanJulyShot} from '../gameplay/usJuly.js';
+import {americanWallPlacement,americanWallArcCenter,americanWallTravelDuration,
+  americanWallAnimation,americanWallTouches,americanWallIntersects,
+  americanWallBreaksFromBeam,AMERICAN_WALL_COOLDOWN_MS,AMERICAN_WALL_OPEN_MS} from '../gameplay/americanArsenal.js';
+import {wallPushImpulse,addWallPush,advanceWallPush,solidAmericanWallCollision,
+  canReflectWallShot,wallReflectionVector,
+  US_WALL_PUSH_COOLDOWN_MS,US_WALL_REFLECTION_DAMAGE,
+  US_WALL_REFLECTION_LIFETIME_MS,US_WALL_REFLECTION_CAP,
+} from '../gameplay/americanWallDefense.js';
+import { ARRAIAL, withinBlast, withinFlame, firePulseRadius,
+  arraialFinalPhrase, randomArraialBurst, shotHitsArraialBalloon,
+  arraialStage, arraialPhrasePixels,
+} from '../gameplay/arraialBrasil2.js';
 import {
   normalizeLabConfig, configuredTowerCountries, configuredTowerLoadout,
   LAB_ENEMY_NAMES, LAB_MAX_ENEMY_LEVEL, labEnemyEvent,
@@ -7,7 +41,8 @@ import { preloadRioBackdrop, drawRioBackdrop } from '../config/scenery.js';
 import { assetUrl } from '../config/assetUrl.js';
 import { preloadMechSprites, createMechSprites } from '../gameplay/mechSpriteMounts.js';
 import {
-  SWARM_DANCES, SWARM_ENTRIES,
+  SWARM_DANCES, SWARM_ENTRIES, WAVE0_EASY_PACING, WAVE1_PACING,
+  wave1FormationShooter, STANDARD_INVADER_FLIGHT_FACTOR,
   getV035WaveEvents, swarmDanceCenter, swarmDancePosition,
   tacticalFormationOffset, tacticalManeuverPosition, tacticalAttackPosition,
   chooseGroupDefenseTarget,
@@ -25,6 +60,7 @@ import {
   specialBlastRadius,
   blastCatchesTarget,
   specialTargetPoint,
+  advanceSpecialProjectile,
   SPECIAL_BLAST_DURATION,
 } from '../gameplay/specialBlast.js';
 import {
@@ -45,8 +81,44 @@ import {
 } from '../gameplay/waves.js';
 import { unlockedFourthUpgradeCountries } from '../gameplay/fourthUpgrades.js';
 import { addMenuButton } from '../ui/menuButton.js';
+import {addCuboBroadcastFrame} from '../ui/cuboNewsTheme.js';
+import {CANNON_DOME_RADIUS,cannonDomeIntercept,cannonShieldColor} from '../gameplay/shieldDome049.js';
+import { installShieldSprites, updateShieldSprites, shatterShieldSprite } from '../gameplay/shieldSprites.js';
 import { v1CombatStats, v1SupremeFor, V1_SUPREMES, v1CountryLevels, mayDuplicateProjectile, MAX_VISUAL_PROJECTILES, MAX_COSMETIC_PARTICLES, horizontalOffsets } from '../gameplay/v1Upgrades.js';
 import { createCombatCrtOverlay } from '../ui/crtOverlay.js';
+import { resolveFinalOpponent, finalePrelude, FINALE_COUNTRIES } from '../gameplay/campaignFinale.js';
+import { hostileBosses, pickBetrayer } from '../gameplay/wave11Rules.js';
+import { canOfferZecaRecovery, zecaRevengeLoadout, zecaOperationCopy } from '../gameplay/zecaRecovery.js';
+import {
+  spawnType6Encounter, updateType6Encounter, hitType6At, hitType6Segment,
+  hitType6Bullet, defeatType6, type6NextDeadline, type6AimPosition,
+  detonateType6Bomb,
+} from '../gameplay/type6Encounter.js';
+import {
+  type6AliveModules, type6PointTarget, type6AreaTargets, type6TargetRects,
+} from '../gameplay/type6Boss.js';
+import { finaleBossHp, finaleBossFirePattern, finaleCounterattack } from '../gameplay/finaleBalance.js';
+import {createCuboNewsState,tickCuboNews,queueCuboNews} from '../gameplay/cuboNews.js';
+import {createCuboNewsHud} from '../ui/cuboNewsHud.js';
+import { v1SpecialConfig, specialPalette } from '../gameplay/v1Specials.js';
+import { v1LabBuild } from '../gameplay/v1LabLoadout.js';
+import {
+  type5ShieldHp,absorbType5Shield,type5ChargeFraction,
+  shieldRippleAt,shieldSoftFlashAt,
+  TYPE5_LASER_CHARGE_SECONDS,TYPE5_LASER_FIRE_SECONDS,
+  TYPE5_LASER_RECOVERY_SECONDS,TYPE5_LASER_DAMAGE,
+} from '../gameplay/type5Combat.js';
+import {fullBrazilVoyageEligible,voyageEvents,voyageStop,voyageNext,
+  voyageCanDepart,VOYAGE_STOPS} from '../gameplay/fullBrazilVoyage.js';
+import {createBattleBanterState,enqueueBattleBanter,currentBattleBanter} from '../gameplay/battleBanter.js';
+import {createDialogueTypewriter} from '../ui/dialogueTypewriter.js';
+import {VOYAGE_PREPARE_MS,VOYAGE_LAUNCH_MS,VOYAGE_SPACE_MS,VOYAGE_LANDING_MS,
+  VOYAGE_TOTAL_MS,voyageRocketPose,voyageStarfield,voyageStarAt} from '../gameplay/voyageTravel.js';
+import {drawHexShieldDome,HEX_SHIELD_FORM_MS,HEX_SHIELD_COLLAPSE_MS,
+  HEX_SHIELD_WHITE_FLASH_MS} from '../gameplay/hexShieldDome.js';
+import { applyRussianFreeze, russianShatterTargets, russianShardVisuals } from '../gameplay/russianFrost.js';
+import {MAX_ACTIVE_SPUTNIKS,sputnikTouchesEnemy,crystallizeSputnikEnemy,isSputnikCrystalized,sputnikShatterStats,sputnikPrimaryDamage} from '../gameplay/russianSputnik.js';
+import {ICE_BREATH_RANGE,ICE_BREATH_TICK_MS,ICE_BREATH_BOMB_SPEED_FACTOR,chillType6Bomb,insideIceBreathCone,iceBreathMotes,iceBreathTickDamage,iceBreathType6Target} from '../gameplay/iceBreath.js';
 import {
   normalizeCampaignState, unlockedFirstUpgrades, unlockedSecondUpgrades,
   activeTowerCountries, activeTowerLoadout, unlockedThirdUpgradeCountries,
@@ -103,12 +175,67 @@ export class GameScene extends Phaser.Scene {
 
   init(data = {}) {
     this.mode = MODES[data.mode] ? data.mode : 'wave0';
+    // Teste de combate usa um snapshot recebido, sem publicar rascunhos.
+    this.waveMakerTest = Boolean(data.waveMakerTest && data.labConfig && /^wave(?:[0-9]|10|11)$/.test(this.mode));
+    this.waveMakerEvents = this.waveMakerTest && Array.isArray(data.waveMakerEvents)
+      ? data.waveMakerEvents.map(event=>({...event})) : null;
+    this.waveMakerDuration = this.waveMakerTest && Number.isFinite(data.waveMakerDuration)
+      ? Math.max(1000,Math.min(120000,data.waveMakerDuration)) : null;
+    this.v1Playtest = Boolean(data.v1Playtest);
+    this.previewDestruction = Boolean(data.previewDestruction);
+    this.zecaRevenge = this.mode === 'wave11' && Boolean(data.zecaRevenge);
+    // Cena Phaser reutilizada entre partidas: não conservar a trava de
+    // clique da proposta anterior (especialmente entre traições EUA/Rússia).
+    this.zecaProposalOpened=false;
+    this.deathSequence = null;
     this.unifiedLab = Boolean(data.labConfig);
     this.labConfig = this.unifiedLab ? normalizeLabConfig(data.labConfig) : null;
     // Compatibilidade com saves antigos que tinham apenas "upgradeId".
     const legacy = getFirstUpgrade(data.upgradeId) && this.mode === 'wave1'
       ? { choices: [data.upgradeId] } : {};
     this.campaign = normalizeCampaignState(data.campaign ?? legacy);
+    // A progressão de níveis brasileiros pós-derrota foi substituída por Zeca.
+    this.selectedBetrayer=this.mode==='wave11'
+      ? (data.selectedBetrayer || pickBetrayer(this.campaign.choices)) : null;
+    this.finaleCampaign={...this.campaign,selectedBetrayer:this.selectedBetrayer};
+    this.finale=this.mode==='wave11'?resolveFinalOpponent(this.finaleCampaign):null;
+    this.voyageActive=fullBrazilVoyageEligible(this.mode,this.campaign,{
+      lab:this.unifiedLab,playtest:this.v1Playtest,waveMaker:this.waveMakerTest,
+    });
+    this.voyageIndex=this.voyageActive
+      ?Math.max(0,Math.min(VOYAGE_STOPS.length-1,Math.trunc(data.voyageIndex)||0)):0;
+    this.voyageTransitioning=false; // Phaser reutiliza a instância da cena.
+    this.voyageArrived=Boolean(data.arrivedFromVoyage);
+    this.finaleBossesNeeded=this.voyageActive?0:this.mode==='wave11'?1:0;
+    this.finaleBossesKilled=0;
+    this.supremeFinishing=false;
+    const survivors=this.mode==='wave11'
+      ? this.campaign.choices.filter(id=>!this.finale.coalition.includes(id))
+      : this.campaign.choices;
+    this.combatCampaign=this.mode==='wave11'
+      ? (this.zecaRevenge
+        ? zecaRevengeLoadout(this.campaign,this.selectedBetrayer)
+        : {choices:survivors}) : this.campaign;
+    // Teste experimental: libera uma árvore de até dez níveis POR PAÍS.
+    // O limite da campanha real continua sendo dez escolhas no total.
+    const v1Lab=this.v1Playtest&&data.v1LabLevels
+      ?v1LabBuild(data.v1LabLevels,data.v1LabPrimary):null;
+    this.v1LabLevels=v1Lab?.labLevels??null;
+    this.v1LabPrimary=v1Lab?.labPrimary??null;
+    this.labMathEnabled=Boolean(this.v1Playtest&&data.v1LabAllocation
+      &&data.v1LabPrincipal&&data.v1LabSpecial);
+    this.v1LabPrincipal=data.v1LabPrincipal??null;
+    this.v1LabSpecial=data.v1LabSpecial??null;
+    this.v1LabAllocation=normalizeLabAllocation(data.v1LabAllocation);
+    this.labMathProfile=normalizeLabBalance(data.v1LabBalance);
+    if(v1Lab)this.combatCampaign=v1Lab;
+    this.waveDurationMs=this.mode.startsWith('wave')
+      ? MODES[this.mode].minDuration:WAVE_DURATION_MS;
+    if(this.waveMakerDuration!==null)this.waveDurationMs=this.waveMakerDuration;
+    if(this.voyageActive){
+      const events=voyageEvents(this.voyageIndex);
+      this.waveDurationMs=events.at(-1).at+14000; // Tempo apenas informativo.
+    }
     this.upgradeId = this.campaign.choices.at(-1) ?? null;
     this.thirdIds = this.unifiedLab
       ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 3)
@@ -127,7 +254,7 @@ export class GameScene extends Phaser.Scene {
       : [];
     const firstUpgrades = this.unifiedLab
       ? Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 1)
-      : unlockedFirstUpgrades(this.campaign);
+      : unlockedFirstUpgrades(this.combatCampaign);
     const firstStats = this.mode === 'upgradeLab'
       ? combatStatsForLoadout(this.upgradeIds)
       : combatStatsForLoadout(firstUpgrades);
@@ -139,17 +266,70 @@ export class GameScene extends Phaser.Scene {
     // Valores provisórios para o playtest da árvore reorganizada.
     const jointStages = this.thirdIds.length + this.fourthIds.length;
     this.combat.specialCooldown = Math.round(this.combat.specialCooldown * Math.pow(0.93, jointStages));
-    this.isV1Campaign = !this.unifiedLab && /^wave(?:[0-9]|10)$/.test(this.mode);
+    this.isV1Campaign = !this.unifiedLab && (/^wave(?:[0-9]|10|11)$/.test(this.mode) || (this.v1Playtest && this.mode === 'upgradeLab'));
     if (this.isV1Campaign) {
-      this.combat = v1CombatStats(this.campaign);
+      this.combat = v1CombatStats(this.combatCampaign);
+      this.specialBuild = v1SpecialConfig(this.combatCampaign);
+      if(this.specialBuild.primary==='us')
+        this.combat.specialCooldown=AMERICAN_WALL_COOLDOWN_MS;
       // Legado de torres e especiais das árvores antigas fica disponível somente no laboratório.
       this.thirdIds = [];
       this.fourthIds = [];
     }
+    // As campanhas novas usam a matemática P/S do Laboratório,
+    // sem oferecer controles experimentais durante a partida.
+    this.campaignMathEnabled=!this.v1Playtest&&!this.unifiedLab&&
+      Boolean(this.campaign.armament?.principal)&&this.isV1Campaign;
+    this.modernMathEnabled=this.labMathEnabled||this.campaignMathEnabled;
+    if(this.campaignMathEnabled){
+      this.v1LabPrincipal=this.campaign.armament.principal;
+      this.v1LabSpecial=this.campaign.armament.especial;
+      this.v1LabAllocation=normalizeLabAllocation(armamentAllocation(this.campaign));
+      const result=computeLabMath({profile:{},
+        allocation:this.v1LabAllocation,
+        principal:this.v1LabPrincipal,
+        especial:this.v1LabSpecial??this.v1LabPrincipal});
+      this.combat=result.stats;
+      this.specialBuild=result.build;
+      this.labExtra=result.extra;
+      this.labWinner=result.winner;
+      if(!this.v1LabSpecial)this.specialBuild.primary=null;
+    }else if(this.labMathEnabled)this.applyLabMath(this.labMathProfile);
+    // O prólogo é uma falsa superioridade intencional: armamento ainda
+    // sem identidade nacional, mas temporariamente muito poderoso.
+    if(this.mode==='wave0'&&!this.v1Playtest&&!this.unifiedLab){
+      this.combat.basicInterval=PROLOGUE_CANNON.strong.intervalMs;
+      this.combat.basicDamage=PROLOGUE_CANNON.strong.damage;
+      this.combat.basicSpeed=Math.max(1100,this.combat.basicSpeed);
+      this.combat.bulletsPerShot=1;
+      this.combat.specialCooldown=Infinity;
+      if(this.specialBuild)this.specialBuild.primary=null;
+    }
+  }
+
+  applyLabMath(profile){
+    if(!this.labMathEnabled)return;
+    this.labMathProfile=normalizeLabBalance(profile);
+    const result=computeLabMath({profile:this.labMathProfile,
+      allocation:this.v1LabAllocation,
+      principal:this.v1LabPrincipal,especial:this.v1LabSpecial});
+    this.combat=result.stats;
+    this.specialBuild=result.build;
+    this.labExtra=result.extra;
+    this.labWinner=result.winner;
   }
 
   getRunOptions() {
-    if (this.unifiedLab) return { mode: this.mode, labConfig: this.labConfig };
+    if(this.v1Playtest && this.v1LabLevels)return {
+      mode:this.mode, v1Playtest:true, campaign:normalizeCampaignState(this.campaign),
+      v1LabLevels:{...this.v1LabLevels}, v1LabPrimary:this.v1LabPrimary,
+      ...(this.labMathEnabled?{v1LabPrincipal:this.v1LabPrincipal,
+        v1LabSpecial:this.v1LabSpecial,v1LabAllocation:this.v1LabAllocation,
+        v1LabBalance:this.labMathProfile}:{}),
+      selectedBetrayer:this.selectedBetrayer,
+    };
+    if (this.unifiedLab) return { mode: this.mode, labConfig: this.labConfig,
+      ...(this.waveMakerTest?{waveMakerTest:true,waveMakerEvents:this.waveMakerEvents?.map(e=>({...e})),waveMakerDuration:this.waveMakerDuration}:{}) };
     if (this.mode === 'upgradeLab') {
       return {
         mode: this.mode, upgradeIds: [...this.upgradeIds],
@@ -157,7 +337,10 @@ export class GameScene extends Phaser.Scene {
         labTowerIds: [...this.labTowerIds],
       };
     }
-    return { mode: this.mode, campaign: normalizeCampaignState(this.campaign) };
+    return { mode: this.mode, campaign: normalizeCampaignState(this.campaign),
+      selectedBetrayer:this.selectedBetrayer,
+      zecaRevenge:this.zecaRevenge,
+      ...(this.voyageActive?{voyageIndex:this.voyageIndex}:{}) };
   }
 
   refreshLabStats() {
@@ -196,7 +379,24 @@ export class GameScene extends Phaser.Scene {
   }
 
   openUpgradeLab() {
-    if (this.mode !== 'upgradeLab' || this.scene.isActive('UpgradeLabScene')) return;
+    if(this.labMathEnabled){
+      this.scene.start('V1PlaytestScene',{
+        principal:this.v1LabPrincipal,especial:this.v1LabSpecial,
+        allocation:this.v1LabAllocation,arenaIndex:this.mode.startsWith('wave')
+          ?Number(this.mode.slice(4)):12,
+      });
+      return;
+    }
+    if (this.mode !== 'upgradeLab') return;
+    if(this.v1Playtest && this.v1LabLevels){
+      // A árvore V1 é escolhida no laboratório novo, não no painel legado.
+      this.scene.start('V1PlaytestScene',{
+        principal:this.v1LabPrincipal??null,especial:this.v1LabSpecial??null,
+        allocation:this.v1LabAllocation,arenaIndex:12,
+      });
+      return;
+    }
+    if(this.scene.isActive('UpgradeLabScene'))return;
     this.scene.pause();
     this.scene.launch('UpgradeLabScene', {
       selectedIds: [...this.upgradeIds], selectedTowerIds: [...this.labTowerIds],
@@ -204,12 +404,25 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  clearDiscoGlobes() {
+    for (const globe of this.discoGlobes ?? []) { globe.graphics.destroy(); globe.label.destroy(); }
+    this.discoGlobes = [];
+    for(const sat of this.russianSputniks??[])sat.graphics?.destroy();
+    this.russianSputniks=[];
+    for(const wall of this.americanWalls??[])wall.graphics?.destroy();
+    this.americanWalls=[];
+    stopRussianSfxLoops();
+    stopNationalSpecialSfxLoops();
+  }
+
   clearTestEnemies() {
     if (!this.unifiedLab && this.mode !== 'upgradeLab' && this.mode !== 'lab') return;
+    this.clearDiscoGlobes();
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) this.removeEnemy(i);
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) this.removeEnemyBullet(i);
     for (const bullet of this.projectiles) {
       bullet.trail?.destroy();
+      bullet.specialMarker?.destroy();
       bullet.sprite.destroy();
     }
     this.projectiles.length = 0;
@@ -217,6 +430,8 @@ export class GameScene extends Phaser.Scene {
     this.clearResidualSlashes();
     for (const blast of this.specialBlasts) blast.graphics.destroy();
     this.specialBlasts.length = 0;
+    for (const nucleus of this.arraialNuclei) nucleus.graphics.destroy();
+    this.arraialNuclei.length = 0;
     for (const bullet of this.supportProjectiles) bullet.sprite.destroy();
     this.supportProjectiles.length = 0;
     // Limpa os VFX de mortes sem afetar o combate nem o treinamento.
@@ -226,24 +441,115 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     preloadRioBackdrop(this);
+    // Retratos já existentes do menu de upgrades; nenhum novo sprite gerado.
+    for(const id of ['br','us','ru','jp','cn'])
+      this.load.image('battle-portrait-'+id,
+        assetUrl('assets/lideres/'+id+'_personagem.png'));
+    this.load.image('cannon-base',assetUrl('assets/canhao/base.png'));
+    for(let i=0;i<9;i++){
+      this.load.image('cannon-head-'+i,assetUrl('assets/canhao/head_'+i+'.png'));
+      this.load.image('cannon-barrel-'+i,assetUrl('assets/canhao/barrel_'+i+'.png'));
+    }
+    for(let i=0;i<DAWN_KEYS.length;i++){
+      this.load.image(DAWN_KEYS[i],assetUrl('assets/cenario/amanhecer/'+DAWN_FILES[i]));
+    }
     preloadMechSprites(this);
     this.load.setPath('');
     for (let frame = 1; frame <= 4; frame += 1) {
       const name = 'frame_' + String(frame).padStart(2, '0') + '.png';
       this.load.image('tipo1_' + frame, assetUrl('assets/inimigos/tipo1/' + name));
     }
+    // Tipo 2: 8 quadros normalizados, 4 × 2, 112 × 112 px, transparentes.
+    // O original 1448 × 1086 tem margens verticais desiguais por linha:
+    // usamos o atlas recortado para evitar deslocamentos na animação.
+    this.load.spritesheet('tipo2_sheet',assetUrl('assets/inimigos/tipo2/spritesheet.png'),{
+      frameWidth:112,frameHeight:112,
+    });
+    // Tipo 5: cruzador-colmeia (4x4, 16 quadros de 224x128),
+    // normalizado para animações de voo, liberação de escoltas e destruição.
+    this.load.spritesheet('tipo5_sheet',
+      assetUrl('assets/inimigos/tipo5/spritesheet.png'),{
+        frameWidth:TYPE5_SPRITE.frameWidth,frameHeight:TYPE5_SPRITE.frameHeight,
+      });
+    // Tipo 6 alienígena: casco em quatro estados, independente dos módulos.
+    // As quatro células possuem o mesmo alinhamento e não alteram hitboxes.
+    this.load.spritesheet(TYPE6_HULL_SHEET.key,
+      assetUrl('assets/inimigos/tipo6/casco-alien.png'),{
+        frameWidth:TYPE6_HULL_SHEET.frameWidth,
+        frameHeight:TYPE6_HULL_SHEET.frameHeight,
+      });
+    // Módulos do Tipo 6: sete estados por função, quatro linhas de sprites.
+    // Ausência da imagem mantém o visual procedural anterior como fallback.
+    this.load.spritesheet(TYPE6_MODULE_SHEET.key,
+      assetUrl('assets/inimigos/tipo6/modulos-alien.png'),{
+        frameWidth:TYPE6_MODULE_SHEET.frameWidth,
+        frameHeight:TYPE6_MODULE_SHEET.frameHeight,
+      });
+    // Tipo 3: spritesheet 16-bit 4 x 3 (12 quadros de 128 px).
+    // O PNG será colocado pelo desenvolvedor em public/assets/inimigos/tipo3/.
+    // Enquanto estiver ausente, o visual vetorial antigo serve de fallback.
+    this.load.spritesheet('tipo3_sheet', assetUrl('assets/inimigos/tipo3/spritesheet.png'), {
+      frameWidth: 128, frameHeight: 128,
+    });
+    // Caça Relâmpago Tipo 4: opção C aprovada, 12 quadros em grade 4x3.
+    // A imagem fica em public/assets/inimigos/tipo4/spritesheet.png.
+    // Sem o arquivo, o inimigo mantém o visual vetorial anterior.
+    this.load.spritesheet('tipo4_sheet', assetUrl('assets/inimigos/tipo4/spritesheet.png'), {
+      frameWidth: 128, frameHeight: 128,
+    });
   }
 
   create() {
+    // O login inicial usa um input HTML. Seu foco não pode sobreviver à
+    // transição e capturar letras/ESPAÇO durante o combate ou o Supremo.
+    const focused=globalThis.document?.activeElement;
+    if(focused?.closest?.('#player-name-panel'))focused.blur?.();
+    this.music = bindSceneMusic(this, waveMusic(this.mode, this.campaign));
+    // Nunca deixar loops de sons russos tocando na pausa ou após trocar de cena.
+    this.events.on('pause',stopRussianSfxLoops);
+    this.events.on('pause',stopNationalSpecialSfxLoops);
+    this.events.once('shutdown',()=>{
+      this.pandaClear(false);
+      this.events.off('pause',stopRussianSfxLoops);
+      this.events.off('pause',stopNationalSpecialSfxLoops);
+      stopRussianSfxLoops();
+      stopNationalSpecialSfxLoops();
+    });
     this.input.mouse?.disableContextMenu();
 
     drawRioBackdrop(this);
+    if(this.voyageActive&&(this.voyageArrived||this.voyageIndex>0))
+      this.drawVoyageBackdrop();
+    // O cenário noturno original permanece até os 10 segundos finais.
+    // As quatro imagens surgem sequencialmente por cima dele.
+    this.dawnLayers=this.mode.startsWith('wave')?DAWN_KEYS.map(key=>
+      this.textures.exists(key)?this.add.image(W/2,H/2,key)
+        .setDisplaySize(W,H).setDepth(0.5).setAlpha(0):null):[];
     // Iluminação de amanhecer nos últimos 5 segundos das noites.
     // Camada atrás dos alvos/defesas e acima do cenário.
     this.sunriseOverlay = this.mode.startsWith('wave')
       ? this.add.rectangle(W / 2, H / 2, W, H, 0xffc285, 0).setDepth(18)
       : null;
 
+    if(this.textures.exists('tipo2_sheet')&&!this.anims.exists('tipo2_voo')){
+      this.anims.create({
+        key:'tipo2_voo',
+        frames:this.anims.generateFrameNumbers('tipo2_sheet',{frames:[0,1,2,3,4,5]}),
+        frameRate:5,repeat:-1,
+      });
+    }
+    if(this.textures.exists('tipo5_sheet')){
+      for(const [key,frames,frameRate,repeat] of [
+        ['tipo5_voo',TYPE5_SPRITE.flight,4,-1],
+        ['tipo5_spawn',TYPE5_SPRITE.deploy,8,0],
+        ['tipo5_morte',TYPE5_SPRITE.death,8,0],
+      ]){
+        if(this.anims.exists(key))continue;
+        this.anims.create({key,
+          frames:this.anims.generateFrameNumbers('tipo5_sheet',{frames}),
+          frameRate,repeat});
+      }
+    }
     if (!this.anims.exists('tipo1_voo')) {
       this.anims.create({
         key: 'tipo1_voo',
@@ -252,12 +558,52 @@ export class GameScene extends Phaser.Scene {
         repeat: -1,
       });
     }
+    if (this.textures.exists('tipo3_sheet')) {
+      if (!this.anims.exists('tipo3_voo')) this.anims.create({
+        key: 'tipo3_voo',
+        frames: this.anims.generateFrameNumbers('tipo3_sheet', { frames: [0,1,2,3] }),
+        frameRate: 4, repeat: -1,
+      });
+      if (!this.anims.exists('tipo3_bombardeio')) this.anims.create({
+        key: 'tipo3_bombardeio',
+        frames: this.anims.generateFrameNumbers('tipo3_sheet', { frames: [8,9] }),
+        frameRate: 9, repeat: 0,
+      });
+    }
+    if (this.textures.exists('tipo4_sheet')) {
+      const actions=[
+        ['tipo4_voo',[0,1],4],
+        // Os quadros 2 e 3 já apontam para DIREITA e ESQUERDA.
+        // Segurar um único quadro lateral evita o 'balanço' em cada passada.
+        ['tipo4_banco_esquerda',[3],1],
+        ['tipo4_banco_direita',[2],1],
+        ['tipo4_dash',[6,7],10],
+        ['tipo4_propulsao',[8,9],8],
+      ];
+      for (const [key,frames,frameRate] of actions) {
+        if (this.anims.exists(key)) continue;
+        this.anims.create({
+          key, frames:this.anims.generateFrameNumbers('tipo4_sheet',{frames}),
+          frameRate, repeat:frames.length===1?0:-1,
+        });
+      }
+    }
 
+    this.discoGlobes = [];
+    // Inicializar em TODAS as partidas, mesmo sem upgrades russos.
+    // O Phaser reutiliza a cena ao reiniciar: nunca herdar Sputniks anteriores.
+    this.russianSputniks = [];
+    this.americanWalls = [];
+    this.wallReflections = [];
     this.enemies = [];
     this.projectiles = [];
+    this.pandaDrone=null;
     this.visibleProjectileCount = 0;
     this.enemyBullets = [];
     this.specialBlasts = [];
+    this.arraialNuclei = [];
+    this.arraialBurstVisuals = 0;
+    this.lastFlameTick = -Infinity;
     this.supportTowers = [];
     this.supportProjectiles = [];
     this.residualSlashes = [];
@@ -268,38 +614,123 @@ export class GameScene extends Phaser.Scene {
     this.nextBlastId = 1;
     this.elapsed = 0;
     this.countdownActive = false;
+    this.waveOpeningFinish=null;this.waveOpeningStartedAt=null;
     this.labEnemyLevel = 1;
     this.eventsSpawned = 0;
     // v0.35: a campanha usa grupos reais, com progressão dentro de cada noite.
     // Laboratórios e a agenda legada continuam acessíveis independentemente.
-    this.waveEvents = getV035WaveEvents(this.mode, getWaveEvents(this.mode));
+    this.waveEvents = this.voyageActive
+      ?voyageEvents(this.voyageIndex)
+      :getV035WaveEvents(this.mode,getWaveEvents(this.mode,this.finaleCampaign));
     this.lastBasicFire = -this.combat.basicInterval;
     this.heatStartedAt = null;
     this.ultimateUsed = false;
+    this.supremeTyping = false;
+    this.supremeCode = '';
+    this.supremeTimeScales = null;
+    this.lastSupremeNotReadyAt = -Infinity;
+    this.supremeCinematic = false;
+    this.cannonFrozenUntil=0;
+    this.lastFinaleWarningAt=-Infinity;
+    this.finaleCounterattackCount=0;
     this.basicShotCount = 0;
+    this.usJulyHits = 0; // A carga pertence somente à noite atual.
+    this.waveMakerMetrics={enemyShots:0,enemyKills:0,intercepted:0,damageReceived:0};
     this.cannonRecoil = 0;
     this.lastHeavyShake = -Infinity;
     this.lastSpecialFire = -this.combat.specialCooldown;
+    this.wasSpecialCooling=false;
+    this.lastV1ShieldPulse = -Infinity;
+    this.shieldReflectCount = 0;
     this.tutorialComplete = false;
     this.gameOver = false;
+    this.boss6Victory=false;
+    // A onda do Tipo 6 nunca consome tempo antes de o chefão ficar alvejável,
+    // inclusive no intervalo entre abrir o combate e criar o sprite do boss.
+    this.boss6IntroPaused=!this.voyageActive&&
+      (this.mode==='wave10'||this.mode==='wave11');
+    this.boss6DoomFired=false;
+    this.boss6WarningText=null;
     this.cannonHealth = 100;
-    this.shieldMax = 80 + (this.thirdIds.length + this.fourthIds.length) * 8 + (this.isV1Campaign ? this.combat.shieldBonus : 0);
+    this.shieldMax = 80; // v0.49: escudo padrão, nenhuma melhoria de país altera HP.
     this.shield = this.shieldMax;
+    this.shieldRebuildStartedAt=null;
     this.lastDamageAt = -10000;
     this.aimAngle = -Math.PI / 2;
 
     this.createTurret();
     this.shieldGraphics = this.add.graphics().setDepth(23);
+    installShieldSprites(this);
+    // A proteção hexagonal é inteiramente desenhada no Phaser, sem texturas externas.
+    this.hexShieldGraphics=this.add.graphics().setDepth(25);
+    this.hexShieldTransition='hidden';
+    this.hexShieldTransitionAt=this.time.now;
+    this.hexShieldFlashUntil=0;
     this.enemyHealthGraphics = this.add.graphics().setDepth(27);
+    this.frostGraphics = this.add.graphics().setDepth(46);
+    this.iceBreathGraphics=this.combat.transformed==='ru'?
+      this.add.graphics().setDepth(37):null;
     this.towerStatusGraphics = this.add.graphics().setDepth(35);
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
+    this.createMobileControls();
+    if(this.labMathEnabled){
+      this.mathEditor=mountLabBalanceEditor({
+        allocation:this.v1LabAllocation,especial:this.v1LabSpecial,
+        onChange:profile=>this.applyLabMath(profile),
+        onReturn:()=>this.openUpgradeLab(),
+      });
+      this.events.once('shutdown',()=>this.mathEditor?.destroy());
+    }
+    this.banterState=createBattleBanterState();
+    this.createBattleBanterPanel();
+    if(this.voyageActive){
+      const destination=voyageStop(this.voyageIndex);
+      this.voyageLabel=this.add.text(760,110,
+        destination.city+'  '+(this.voyageIndex+1)+'/'+VOYAGE_STOPS.length,{
+          fontFamily:'monospace',fontSize:'11px',fontStyle:'bold',
+          color:'#f6e5af',backgroundColor:'#12233dd5',padding:{x:7,y:5},
+        }).setOrigin(0.5).setDepth(108);
+    }
+    if(this.mode.startsWith('wave')){
+      this.cuboNewsState=createCuboNewsState(this.combatCampaign?.choices||this.campaign?.choices||[],
+        this.mode,this.mode==='wave11'?this.selectedBetrayer:null);
+      this.cuboNewsHud=createCuboNewsHud(this);
+      this.cuboNewsHud.update(0,this.waveDurationMs,null,{frozen:true});
+    }
+    if (this.isV1Campaign && this.specialBuild?.primary) {
+      this.specialLabel=this.add.text(CANNON.x-170,CANNON.y-63,'',{
+        fontFamily:'monospace',fontSize:'11px',fontStyle:'bold',
+        color:'#e9f6ff',backgroundColor:'#142030dd',padding:{x:5,y:4},
+      }).setDepth(105);
+    }
+    if (this.isV1Campaign && this.combat.usJulyHitsRequired) {
+      // O HUD tradicional das ondas fica oculto pela transmissão da Cubo News.
+      // Medidor mínimo ao lado do canhão; exibe carga e a próxima salva pronta.
+      this.usJulyStatusLabel=this.add.text(CANNON.x-190,CANNON.y-77,'',{
+        fontFamily:'monospace',fontSize:'12px',fontStyle:'bold',
+        color:'#ecf5ff',backgroundColor:'#10283bc9',
+        padding:{x:7,y:5},stroke:'#11233f',strokeThickness:2,
+      }).setDepth(105);
+    }
     if (this.isV1Campaign && this.combat.ultimate) {
+      // O indicador anterior ficava invisível durante a campanha, junto
+      // dos textos de HUD antigos. Dar aviso explícito nos 5 s finais.
+      this.supremeReadyHint=this.add.text(W/2,96,'★  SUPREMO PRONTO — ESPAÇO',{
+        fontFamily:'monospace',fontSize:'18px',fontStyle:'bold',
+        color:'#fff0ae',backgroundColor:'#192536ed',
+        padding:{x:12,y:8},stroke:'#091324',strokeThickness:2,
+      }).setOrigin(0.5).setDepth(112).setVisible(false);
       this.ultimateLabel = this.add.text(CANNON.x + 75, CANNON.y - 61, '', {
         fontFamily: 'monospace', fontSize: '11px', fontStyle: 'bold',
         color: '#fff2b8', backgroundColor: '#132b39da', padding: {x:6,y:4},
       }).setDepth(105);
+    }
+    // Não existem indicadores persistentes fora do lower third da Cubo News.
+    if(this.mode.startsWith('wave')){
+      this.specialLabel?.setVisible(false);
+      this.ultimateLabel?.setVisible(false);
     }
     // A batalha é vista como transmissão de TV. O filtro é somente visual:
     // fica acima das naves, mas abaixo dos textos e controles do HUD.
@@ -321,39 +752,72 @@ export class GameScene extends Phaser.Scene {
       this.specialAimActive = true;
       if (pointer.rightButtonDown()) this.shootSpecial(pointer);
     });
-    this.input.keyboard.on('keydown-R', () => this.scene.restart(this.getRunOptions()));
-    this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
-    this.input.keyboard.on('keydown-P', () => this.pauseGame());
-    this.input.keyboard.addCapture('SPACE');
-    this.input.keyboard.on('keydown-SPACE', (event) => {
-      event.preventDefault();
-      if (this.scene.isActive('GameScene') && !this.scene.isPaused('GameScene')) this.activateUltimate();
+    // Um único despachante de teclado: letras NUNCA reiniciam a batalha.
+    // A digitação do Supremo tem prioridade sobre PAUSAR e os atalhos
+    // de teste. R e F não têm nenhuma ação em combate.
+    this.input.keyboard.addCapture(['SPACE','BACKSPACE']);
+    this.input.keyboard.on('keydown', (event) => {
+      if(!this.scene.isActive('GameScene')||this.scene.isPaused('GameScene'))return;
+      if(event.ctrlKey||event.metaKey||event.altKey)return;
+      if(event.target?.isContentEditable||
+        /^(INPUT|TEXTAREA)$/.test(event.target?.tagName??''))return;
+      if(this.supremeTyping) {
+        this.handleSupremeCodeKey(event);
+        return;
+      }
+      if(event.repeat)return;
+      if(event.code==='Space'){
+        event.preventDefault();
+        this.openSupremeCode();
+      }else if(event.code==='Escape'||event.code==='KeyP'){
+        event.preventDefault();
+        this.pauseGame();
+      }
     });
 
     if (import.meta.env.DEV && this.mode.startsWith('wave')) {
-      // Playtest local: Shift+5–9 abre a onda diretamente, sem afetar o itch.io.
+      // Só para diagnóstico em DEV: Ctrl+Alt+Shift+5–9 pula ondas;
+      // Ctrl+Alt+Shift+0/1 pula para chefes. Nunca um atalho acidental.
+
       // Se entrar antes da terceira escolha, usa Brasil III como equipamento
       // padrão apenas no salto de testes, sem sobrescrever a campanha.
       this.input.keyboard.on('keydown', (event) => {
-        if (!event.shiftKey) return;
-        const choice = /^Digit([5-9])$/.exec(event.code ?? '');
-        if (!choice) return;
+        if (this.supremeTyping || this.supremeCinematic ||
+          !event.shiftKey || !event.ctrlKey || !event.altKey) return;
+        const choice = /^Digit([0-9])$/.exec(event.code ?? '');
+        if (!choice || Number(choice[1])<5&&choice[1]!=='0'&&choice[1]!=='1') return;
         event.preventDefault();
-        this.scene.start('GameScene', {
-          mode: `wave${choice[1]}`,
-          campaign: this.campaign.choices.length >= 3
-            ? this.campaign : { choices: ['br', 'br', 'br'] },
-        });
+        const mode=choice[1]==='0'?'wave10':choice[1]==='1'?'wave11':`wave${choice[1]}`;
+        const campaign=this.campaign.choices.length>=3
+          ? this.campaign : {choices:['br','br','br','br','br','br','br','br','br','br']};
+        this.scene.start('GameScene',{mode,campaign});
+        
       });
     }
 
     if (this.unifiedLab && this.mode === 'lab') {
       // Arena livre: nenhum spawn agendado e nenhuma duração limite.
       this.waveEvents = [];
+    } else if(this.voyageActive){
+      if(this.voyageArrived)this.startWaveCountdown();
+      else this.startVoyageTransition(this.voyageIndex,{initial:true});
+    } else if (this.mode === 'wave11' && !this.zecaRevenge && !this.v1Playtest && !this.waveMakerTest) {
+      this.showFinalePrelude();
+    } else if (this.mode === 'wave10' && !this.v1Playtest && !this.waveMakerTest) {
+      this.showAlienRevelation();
     } else if (this.mode.startsWith('wave')) {
       this.startWaveCountdown();
     } else {
       this.scheduleWaveEvents();
+    }
+
+    if (this.previewDestruction) {
+      this.time.delayedCall(4300, () => {
+        if (this.tutorialComplete) return;
+        this.shield = 0;
+        this.cannonHealth = 0;
+        this.showDefeat();
+      });
     }
 
     if (this.mode === 'upgradeLab') {
@@ -383,8 +847,21 @@ export class GameScene extends Phaser.Scene {
       this.input.keyboard.on('keydown-U', () => {
         if (this.scene.isActive('GameScene')) this.openUpgradeLab();
       });
-      // Exibe a seleção logo ao entrar; ela pode ser reaberta com U.
-      this.time.delayedCall(1, () => this.openUpgradeLab());
+      if(!this.v1Playtest){
+        // Apenas laboratório legado abre o seletor de upgrades antigo.
+        this.time.delayedCall(1, () => this.openUpgradeLab());
+      } else {
+        const comboButton=this.add.rectangle(835,95,213,29,0x204d50,0.97)
+          .setStrokeStyle(2,0x9dffce).setDepth(109)
+          .setInteractive({useHandCursor:true});
+        this.add.text(835,95,'ALTERAR COMBINAÇÃO [U]',{
+          fontFamily:'monospace',fontSize:'12px',color:'#effff6',
+        }).setOrigin(0.5).setDepth(110);
+        comboButton.on('pointerdown',(pointer,_x,_y,event)=>{
+          event?.stopPropagation();
+          if(pointer.leftButtonDown())this.openUpgradeLab();
+        });
+      }
     }
     if (this.unifiedLab || this.mode === 'upgradeLab' || this.mode === 'lab') {
       this.input.keyboard.on('keydown', (event) => {
@@ -522,46 +999,144 @@ export class GameScene extends Phaser.Scene {
   scheduleWaveEvents() {
     this.waveEvents.forEach((event) => {
       this.time.delayedCall(event.at, () => {
-        if (this.tutorialComplete) return;
+        if (this.tutorialComplete || this.boss6Victory || this.boss6DoomFired) return;
+        // Nos 15 segundos finais das ondas comuns não entram novos inimigos.
+        if(/^wave[0-9]$/.test(this.mode)&&this.elapsed>=15000)return;
         this.eventsSpawned += 1;
         this.spawnWaveEvent(event);
       });
     });
   }
 
-  startWaveCountdown() {
-    // Os timers e a dificuldade da onda só começam depois do 3, 2, 1.
-    // São relógios do próprio Phaser: pausar congela também a contagem.
-    this.countdownActive = true;
-    this.statusText.setText('PREPARE-SE');
-    const shade = this.add.rectangle(W / 2, H / 2, W, H, 0x030b1e, 0.62)
-      .setDepth(115);
-    const title = this.add.text(W / 2, 170, MODES[this.mode].title, {
-      fontFamily: 'monospace', fontSize: '32px', fontStyle: 'bold',
-      color: '#f6dfa2', stroke: '#06152d', strokeThickness: 4,
-    }).setOrigin(0.5).setDepth(116);
-    const number = this.add.text(W / 2, 272, String(WAVE_COUNTDOWN_SECONDS), {
-      fontFamily: 'monospace', fontSize: '100px', fontStyle: 'bold',
-      color: '#a9f6e2', stroke: '#062b41', strokeThickness: 8,
-    }).setOrigin(0.5).setDepth(117);
-    const tip = this.add.text(W / 2, 356, 'PREPARE A DEFESA!', {
-      fontFamily: 'monospace', fontSize: '19px', color: '#f1f7ff',
-    }).setOrigin(0.5).setDepth(116);
-    const countdownItems = [shade, title, number, tip];
-
-    for (let n = WAVE_COUNTDOWN_SECONDS - 1; n >= 1; n -= 1) {
-      this.time.delayedCall((WAVE_COUNTDOWN_SECONDS - n) * 1000, () => {
-        number.setText(String(n));
-      });
+  showFinalePrelude() {
+    // Plantões e notícias usam a trilha normal da onda, não a vinheta da Cubo News.
+    this.countdownActive=true;
+    const info=finalePrelude(this.finaleCampaign);
+    const panel=this.add.rectangle(W/2,H/2,W,H,0x071021,0.96)
+      .setInteractive().setDepth(210);
+    const frameItems=addCuboBroadcastFrame(this,{
+      section:'Plantão • Momento decisivo',
+      headline:'Boletim extraordinário: destino do Brasil em jogo',
+      footer:'A cobertura segue após o início da próxima onda',
+      depth:228,
+    });
+    const title=this.add.text(W/2,87,info.title,{
+      fontFamily:'monospace',fontSize:'30px',fontStyle:'bold',
+      color:'#ffe0a6',align:'center',
+    }).setOrigin(0.5).setDepth(212);
+    const lines=this.add.text(W/2,239,info.lines.join(String.fromCharCode(10,10)),{
+      fontFamily:'monospace',fontSize:'17px',fontStyle:'bold',
+      color:'#e3f1ff',align:'center',wordWrap:{width:810},lineSpacing:8,
+    }).setOrigin(0.5).setDepth(212);
+    let fightButton;
+    let surrenderButton;
+    const dismissPrelude = () => {
+      // Botões têm fundo, texto, barra e sombra; a moldura também é temporária.
+      destroyMenuButton(fightButton);
+      destroyMenuButton(surrenderButton);
+      [panel,title,lines,...frameItems].forEach(item=>item?.destroy());
+    };
+    fightButton=addMenuButton(this,{x:W/2,y:393,width:370,height:48,
+      text:'▶  RESISTIR À TRAIÇÃO',primary:true,depth:215,onClick:()=>{
+        dismissPrelude();
+        this.startWaveCountdown();
+      }});
+    if (!info.fullBrazil) {
+      surrenderButton=addMenuButton(this,{x:W/2,y:464,width:370,height:41,
+        text:'ACEITAR SUBMISSÃO',depth:215,onClick:()=>{
+          dismissPrelude();
+          this.scene.start('EndingScene',{campaign:this.finaleCampaign,won:false});
+        }});
     }
-    this.time.delayedCall(WAVE_COUNTDOWN_SECONDS * 1000, () => {
-      countdownItems.forEach((object) => object.destroy());
+  }
+
+  showAlienRevelation() {
+    this.countdownActive=true;
+    const panel=this.add.rectangle(W/2,H/2,W,H,0x071021,0.97).setDepth(210).setInteractive();
+    const script=[
+      'PLANTÃO CUBO NEWS • MENSAGEM EXTRATERRESTRE DECIFRADA',
+      'Linguistas brasileiros finalmente traduziram a transmissão alienígena.',
+      '“O IMPERADOR DA TERRA DEVE FECHAR OS BRAÇOS! ESSE GESTO É GUERRA!”',
+      'O alvo é o Cristo Redentor. Para os invasores, braços abertos declaram guerra.',
+      'E só atacam à noite porque, durante o dia, estão curtindo as praias do Rio.',
+      'ZÉ MARIA: “Dez noites de guerra por um abraço e um banho de mar?!”',
+    ];
+    let page=0;
+    const body=this.add.text(W/2,238,'',{
+      fontFamily:'monospace',fontSize:'19px',color:'#f2f6ff',align:'center',
+      wordWrap:{width:820},lineSpacing:8,
+    }).setOrigin(0.5).setDepth(212);
+    const title=this.add.text(W/2,92,'CUBO NEWS • REVELAÇÃO ANTES DA ONDA 10',{
+      fontFamily:'monospace',fontSize:'23px',fontStyle:'bold',color:'#ffe0a6',
+    }).setOrigin(0.5).setDepth(212);
+    const advance=()=>{
+      if(page<script.length){body.setText(script[page++]);button.label?.setText(page===script.length?'▶  ENFRENTAR NAVE-MÃE':'▶  CONTINUAR');return;}
+      destroyMenuButton(button);
+      [panel,body,title].forEach(item=>item?.destroy());
+      this.startWaveCountdown();
+    };
+    const button=addMenuButton(this,{x:W/2,y:433,width:370,height:51,
+      text:'▶  CONTINUAR',primary:true,depth:215,onClick:advance});
+    advance();
+  }
+
+  startWaveCountdown() {
+    if(this.waveOpeningFinish)return;
+    this.waveOpeningStartedAt=this.time.now;
+    this.waveOpeningFinish=null;
+    // A vinheta da Cubo News é exclusiva do primeiro plantão da introdução.
+    // Desde a contagem regressiva da onda 0, usa-se a trilha de combate.
+    this.music.play(waveMusic(this.mode, this.campaign));
+    // O tempo de combate e os spawns só começam APÓS o número total (30/60)
+    // sair do centro da tela e alcançar o relógio externo à câmera.
+    // A entrada cinematográfica do Tipo 6 pode pausar esse relógio novamente
+    // até a fortaleza ficar alvejável, independentemente desta abertura.
+    this.countdownActive = true;
+    this.elapsed = 0;
+    // Toda nova fase desmonta o escudo antes da contagem regressiva.
+    // A cúpula se forma de novo quando a batalha começa, não apenas
+    // quando o prédio-foguete pousa na rota Full Brazil.
+    this.hexShieldTransition='hidden';
+    this.hexShieldTransitionAt=this.time.now;
+    this.hexShieldFlashUntil=0;
+    this.lastHexShieldDrawAt=-Infinity;
+    this.statusText.setText(this.mode==='wave11'&&this.finale&&!this.finale.fullBrazil
+      ?'TEMPO ATÉ O BRASIL VIRAR COLÔNIA':'TEMPO ATÉ O AMANHECER');
+    let combatStarted=false;
+    const startCombat = () => {
+      if (combatStarted || !this.scene.isActive('GameScene') || this.tutorialComplete) return;
+      combatStarted=true;
+      // Encerrar o DOM e restaurar a câmera ANTES de liberar qualquer arma/spawn.
+      this.cuboNewsHud?.cancelDawnIntro?.();
+      this.waveOpeningFinish=null;
+      this.waveOpeningStartedAt=null;
       this.countdownActive = false;
+      // A formação acontece NO INÍCIO do combate em todas as ondas.
+      this.hexShieldTransition='forming';
+      this.hexShieldTransitionAt=this.time.now;
+      this.hexShieldFlashUntil=0;
+      this.music.play(waveMusic(this.mode, this.campaign));
       this.elapsed = 0;
-      // A carga só começa quando a defesa fica liberada para lutar.
+      this.queueBattleBanter(this.voyageActive?'arrival':'start');
       for (const tower of this.supportTowers) tower.lastAttackAt = this.time.now;
       this.scheduleWaveEvents();
-    });
+    };
+    this.waveOpeningFinish=startCombat;
+    if(this.voyageActive){
+      // A chegada espacial já é a cutscene de abertura, não há nova contagem.
+      this.time.delayedCall(400,startCombat);
+    }else if (this.cuboNewsHud?.beginDawnIntro) {
+      this.cuboNewsHud.beginDawnIntro(this.waveDurationMs, startCombat);
+      // Failsafe: uma animação DOM/tween interrompida nunca pode bloquear a onda.
+      this.time.delayedCall(5300,()=>{
+        if(combatStarted || !this.scene.isActive('GameScene'))return;
+        this.cuboNewsHud?.cancelDawnIntro?.();
+        startCombat();
+      });
+    } else {
+      // Fallback para integrações antigas sem DOM: não bloquear a onda.
+      this.time.delayedCall(1900, startCombat);
+    }
   }
 
   createSupportTowers() {
@@ -747,6 +1322,20 @@ export class GameScene extends Phaser.Scene {
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
       if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+      if(enemy.type===6){
+        const targets=type6AreaTargets(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+          x,y,SHOCK_BLAST_RADIUS);
+        const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
+        for(const id of targets){
+          const rect=rects.find(rect=>rect.id===id);
+          if(!rect)continue;
+          const distance=Math.hypot(rect.x-x,rect.y-y);
+          const damage=shockBlastDamage(distance,Math.max(rect.halfWidth,rect.halfHeight),
+            weapon.damage,SHOCK_BLAST_RADIUS);
+          if(damage>0)hitType6At(this,enemy,rect.x,rect.y,damage,0,true);
+        }
+        continue;
+      }
       const distance = Math.hypot(enemy.sprite.x - x, enemy.sprite.y - y);
       const damage = shockBlastDamage(
         distance, enemyContactRadius(enemy.type), weapon.damage, SHOCK_BLAST_RADIUS,
@@ -768,7 +1357,8 @@ export class GameScene extends Phaser.Scene {
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
       const hostile = this.enemyBullets[i];
       if (Math.hypot(hostile.sprite.x - x, hostile.sprite.y - y) <= SHOCK_BLAST_RADIUS + 7) {
-        this.removeEnemyBullet(i);
+        if(hostile.colossal)detonateType6Bomb(this,hostile);
+        else this.removeEnemyBullet(i,true);
       }
     }
 
@@ -814,8 +1404,9 @@ export class GameScene extends Phaser.Scene {
     if (!target || shot.age > 5) return true;
 
     const oldX = shot.sprite.x, oldY = shot.sprite.y;
+    const aim=type6AimPosition(target);
     const next = advanceGuidedTowerShot(oldX, oldY,
-      target.sprite.x, target.sprite.y, shot.speed, dt);
+      aim.x, aim.y, shot.speed, dt);
     shot.sprite.setPosition(next.x, next.y);
     shot.vx = next.vx;
     shot.vy = next.vy;
@@ -830,8 +1421,17 @@ export class GameScene extends Phaser.Scene {
     // atingir um ponto de previsão ou quando esgota seu tempo.
     for (const enemy of this.enemies) {
       if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+      if(enemy.type===6){
+        const targets=type6AreaTargets(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+          next.x,next.y,9);
+        if(targets.length){
+          this.detonateShockArtillery(next.x,next.y,shot.weapon);
+          return true;
+        }
+        continue;
+      }
       if (segmentHitsCircle(oldX, oldY, next.x, next.y,
-        enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 9)) {
+        enemy.sprite.x, enemy.sprite.y, this.enemyCombatRadius(enemy) + 9)) {
         this.detonateShockArtillery(enemy.sprite.x, enemy.sprite.y, shot.weapon);
         return true;
       }
@@ -863,18 +1463,19 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (weapon.type === 'laser') {
+      const aim=type6AimPosition(enemy);
       const beam = this.add.graphics().setDepth(41);
       beam.lineStyle(11, 0x996af1, 0.22);
-      beam.lineBetween(fromX, fromY, enemy.sprite.x, enemy.sprite.y);
+      beam.lineBetween(fromX, fromY, aim.x, aim.y);
       beam.lineStyle(3, 0xedc4ff, 1);
-      beam.lineBetween(fromX, fromY, enemy.sprite.x, enemy.sprite.y);
+      beam.lineBetween(fromX, fromY, aim.x, aim.y);
       this.tweens.add({
         targets: beam, alpha: 0, duration: 260,
         onComplete: () => beam.destroy(),
       });
       const hits = weapon.pierce ? this.enemies.filter(e => {
         if (!towerSeesEnemy(e, TOWER_BLIND_ZONE_Y, W, H)) return false;
-        const ax = fromX, ay = fromY, bx = enemy.sprite.x, by = enemy.sprite.y;
+        const ax = fromX, ay = fromY, bx = aim.x, by = aim.y;
         const dx = bx-ax, dy = by-ay, len = Math.max(1, dx*dx+dy*dy);
         const t = Phaser.Math.Clamp(((e.sprite.x-ax)*dx+(e.sprite.y-ay)*dy)/len, 0, 1);
         return Math.hypot(e.sprite.x-(ax+t*dx),e.sprite.y-(ay+t*dy)) < 24;
@@ -882,7 +1483,10 @@ export class GameScene extends Phaser.Scene {
       for (const hitEnemy of hits) {
         if (!towerSeesEnemy(hitEnemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
         const index = this.enemies.findIndex(item => item.uid === hitEnemy.uid);
-        if (index >= 0) this.impactInvader(index, weapon.damage, 0, '#e6b1ff');
+        if (index >= 0) {
+          if(hitEnemy.type===6)hitType6Segment(this,hitEnemy,fromX,fromY,aim.x,aim.y,weapon.damage,6);
+          else this.impactInvader(index,weapon.damage,0,'#e6b1ff');
+        }
       }
       return;
     }
@@ -896,8 +1500,9 @@ export class GameScene extends Phaser.Scene {
       const shotTarget = swarmTargets[i % swarmTargets.length] ?? enemy;
       const x = fromX + (i - (count - 1) / 2) * 18;
       const y = fromY;
-      const dx = shotTarget.sprite.x - x;
-      const dy = shotTarget.sprite.y - y;
+      const aim=type6AimPosition(shotTarget);
+      const dx = aim.x - x;
+      const dy = aim.y - y;
       const distance = Math.max(1, Math.hypot(dx, dy));
       // Todos os projéteis das torres têm guia ativo, inclusive balas comuns.
       const guided = true;
@@ -938,8 +1543,9 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
       const oldX = shot.sprite.x, oldY = shot.sprite.y;
+      const aim=type6AimPosition(target);
       const next = advanceGuidedTowerShot(
-        oldX, oldY, target.sprite.x, target.sprite.y, shot.speed, dt,
+        oldX, oldY, aim.x, aim.y, shot.speed, dt,
       );
       shot.sprite.setPosition(next.x, next.y);
       shot.vx = next.vx;
@@ -949,8 +1555,14 @@ export class GameScene extends Phaser.Scene {
       for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
         const enemy = this.enemies[j];
         if (!towerSeesEnemy(enemy, TOWER_BLIND_ZONE_Y, W, H)) continue;
+        if(enemy.type===6){
+          hit=hitType6Segment(this,enemy,oldX,oldY,next.x,next.y,
+            shot.weapon.damage,7);
+          if(hit)break;
+          continue;
+        }
         if (!segmentHitsCircle(oldX, oldY, next.x, next.y,
-          enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type) + 7)) continue;
+          enemy.sprite.x, enemy.sprite.y, this.enemyCombatRadius(enemy) + 7)) continue;
 
         this.impactInvader(
           j, shot.weapon.damage, shot.weapon.knockback ?? 0, '#fff3b9',
@@ -983,19 +1595,280 @@ export class GameScene extends Phaser.Scene {
   }
 
   createTurret() {
-    const x = CANNON.x;
-    const y = CANNON.y;
-    this.add.rectangle(x, y + 10, 65, 22, 0x354958).setStrokeStyle(2, 0xa9d0df).setDepth(21);
-    this.add.rectangle(x, y + 1, 42, 25, 0x637b88).setStrokeStyle(2, 0xc1d4db).setDepth(22);
-    this.barrel = this.add.rectangle(x, y - 20, 11, 47, 0x9daeb6)
-      .setStrokeStyle(2, 0xe0edec).setOrigin(0.5, 0.85).setDepth(21);
-    this.add.circle(x, y - 1, 12, 0x314f62).setStrokeStyle(2, 0xc4d7dc).setDepth(23);
+    const x=CANNON.x,y=CANNON.y;
+    const spriteReady=this.textures.exists('cannon-base')&&
+      Array.from({length:9},(_,i)=>this.textures.exists('cannon-head-'+i)&&
+        this.textures.exists('cannon-barrel-'+i)).every(Boolean);
+    // Mantém o canhão vetorial como fallback até os recortes serem publicados.
+    const base=this.add.rectangle(x,y+10,65,22,0x354958).setStrokeStyle(2,0xa9d0df).setDepth(21);
+    const middle=this.add.rectangle(x,y+1,42,25,0x637b88).setStrokeStyle(2,0xc1d4db).setDepth(22);
+    this.barrel=this.add.rectangle(x,y-20,11,47,0x9daeb6)
+      .setStrokeStyle(2,0xe0edec).setOrigin(0.5,0.85).setDepth(21);
+    const pivot=this.add.circle(x,y-1,12,0x314f62).setStrokeStyle(2,0xc4d7dc).setDepth(23);
+    // Reutilizar EXATAMENTE os mesmos objetos na viagem: nada de
+    // duplicar sprites com dimensões diferentes e deformar o canhão.
+    this.cannonVisualParts=[base,middle,this.barrel,pivot];
+    if(spriteReady){
+      for(const part of [base,middle,this.barrel,pivot])part.setVisible(false);
+      this.cannonBaseArt=this.add.image(x,y+7,'cannon-base')
+        .setDisplaySize(104,48).setDepth(21);
+      // Extrai apenas o mecanismo inferior de cada head. O cano curto da
+      // imagem original não deve duplicar o barrel longo.
+      for(let i=0;i<9;i++){
+        const key='cannon-pivot-'+i;
+        if(this.textures.exists(key))continue;
+        const source=this.textures.get('cannon-head-'+i).getSourceImage();
+        const canvas=document.createElement('canvas');
+        canvas.width=source.width;canvas.height=source.height;
+        const ctx=canvas.getContext('2d');
+        // O aro circular começa no terço inferior do sprite 150×145.
+        const startY=Math.round(source.height*0.43);
+        ctx.drawImage(source,0,startY,source.width,source.height-startY,
+          0,startY,source.width,source.height-startY);
+        this.textures.addCanvas(key,canvas);
+      }
+      // O centro da articulação é comum a todos os quadros:
+      // cada textura tem uma origem diferente, mas ocupa o mesmo pivô no mundo.
+      const startPose=cannonSpritePose(-Math.PI/2,x,y-11);
+      this.cannonBarrelArt=this.add.image(x,y-11,'cannon-barrel-'+startPose.frame)
+        .setDisplaySize(CANNON_BARREL_DISPLAY_SIZE.width,CANNON_BARREL_DISPLAY_SIZE.height)
+        .setOrigin(startPose.originX,startPose.originY)
+        .setRotation(startPose.rotation).setDepth(22);
+      this.cannonArtwork=this.add.image(x,y-19,'cannon-pivot-4')
+        .setDisplaySize(70,68).setDepth(24);
+      this.cannonVisualParts.push(this.cannonBaseArt,this.cannonBarrelArt,
+        this.cannonArtwork);
+    }
+  }
+
+  queueCuboNews(headline,subtitle){
+    if(this.cuboNewsState)queueCuboNews(this.cuboNewsState,headline,subtitle);
+  }
+
+  drawVoyageBackdrop(){
+    const stop=voyageStop(this.voyageIndex);
+    // Cenário provisório; assim que o PNG indicado existir, ele assume o fundo.
+    if(this.textures.exists(stop.backgroundKey)){
+      this.add.image(W/2,H/2,stop.backgroundKey)
+        .setDisplaySize(W,H).setDepth(0.7);
+      return;
+    }
+    this.add.rectangle(W/2,H/2,W,H,0x070e25,1).setDepth(0.7);
+    const g=this.add.graphics().setDepth(0.8);
+    for(let i=0;i<72;i++){
+      const x=(i*137+19)%W,y=(i*79+13)%380;
+      g.fillStyle(i%5?0xaec3ef:0xffffff,0.25+(i%4)*0.16);
+      g.fillRect(x,y,1+(i%3===0?1:0),1+(i%3===0?1:0));
+    }
+    g.fillStyle(stop.accent,0.28).fillEllipse(W/2,600,1100,380);
+    for(let i=0;i<19;i++){
+      const x=i*55-20,h=35+(i*37+this.voyageIndex*17)%80;
+      g.fillStyle(0x1e2b44,0.94).fillRect(x,H-h,50,h);
+      g.fillStyle(0x6b8aa4,0.19);
+      for(let y=H-h+13;y<H;y+=17)g.fillRect(x+8,y,5,5);
+    }
+  }
+
+  // A viagem manipula os OBJETOS REAIS da cena, sem fabricar outro canhão.
+  // A batalha fica pausada durante 6 s; mira e disparos são bloqueados por
+  // countdownActive até o canhão voltar à posição original.
+  startVoyageTransition(nextIndex,{initial=false}={}){
+    if(!this.voyageActive||this.tutorialComplete)return;
+    this.voyageTransitioning=true;
+    this.countdownActive=true;
+    this.cuboNewsHud?.destroy();
+    this.banterWriter?.cancel();
+    for(const part of [this.banterBackground,this.banterPortrait,
+      this.banterName,this.banterText])part?.setVisible(false);
+    const stop=voyageStop(nextIndex),started=this.time.now;
+    // Registrar posições atuais dos próprios sprites, inclusive a origem
+    // do barrel; deslocar todos pelo mesmo delta Y, sem esticar/rotacionar.
+    const originals=(this.cannonVisualParts??[]).filter(Boolean)
+      .map(item=>({item,x:item.x,y:item.y}));
+    const objects=[],keep=obj=>{objects.push(obj);return obj;};
+    // Céu espacial fica ATRÁS do canhão real e do escudo.
+    const darkness=keep(this.add.rectangle(W/2,H/2,W,H,0x02071b,.02)
+      .setDepth(12));
+    const starGraphics=keep(this.add.graphics().setDepth(15));
+    const skyline=keep(this.add.graphics().setDepth(17));
+    const flame=keep(this.add.triangle(CANNON.x,CANNON.y+72,
+      -14,0,14,0,0,56,0xffae54,.76).setDepth(20));
+    const title=keep(this.add.text(W/2,66,'PREPARANDO DECOLAGEM',{
+      fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',color:'#ffe8b8',
+    }).setOrigin(0.5).setDepth(108));
+    const destination=keep(this.add.text(W/2,105,'PRÓXIMA PARADA • '+stop.city,{
+      fontFamily:'monospace',fontSize:'12px',color:'#d1e8ff',
+    }).setOrigin(0.5).setDepth(108));
+    const stars=voyageStarfield(108,W,H);
+    this.hexShieldTransition='disabling';
+    this.hexShieldTransitionAt=this.time.now;
+    this.hexShieldFlashUntil=0;
+    const tick=this.time.addEvent({delay:33,loop:true,callback:()=>{
+      if(!this.scene.isActive('GameScene'))return;
+      const elapsed=Math.max(0,this.time.now-started);
+      const pose=voyageRocketPose(elapsed,{x:CANNON.x,
+        startY:CANNON.y-40,groundY:CANNON.y-40});
+      const deltaY=pose.y-(CANNON.y-40);
+      // Move apenas no eixo vertical e retorna sem deformar o sprite.
+      for(const {item,x,y} of originals)item.setPosition(x,y+deltaY);
+      flame.setPosition(CANNON.x,CANNON.y+72+deltaY)
+        .setScale(1,Math.max(.03,pose.thrust))
+        .setAlpha(Math.max(0,Math.min(1,pose.flare)));
+      starGraphics.clear();skyline.clear();
+      if(pose.phase==='prepare'){
+        darkness.setAlpha(.18);
+        this.updateHudText(title,'DESLIGANDO ESCUDO • PROPULSORES');
+        flame.setAlpha(.06);
+      }else if(pose.phase==='launch'){
+        darkness.setAlpha(Math.min(.96,.24+
+          .72*(elapsed-VOYAGE_PREPARE_MS)/
+            (VOYAGE_LAUNCH_MS-VOYAGE_PREPARE_MS)));
+        this.updateHudText(title,'DECOLAGEM VERTICAL!');
+      }else if(pose.phase==='space'){
+        darkness.setAlpha(.98);
+        this.updateHudText(title,'VOO ESPACIAL • '+
+          Math.ceil((VOYAGE_SPACE_MS-(elapsed-VOYAGE_LAUNCH_MS))/1000)+' s');
+        for(const star of stars){
+          const pos=voyageStarAt(star,elapsed-VOYAGE_LAUNCH_MS,H);
+          const trail=Math.min(92,9+star.speed*.048+star.size*2.4);
+          const alpha=star.alpha*(.8+.2*Math.sin(
+            elapsed*.004+star.twinklePhase));
+          starGraphics.lineStyle(Math.max(1,star.size*.58),star.color,alpha*.64)
+            .lineBetween(pos.x,pos.y-trail,pos.x,pos.y);
+          if(star.size>=4){
+            starGraphics.fillStyle(star.color,alpha*.14)
+              .fillCircle(pos.x,pos.y,star.size*2.2);
+          }
+          starGraphics.fillStyle(star.color,alpha)
+            .fillRect(pos.x,pos.y,star.size,star.size);
+        }
+      }else if(pose.phase==='landing'){
+        darkness.setAlpha(.92);
+        this.updateHudText(title,'POUSO VERTICAL • '+stop.city);
+        const p=Math.min(1,Math.max(0,(elapsed-
+          VOYAGE_LAUNCH_MS-VOYAGE_SPACE_MS)/VOYAGE_LANDING_MS));
+        skyline.fillStyle(stop.accent,.55*p).fillEllipse(W/2,560,1100,260);
+        for(let i=0;i<22;i++){
+          const h=45+(i*41+nextIndex*17)%110;
+          skyline.fillStyle(0x344b67,.89*p)
+            .fillRect(i*48-12,H-h,45,h);
+        }
+        if(this.textures.exists(stop.backgroundKey)){
+          if(!this.voyageLandingCity)this.voyageLandingCity=keep(
+            this.add.image(W/2,H/2,stop.backgroundKey)
+              .setDisplaySize(W,H).setDepth(14).setAlpha(0));
+          this.voyageLandingCity.setAlpha(p*.95);
+        }
+      }
+      this.drawShield(); // formação/desligamento também anima sem combate
+    }});
+    this.events.once('shutdown',()=>tick.remove());
+    this.time.delayedCall(VOYAGE_TOTAL_MS,()=>{
+      tick.remove();
+      if(!this.scene.isActive('GameScene')||this.tutorialComplete)return;
+      // Restaurar todas as posições originais ANTES de retomar o combate.
+      for(const {item,x,y} of originals)item.setPosition(x,y);
+      objects.forEach(item=>item.destroy());
+      this.voyageLandingCity=null;
+      this.voyageTransitioning=false;
+      if(initial){
+        this.drawVoyageBackdrop();
+        this.hexShieldTransition='forming';
+        this.hexShieldTransitionAt=this.time.now;
+        this.cuboNewsHud=createCuboNewsHud(this);
+        this.cuboNewsHud.update(0,this.waveDurationMs,null,{
+          frozen:false,voyageProgress:this.waveEvents.length,
+        });
+        this.cameras.main.shake(140,.002);
+        this.startWaveCountdown();
+      }else{
+        this.scene.start('GameScene',{
+          mode:'wave11',campaign:this.campaign,voyageIndex:nextIndex,
+          v1Playtest:this.v1Playtest,arrivedFromVoyage:true,
+        });
+      }
+    });
+  }
+
+  finishVoyageDestination(){
+    if(this.voyageTransitioning||this.tutorialComplete)return;
+    this.queueBattleBanter('clear');
+    this.voyageTransitioning=true;
+    this.countdownActive=true;
+    this.showAttackWarning('ESTÁTUA DEFENDIDA • PRÓXIMO DESTINO!');
+    this.time.delayedCall(1200,()=>{
+      if(!this.scene.isActive('GameScene')||this.tutorialComplete)return;
+      const next=voyageNext(this.voyageIndex);
+      if(next!==null){
+        this.startVoyageTransition(next);
+      }else{
+        this.voyageTransitioning=false;
+        this.countdownActive=false;
+        this.showWaveComplete('cleared');
+      }
+    });
+  }
+
+  createBattleBanterPanel(){
+    // Zona morta inferior esquerda: HUD não-interativo, um recado por vez.
+    // Margem de segurança: manter retrato e texto dentro da área útil,
+    // inclusive em viewport móvel com recorte lateral.
+    this.banterBackground=this.add.rectangle(169,423,258,100,0x0b1a2d,0.88)
+      .setStrokeStyle(2,0x608ca8).setDepth(104).setVisible(false);
+    this.banterPortrait=this.add.image(81,423,'battle-portrait-br')
+      .setDisplaySize(54,74).setDepth(105).setVisible(false);
+    this.banterName=this.add.text(117,387,'',{
+      fontFamily:'monospace',fontSize:'12px',fontStyle:'bold',color:'#ffe2ad',
+    }).setDepth(105).setVisible(false);
+    this.banterText=this.add.text(117,408,'',{
+      fontFamily:'monospace',fontSize:'11px',color:'#ecf4ff',
+      wordWrap:{width:166},lineSpacing:3,
+    }).setDepth(105).setVisible(false);
+    this.lastBanterKey=null;
+    this.banterWriter=createDialogueTypewriter(this,{
+      delay:28,
+      onCharacter:()=>playSfx('introKey',{throttle:44,volumeScale:.09}),
+    });
+    this.events.once('shutdown',()=>this.banterWriter?.cancel());
+  }
+
+  queueBattleBanter(event){
+    if(this.tutorialComplete||this.voyageTransitioning)return;
+    enqueueBattleBanter(this.banterState,event,{
+      choices:this.combatCampaign?.choices??this.campaign?.choices,
+      traitor:this.mode==='wave11'?this.selectedBetrayer:null,
+      voyage:this.voyageActive,
+    },this.time.now);
+  }
+
+  updateBattleBanterPanel(){
+    const line=currentBattleBanter(this.banterState,this.time.now);
+    const show=Boolean(line);
+    for(const part of [this.banterBackground,this.banterPortrait,this.banterName,this.banterText])
+      part?.setVisible(show);
+    if(!line){
+      if(this.lastBanterKey!==null){
+        this.banterWriter?.cancel();
+        this.lastBanterKey=null;
+      }
+      return;
+    }
+    const key=line.name+':'+line.text+':'+line.until;
+    if(this.lastBanterKey===key)return;
+    this.lastBanterKey=key;
+    this.banterName.setText(line.name);
+    this.banterWriter.start(this.banterText,line.text,{delay:28});
+    this.banterBackground.setStrokeStyle(2,line.color);
+    if(this.textures.exists('battle-portrait-'+line.speaker))
+      this.banterPortrait.setTexture('battle-portrait-'+line.speaker);
   }
 
   createHud() {
     const font = { fontFamily: 'monospace', fontSize: '18px', color: '#f0f7ff' };
-    this.add.rectangle(W / 2, 20, W, 40, 0x081528, 0.93).setDepth(100);
-    this.add.text(14, 9, 'SOBERANIA | ' + MODES[this.mode].title, font).setDepth(101);
+    const topPanel=this.add.rectangle(W / 2, 20, W, 40, 0x081528, 0.93).setDepth(100);
+    if(this.mode.startsWith('wave'))topPanel.setVisible(false);
+    const oldTitle=this.add.text(14, 9, 'SOBERANIA | ' + MODES[this.mode].title, font).setDepth(101);
+    if(this.mode.startsWith('wave'))oldTitle.setVisible(false);
     this.statusText = this.add.text(W - 14, 9, '', font).setOrigin(1, 0).setDepth(101);
     this.tutorialText = this.add.text(W / 2, 55, '', {
       ...font, fontSize: '15px', backgroundColor: '#0b1a2bcc', padding: { x: 9, y: 6 },
@@ -1003,8 +1876,13 @@ export class GameScene extends Phaser.Scene {
     this.healthText = this.add.text(14, H - 28, '', {
       ...font, fontSize: '13px', color: '#e2ebfa',
     }).setDepth(101);
+    if(this.mode.startsWith('wave')){
+      this.statusText.setVisible(false);
+      this.tutorialText.setVisible(false);
+      this.healthText.setVisible(false);
+    }
 
-    if (this.mode === 'upgradeLab') {
+    if (this.mode === 'upgradeLab' && !this.v1Playtest) {
       this.labUpgradeLabel = this.add.text(14, 98, '', {
         ...font, fontSize: '13px', color: '#a5ffe7',
         backgroundColor: '#0b1a2bcc', padding: { x: 7, y: 3 },
@@ -1028,26 +1906,15 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    const pauseButton = this.add.rectangle(W / 2, 20, 156, 32, 0x18364c, 0.95)
-      .setStrokeStyle(2, 0x74bace).setDepth(102)
-      .setInteractive({ useHandCursor: true });
-    this.add.text(W / 2, 20, 'Ⅱ  PAUSAR [P]', {
-      ...font, fontSize: '13px', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(103);
-    pauseButton.on('pointerover', () => pauseButton.setFillStyle(0x27667a, 1));
-    pauseButton.on('pointerout', () => pauseButton.setFillStyle(0x18364c, 0.95));
-    pauseButton.on('pointerdown', (pointer, _localX, _localY, event) => {
-      if (!pointer.leftButtonDown()) return;
-      event?.stopPropagation();
-      this.pauseGame();
-    });
+    // Pausa é acionada exclusivamente por P/Esc, sem ocupar a tela.
   }
 
   pauseGame() {
-    if (this.tutorialComplete || this.scene.isActive('PauseScene') ||
+    if (this.supremeTyping || this.supremeCinematic || this.tutorialComplete ||
+        this.scene.isActive('PauseScene') ||
         this.scene.isActive('UpgradeLabScene')) return;
     this.scene.pause();
-    this.scene.launch('PauseScene');
+    this.scene.launch('PauseScene',{source:'GameScene'});
   }
 
   chooseDefenseTarget() {
@@ -1092,6 +1959,65 @@ export class GameScene extends Phaser.Scene {
       if (level > 1) sprite.setTint(definition.tintColor);
       return { sprite, box: null };
     }
+    if(type===2&&this.textures.exists('tipo2_sheet')){
+      const sprite=this.add.sprite(x,y,'tipo2_sheet',0)
+        .setDisplaySize(58,58).setDepth(19);
+      sprite.play('tipo2_voo');
+      // Cores da nave original são intencionais: não tingir o casco inteiro.
+      // HP, hitbox, rota e padrões de tiro continuam os mesmos.
+      return {sprite,box:null};
+    }
+    if (type === 2) {
+      // Fallback vetorial caso o arquivo do spritesheet não esteja disponível.
+      // Partes separadas permitem validar rotação e propulsão antes da sprite sheet.
+      const sprite=this.add.container(x,y).setDepth(19);
+      const hull=this.add.graphics();
+      hull.fillStyle(0x171d29).fillTriangle(-23,14,0,-24,23,14);
+      hull.fillStyle(0x3e4b5b).fillTriangle(-17,10,0,-17,17,10);
+      hull.fillStyle(0x101722).fillTriangle(-26,11,-12,2,-10,19);
+      hull.fillTriangle(26,11,12,2,10,19);
+      hull.lineStyle(2,0x82909c).strokeTriangle(-23,14,0,-24,23,14);
+      hull.fillStyle(0xf0343e).fillCircle(0,-2,6);
+      hull.fillStyle(0xff8790,0.9).fillCircle(0,-3,2);
+      const thruster=this.add.graphics();
+      thruster.fillStyle(0xff4b31,0.8).fillTriangle(-8,14,0,25,8,14);
+      thruster.fillStyle(0xffbb5e,0.9).fillTriangle(-4,14,0,20,4,14);
+      sprite.add([thruster,hull]);
+      sprite.setData('thruster',thruster);
+      // Níveis reforçados serão diferenciados na futura sprite sheet.
+      return {sprite,box:null};
+    }
+    if (type === 3 && this.textures.exists('tipo3_sheet')) {
+      const sprite = this.add.sprite(x, y, 'tipo3_sheet', 0)
+        .setDisplaySize(76, 76).setDepth(19).play('tipo3_voo');
+      if (level > 1) sprite.setTint(definition.tintColor);
+      sprite.on('animationcomplete-tipo3_bombardeio', () => {
+        if (sprite.active) sprite.play('tipo3_voo');
+      });
+      return { sprite, box: null };
+    }
+    if (type === 4 && this.textures.exists('tipo4_sheet')) {
+      const sprite = this.add.sprite(x, y, 'tipo4_sheet', 0)
+        .setDisplaySize(70,70).setDepth(19).play('tipo4_voo');
+      if (level > 1) sprite.setTint(definition.tintColor);
+      return { sprite, box:null };
+    }
+    if(type===5&&this.textures.exists('tipo5_sheet')){
+      const sprite=this.add.sprite(x,y,'tipo5_sheet',0)
+        .setDisplaySize(TYPE5_SPRITE.displayWidth,TYPE5_SPRITE.displayHeight)
+        .setDepth(19)
+        .play('tipo5_voo');
+      // Não retarda a invocação dos minions: a animação apenas acompanha
+      // o evento real. Ao terminar, retorna à aparência compatível com o HP.
+      sprite.on('animationcomplete-tipo5_spawn',()=>{
+        if(!sprite.active)return;
+        sprite.setData('tipo5_deploying',false);
+        const damaged=sprite.getData('tipo5_damage_frame');
+        if(damaged===null||damaged===undefined)sprite.play('tipo5_voo');
+        else sprite.setFrame(damaged);
+      });
+      return {sprite,box:null};
+    }
     const sprite = this.add.container(x, y).setDepth(19);
     const box = this.add.rectangle(0, 0, definition.width, definition.height, definition.color)
       .setStrokeStyle(level > 1 ? 3 : 2, level >= 3 ? 0xffffff : level > 1 ? 0xffd26e : 0xf7efff);
@@ -1106,6 +2032,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   showAttackWarning(message) {
+    this.queueBattleBanter('danger');
     const label = this.add.text(W / 2, 143, message, {
       fontFamily: 'monospace', fontSize: '19px',
       fontStyle: 'bold', color: '#ffcf83',
@@ -1120,31 +2047,46 @@ export class GameScene extends Phaser.Scene {
 
   spawnV035Group(type, level, count, centerX = null) {
     const kind = type === 1 ? 'swarm' : 'tactical';
-    const center = centerX ?? Phaser.Math.Between(350, 610);
+    const early=/^wave[012]$/.test(this.mode);
+    const wave0=this.mode==='wave0';
+    const wave1=this.mode==='wave1';
+    // Onda 0 possui cinco posições específicas; o encaixe nos três
+    // corredores históricos impediria que aparecessem cinco portais.
+    const center=wave0&&Number.isFinite(centerX)
+      ? centerX : this.portalLane(type,centerX);
     const group = {
-      kind, count, centerX: center, target: null,
-      duration: kind === 'swarm'
-        ? Phaser.Math.FloatBetween(3, 5)
-        : Phaser.Math.FloatBetween(2, 4),
+      kind, count, centerX: center, target: null, boundToScreen:true,
+      // Todos os tipos comuns fazem as mesmas manobras em ritmo menor.
+      // A onda 0 já usa sua coreografia didática própria.
+      duration:wave0?WAVE0_EASY_PACING.danceDuration:
+        (early ? (kind==='swarm'?3.5:4.0) : (kind==='swarm'?5.0:5.3))
+        /STANDARD_INVADER_FLIGHT_FACTOR,
+      holdDuration:wave0?WAVE0_EASY_PACING.holdDuration:early?1.15:1.35,
+      portalY:wave1?(type===1?WAVE1_PACING.swarmPortalY:WAVE1_PACING.tacticalPortalY)
+        :type===1?68:125,
+      lowFlight:wave1,
+      finalFormation: kind==='tactical'?'triangle':'square',
       pattern: kind === 'swarm'
-        ? SWARM_DANCES[Phaser.Math.Between(0, SWARM_DANCES.length - 1)] : 'tactical',
-      entry: kind === 'swarm'
-        ? SWARM_ENTRIES[Phaser.Math.Between(0, SWARM_ENTRIES.length - 1)] : 'together',
+        ? (wave1?(this.eventsSpawned%2?'lowSweep':'lowZigzag')
+          :SWARM_DANCES[(this.eventsSpawned||0)%SWARM_DANCES.length]) : 'tactical',
+      entry: 'together', // formação coesa, jamais naves dispersas
       direction: Phaser.Math.Between(0, 1) ? 1 : -1,
       attackStartAge: null,
       attackOrigin: null,
       attackDuration: null,
+      shotWarning:false,
     };
-    for (let i = 0; i < count; i += 1) {
-      const initial = kind === 'swarm'
-        ? swarmDancePosition(group, i, 0)
-        : tacticalManeuverPosition(group, i, 0);
-      this.spawnEnemy(type, {
-        level, x: initial.x, y: initial.y,
-        center, formationIndex: i, formationCount: count,
-        formationGroup: group,
+    // Uma abertura para a esquadrilha inteira; cada nave sai em sequência.
+    // Tipo 1 usa portal mais alto, próximo ao topo do céu.
+    const portalY=group.portalY;
+    this.showSpawnPortal(center,portalY,type===1?37:42,count,(i)=>{
+      const initial={x:center,y:portalY};
+      this.spawnEnemy(type,{
+        level,x:initial.x,y:initial.y,center,
+        formationIndex:i,formationCount:count,formationGroup:group,
+        portalReleased:true,
       });
-    }
+    });
   }
 
   chooseV035GroupTarget(group, center) {
@@ -1159,7 +2101,7 @@ export class GameScene extends Phaser.Scene {
     if (event.warning) this.showAttackWarning(event.warning);
     const level = event.level ?? 1;
     if (event.pattern === 'swarm' && event.type === 1) {
-      this.spawnV035Group(1, level, event.count ?? 3);
+      this.spawnV035Group(1,level,event.count??3,event.portalX??null);
       return;
     }
     if (event.pattern === 'tactical' && event.type === 2) {
@@ -1226,10 +2168,94 @@ export class GameScene extends Phaser.Scene {
       this.spawnEnemy(4, { level, side: 'right' });
       return;
     }
-    this.spawnEnemy(event.type, { level, side: event.side });
+    this.spawnEnemy(event.type, { level, side: event.side, x: event.x,
+      finalBoss:event.finalBoss,bossCountry:event.bossCountry,
+      bossLevel:event.bossLevel,coalitionSize:event.coalitionSize });
+  }
+
+  portalLane(type, requestedX=null) {
+    // Três corredores fixos por tipo: grupos de eventos diferentes reutilizam
+    // os mesmos pontos de origem em vez de abrir portais dispersos.
+    const lanes=[250,480,710];
+    const x=requestedX??lanes[Phaser.Math.Between(0,2)];
+    return lanes.reduce((best,lane)=>Math.abs(lane-x)<Math.abs(best-x)?lane:best,lanes[0]);
+  }
+
+  showSpawnPortal(x,y,radius=34,count=1,onRelease=()=>{}) {
+    this.activeSpawnPortals??=new Map();
+    const key=`${Math.round(x)}:${Math.round(y)}`;
+    let entry=this.activeSpawnPortals.get(key);
+    if(!entry || !entry.graphics.active) {
+      entry={graphics:this.add.graphics().setDepth(17).setPosition(x,y),
+        born:this.time.now,lastRelease:this.time.now+420,queueEnd:this.time.now+420,
+        radius,closing:false};
+      this.activeSpawnPortals.set(key,entry);
+      const render=()=>{
+        if(!entry.graphics.active)return;
+        const now=this.time.now,age=now-entry.born;
+        const opening=Math.min(1,age/500);
+        const remaining=entry.lastRelease+2600-now;
+        const closing=Math.min(1,Math.max(0,remaining/600));
+        const scale=Math.max(0.001,Math.min(opening,closing));
+        const r=entry.radius*scale;
+        const g=entry.graphics;
+        g.clear();
+        g.fillStyle(0x53269a,0.28*scale);
+        g.fillEllipse(0,0,r*2.2,r*1.6);
+        g.lineStyle(5,0xa85aff,scale);
+        g.strokeEllipse(0,0,r*2,r*1.4);
+        g.lineStyle(2,0x6beaff,scale);
+        g.strokeEllipse(0,0,r*1.6,r*1.1);
+        for(let k=0;k<8;k++){
+          const angle=k*Math.PI/4+age*0.005;
+          g.fillStyle(k%2?0xe0a0ff:0x70f6ff,scale);
+          g.fillCircle(Math.cos(angle)*r,Math.sin(angle)*r*0.7,2.5*scale);
+        }
+        if(remaining<=0){
+          entry.ticker.remove();
+          g.destroy();
+          if(this.activeSpawnPortals.get(key)===entry)this.activeSpawnPortals.delete(key);
+        }
+      };
+      entry.ticker=this.time.addEvent({delay:30,loop:true,callback:render});
+    }
+    entry.radius=Math.max(entry.radius,radius);
+    const first=Math.max(this.time.now+120,entry.queueEnd,entry.born+500);
+    for(let i=0;i<count;i++){
+      const releaseAt=first+i*320;
+      this.time.delayedCall(releaseAt-this.time.now,()=>{
+        if(this.tutorialComplete||this.boss6Victory)return;
+        if(/^wave[0-9]$/.test(this.mode)&&this.elapsed>=15000)return;
+        onRelease(i);
+      });
+    }
+    entry.lastRelease=first+(count-1)*320;
+    entry.queueEnd=entry.lastRelease+320;
   }
 
   spawnEnemy(type, options = {}) {
+    if(type===6){
+      if(this.voyageActive)return null; // Nenhuma repetição do chefe alienígena.
+      if(this.enemies.some(e=>e.type===6&&!e.type6?.defeated))return null;
+      let hp;
+      if(this.mode==='wave10')hp=finaleBossHp('wave10',this.combat);
+      else {
+        const originalStats=v1CombatStats({choices:this.campaign.choices.filter(id=>
+          id!==this.selectedBetrayer)});
+        hp=finaleBossHp('wave11',originalStats,1);
+      }
+      return spawnType6Encounter(this,{...options,hp});
+    }
+    if(!options.portalReleased && !options.skipPortal) {
+      const portalX=this.portalLane(type,options.x ?? options.center);
+      const portalY=type===1?68:type===2?125:type===3?100:type===5?110:145;
+      this.showSpawnPortal(portalX,portalY,type===5?70:38,1,()=>{
+        this.spawnEnemy(type,{...options,portalReleased:true,
+          x:options.x ?? portalX,
+          y:options.y ?? (type===1?portalY:undefined)});
+      });
+      return null;
+    }
     const level = options.level ?? 1;
     const definition = enemyStats(type, level);
     const index = options.formationIndex ?? 1;
@@ -1238,7 +2264,7 @@ export class GameScene extends Phaser.Scene {
     const groupCount = options.formationCount ?? 3;
     const center = options.center ?? W / 2;
     const formationOffset = index - (groupCount - 1) / 2;
-    const startX = type === 5 ? W / 2 :
+    const startX = type === 5 ? (options.x ?? W / 2) :
       type === 4 ? (options.side === 'left' ? -64
         : options.side === 'right' ? W + 64
           : Phaser.Math.Between(0, 1) ? -64 : W + 64) :
@@ -1257,12 +2283,20 @@ export class GameScene extends Phaser.Scene {
       baseScaleY: visual.sprite.scaleY,
       hp: definition.hp,
       maxHp: definition.hp,
-      speed: definition.speed,
+      // Reduz a velocidade dos inimigos comuns em TODAS as ondas.
+      // A onda 0 mantém seu mergulho ainda mais brando. O Tipo 6 usa
+      // sua própria lógica de movimentação e não é afetado.
+      speed:definition.speed*(this.mode==='wave0'&&type===1
+        ?WAVE0_EASY_PACING.diveSpeedMultiplier
+        :STANDARD_INVADER_FLIGHT_FACTOR),
       recoilSpeed: 0,
       electricSlowUntil: -1,
+      frozenUntil: -1,
+      russianPullOffset: {x:0,y:0},
       velocityX: 0,
       velocityY: 0,
       shockOffset: { x: 0, y: 0, vx: 0, vy: 0 },
+      wallPush: { x: 0, y: 0, vx: 0, vy: 0 },
       // Reação visual não acrescenta recuo físico nem altera o percurso.
       lastHitAt: -Infinity,
       hitVisualOffsetX: 0,
@@ -1273,13 +2307,58 @@ export class GameScene extends Phaser.Scene {
       spawnTimer: 0,
       spawnedMinions: 0,
       sourceBossId: options.sourceBossId ?? null,
+      finalBoss:Boolean(options.finalBoss), bossCountry:options.bossCountry??null,
+      bossLevel:options.bossLevel??0,bossLabel:null,
+      finalAbilityAge:0,finalAbilityCount:0,finalAssaultPhase:1,
       laserGraphics: null,
+      shieldGraphics: null,
+      shield: type===5 ? type5ShieldHp(level) : 0,
+      maxShield: type===5 ? type5ShieldHp(level) : 0,
+      shieldHitAt: -Infinity,
+      laserTarget: null,
+      laserShotDone: false,
+      lastWhooshPass: -1,
       formationGroup,
       formationIndex: index,
       entryDelay: formationGroup?.kind === 'swarm' &&
         formationGroup.entry === 'staggered' ? index * 0.052 : 0,
       target: formationGroup ? null : this.chooseDefenseTarget(),
     };
+
+    if(type===5&&options.finalBoss&&this.mode==='wave10'){
+      // Chefe alienígena tipo 6 ainda sem sprite/IA final: casco tipo 5 como placeholder.
+      enemy.bossLabel=this.add.text(startX,startY-58,
+        'FORTALEZA-MÃE — CHEFE FINAL ALIENÍGENA',{
+          fontFamily:'monospace',fontSize:'15px',fontStyle:'bold',
+          color:'#f6faff',backgroundColor:'#233747df',padding:{x:6,y:4},
+        }).setOrigin(0.5).setDepth(25);
+      // Nível 10 pode provocar centenas de pontos de dano por segundo.
+      enemy.maxHp=finaleBossHp('wave10',this.combat);
+      enemy.hp=enemy.maxHp;
+      enemy.box?.setStrokeStyle(5,0xf4ffff);
+    }
+
+    if (type===5 && options.finalBoss && this.mode==='wave11') {
+      const color=FINALE_COUNTRIES[options.bossCountry]?.color??0x6ee9ed;
+      enemy.definition={...enemy.definition,color};
+      enemy.box?.setFillStyle(color).setStrokeStyle(4,0xffffff);
+      const name=options.bossCountry==='alien'?'FROTA ALIENÍGENA':
+        (FINALE_COUNTRIES[options.bossCountry]?.name??'ALIADO');
+      enemy.bossLabel=this.add.text(startX,startY-52,
+        name+(options.bossCountry==='alien'?'':` — NÍVEL ${options.bossLevel}`),{
+        fontFamily:'monospace',fontSize:'13px',fontStyle:'bold',
+        color:'#ffffff',backgroundColor:'#1d2232dc',padding:{x:5,y:3}
+      }).setOrigin(0.5).setDepth(25);
+      // O HP considera os aliados que não traíram, ANTES de qualquer
+      // upgrade brasileiro recebido por repetir a Onda 11.
+      const survivingChoices=this.campaign.choices.filter(id=>
+        !this.finale.coalition.includes(id));
+      const originalStats=v1CombatStats({choices:survivingChoices});
+      const hp=finaleBossHp('wave11',originalStats,
+        options.coalitionSize||1);
+      enemy.maxHp=hp;
+      enemy.hp=hp;
+    }
 
     if (type === 1 && formationGroup?.kind === 'swarm') {
       enemy.phase = 'swarmDance';
@@ -1293,7 +2372,7 @@ export class GameScene extends Phaser.Scene {
       enemy.orbitIndex = index;
       enemy.orbitCount = groupCount;
       enemy.orbitCenterX = center;
-      enemy.orbitCenterY = 162;
+      enemy.orbitCenterY = 215;
       enemy.orbitEntryX = startX;
       enemy.orbitEntryY = startY;
     } else if (type === 2) {
@@ -1312,10 +2391,15 @@ export class GameScene extends Phaser.Scene {
       enemy.phase = 'flyby';
       enemy.direction = startX < 0 ? 1 : -1;
       enemy.passesRemaining = definition.fighterExtraPasses;
+      enemy.flybySerial=0;
     } else if (type === 5) {
       enemy.phase = 'arrival';
+      enemy.shieldGraphics=this.add.graphics().setDepth(38);
     }
     this.enemies.push(enemy);
+    // Só teletransportes que aparecem já dentro da área de jogo precisam
+    // de portal. Entradas pelas bordas continuam voando normalmente.
+
     return enemy;
   }
 
@@ -1331,20 +2415,254 @@ export class GameScene extends Phaser.Scene {
     return enemy.progress >= 1;
   }
 
+  // Duas transições de escudo por chefe; em grandes coalizões compartilhamos
+  // um teto de três contra-ataques para não sobrecarregar a tela de 16 bits.
+  queueFinaleCounterattack(enemy,phase) {
+    if(!enemy.finalBoss || !['wave10','wave11'].includes(this.mode))return;
+    const coalitionSize=this.finale?.coalition.length||1;
+    const config=finaleCounterattack(this.mode,phase,coalitionSize);
+    if(this.finaleCounterattackCount>=config.maxTriggers)return;
+    const trigger=++this.finaleCounterattackCount;
+    this.showAttackWarning(config.warning);
+    this.time.delayedCall(660,()=>{
+      if(this.tutorialComplete || !this.scene.isActive('GameScene') ||
+        !this.enemies.some(unit=>unit.uid===enemy.uid))return;
+      for(let i=0;i<config.fighters;i++){
+        const side=config.fighters===1
+          ? (trigger%2===0?'right':'left') : (i===0?'left':'right');
+        this.spawnEnemy(4,{level:9,side});
+      }
+      if(config.bombers && this.enemies.length<44)
+        this.spawnEnemy(3,{level:9});
+    });
+  }
+
+  updateFinalCountryBoss(enemy,dt) {
+    if(this.mode!=='wave11' || !enemy.finalBoss ||
+      !enemy.bossCountry)return;
+    enemy.finalAbilityAge+=dt;
+    if(enemy.bossCountry==='alien'){
+      // Full Brazil enfrenta uma frota alienígena própria, não um chefe
+      // estrangeiro desprovido de poderes. Salva telegrafada e interceptável.
+      if(enemy.finalAbilityAge>=8.5){
+        enemy.finalAbilityAge-=8.5;
+        this.showAttackWarning('FROTA ALIENÍGENA: SALVA ORBITAL!');
+        this.time.delayedCall(580,()=>{
+          if(this.tutorialComplete || !this.scene.isActive('GameScene') ||
+            !this.enemies.some(unit=>unit.uid===enemy.uid))return;
+          this.fireEnemyProjectile(enemy);
+        });
+      }
+      return;
+    }
+    const interval=Math.max(5,9.0-Math.min(10,enemy.bossLevel)*0.48);
+    if(enemy.finalAbilityAge<interval)return;
+    enemy.finalAbilityAge-=interval;
+    enemy.finalAbilityCount++;
+    const country=enemy.bossCountry,level=enemy.bossLevel;
+    if(this.time.now-this.lastFinaleWarningAt>1750){
+      const warning={us:'ATAQUE EXTRA: CHOQUE E PAVOR!',
+        ru:'GEADA SIBERIANA NO CANHÃO!',
+        cn:'PACOTES EXPLOSIVOS A CAMINHO!',
+        jp:'HOLOFOTES HOSTIS — ATENÇÃO!'};
+      this.showAttackWarning(warning[country]);
+      this.lastFinaleWarningAt=this.time.now;
+    }
+    if(country==='us') {
+      // Maior nível de ajuda recebido = maior salva extra de mísseis.
+      for(let i=0;i<1+Math.floor(level/3);i++)
+        this.fireEnemyProjectile(enemy);
+    } else if(country==='ru'){
+      // O frio atrapalha as armas brasileiras por uma janela curta.
+      this.cannonFrozenUntil=Math.max(this.cannonFrozenUntil,
+        this.elapsed+750+level*80);
+      const fog=this.add.circle(CANNON.x,CANNON.y-18,72,0x8ee7ff,0.27)
+        .setStrokeStyle(2,0xffffff,0.64).setDepth(62);
+      this.tweens.add({targets:fog,alpha:0,scale:1.35,duration:700,
+        onComplete:()=>fog.destroy()});
+    } else if(country==='cn'){
+      const spawned=enemy.finalAbilityCount*2;
+      if(spawned<=8){
+        const count=Math.min(3,1+Math.ceil(level/4));
+        for(let i=0;i<count;i++)this.spawnEnemy(1,{
+          level:9,x:enemy.sprite.x+(i-(count-1)/2)*48,
+          y:enemy.sprite.y+40,sourceBossId:enemy.uid,
+        });
+      }
+    } else if(country==='jp'){
+      // Raio rosa telegráfico: só causa dano depois do aviso visual.
+      const laser=this.add.graphics().setDepth(65);
+      laser.lineStyle(3,0xf0a7ff,0.8);
+      laser.lineBetween(enemy.sprite.x,enemy.sprite.y,CANNON.x,CANNON.y);
+      this.time.delayedCall(620,()=>{
+        laser.destroy();
+        if(this.tutorialComplete || !enemy.sprite.active)return;
+        const flash=this.add.graphics().setDepth(65);
+        flash.lineStyle(9,0xffa6ed,0.85);
+        flash.lineBetween(enemy.sprite.x,enemy.sprite.y,CANNON.x,CANNON.y);
+        this.damageCannon(5+level*0.8);
+        this.tweens.add({targets:flash,alpha:0,duration:180,
+          onComplete:()=>flash.destroy()});
+      });
+    }
+  }
+
+  // Exibição do caça, separada de sua rota/hitbox. Não altera a IA Tipo 4.
+  updateType4Appearance(enemy,previousX,previousY,dt) {
+    const sprite=enemy.sprite;
+    if (enemy.type!==4 || sprite.texture?.key!=='tipo4_sheet')return;
+
+    const now=this.time.now;
+    // Preserva o quadro 10 pelo tempo inteiro do flash de dano.
+    if(now-enemy.lastHitAt<160)return;
+
+    const dx=(sprite.x-previousX)/Math.max(dt,0.001);
+    const prior=enemy.type4Pose??'tipo4_voo';
+    let next=prior;
+
+    switch(enemy.phase){
+      case 'flyby':
+        // O caça cruza a tela de LADO. Os frames de dash têm grandes
+        // rastros laranja, então não devem se repetir durante o voo lateral.
+        next=enemy.direction<0?'tipo4_banco_esquerda':'tipo4_banco_direita';
+        break;
+      case 'swoop1':
+      case 'swoop2':
+        // Histerese: só vira quando a curva tem velocidade lateral clara.
+        // Entre 45 e 105 px/s mantém a pose anterior, sem ficar oscilando.
+        if(dx>105)next='tipo4_banco_direita';
+        else if(dx < -105)next='tipo4_banco_esquerda';
+        else if(Math.abs(dx)<45)next='tipo4_propulsao';
+        // Dash curto apenas no começo da investida rápida, não no flyby.
+        if(enemy.phase==='swoop2' && enemy.phaseAge<0.24 &&
+          Math.abs(dx)>150)next='tipo4_dash';
+        break;
+      case 'laser':
+        next='tipo4_propulsao';
+        break;
+      case 'telegraph':
+      default:
+        next='tipo4_voo';
+        break;
+    }
+
+    // Trocas de pose ficam travadas por 140 ms, mesmo com curvas rápidas.
+    // A recuperação do hit pode reimpor o quadro correto após o flash.
+    const recovering=Boolean(enemy.type4NeedsRestore);
+    if(next!==prior && !recovering && now<(enemy.type4PoseLockUntil??0))
+      return;
+    if(next===prior && !recovering)return;
+
+    enemy.type4Pose=next;
+    enemy.type4PoseLockUntil=now+140;
+    enemy.type4NeedsRestore=false;
+    if(next==='tipo4_banco_esquerda' || next==='tipo4_banco_direita'){
+      sprite.anims.stop();
+      sprite.setFrame(next==='tipo4_banco_esquerda'?3:2);
+    }else{
+      // Não reinicia a animação de loop todo frame.
+      sprite.play(next,true);
+    }
+    // As poses laterais têm arte nativa. Só o dash, desenhado para a
+    // direita, precisa de espelhamento ao avançar para a esquerda.
+    sprite.setFlipX(next==='tipo4_dash' && dx<0);
+  }
+
   updateEnemies(dt) {
+    this.frostGraphics.clear();
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        updateType6Encounter(this,enemy,dt);
+        continue;
+      }
       // Desfaz o deslocamento visual anterior para não interferir no percurso
       // calculado pela nave (incluindo curvas, voos rasantes e órbitas).
+      const worldFromX=enemy.sprite.x,worldFromY=enemy.sprite.y;
       const previousShock = enemy.shockOffset;
       // Remove o deslocamento do frame anterior ANTES de calcular a rota.
       // Hit shake e artilharia de choque permanecem efeitos independentes.
-      enemy.sprite.x -= previousShock.x + enemy.hitVisualOffsetX;
-      enemy.sprite.y -= previousShock.y;
+      const previousPull = enemy.russianPullOffset || {x:0,y:0};
+      const oldWallPush=enemy.wallPush??{x:0,y:0,vx:0,vy:0};
+      enemy.sprite.x -= previousShock.x + enemy.hitVisualOffsetX +
+        previousPull.x + oldWallPush.x;
+      enemy.sprite.y -= previousShock.y + previousPull.y +
+        oldWallPush.y;
+      if (enemy.frozenUntil > this.elapsed) {
+        // A nave fica totalmente parada, inclusive contadores de ataques e rotas.
+        enemy.hitVisualOffsetX = 0;
+        enemy.shockOffset = {x:0,y:0,vx:0,vy:0};
+        enemy.russianPullOffset = {x:0,y:0};
+        // Congelamento interrompe o percurso, mas preserva o recuo do muro
+        // na posição real do inimigo até descongelar.
+        enemy.sprite.x += oldWallPush.x;
+        enemy.sprite.y += oldWallPush.y;
+        this.blockEnemyWithAmericanWall(enemy,worldFromX,worldFromY);
+        // Flocos hexagonais crescem em detalhes conforme os upgrades russos.
+        const crystalLevel=Math.max(1,Math.min(4,Math.ceil(
+          (this.specialBuild?.levels?.ru??this.labExtra?.ruPrimaryLevel??2)/2)));
+        const fx=enemy.sprite.x,fy=enemy.sprite.y;
+        const radius=this.enemyCombatRadius(enemy)+12;
+        const frost=this.frostGraphics,rotation=this.elapsed*.00032;
+        for(let arm=0;arm<6;arm++){
+          const a=rotation+arm*Math.PI/3;
+          const dx=Math.cos(a),dy=Math.sin(a);
+          frost.lineStyle(crystalLevel>=4?3:2,0x76dfff,.66);
+          frost.lineBetween(fx+dx*5,fy+dy*5,fx+dx*radius,fy+dy*radius);
+          frost.lineStyle(1.5,0xe7ffff,.91);
+          frost.lineBetween(fx+dx*10,fy+dy*10,fx+dx*(radius-2),fy+dy*(radius-2));
+          for(let branch=0;branch<crystalLevel;branch++){
+            const dist=radius*(.37+branch*.12),len=5+crystalLevel*1.5;
+            const px=fx+dx*dist,py=fy+dy*dist;
+            for(const sign of [-1,1]){
+              const ba=a+Math.PI-sign*Math.PI/3;
+              frost.lineStyle(1.5,branch%2?0xa2edff:0xffffff,.8);
+              frost.lineBetween(px,py,px+Math.cos(ba)*len,py+Math.sin(ba)*len);
+            }
+          }
+        }
+        this.frostGraphics.lineStyle(3,0x93ebff,0.85);
+        this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy)+8);
+        this.frostGraphics.lineStyle(1,0xe2ffff,0.72);
+        this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy)+13);
+        if(isSputnikCrystalized(enemy,this.elapsed)){
+          // Cristalizado é legível e diferente do congelamento comum:
+          // quatro pequenos diamantes dourados/cianos orbitam a nave.
+          const r=enemyContactRadius(enemy.type)+19;
+          for(let facet=0;facet<4;facet++){
+            const a=facet*Math.PI/2+this.elapsed*.001;
+            const px=enemy.sprite.x+Math.cos(a)*r;
+            const py=enemy.sprite.y+Math.sin(a)*r;
+            const color=facet%2?0xe8b84c:0xb4f5ff;
+            this.frostGraphics.fillStyle(color,.83);
+            this.frostGraphics.fillTriangle(px,py-5,px-3,py,px+3,py);
+            this.frostGraphics.fillTriangle(px-3,py,px+3,py,px,py+5);
+          }
+        }
+        if(enemy.type===2){
+          enemy.type2Facing=steerType2Rotation(enemy.type2Facing??0,0,0,dt);
+          enemy.sprite.rotation=enemy.type2Facing;
+        }
+        if(enemy.type===5)this.drawType5Effects(enemy);
+        // Congelar não dá imunidade às explosões que já estejam ativas.
+        this.hitEnemyWithBlast(i);
+        continue;
+      }
       const previousX = enemy.sprite.x;
       const previousY = enemy.sprite.y;
       enemy.age += dt;
       enemy.phaseAge += dt;
+      // Últimos 10 s: cancelar toda coreografia, escolher defesa e atacar.
+      if(/^wave[0-9]$/.test(this.mode)&&this.elapsed>=20000&&
+        ['swarmDance','swarmHold','tacticalManeuver','tacticalHold','orbit','stage','formation'].includes(enemy.phase)){
+        enemy.sprite.setVisible(true);
+        enemy.sprite.y=Math.max(48,enemy.sprite.y);
+        enemy.sprite.setRotation(0);
+        const target=this.chooseDefenseTarget();
+        enemy.target=target;
+        enemy.phase='dive';enemy.phaseAge=0;
+        this.assignInvaderTarget(enemy,target);
+      }
 
       // O grupo conserva um alvo coletivo: se uma torre cai, TODO o
       // enxame/esquadrilha escolhe outra defesa ativa e recalcula sua rota.
@@ -1359,7 +2677,7 @@ export class GameScene extends Phaser.Scene {
         // ao mudar a defesa, sem teletransportar a esquadrilha.
         if (group.kind === 'tactical' && group.attackStartAge !== null) {
           const first = survivors[0];
-          const offset = tacticalFormationOffset('column', first.formationIndex, group.count);
+          const offset = tacticalFormationOffset(group.finalFormation, first.formationIndex, group.count);
           const current = tacticalAttackPosition(group, first.formationIndex,
             first.age - group.attackStartAge);
           group.attackOrigin = { x: current.x - offset.x, y: current.y - offset.y };
@@ -1388,8 +2706,33 @@ export class GameScene extends Phaser.Scene {
           enemy.sprite.setVisible(true);
           const danceAge = enemy.age - enemy.entryDelay;
           const pos = swarmDancePosition(group, enemy.formationIndex, danceAge);
-          enemy.sprite.setPosition(pos.x, pos.y);
+          const emergence=Math.min(1,danceAge/0.75);
+          enemy.sprite.setPosition(
+            Phaser.Math.Linear(group.centerX,pos.x,emergence),
+            Phaser.Math.Linear(group.portalY,pos.y,emergence));
           if (danceAge >= group.duration) {
+            enemy.phase='swarmHold';
+            enemy.phaseAge=0;
+            enemy.sprite.setPosition(pos.x,pos.y);
+          }
+        }
+      } else if (enemy.phase === 'swarmHold') {
+        // Naves Tipo 1 pairam antes do mergulho e disparam um tiro visível.
+        const pos=swarmDancePosition(group,enemy.formationIndex,group.duration);
+        enemy.sprite.setPosition(pos.x,pos.y);
+        // Onda 0: demora antes do primeiro disparo e tiros defasados por nave.
+        // Outras ondas preservam integralmente a cadência original.
+        const shotDelay=this.mode==='wave0'
+          ? WAVE0_EASY_PACING.firstShotDelay+
+            enemy.formationIndex*WAVE0_EASY_PACING.shotStagger
+          : this.mode==='wave1'?0.7:0.40;
+        if(!enemy.formationShotFired&&enemy.phaseAge>=shotDelay){
+          enemy.formationShotFired=true;
+          if(!['wave1','wave2'].includes(this.mode)||
+            wave1FormationShooter('swarm',enemy.formationIndex,group.count))
+            this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+        }
+        if(enemy.phaseAge>=group.holdDuration){
             if (!group.target) {
               group.target = this.chooseV035GroupTarget(group,
                 swarmDanceCenter(group, group.duration));
@@ -1397,16 +2740,22 @@ export class GameScene extends Phaser.Scene {
             enemy.phase = 'dive';
             enemy.phaseAge = 0;
             this.assignInvaderTarget(enemy, group.target);
-          }
         }
       } else if (enemy.phase === 'tacticalManeuver') {
+        // Inclinação da nave acompanha o giro; ao parar volta à vertical.
+        const movingAge=Math.min(enemy.age,Math.max(0.5,group.duration-group.holdDuration));
+        const angle=4*Math.PI*(movingAge/Math.max(0.5,group.duration-group.holdDuration));
+        enemy.sprite.setRotation(enemy.age<group.duration-group.holdDuration
+          ? Math.sin(angle)*0.30*group.direction : 0);
+        const thruster=enemy.sprite.getData('thruster');
+        if(thruster)thruster.setAlpha(0.6+0.4*Math.sin(this.time.now*0.018+enemy.formationIndex));
         const position = tacticalManeuverPosition(group, enemy.formationIndex, enemy.age);
         enemy.sprite.setPosition(position.x, position.y);
         if (enemy.age >= group.duration) {
           if (!group.target) {
             // Separação entre a manobra e a investida: todos atacam
             // a defesa com menor porcentagem de vida e escudo.
-            const slot = tacticalFormationOffset('column', enemy.formationIndex, group.count);
+            const slot = tacticalFormationOffset(group.finalFormation, enemy.formationIndex, group.count);
             group.attackOrigin = { x: position.x - slot.x, y: position.y - slot.y };
             group.target = this.chooseV035GroupTarget(group, group.attackOrigin);
             group.attackStartAge = enemy.age;
@@ -1416,16 +2765,46 @@ export class GameScene extends Phaser.Scene {
             ) / Math.max(90, enemy.speed));
           }
           enemy.target = group.target;
-          enemy.phase = 'tacticalAttack';
+          enemy.phase = 'tacticalHold';
           enemy.phaseAge = 0;
         }
+      } else if(enemy.phase==='tacticalHold'){
+        // Salva anunciada: esquadrilha Tipo 2 para no ar antes de atacar.
+        enemy.sprite.setRotation(0);
+        if(!group.shotWarning){
+          group.shotWarning=true;
+          this.showAttackWarning('SALVA TÁTICA! INTERCEPTE OS DISPAROS!');
+        }
+        if(!enemy.formationShotFired&&enemy.phaseAge>=0.65){
+          enemy.formationShotFired=true;
+          if(!['wave1','wave2'].includes(this.mode)||
+            wave1FormationShooter('tactical',enemy.formationIndex,group.count)){
+            this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+            // Só as ondas 2+ recebem a segunda ogiva por nave.
+            if(this.mode!=='wave1')
+              this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+          }
+        }
+        if(enemy.phaseAge>=1.25){
+          enemy.phase='tacticalAttack';enemy.phaseAge=0;
+          group.attackStartAge=enemy.age;
+        }
       } else if (enemy.phase === 'tacticalAttack') {
+        enemy.sprite.setRotation(0);
+        const thruster=enemy.sprite.getData('thruster');
+        if(thruster)thruster.setAlpha(0.95);
         const attackAge = Math.max(0, enemy.age - group.attackStartAge);
         const position = tacticalAttackPosition(group, enemy.formationIndex, attackAge);
         enemy.sprite.setPosition(position.x, position.y);
         if (attackAge >= group.attackDuration) {
+          if(enemy.type===2){
+            this.showHeavyImpact(enemy.sprite.x,enemy.sprite.y);
+            playSfx('explosion',{throttle:90,volumeScale:.64});
+          }
           this.removeEnemy(i);
-          this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE * (enemy.level > 1 ? 1.12 : 1));
+          this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE *
+            (this.mode==='wave1'?WAVE1_PACING.impactDamageMultiplier:1) *
+            (enemy.level>1?1.12:1));
           if (this.gameOver) return;
           continue;
         }
@@ -1471,6 +2850,10 @@ export class GameScene extends Phaser.Scene {
         const blend = Math.min(1, dt * 1.5);
         enemy.sprite.x = Phaser.Math.Linear(enemy.sprite.x, enemy.formationX, blend);
         enemy.sprite.y = Phaser.Math.Linear(enemy.sprite.y, enemy.formationY, blend);
+        if(enemy.type===2 && !enemy.formationShotFired&&enemy.phaseAge>=1.1){
+          enemy.formationShotFired=true;
+          this.fireEnemyProjectile(enemy,{kind:'cannon',x:CANNON.x,y:CANNON.y});
+        }
         if (enemy.phaseAge >= enemy.formationWait) {
           enemy.phase = 'dive';
           this.assignInvaderTarget(enemy, enemy.target);
@@ -1496,10 +2879,10 @@ export class GameScene extends Phaser.Scene {
         if (hover.retreat) {
           enemy.phase = 'retreat';
           enemy.phaseAge = 0;
-          this.setRoute(enemy, enemy.sprite.x, -78);
+          this.setRoute(enemy, enemy.sprite.x, 95);
         }
       } else if (enemy.phase === 'retreat') {
-        // Sai pela parte de cima e retorna à mesma noite para outra passada.
+        // Retorno limitado ao céu visível: não foge por cima durante a onda.
         if (this.moveAlongRoute(enemy, dt)) {
           enemy.target = this.chooseDefenseTarget();
           enemy.phase = 'approach';
@@ -1511,6 +2894,12 @@ export class GameScene extends Phaser.Scene {
       } else if (enemy.phase === 'flyby') {
         const slow = this.time.now < enemy.electricSlowUntil ? ELECTRIC_SLOW_FACTOR : 1;
         enemy.sprite.x += enemy.direction * enemy.speed * slow * dt;
+        // Whoosh breve ao cruzar a arena; não repetir som a cada frame.
+        if(enemy.lastWhooshPass!==enemy.flybySerial &&
+          Math.abs(enemy.sprite.x-W/2)<Math.max(12,enemy.speed*dt*1.1)){
+          enemy.lastWhooshPass=enemy.flybySerial;
+          playSfx('fighterWhoosh',{throttle:220,volumeScale:0.78});
+        }
         if ((enemy.direction > 0 && enemy.sprite.x >= W + 55) ||
             (enemy.direction < 0 && enemy.sprite.x <= -55)) {
           if (enemy.passesRemaining > 0) {
@@ -1518,6 +2907,7 @@ export class GameScene extends Phaser.Scene {
             // ainda com a velocidade de caça, antes do mergulho com laser.
             enemy.passesRemaining -= 1;
             enemy.direction *= -1;
+            enemy.flybySerial++;
             enemy.sprite.y = Phaser.Math.Clamp(
               enemy.sprite.y + (enemy.direction > 0 ? 30 : -30), 110, 215);
           } else {
@@ -1558,13 +2948,31 @@ export class GameScene extends Phaser.Scene {
           enemy.sprite.x, enemy.sprite.y, enemy.target.x, enemy.target.y,
         );
         if (enemy.phaseAge >= 0.35) {
-          this.removeEnemy(i);
-          continue;
+          // O disparo NÃO é uma morte: recolhe asas, retoma a altura de
+          // patrulha e volta a cruzar a tela até que o HP chegue a zero.
+          enemy.laserGraphics.clear();
+          enemy.phase='recover4';enemy.phaseAge=0;
+          const farX=enemy.direction>0?W-75:75;
+          this.setRoute(enemy,farX,Phaser.Math.Clamp(enemy.sprite.y-90,115,195));
+        }
+      } else if(enemy.phase==='recover4'){
+        if(this.moveAlongRoute(enemy,dt)){
+          enemy.direction*=-1;
+          enemy.flybySerial++;
+          enemy.passesRemaining=enemy.definition.fighterExtraPasses;
+          enemy.target=this.chooseDefenseTarget();
+          enemy.phase='flyby';enemy.phaseAge=0;
         }
       } else if (enemy.phase === 'arrival') {
         enemy.sprite.y = Math.min(140, enemy.sprite.y + enemy.speed * dt);
         if (enemy.sprite.y >= 140) {
           enemy.phase = 'boss';
+          if(enemy.type===5){
+            enemy.shotTimer=0;
+            enemy.laserShotDone=false;
+            enemy.laserTarget=this.chooseDefenseTarget();
+            this.showAttackWarning('CRUZADOR TIPO 5 — LASER CARREGANDO (5 S)!');
+          }
           enemy.bossAnchorX = enemy.sprite.x;
           enemy.bossAnchorY = enemy.sprite.y;
           enemy.phaseAge = 0;
@@ -1572,24 +2980,46 @@ export class GameScene extends Phaser.Scene {
           enemy.spawnTimer = 0;
         }
       } else if (enemy.phase === 'boss') {
+        this.updateFinalCountryBoss(enemy,dt);
         // Nunca usa a idade anterior à chegada: o primeiro frame do boss
         // começa exatamente na última posição da fase de entrada.
         enemy.sprite.x = bossCruiseX(enemy.bossAnchorX, enemy.phaseAge);
         enemy.sprite.y = enemy.bossAnchorY + Math.sin(enemy.phaseAge * 1.05) * 10;
         enemy.shotTimer += dt;
         enemy.spawnTimer += dt;
-        if (enemy.shotTimer >= enemy.definition.shotInterval) {
+        // Cinco segundos de carga visível, seguido de raio pesado.
+        // O disparo é feito uma vez por ciclo, jamais a cada frame.
+        if(enemy.type===5)this.updateType5Laser(enemy);
+        // Duas fases de fúria: mais salvas e escoltas abaixo de 70% e 35% HP.
+        const phaseProfile=enemy.finalBoss
+          ? finaleBossFirePattern(this.mode,this.finale?.coalition.length||1,
+            enemy.finalAssaultPhase) : null;
+        const interval=enemy.definition.shotInterval*
+          (phaseProfile?.intervalMultiplier??1);
+        if (enemy.type!==5 && enemy.shotTimer >= interval) {
           enemy.shotTimer = 0;
           this.fireEnemyProjectile(enemy);
         }
-        if (enemy.spawnTimer >= enemy.definition.spawnInterval) {
+        if (enemy.spawnTimer >= enemy.definition.spawnInterval*
+          (phaseProfile?.intervalMultiplier??1)) {
           enemy.spawnTimer = 0;
-          const campaignMiniboss = this.mode === 'wave8' || this.mode === 'wave9';
+          const campaignMiniboss = ['wave8','wave9','wave10','wave11'].includes(this.mode);
           const liveMinions = campaignMiniboss
             ? this.enemies.filter((unit) => unit.sourceBossId === enemy.uid).length : 0;
-          const count = campaignMiniboss
+          let count = campaignMiniboss
             ? minibossSummonCount(enemy.spawnedMinions, liveMinions,
               enemy.definition.spawnCount) : enemy.definition.spawnCount;
+          if(enemy.finalBoss && this.mode==='wave11') {
+            // A coalizão pode ter quatro chefes, mas nunca 24 escoltas simultâneas.
+            const allMinions=this.enemies.filter(unit=>unit.sourceBossId!==null).length;
+            count=Math.min(count,Math.max(0,10-allMinions));
+          }
+          // Somente quando há escoltas a liberar: as baias abrem enquanto
+          // o spawn original acontece (sem atrasar o relógio da IA).
+          if(count>0&&enemy.type===5&&enemy.sprite.texture?.key==='tipo5_sheet'){
+            enemy.sprite.setData('tipo5_deploying',true);
+            enemy.sprite.play('tipo5_spawn',true);
+          }
           // Na campanha, minions herdam HP/cor do nível atual. O miniboss
           // tem no máximo 12 invocações totais e 6 vivas simultaneamente.
           for (let j = 0; j < count; j += 1) {
@@ -1603,10 +3033,32 @@ export class GameScene extends Phaser.Scene {
           }
           enemy.spawnedMinions += count;
         }
+      } else if (enemy.phase === 'wallRepelled') {
+        // Mantém a nave do lado inimigo do muro durante o recuo.
+        // Depois ela pode tentar outro ataque, sem atravessar a barreira.
+        if(enemy.phaseAge>=0.48){
+          enemy.phase='dive';enemy.phaseAge=0;
+          this.assignInvaderTarget(enemy,enemy.target);
+        }
       } else if (enemy.phase === 'dive') {
-        if (this.moveAlongRoute(enemy, dt)) {
+        const reached=this.moveAlongRoute(enemy,dt);
+        if(this.blockEnemyWithAmericanWall(enemy,worldFromX,worldFromY)){
+          enemy.phase='wallRepelled';enemy.phaseAge=0;
+          // O recuo começou após a posição física corrigida; os offsets
+          // anteriores foram retirados neste quadro e não serão reutilizados.
+          enemy.shockOffset={x:0,y:0,vx:0,vy:0};
+          enemy.wallPush.x=0;enemy.wallPush.y=0;
+          continue;
+        }
+        if(reached) {
+          if(enemy.type===2){
+            this.showHeavyImpact(enemy.sprite.x,enemy.sprite.y);
+            playSfx('explosion',{throttle:90,volumeScale:.64});
+          }
           this.removeEnemy(i);
-          this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE * (enemy.level > 1 ? 1.12 : 1));
+          this.damageTarget(enemy.target, ENEMY_IMPACT_DAMAGE *
+            (this.mode==='wave1'?WAVE1_PACING.impactDamageMultiplier:1) *
+            (enemy.level>1?1.12:1));
           if (this.gameOver) return;
           continue;
         }
@@ -1623,18 +3075,145 @@ export class GameScene extends Phaser.Scene {
       enemy.velocityX = Phaser.Math.Linear(enemy.velocityX, instantVx, smooth);
       enemy.velocityY = Phaser.Math.Linear(enemy.velocityY, instantVy, smooth);
       enemy.shockOffset = advanceShockOffset(previousShock, dt);
-      enemy.sprite.x += enemy.shockOffset.x;
-      enemy.sprite.y += enemy.shockOffset.y;
+      enemy.wallPush = advanceWallPush(oldWallPush,dt);
+      enemy.sprite.x += enemy.shockOffset.x + enemy.wallPush.x;
+      enemy.sprite.y += enemy.shockOffset.y + enemy.wallPush.y;
+      this.blockEnemyWithAmericanWall(enemy,worldFromX,worldFromY);
+      // Gelo russo não aplica forças de atração: só congela e estilhaça no abate.
+      enemy.russianPullOffset={x:0,y:0};
+      // Tipo 3 usa os quadros 4–7 para fazer curvas e 0–3 para voar reto.
+      if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
+        const anim = enemy.sprite.anims;
+        const bombing = anim.currentAnim?.key === 'tipo3_bombardeio' && anim.isPlaying;
+        const hit = this.time.now - enemy.lastHitAt < 160;
+        if (!bombing && !hit) {
+          const dx = (enemy.sprite.x - previousX) / Math.max(dt,0.001);
+          const frame = dx < -35 ? (dx < -90 ? 4 : 5)
+            : dx > 35 ? (dx > 90 ? 7 : 6) : -1;
+          if (frame >= 0) {
+            if (enemy.type3BankFrame !== frame || anim.isPlaying) {
+              anim.stop();
+              enemy.sprite.setFrame(frame);
+              enemy.type3BankFrame = frame;
+            }
+          } else if (enemy.type3BankFrame !== -1 || !anim.isPlaying) {
+            enemy.type3BankFrame = -1;
+            enemy.sprite.play('tipo3_voo');
+          }
+        }
+      }
+      if(enemy.type===2){
+        // A ponta acompanha a velocidade enquanto manobra e volta para cima ao parar.
+        const vx=(enemy.sprite.x-previousX)/Math.max(dt,0.001);
+        const vy=(enemy.sprite.y-previousY)/Math.max(dt,0.001);
+        enemy.type2Facing=steerType2Rotation(enemy.type2Facing??0,vx,vy,dt);
+        enemy.sprite.rotation=enemy.type2Facing;
+      }
+      this.updateType4Appearance(enemy,previousX,previousY,dt);
       this.updateEnemyHitVisual(enemy);
+      if(enemy.type===5)this.drawType5Effects(enemy);
+      enemy.bossLabel?.setPosition(enemy.sprite.x,enemy.sprite.y-52);
 
       // Bombas de pulso são barreiras: inimigos entram nelas durante o movimento.
       this.hitEnemyWithBlast(i);
     }
+    // Não há contágio, pulso ou atração de congelados.
+  }
+
+  freezeRussianEnemy(enemy,durationMs) {
+    // O estalo de gelo soa somente na primeira aplicação. Acertos
+    // sucessivos renovam o congelamento sem produzir uma cascata de bipes.
+    const firstFreeze=!!enemy&&enemy.type!==6&&
+      (enemy.frozenUntil??-Infinity)<=this.elapsed;
+    const applied=applyRussianFreeze(enemy,this.elapsed,durationMs);
+    if(applied&&firstFreeze)
+      playSfx('ruSputnikFreeze',{throttle:180,volumeScale:0.33});
+    return applied;
+  }
+
+  shatterRussianEnemy(enemy) {
+    const shatter=sputnikShatterStats(enemy,this.elapsed,
+      this.combat.russianShatterRadius||0,this.combat.russianShatterDamage||0,
+      this.specialBuild);
+    const {radius,damage}=shatter;
+    if(!enemy||enemy.type===6||enemy.frozenUntil<=this.elapsed||
+      !radius||!damage||enemy.russianShattered)return;
+    enemy.russianShattered=true;
+    // Testes antigos extraem este método isoladamente; o áudio é opcional.
+    if(typeof playSfx==='function')playSfx('ruFrozenShatter',{throttle:140,volumeScale:0.56});
+    const x=enemy.sprite.x,y=enemy.sprite.y;
+    const victims=russianShatterTargets(enemy,this.enemies,this.elapsed,radius);
+    // Estilhaçamento visual: pequenos cristais são lançados em todas as
+    // direções. A área de dano continua independente da quantidade de efeitos
+    // exibidos para que ondas cheias não prejudiquem o desempenho.
+    const fx=this.add.graphics({x,y}).setDepth(57);
+    fx.lineStyle(2,0xc7f7ff,0.92).strokeCircle(0,0,radius*0.28);
+    fx.lineStyle(1,0x70dfff,0.72).strokeCircle(0,0,radius*0.9);
+    this.tweens.add({targets:fx,alpha:0,scale:1.28,duration:270,
+      ease:'Cubic.Out',onComplete:()=>fx.destroy()});
+    this.russianShardVisualCount??=0;
+    const budget=Math.max(0,64-this.russianShardVisualCount);
+    const russianLevel=this.combatCampaign?.choices?.filter(id=>id==='ru').length||
+      (this.combat.transformed==='ru'?10:1);
+    const shards=russianShardVisuals(radius,Math.min(6+Math.floor(russianLevel*0.65),budget),
+      Math.random,russianLevel);
+    for(const [i,crystal] of shards.entries()){
+      const shard=this.add.graphics({x,y}).setDepth(58);
+      const w=crystal.width,h=crystal.length;
+      const tint=i%3===0?0xe5ffff:i%2===0?0x85d9fa:0xafedff;
+      // Cristal bipiramidal com facetas iluminadas e núcleo translúcido.
+      shard.fillStyle(0x287da7,0.90);
+      shard.fillTriangle(0,-h,-w,0,0,h*0.36);
+      shard.fillStyle(tint,0.98);
+      shard.fillTriangle(0,-h,w,0,0,h*0.36);
+      shard.fillStyle(0xffffff,0.80);
+      shard.fillTriangle(0,-h,-w*.18,-h*.17,w*.15,-h*.05);
+      shard.lineStyle(1,0xd9faff,0.95);
+      shard.lineBetween(0,-h,-w,0);
+      shard.lineBetween(0,-h,w,0);
+      shard.lineBetween(-w,0,0,h*.36);
+      shard.lineBetween(w,0,0,h*.36);
+      shard.lineStyle(1,0x2f86b0,0.8);
+      shard.lineBetween(0,-h,0,h*.36);
+      shard.setRotation(crystal.angle+Math.PI/2);
+      this.russianShardVisualCount++;
+      this.tweens.add({
+        targets:shard,x:x+crystal.dx,y:y+crystal.dy,
+        alpha:0,scale:0.7,
+        rotation:crystal.angle+Math.PI/2+crystal.spin,
+        duration:crystal.duration,ease:'Cubic.Out',
+        onComplete:()=>{
+          shard.destroy();
+          this.russianShardVisualCount=Math.max(0,this.russianShardVisualCount-1);
+        },
+      });
+    }
+    // IDs estáveis: a própria reação pode eliminar outros alvos congelados.
+    for(const uid of victims){
+      const index=this.enemies.findIndex(e=>e.uid===uid);
+      if(index>=0)this.impactInvader(index,damage,0,'#a8efff',false);
+    }
+    // O Tipo 6 não congela, mas sua barreira/módulos podem sofrer a onda.
+    for(const boss of this.enemies.filter(e=>e.type===6))
+      hitType6At(this,boss,x,y,damage,radius);
   }
 
   fireEnemyProjectile(enemy, target = this.chooseDefenseTarget()) {
-    const count = enemy.definition.volleyCount;
+    // Proteção de desempenho para o enxame Tipo 6 chinês e salvas de formação.
+    // Preserva até 140 projéteis interceptáveis ao mesmo tempo na tela.
+    const regularWave=/^wave[0-9]$/.test(this.mode);
+    const activeLimit=regularWave?Math.min(95,25+Number(this.mode.slice(4))*7):140;
+    if(this.enemyBullets.length>=activeLimit||this.tutorialComplete||!enemy.sprite.active)return;
+    // A nave abre o compartimento de bombas ao disparar.
+    if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
+      enemy.sprite.play('tipo3_bombardeio', true);
+    }
+    const profile=enemy.finalBoss
+      ? finaleBossFirePattern(this.mode,
+        this.finale?.coalition.length||1,enemy.finalAssaultPhase) : null;
+    const count=profile?.volleyCount??enemy.definition.volleyCount;
     for (let i = 0; i < count; i += 1) {
+      if(this.enemyBullets.length>=activeLimit)break;
       // A versão II do bombardeiro dispara duas bombas das laterais,
       // que convergem para o mesmo escudo e podem ser abatidas separadamente.
       const x = enemy.sprite.x + (i - (count - 1) / 2) * 48;
@@ -1642,14 +3221,24 @@ export class GameScene extends Phaser.Scene {
       const dx = target.x - x;
       const dy = target.y - y;
       const distance = Math.max(1, Math.hypot(dx, dy));
-      const projectile = this.add.rectangle(x, y, 11, 11, ENEMY_SHOT_COLOR)
-        .setStrokeStyle(1, 0xfff5bc).setDepth(28);
+      // Arte circular; raio de colisão e balanceamento permanecem 8,25.
+      const projectile = this.add.circle(x,y,8.25,ENEMY_SHOT_COLOR)
+        .setStrokeStyle(2,0xfff5bc).setDepth(28);
+      const projectilePace=this.mode==='wave0'&&enemy.type===1
+        ?WAVE0_EASY_PACING.bulletSpeedMultiplier
+        :this.mode==='wave1'&&enemy.type<=2?WAVE1_PACING.bulletSpeedMultiplier:1;
       this.enemyBullets.push({
         sprite: projectile,
-        hp: enemy.definition.shotHp ?? 1,
+        hp: 1,
         target,
-        vx: dx / distance * 160,
-        vy: dy / distance * 160,
+        // Apenas os disparos básicos de Tipo 1/2 podem ser devolvidos.
+        reflectable:enemy.type<=2 && !enemy.finalBoss,
+        sourceEnemyId:enemy.uid,
+        damage:profile?.damage??(this.mode==='wave1'&&enemy.type<=2
+          ?WAVE1_PACING.bulletDamage:enemy.type<=2?14:ENEMY_BULLET_DAMAGE),
+        radius:8.25,
+        vx: dx / distance * 160*(profile?.speedMultiplier??1)*projectilePace,
+        vy: dy / distance * 160*(profile?.speedMultiplier??1)*projectilePace,
       });
     }
   }
@@ -1657,20 +3246,53 @@ export class GameScene extends Phaser.Scene {
   updateEnemyBullets(dt) {
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
       const shot = this.enemyBullets[i];
-      shot.sprite.x += shot.vx * dt;
-      shot.sprite.y += shot.vy * dt;
+      // Restaura a cor após o flash, sem sobrescrever o visual do bombardeiro.
+      if(shot.hitFlashUntil && this.time.now>=shot.hitFlashUntil){
+        shot.sprite.setFillStyle(shot.baseFillColor??ENEMY_SHOT_COLOR);
+        shot.hitFlashUntil=0;
+      }
+      const previousX=shot.sprite.x,previousY=shot.sprite.y;
+      const freezeFactor=(shot.iceChilledUntil??0)>this.time.now
+        ?ICE_BREATH_BOMB_SPEED_FACTOR:1;
+      shot.sprite.x += shot.vx * dt * freezeFactor;
+      shot.sprite.y += shot.vy * dt * freezeFactor;
+      if(this.hitAmericanWallWithBullet(shot,previousX,previousY)){
+        // O projétil hostil é consumido; um ricochete nasce em outra lista,
+        // controlada pelo jogador, sem causar dano à cidade.
+        this.removeEnemyBullet(i,true);continue;
+      }
       if (this.specialBlasts.some((blast) => blastCatchesTarget(
         blast.x, blast.y, this.time.now - blast.bornAt,
-        shot.sprite.x, shot.sprite.y, 8,
+        shot.sprite.x, shot.sprite.y, shot.radius??8,blast.radiusScale??1,
       ))) {
-        this.removeEnemyBullet(i);
+        if(shot.colossal)detonateType6Bomb(this,shot);
+        else this.removeEnemyBullet(i,true);
         continue;
       }
-      if (Phaser.Math.Distance.Between(
-        shot.sprite.x, shot.sprite.y, shot.target.x, shot.target.y,
-      ) < 14) {
+      const domeHit=shot.target?.kind==='cannon'&&this.shield>0&&
+        cannonDomeIntercept(previousX,previousY,shot.sprite.x,shot.sprite.y);
+      if(domeHit || Phaser.Math.Distance.Between(
+        shot.sprite.x,shot.sprite.y,shot.target.x,shot.target.y,
+      ) < Math.max(14,(shot.radius??8)+6)) {
+        const reflected=this.reflectV1ShieldProjectile(shot);
         this.removeEnemyBullet(i);
-        this.damageTarget(shot.target, ENEMY_BULLET_DAMAGE);
+        if(!reflected){
+          if(shot.cryoImpact){
+            if(this.shield>0)shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);playSfx('shieldBreak',{throttle:450});
+            this.shield=0; // Gelo russo rompe o escudo e impede disparos.
+            this.cannonFrozenUntil=Math.max(this.cannonFrozenUntil,this.elapsed+2000);
+          }else if(shot.frostMs){
+            this.cannonFrozenUntil=Math.max(this.cannonFrozenUntil,this.elapsed+shot.frostMs);
+          }
+          if(shot.instantUnshielded){
+            // Ogiva americana destrói imediatamente um canhão sem escudo.
+            if(this.shield<=0)this.damageTarget(shot.target,1000);
+            else {
+              shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
+              this.shield=0;this.damageTarget(shot.target,75);
+            }
+          }else this.damageTarget(shot.target,shot.damage??ENEMY_BULLET_DAMAGE);
+        }
         if (this.gameOver) return;
       } else if (shot.sprite.y > H + 30 || shot.sprite.x < -30 || shot.sprite.x > W + 30) {
         this.removeEnemyBullet(i);
@@ -1678,9 +3300,39 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  removeEnemyBullet(index) {
+  // v0.49: upgrades de escudo foram removidos. Projéteis causam dano
+  // à cúpula universal, sem reflexos nem pulsos defensivos por país.
+  reflectV1ShieldProjectile(_shot) { return false; }
+  reactV1ShieldImpact() {}
+
+  // Feedback de interceptação exclusivamente visual: nenhum dano/raio extra.
+  // Uma única Graphics por impacto evita dezenas de partículas Phaser ativas.
+  showEnemyBulletHit(shot,destroyed=false){
+    if(!shot?.sprite?.active)return;
+    const radius=Math.min(13,shot.radius??(shot.colossal?19:8.25));
+    if(!destroyed){
+      shot.baseFillColor??=shot.sprite.fillColor??ENEMY_SHOT_COLOR;
+      shot.sprite.setFillStyle(0xffffff);
+      shot.hitFlashUntil=this.time.now+80;
+    }
+    const g=this.add.graphics().setPosition(shot.sprite.x,shot.sprite.y).setDepth(36);
+    // Para tiros de 1 HP, o núcleo branco persiste mesmo após a remoção.
+    g.fillStyle(0xffffff,0.95).fillCircle(0,0,Math.max(3,radius*0.55));
+    g.lineStyle(2,0xffdfa6,0.9).strokeCircle(0,0,radius*0.80);
+    for(let j=0;j<6;j++){
+      const a=j*Math.PI/3,len=radius*(j%2===0?1.9:1.5);
+      g.lineStyle(j%2===0?2:1, j%2===0?0xffb16b:0xffffff,0.85);
+      g.lineBetween(Math.cos(a)*radius*0.7,Math.sin(a)*radius*0.7,
+        Math.cos(a)*len,Math.sin(a)*len);
+    }
+    this.tweens.add({targets:g,scale:1.75,alpha:0,duration:160,
+      onComplete:()=>g.destroy()});
+  }
+
+  removeEnemyBullet(index,intercepted=false) {
     const shot = this.enemyBullets[index];
     if (!shot) return;
+    if(intercepted)this.showEnemyBulletHit(shot,true);
     shot.sprite.destroy();
     this.enemyBullets.splice(index, 1);
   }
@@ -1688,24 +3340,47 @@ export class GameScene extends Phaser.Scene {
   removeEnemy(index) {
     const enemy = this.enemies[index];
     if (!enemy) return;
+    enemy.shieldGraphics?.destroy();
     enemy.laserGraphics?.destroy();
+    enemy.bossLabel?.destroy();
     enemy.sprite.destroy();
     this.enemies.splice(index, 1);
+  }
+
+  enemyCombatRadius(enemy) {
+    // O escudo aumenta a área interceptável apenas enquanto há proteção.
+    return enemy.type===5&&enemy.shield>0?70:enemyContactRadius(enemy.type);
   }
 
   drawEnemyHealthBars() {
     const graphics = this.enemyHealthGraphics;
     graphics.clear();
     for (const enemy of this.enemies) {
+      if(enemy.type===6){
+        // Vida da fortaleza é comunicada por danos visuais, não barras.
+        continue;
+        if(!enemy.type6.coreExposed)continue;
+        const width=234,x=enemy.sprite.x-width/2,y=enemy.sprite.y+72;
+        const fraction=Math.max(0,enemy.type6.coreHp/enemy.type6.coreMaxHp);
+        graphics.fillStyle(0x091019,0.95).fillRect(x-3,y-3,width+6,16);
+        graphics.fillStyle(0xf66c75,0.96).fillRect(x,y,width*fraction,10);
+        graphics.lineStyle(2,0xffffff,0.9).strokeRect(x-3,y-3,width+6,16);
+        continue;
+      }
       if (enemy.maxHp <= 1) continue;
-      const width = Phaser.Math.Clamp(enemy.definition.width + 2, 33, 110);
-      const x = enemy.sprite.x - width / 2;
-      const y = enemy.sprite.y - enemy.definition.height / 2 - 15;
+      const width=enemy.finalBoss?175:
+        Phaser.Math.Clamp(enemy.definition.width + 2,33,110);
+      const x=Phaser.Math.Clamp(enemy.sprite.x-width/2,8,W-width-8);
+      const y=enemy.sprite.y-enemy.definition.height/2-
+        (enemy.finalBoss?41:15);
       graphics.fillStyle(0x061426, 0.95);
-      graphics.fillRect(x - 2, y - 2, width + 4, 8);
-      graphics.fillStyle(enemy.level >= 3 ? enemy.definition.color
-        : enemy.level > 1 ? 0xffc977 : 0x6df3ba, 0.95);
-      graphics.fillRect(x, y, width * Math.max(0, enemy.hp / enemy.maxHp), 4);
+      graphics.fillRect(x - 2, y - 2, width + 4, enemy.finalBoss?12:8);
+      const fraction=Math.max(0,Math.min(1,enemy.hp/enemy.maxHp));
+      graphics.fillStyle(enemy.finalBoss?
+        (fraction<=0.35?0xff6264:fraction<=0.70?0xffc96a:0x78e9dc)
+        : enemy.level >= 3 ? enemy.definition.color
+          : enemy.level > 1 ? 0xffc977 : 0x6df3ba,0.95);
+      graphics.fillRect(x,y,width*fraction,enemy.finalBoss?8:4);
     }
   }
 
@@ -1722,6 +3397,91 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+
+  updateType5Laser(enemy){
+    const charge=TYPE5_LASER_CHARGE_SECONDS;
+    const fire=TYPE5_LASER_FIRE_SECONDS;
+    const end=charge+fire+TYPE5_LASER_RECOVERY_SECONDS;
+    if(!enemy.laserGraphics)enemy.laserGraphics=this.add.graphics().setDepth(47);
+    const g=enemy.laserGraphics;
+    g.clear();
+    const target=enemy.laserTarget??{x:CANNON.x,y:CANNON.y,kind:'cannon'};
+    const x=enemy.sprite.x,y=enemy.sprite.y+29;
+    const t=enemy.shotTimer;
+    if(t<charge){
+      const fraction=type5ChargeFraction(t);
+      const pulse=0.58+0.42*Math.sin(this.time.now*0.022);
+      g.lineStyle(1.5+2.3*fraction,0xff7c73,0.23+0.50*fraction*pulse);
+      g.lineBetween(x,y,target.x,target.y);
+      g.lineStyle(2.5,0xffc078,0.50).strokeCircle(x,y,8+21*fraction);
+      g.fillStyle(0xff4d66,0.20+0.60*fraction*pulse)
+        .fillCircle(x,y,4+10*fraction);
+      if(!enemy.laserChargeSoundPlayed){
+        enemy.laserChargeSoundPlayed=true;
+        playSfx('shieldOn',{throttle:330,volumeScale:0.45});
+      }
+    }else if(t<charge+fire){
+      if(!enemy.laserShotDone){
+        enemy.laserShotDone=true;
+        // O dano é aplicado uma única vez. O restante é o feixe visível.
+        this.damageTarget(target,TYPE5_LASER_DAMAGE);
+        playSfx('laser',{throttle:120,volumeScale:1});
+        this.cameras.main.shake(180,0.003);
+      }
+      const pulse=0.78+0.22*Math.sin(this.time.now*0.038);
+      g.lineStyle(26,0xff344f,0.23*pulse).lineBetween(x,y,target.x,target.y);
+      g.lineStyle(12,0xff4f5f,0.91*pulse).lineBetween(x,y,target.x,target.y);
+      g.lineStyle(4,0xfff4dc,0.98).lineBetween(x,y,target.x,target.y);
+      g.fillStyle(0xffffff,0.8).fillCircle(x,y,12);
+    }
+    if(t>=end){
+      enemy.shotTimer=0;
+      enemy.laserShotDone=false;
+      enemy.laserChargeSoundPlayed=false;
+      enemy.laserTarget=this.chooseDefenseTarget();
+      this.showAttackWarning('CRUZADOR TIPO 5 — NOVO LASER EM 5 S!');
+    }
+  }
+
+  drawType5Effects(enemy){
+    const g=enemy.shieldGraphics;
+    if(!g)return;
+    g.clear().setPosition(enemy.sprite.x,enemy.sprite.y);
+    if(enemy.shield<=0)return;
+    const ripple=shieldRippleAt(this.time.now,enemy.shieldHitAt);
+    const blink=shieldSoftFlashAt(this.time.now,enemy.shieldHitAt);
+    // A cúpula pulsa levemente, ondula após impactos e pisca por apenas
+    // 65 ms; nunca torna o casco inteiro branco.
+    const wobble=Math.sin(this.time.now*.011)*1.5 + Math.sin(this.time.now*.035)*ripple*4;
+    const color=cannonShieldColor(enemy.shield,enemy.maxShield);
+    g.fillStyle(color,0.045+0.085*ripple).fillEllipse(0,0,150+wobble,96+wobble);
+    g.lineStyle(2.6+1.6*ripple,blink?0xeaffff:color,0.68+0.22*ripple)
+      .strokeEllipse(0,0,150+wobble,96+wobble);
+    g.lineStyle(1.2,color,0.21+0.25*ripple)
+      .strokeEllipse(0,0,139-wobble,86-wobble);
+    if(ripple>0){
+      const phase=1-ripple;
+      g.lineStyle(2.0,0xe7ffff,0.62*ripple)
+        .strokeEllipse(0,0,151+phase*27,96+phase*17);
+      g.lineStyle(1.4,color,0.36*ripple)
+        .strokeEllipse(0,0,156+phase*44,102+phase*25);
+    }
+  }
+
+  showType5ShieldBreak(enemy){
+    const g=this.add.graphics().setPosition(enemy.sprite.x,enemy.sprite.y)
+      .setDepth(56);
+    g.lineStyle(4,0xcaf8ff,0.95).strokeEllipse(0,0,150,96);
+    for(let k=0;k<12;k++){
+      const a=k*Math.PI/6;
+      g.lineStyle(2,k%3===0?0xffffff:0x7ad7ff,0.87);
+      g.lineBetween(Math.cos(a)*48,Math.sin(a)*30,
+        Math.cos(a)*83,Math.sin(a)*54);
+    }
+    this.tweens.add({targets:g,alpha:0,scale:1.45,duration:340,
+      onComplete:()=>g.destroy()});
+  }
+
   updateEnemyHitVisual(enemy) {
     const age = this.time.now - enemy.lastHitAt;
     const reaction = hitReactionAt(enemy.type, age);
@@ -1729,7 +3489,9 @@ export class GameScene extends Phaser.Scene {
     // O cálculo de rota/velocidade acima permanece inalterado; o deslocamento
     // é adicionado após o movimento e subtraído no frame seguinte.
     enemy.sprite.x += reaction.dx;
-    enemy.sprite.setRotation(reaction.rotation);
+    // Não apagar a orientação de voo do Tipo 2 quando ocorre o shake de dano.
+    enemy.sprite.setRotation(enemy.type===2
+      ?(enemy.type2Facing??0)+reaction.rotation:reaction.rotation);
     // Preserva o tamanho inicial do PNG Tipo 1 (setDisplaySize(62, 72)).
     // Os outros tipos são Containers com escala-base 1.
     enemy.sprite.setScale(enemy.baseScaleX * reaction.scale,
@@ -1737,8 +3499,32 @@ export class GameScene extends Phaser.Scene {
 
     if (enemy.box) {
       enemy.box.setFillStyle(reaction.flash ? 0xffffff : enemy.definition.color);
+    } else if(enemy.type===5&&enemy.sprite.texture?.key==='tipo5_sheet'){
+      const damaged=type5DamageFrame(enemy.hp,enemy.maxHp);
+      enemy.sprite.setData('tipo5_damage_frame',damaged);
+      if(!enemy.sprite.getData('tipo5_deploying')){
+        const anim=enemy.sprite.anims;
+        if(damaged!==null){
+          if(anim.isPlaying)anim.stop();
+          if(Number(enemy.sprite.frame.name)!==damaged)enemy.sprite.setFrame(damaged);
+        }else if(!anim.isPlaying)enemy.sprite.play('tipo5_voo');
+      }
+      // setTintFill(0xffffff) pinta a silhueta inteira de branco e persiste.
+      // Mantemos o flash apenas pela opacidade, preservando a arte original.
+      enemy.sprite.clearTint();
+      enemy.sprite.setAlpha(reaction.flash?0.73:1);
+    } else if(enemy.type===2&&enemy.sprite.texture?.key==='tipo2_sheet'){
+      const damaged=enemy.hp<=enemy.maxHp*0.55;
+      const anim=enemy.sprite.anims;
+      if(reaction.flash||damaged){
+        if(anim.isPlaying)anim.stop();
+        if(Number(enemy.sprite.frame.name)!==6)enemy.sprite.setFrame(6);
+      }else if(!anim.isPlaying)enemy.sprite.play('tipo2_voo');
+      enemy.sprite.setAlpha(reaction.flash?0.75:1);
+    } else if (enemy.type === 2) {
+      // Fallback Container não implementa setTintFill.
+      enemy.sprite.setAlpha(reaction.flash ? 0.65 : 1);
     } else if (reaction.flash) {
-      // O modo fill torna o PIXEL ART inteiramente branco por poucos frames.
       enemy.sprite.setTintFill(0xffffff);
     } else if (enemy.level > 1) {
       enemy.sprite.setTint(enemy.definition.tintColor);
@@ -1748,20 +3534,68 @@ export class GameScene extends Phaser.Scene {
   }
 
   showEnemyDeath(enemy) {
+    if(enemy.type===5&&enemy.sprite.texture?.key==='tipo5_sheet'){
+      // Morte visual completa; a colisão e a remoção da nave continuam
+      // imediatas, preservando regras de vitória, loot e contagem de alvos.
+      const wreck=this.add.sprite(enemy.sprite.x,enemy.sprite.y,'tipo5_sheet',12)
+        .setDisplaySize(enemy.sprite.displayWidth,enemy.sprite.displayHeight)
+        .setRotation(enemy.sprite.rotation).setDepth(56);
+      wreck.clearTint();
+      wreck.play('tipo5_morte');
+      wreck.once('animationcomplete-tipo5_morte',()=>wreck.destroy());
+    }
+    if(enemy.type===2&&enemy.sprite.texture?.key==='tipo2_sheet'){
+      // 7: casco desintegrando em explosões. Sobrepõe o burst padrão,
+      // sem prolongar a vida real do inimigo nem modificar colisões.
+      const wreck=this.add.sprite(enemy.sprite.x,enemy.sprite.y,'tipo2_sheet',7)
+        .setDisplaySize(enemy.sprite.displayWidth,enemy.sprite.displayHeight)
+        .setRotation(enemy.sprite.rotation).setDepth(53);
+      this.tweens.add({targets:wreck,alpha:0,scaleX:wreck.scaleX*1.3,
+        scaleY:wreck.scaleY*1.3,duration:300,onComplete:()=>wreck.destroy()});
+    }
+    if (enemy.type === 4 && enemy.sprite.texture?.key === 'tipo4_sheet') {
+      // Clarão branco breve seguido de fragmentos que continuam visíveis.
+      const flare=this.add.sprite(enemy.sprite.x,enemy.sprite.y,'tipo4_sheet',10)
+        .setDisplaySize(enemy.sprite.displayWidth*1.2,enemy.sprite.displayHeight*1.2)
+        .setDepth(55).setTintFill(0xffffff);
+      this.tweens.add({targets:flare,alpha:0,scaleX:flare.scaleX*1.5,
+        scaleY:flare.scaleY*1.5,duration:135,onComplete:()=>flare.destroy()});
+      const debris=this.add.sprite(enemy.sprite.x,enemy.sprite.y,'tipo4_sheet',11)
+        .setDisplaySize(enemy.sprite.displayWidth,enemy.sprite.displayHeight)
+        .setDepth(53).setRotation(enemy.sprite.rotation)
+        .setFlipX(enemy.sprite.flipX);
+      this.tweens.add({
+        targets:debris,alpha:0,
+        scaleX:debris.scaleX*1.65,scaleY:debris.scaleY*1.65,
+        duration:420,onComplete:()=>debris.destroy(),
+      });
+    }
+    if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
+      // Último quadro da spritesheet sobre a explosão comum.
+      const debris = this.add.sprite(enemy.sprite.x, enemy.sprite.y, 'tipo3_sheet', 11)
+        .setDisplaySize(enemy.sprite.displayWidth, enemy.sprite.displayHeight)
+        .setDepth(53).setRotation(enemy.sprite.rotation);
+      this.tweens.add({
+        targets: debris, alpha: 0, scaleX: debris.scaleX * 1.18,
+        scaleY: debris.scaleY * 1.18, duration: 240,
+        onComplete: () => debris.destroy(),
+      });
+    }
     // Executado APENAS quando HP chega a zero, nunca em colisão com a base,
     // fim de laser Tipo 4 nem quando o laboratório limpa os alvos.
     const { x, y } = enemy.sprite;
     const profile = deathProfileFor(enemy.type);
     const createBurst = (stage = 0) => {
       if (!this.scene.isActive('GameScene')) return;
-      const radius = profile.radius * (stage > 0 ? 0.70 : 1);
+      const radius = profile.radius*(enemy.type===4?1.32:1)*
+        (stage===2?0.92:stage>0?0.73:1);
       const color = stage > 0
         ? (enemy.type === 4 ? 0xffd49c : 0xfff0bf)
         : profile.color;
       const graphic = this.add.graphics().setPosition(
         x + (stage > 0 ? 9 : 0), y + (stage > 0 ? -6 : 0),
       ).setDepth(54);
-      const fragments = Math.min(30, profile.fragments);
+      const fragments = Math.min(30,profile.fragments+(enemy.type===4?8:0));
       // Primeiro clarão branco, seguido de anel de energia e fragmentos.
       graphic.fillStyle(color, stage > 0 ? 0.2 : 0.23);
       graphic.fillCircle(0, 0, radius * 0.55);
@@ -1807,17 +3641,17 @@ export class GameScene extends Phaser.Scene {
       });
     };
     createBurst(0);
-    if (profile.stages >= 2) {
-      this.time.delayedCall(enemy.type === 4 ? 95 : 150, () => createBurst(1));
+    if (profile.stages >= 2 || enemy.type===4) {
+      this.time.delayedCall(enemy.type === 4 ? 110 : 150, () => createBurst(1));
     }
-    // Reservado ao futuro chefe Tipo 6, ainda fora das ondas atuais.
-    if (profile.stages >= 3) {
-      this.time.delayedCall(300, () => createBurst(2));
+    // Terceira detonação apenas quando a nave foi REALMENTE destruída.
+    if (profile.stages >= 3 || enemy.type===4) {
+      this.time.delayedCall(enemy.type===4?225:300, () => createBurst(2));
     }
     // Recompensa no Tipo 4/5 sem tremor intenso em kills simultâneos.
     if (enemy.type >= 4 && this.time.now - this.lastVictoryShake >= 220) {
-      this.cameras.main.shake(enemy.type === 4 ? 75 : 130,
-        enemy.type === 4 ? 0.0012 : 0.0019);
+      this.cameras.main.shake(enemy.type === 4 ? 155 : 130,
+        enemy.type === 4 ? 0.0024 : 0.0019);
       this.lastVictoryShake = this.time.now;
     }
   }
@@ -1826,18 +3660,78 @@ export class GameScene extends Phaser.Scene {
     showNumber = true, maxRecoil = 400) {
     const enemy = this.enemies[index];
     if (!enemy) return false;
+    if(enemy.type===6){
+      if(damage>=100000){defeatType6(this,enemy);return true;}
+      const first=type6AliveModules(enemy.type6)[0];
+      const hitX=enemy.sprite.x+(first?.offsetX??0);
+      const hitY=enemy.sprite.y;
+      return hitType6At(this,enemy,hitX,hitY,damage,0,true).defeated;
+    }
+    if(enemy.type===5 && enemy.shield>0 && damage<100000){
+      const result=absorbType5Shield(enemy.shield,damage);
+      enemy.shield=result.shield;
+      enemy.shieldHitAt=this.time.now;
+      if(showNumber)this.popHitNumber(enemy.sprite.x,enemy.sprite.y,
+        result.absorbed,'#8defff');
+      playSfx(result.broken?'shieldBreak':'shieldHit',{
+        throttle:result.broken?280:140,volumeScale:0.58,
+      });
+      if(result.broken)this.showType5ShieldBreak(enemy);
+      // Quando a proteção se rompe, o casco só é vulnerável ao PRÓXIMO acerto.
+      return false;
+    }
     if (showNumber) this.popHitNumber(enemy.sprite.x, enemy.sprite.y, damage, hitColor);
     enemy.hp -= damage;
+    if(enemy.finalBoss && enemy.hp>0){
+      const fraction=enemy.hp/enemy.maxHp;
+      const phase=fraction<=0.35?3:fraction<=0.70?2:1;
+      if(phase>enemy.finalAssaultPhase){
+        enemy.finalAssaultPhase=phase;
+        // Inimigos de assalto entram depois do aviso, nunca diretamente
+        // sobre a defesa. Um único gatilho mesmo se o tiro cruzar 2 fases.
+        this.queueFinaleCounterattack(enemy,phase);
+      }
+    }
     const killed = enemy.hp <= 0;
     if (killed) {
+      const frozenShatter=enemy.frozenUntil>this.elapsed;
       this.showEnemyDeath(enemy);
+      playSfx(enemy.finalBoss?'boss':'explosion',{throttle:enemy.finalBoss?500:170,volumeScale:enemy.finalBoss?1:0.58});
       this.removeEnemy(index);
-      if (this.mode === 'wave10' && enemy.type === 5 && !enemy.sourceBossId) {
-        this.showWaveComplete('cleared');
-      }
+      // Remover primeiro evita atingir o mesmo alvo duas vezes em reações.
+      if(frozenShatter)this.shatterRussianEnemy(enemy);
+      if (enemy.finalBoss && this.mode==='wave11')this.finaleBossesKilled++;
+      if (!this.supremeFinishing && (
+        (this.mode === 'wave10' && enemy.finalBoss) ||
+        (this.mode === 'wave11' && enemy.finalBoss &&
+          this.finaleBossesKilled>=this.finaleBossesNeeded)
+      )) this.showWaveComplete('cleared');
     } else {
       enemy.lastHitAt = this.time.now;
       if (enemy.box) enemy.box.setFillStyle(0xffffff);
+      else if (enemy.type === 2) enemy.sprite.setAlpha(0.65);
+      else if (enemy.type === 3 && enemy.sprite.texture?.key === 'tipo3_sheet') {
+        enemy.sprite.anims.stop();
+        enemy.sprite.setFrame(10);
+        enemy.sprite.setFlipX(false);
+        this.time.delayedCall(160, () => {
+          if (enemy.sprite.active && this.enemies.includes(enemy))
+            enemy.sprite.play('tipo3_voo');
+        });
+      }
+      else if (enemy.type === 4 && enemy.sprite.texture?.key === 'tipo4_sheet') {
+        enemy.sprite.anims.stop();
+        enemy.sprite.setFrame(10);
+        enemy.sprite.setFlipX(false);
+        enemy.type4NeedsRestore=true; // recupera a pose ao sair do flash
+        enemy.type4PoseLockUntil=this.time.now+160;
+      }
+      else if (enemy.type === 5 && enemy.sprite.texture?.key === 'tipo5_sheet') {
+        // O Tipo 5 usa flash de alpha em updateEnemyHitVisual; não usar
+        // setTintFill pois força a nave inteira a ficar totalmente branca.
+        enemy.sprite.clearTint();
+        enemy.sprite.setAlpha(0.73);
+      }
       else enemy.sprite.setTintFill(0xffffff);
       if (enemy.phase === 'dive' && knockback > 0) {
         enemy.recoilSpeed = applyRecoilImpulse(enemy.recoilSpeed, knockback, maxRecoil);
@@ -1847,19 +3741,27 @@ export class GameScene extends Phaser.Scene {
   }
 
   activeUpgradeIds() {
+    if(this.modernMathEnabled)return [this.v1LabPrincipal];
+    if(this.v1Playtest && this.v1LabLevels)
+      return Object.keys(this.v1LabLevels).filter(id=>this.v1LabLevels[id]>=1);
     if (this.unifiedLab) return Object.keys(this.labConfig.levels).filter(id => this.labConfig.levels[id] >= 1);
     return this.mode === 'upgradeLab'
       ? this.upgradeIds
-      : unlockedFirstUpgrades(this.campaign);
+      : unlockedFirstUpgrades(this.combatCampaign);
   }
 
   showMuzzleFlash(angle, effects = shotVfxFor(this.activeUpgradeIds())) {
     const style = shotVisualFor(this.activeUpgradeIds());
-    const x = CANNON.x + Math.cos(angle) * 34;
-    const y = CANNON.y + Math.sin(angle) * 34;
+    // A luz deve sair da boca REAL do sprite, não da base do canhão.
+    const muzzle=this.cannonBarrelArt
+      ?cannonSpritePose(angle,CANNON.x,CANNON.y-11,this.cannonRecoil)
+      :null;
+    const x = muzzle?.muzzleX ?? CANNON.x + Math.cos(angle)*40;
+    const y = muzzle?.muzzleY ?? CANNON.y + Math.sin(angle)*40;
     const flash = this.add.circle(
-      x, y, effects.heavy ? 11 : effects.multiple ? 8 : 7,
-      effects.heavy ? 0xffe1b5 : style.color, 0.92,
+      x, y, effects.heavy ? 12 : effects.multiple ? 8 : 7,
+      effects.cryogenic ? 0xb5f1ff : style.color,
+      effects.cryogenic ? 0.58 : 0.92,
     ).setDepth(38);
     this.tweens.add({
       targets: flash, scale: effects.heavy ? 3.2 : 2.5, alpha: 0,
@@ -1867,24 +3769,18 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => flash.destroy(),
     });
 
-    if (effects.heavy) {
-      // Peso VISUAL, sem alterar dano/recuo físico. A microtremida é limitada
-      // para não acumular nas builds brasileiras de alta cadência.
-      const burst = this.add.graphics().setPosition(x, y).setDepth(39);
-      burst.lineStyle(3, 0xffe9c8, 0.95);
-      for (const offset of [-0.33, 0, 0.33]) {
-        const a = angle + offset;
-        burst.lineBetween(
-          Math.cos(a) * 7, Math.sin(a) * 7,
-          Math.cos(a) * 29, Math.sin(a) * 29,
-        );
+    if (effects.cryogenic) {
+      // Exalação inicial do sopro: névoa fria, sem o clarão vermelho legado.
+      const mist = this.add.graphics().setPosition(x, y).setDepth(39);
+      const fx=Math.cos(angle), fy=Math.sin(angle);
+      const sideX=-fy,sideY=fx;
+      for(let i=0;i<4;i++){
+        const d=9+i*8,side=(i%2?1:-1)*(3+i);
+        mist.fillStyle(i%2?0xe5fbff:0x8bdcf0,0.34-i*0.055);
+        mist.fillCircle(fx*d+sideX*side,fy*d+sideY*side,8+i*1.8);
       }
-      this.tweens.add({
-        targets: burst, scale: 1.45, alpha: 0, duration: 160,
-        onComplete: () => burst.destroy(),
-      });
-      // O canhão principal russo mantém o clarão e o recuo visual,
-      // mas não sacode a câmera ao disparar.
+      this.tweens.add({targets:mist,alpha:0,scale:1.25,duration:190,
+        onComplete:()=>mist.destroy()});
     }
 
     if (effects.multiple) {
@@ -1930,36 +3826,185 @@ export class GameScene extends Phaser.Scene {
     this.cannonRecoil = Math.max(this.cannonRecoil, effects.recoil);
   }
 
+  russianBreathMuzzle(angle){
+    if(this.cannonBarrelArt){
+      const pose=cannonSpritePose(angle,CANNON.x,CANNON.y-11,this.cannonRecoil);
+      return {x:pose.muzzleX,y:pose.muzzleY};
+    }
+    return {x:CANNON.x+Math.cos(angle)*40,y:CANNON.y+Math.sin(angle)*40};
+  }
+
+  drawRussianBreath(angle,active){
+    const gfx=this.iceBreathGraphics;
+    if(!gfx)return;
+    gfx.clear();
+    if(!active)return;
+    const {x,y}=this.russianBreathMuzzle(angle);
+    const c=Math.cos(angle),sn=Math.sin(angle);
+    // Duas camadas translúcidas dão continuidade ao sopro; as partículas
+    // escorrem sobre a névoa, em vez de parecerem disparos individuais.
+    const makeFan=(widthFraction,color,opacity)=>{
+      const spread=ICE_BREATH_RANGE*Math.tan(0.32)*widthFraction;
+      const tipX=x+c*ICE_BREATH_RANGE,tipY=y+sn*ICE_BREATH_RANGE;
+      gfx.fillStyle(color,opacity);
+      gfx.fillTriangle(x,y,tipX-sn*spread,tipY+c*spread,
+        tipX+sn*spread,tipY-c*spread);
+    };
+    makeFan(0.90,0x8fdaf7,0.055);
+    makeFan(0.45,0xe8ffff,0.052);
+    // Nuvem contínua de geada com bordas difusas e cristais em movimento.
+    for(const [i,mote] of iceBreathMotes(angle,this.elapsed).entries()){
+      const px=x+mote.x,py=y+mote.y;
+      const color=i%4===0?0xf2ffff:i%3===0?0x6dcbf5:0xb2ecff;
+      gfx.fillStyle(color,mote.alpha);
+      gfx.fillEllipse(px,py,mote.radius*2.6,mote.radius*1.65);
+      if(mote.icy){
+        const size=2.4+mote.radius*.24;
+        gfx.lineStyle(1,0xe1ffff,0.65);
+        gfx.lineBetween(px-size,py,px+size,py);
+        gfx.lineBetween(px,py-size,px,py+size);
+      }
+    }
+    // Neblina mais densa junto à boca, clareando em direção à borda.
+    gfx.fillStyle(0xcff6ff,0.27);
+    gfx.fillEllipse(x+c*18,y+sn*18,28,20);
+    gfx.fillStyle(0xf4ffff,0.13);
+    gfx.fillEllipse(x+c*35,y+sn*35,39,23);
+  }
+
+  fireRussianBreath(angle){
+    const {x,y}=this.russianBreathMuzzle(angle);
+    // O sopro atinge e desacelera bombas colossais do Tipo 6.
+    for(let j=this.enemyBullets.length-1;j>=0;j--){
+      const shot=this.enemyBullets[j];
+      if(!shot?.colossal||!shot?.sprite?.active)continue;
+      if(!insideIceBreathCone(x,y,angle,shot.sprite.x,shot.sprite.y,
+        shot.sprite.radius??20))continue;
+      const chill=chillType6Bomb(shot.hp,this.time.now);
+      shot.hp=chill.hp;
+      shot.iceChilledUntil=chill.chilledUntil;
+      shot.sprite.setStrokeStyle?.(3,0xb4f4ff,0.97);
+      if(shot.hp<=0)detonateType6Bomb(this,shot);
+    }
+    const regularDamage=iceBreathTickDamage(this.combat.basicDamage);
+    const bossDamage=iceBreathTickDamage(this.combat.basicDamage,true);
+    // Dano periódico independe da quantidade de partículas da névoa.
+    for(let i=this.enemies.length-1;i>=0;i--){
+      const enemy=this.enemies[i];
+      if(!enemy?.sprite?.active)continue;
+      if(enemy.type===6){
+        if(!enemy.type6?.introComplete||enemy.type6.defeated)continue;
+        // A fortaleza ocupa quase toda a largura. O centro da nave não é
+        // um ponto vulnerável: procurar os módulos vivos dentro do cone.
+        const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
+        const target=iceBreathType6Target(x,y,angle,rects);
+        if(!target)continue;
+        // O sopro espalha frio sobre a fortaleza, mas concentra todo o
+        // dano direto em UM alvo por tick. A v0.846 multiplicava o dano
+        // pelos módulos simultaneamente dentro do cone, matando cedo demais.
+        // O hitType6At preserva as regras da barreira e do núcleo exposto.
+        hitType6At(this,enemy,target.x,target.y,bossDamage,0,true);
+        continue;
+      }
+      if(!insideIceBreathCone(x,y,angle,enemy.sprite.x,enemy.sprite.y,
+        enemyContactRadius(enemy.type)))continue;
+      this.freezeRussianEnemy(enemy,this.combat.russianFreezeMs);
+      this.impactInvader(i,
+        sputnikPrimaryDamage(enemy,this.elapsed,regularDamage,this.specialBuild),
+        0,'#b9eeff',false);
+    }
+  }
+
   shootBasic(pointer) {
-    if (this.tutorialComplete || this.countdownActive) return;
-    if (this.combat.heat && this.heatStartedAt === null) this.heatStartedAt = this.time.now;
-    const heat = this.combat.heat ? Math.min(1.35, (this.time.now - this.heatStartedAt) / 1750) : 0;
-    if (this.time.now - this.lastBasicFire < this.combat.basicInterval / (1 + heat)) return;
+    if (this.tutorialComplete || this.countdownActive ||
+      this.elapsed<this.cannonFrozenUntil)return;
+    if(this.isV1Campaign&&this.combat.transformed==='ru'){
+      if(this.time.now-this.lastBasicFire<ICE_BREATH_TICK_MS)return;
+      this.lastBasicFire=this.time.now;
+      this.fireRussianBreath(restrictedAimAngle(CANNON.x,CANNON.y,pointer.x,pointer.y));
+      return;
+    }
+    // Aceleração automática em ondas: aquece, sustenta o pico e desacelera.
+    const heatCycle = 5200;
+    const phase = (this.time.now % heatCycle) / heatCycle;
+    const plateauFraction=Math.max(.05,Math.min(.8,(this.labExtra?.brPeakMs??1456)/heatCycle));
+    const riseFraction=(1-plateauFraction)/2;
+    const wave=phase<riseFraction?phase/riseFraction:
+      phase<riseFraction+plateauFraction?1:(1-phase)/riseFraction;
+    const heat = this.combat.heat ? Math.max(0, wave) * (this.combat.brazilHeatPeak || 0.65) : 0;
+    const turbo = this.time.now < (this.brazilTurboUntil || 0) ? this.combat.brazilTurboMultiplier : 1;
+    const koreaMain=(this.modernMathEnabled&&this.v1LabPrincipal==='jp')||
+      (this.isV1Campaign&&(this.combat.koreaContinuous||this.specialBuild?.levels?.jp>0));
+    const kLevel=this.specialBuild?.levels?.jp??this.labExtra?.jpPrimaryLevel??2;
+    const kStage=Math.max(0,Math.min(3,Math.floor((Math.max(1,kLevel)-1)/2)));
+    const rate=koreaMain?[1,1.06,1.12,1.18][kStage]:1;
+    if (this.time.now - this.lastBasicFire < this.combat.basicInterval / ((1 + heat) * turbo * rate)) return;
     this.lastBasicFire = this.time.now;
+    // Coreia usa laser de arcade mesmo em builds híbridas; se não houver
+    // upgrades coreanos, preservar gelo russo e metralhadora dos outros países.
+    if(this.isV1Campaign&&this.combat.plasmaEvery>0)
+      // Laser principal coreano usa o áudio dedicado, cuja afinação é
+      // variada por SFX_VARIATIONS.krBasicShot em playSfx().
+      // Volume anterior (0.46) tornava o disparo difícil de ouvir.
+      playSfx('krBasicShot',{throttle:70,volumeScale:0.72});
+    else if(this.isV1Campaign&&this.combat.russianFreezeMs>0){
+      // O sopro russo é um loop enquanto dispara, nunca um som de tiro por projétil.
+      // Ativado em update(), inclusive antes do nível 10.
+    }
+    else if(this.isV1Campaign&&this.combat.usRocketRadius>0)
+      playSfx('usMissileLaunch',{throttle:190,volumeScale:0.30});
+    else playSfx('cannon',{throttle:95,volumeScale:0.48});
     const angle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
     const nextShot = this.basicShotCount + 1;
+    if(this.modernMathEnabled&&this.v1LabPrincipal==='jp'){
+      this.basicShotCount=nextShot;
+      this.fireLabKoreanVolley(angle);
+      return;
+    }
+    if (this.isV1Campaign && (this.combat.koreaContinuous ||
+      (this.specialBuild?.levels?.jp>0 && this.combat.transformed!=='cn' &&
+       this.combat.transformed!=='ru' && this.combat.transformed!=='br'))) {
+      this.basicShotCount=nextShot;
+      // Não cria balas físicas: o Lightstick torna-se o disparo principal.
+      this.fireLabKoreanVolley(angle);
+      return;
+    }
     // A alternância brasileira é aplicada à rajada INTEIRA; todos os
     // projéteis chineses continuam com seu spread simétrico em torno dela.
     const aimed = this.isV1Campaign ? angle
       : brazilAlternatingAngle(angle, nextShot, this.combat.brazilZigzag);
     const effects = shotVfxFor(this.activeUpgradeIds());
-    const volleyAngles = shotAngles(aimed, this.combat.bulletsPerShot);
+    // Dez tiros chineses permanecem numa abertura útil, não num leque de 100°.
+    const count=this.combat.bulletsPerShot;
+    const volleyAngles = this.isV1Campaign && count>3
+      ? horizontalOffsets(count,0.065).map(offset=>Phaser.Math.Clamp(aimed+offset,-Math.PI+Math.PI/12,-Math.PI/12))
+      : shotAngles(aimed,count);
+    // Uma salva patriótica por carregamento, mesmo se a China multiplicar tiros.
+    // Somente uma bala do centro recebe o efeito; as demais seguem normais.
+    const july=consumeAmericanJulyShot(this.usJulyHits,
+      this.isV1Campaign?this.combat.usJulyHitsRequired:0);
+    if(july.patriotic)this.usJulyHits=july.hits;
+    const julyIndex=Math.floor((volleyAngles.length-1)/2);
     volleyAngles.forEach((firingAngle, index) => {
       const centerGlow = isChinaCenterProjectile(
         index, volleyAngles.length, effects.multiple,
       );
       const offset = this.isV1Campaign && this.combat.horizontalSpread
         ? (nextShot % 2 ? -1 : 1) * this.combat.horizontalSpread : 0;
-      if (this.isV1Campaign) this.createProjectile(firingAngle, false, 0, effects, centerGlow, offset);
+      if (this.isV1Campaign) this.createProjectile(firingAngle, false, 0,
+        effects, centerGlow, offset, 0, null, july.patriotic&&index===julyIndex);
       else this.createProjectile(firingAngle, false, 0, effects, centerGlow);
       if (this.isV1Campaign && this.combat.extraBurstEvery && nextShot % this.combat.extraBurstEvery === 0) {
         this.createProjectile(firingAngle, false, 0, effects, false, offset + 7);
       }
     });
     this.basicShotCount = nextShot;
+    if(july.patriotic)this.showAmericanJulyMuzzle(aimed);
     // O laser coreano mantém a direção da mira original (a oscilação da
     // Gambiarra altera apenas as balas básicas, não a arma laser).
-    if (this.combat.plasmaEvery > 0 && this.basicShotCount % this.combat.plasmaEvery === 0) {
+    const laserPeriod=this.modernMathEnabled&&this.labExtra?.jpLaserEvery
+      ?this.labExtra.jpLaserEvery:(this.isV1Campaign?this.combat.plasmaEvery*2:this.combat.plasmaEvery);
+    if (this.combat.plasmaEvery > 0 && laserPeriod>0 && this.basicShotCount % laserPeriod === 0) {
       this.fireLightstickBeam(angle);
     }
     if (this.isV1Campaign && this.combat.missileEvery && nextShot % this.combat.missileEvery === 0) {
@@ -1969,36 +4014,54 @@ export class GameScene extends Phaser.Scene {
     this.showMuzzleFlash(aimed, effects);
   }
 
-  fireLightstickBeam(angle) {
+  fireLightstickBeam(angle, drawFlash = true) {
     const startX = CANNON.x + Math.cos(angle) * 32;
     const startY = CANNON.y + Math.sin(angle) * 32;
-    const endX = startX + Math.cos(angle) * PLASMA_RANGE;
-    const endY = startY + Math.sin(angle) * PLASMA_RANGE;
+    let endX = startX + Math.cos(angle) * PLASMA_RANGE;
+    let endY = startY + Math.sin(angle) * PLASMA_RANGE;
+    const hit=hitDiscoGlobe(this.discoGlobes,startX,startY,endX,endY,this.elapsed,PLASMA_HALF_WIDTH);
+    if(hit){
+      endX=hit.x;endY=hit.y;
+      this.fireV1DiscoReflections(hit.globe.x,hit.globe.y,hit.globe.build,hit.globe);
+    }
 
     // A lâmina atravessa toda a linha do tiro, independentemente do HP.
     // Cada nave sofre dano uma única vez por pulso.
     const initialHitIds = new Set();
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6Segment(this,enemy,startX,startY,endX,endY,
+          this.isV1Campaign ? this.combat.laserDamage*(this.combat.koreaContinuous?0.65:1) : PLASMA_DAMAGE,PLASMA_HALF_WIDTH);
+        continue;
+      }
       if (laserHitsTarget(
         startX, startY, endX, endY,
         enemy.sprite.x, enemy.sprite.y,
-        PLASMA_HALF_WIDTH, enemyContactRadius(enemy.type),
+        PLASMA_HALF_WIDTH, this.enemyCombatRadius(enemy),
       )) {
         initialHitIds.add(enemy.uid);
         this.impactInvader(i, this.isV1Campaign ? this.combat.laserDamage : PLASMA_DAMAGE, 0, '#e9aaff');
       }
     }
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
+      // A explosão/remoção de uma bomba do Tipo 6 pode encolher esta lista
+      // enquanto o laser contínuo a percorre. Nunca acessar slot inexistente.
       const bullet = this.enemyBullets[i];
+      if (!bullet?.sprite?.active) continue;
       if (laserHitsTarget(
-        startX, startY, endX, endY, bullet.sprite.x, bullet.sprite.y, PLASMA_HALF_WIDTH, 7,
-      )) this.removeEnemyBullet(i);
+        startX, startY, endX, endY, bullet.sprite.x, bullet.sprite.y, PLASMA_HALF_WIDTH, bullet.radius??7,
+      )) {
+        if(bullet.colossal)detonateType6Bomb(this,bullet);
+        else this.removeEnemyBullet(i,true);
+      }
     }
-    if (this.combat.residualSlash) {
+    if (this.combat.residualSlash && drawFlash) {
       this.createResidualSlash(startX, startY, endX, endY, initialHitIds);
     }
 
+    // O nível 10 desenha um único feixe persistente no update, sem centenas de tweens.
+    if (!drawFlash) return;
     // Três traços luminosos sobrepostos criam um feixe de plasma bem visível.
     const beam = this.add.graphics().setDepth(48);
     beam.lineStyle(26, 0x7f43c7, 0.18);
@@ -2007,10 +4070,62 @@ export class GameScene extends Phaser.Scene {
     beam.lineBetween(startX, startY, endX, endY);
     beam.lineStyle(3, 0xffffff, 1);
     beam.lineBetween(startX, startY, endX, endY);
+    // Halo de energia elétrica ao redor do laser principal; não há
+    // hitbox nem ataque adicional. Curvas em estilo arcada, com poucas linhas.
+    const dx=endX-startX,dy=endY-startY,len=Math.max(1,Math.hypot(dx,dy));
+    const nx=-dy/len,ny=dx/len;
+    for(const side of [-1,1]){
+      beam.lineStyle(2,0xc67aff,0.56);
+      beam.beginPath();
+      for(let k=0;k<=12;k++){
+        const t=k/12,offset=side*(5+5*Math.sin(Math.PI*t*4));
+        const px=startX+dx*t+nx*offset,py=startY+dy*t+ny*offset;
+        if(k===0)beam.moveTo(px,py);else beam.lineTo(px,py);
+      }
+      beam.strokePath();
+    }
     this.tweens.add({
       targets: beam, alpha: 0, duration: 280,
       onComplete: () => beam.destroy(),
     });
+  }
+
+  drawEncoreContinuousBeam(angle, active) {
+    if(!this.koreanContinuousGraphics && active)
+      this.koreanContinuousGraphics=this.add.graphics().setDepth(48);
+    const beam=this.koreanContinuousGraphics;
+    if(!beam)return;
+    beam.clear();
+    if(!active)return;
+    const x=CANNON.x+Math.cos(angle)*32, y=CANNON.y+Math.sin(angle)*32;
+    let tx=x+Math.cos(angle)*PLASMA_RANGE,ty=y+Math.sin(angle)*PLASMA_RANGE;
+    const hit=hitDiscoGlobe(this.discoGlobes,x,y,tx,ty,this.elapsed,PLASMA_HALF_WIDTH);
+    if(hit){tx=hit.x;ty=hit.y;}
+    const dx=tx-x,dy=ty-y,length=Math.max(1,Math.hypot(dx,dy));
+    const nx=-dy/length,ny=dx/length;
+    // Coluna contínua presa à boca do canhão.
+    beam.lineStyle(19,0x5727bb,0.22);
+    beam.lineBetween(x,y,tx,ty);
+    beam.lineStyle(10,0xa963fb,0.66);
+    beam.lineBetween(x,y,tx,ty);
+    beam.lineStyle(3,0xffffff,0.85);
+    beam.lineBetween(x,y,tx,ty);
+    // Energia flui sem interrupção do canhão até o alvo.
+    const flow=this.time.now*0.00105;
+    for(let i=0;i<15;i++){
+      const t=((flow+i/15)%1+1)%1;
+      const prev=Math.max(0,t-0.07);
+      const side=(i%2?1:-1)*(1.5+Math.sin(this.time.now*.011+i)*1.1);
+      const color=i%3===0?0xffffff:i%3===1?0xdca9ff:0x84dcff;
+      beam.lineStyle(i%3===0?3:2.2,color,0.30+0.63*(1-t));
+      beam.lineBetween(x+dx*prev+nx*side,y+dy*prev+ny*side,
+        x+dx*t+nx*side,y+dy*t+ny*side);
+    }
+    const muzzlePulse=0.55+0.25*Math.sin(this.time.now*0.017);
+    beam.fillStyle(0xdcbbff,muzzlePulse);
+    beam.fillCircle(x,y,6.5);
+    beam.fillStyle(0xffffff,0.9);
+    beam.fillCircle(x,y,2.5);
   }
 
   createResidualSlash(x1, y1, x2, y2, initialHitIds = new Set()) {
@@ -2120,6 +4235,10 @@ export class GameScene extends Phaser.Scene {
     // explosões recursivas. O atraso abaixo é SOMENTE para o visual.
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6At(this,enemy,x,y,COLLATERAL_DAMAGE,COLLATERAL_RADIUS);
+        continue;
+      }
       if (fragmentHitsTarget(
         x, y, enemy.sprite.x, enemy.sprite.y,
         enemyContactRadius(enemy.type), COLLATERAL_RADIUS,
@@ -2159,9 +4278,13 @@ export class GameScene extends Phaser.Scene {
     let casualty = firstDestroyed;
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6At(this,enemy,x,y,FRAGMENT_DAMAGE,FRAGMENT_RADIUS);
+        continue;
+      }
       if (enemy.uid === directTargetId) continue;
       if (fragmentHitsTarget(
-        x, y, enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type),
+        x, y, enemy.sprite.x, enemy.sprite.y, this.enemyCombatRadius(enemy),
       )) {
         const position = { x: enemy.sprite.x, y: enemy.sprite.y };
         const killed = this.impactInvader(i, FRAGMENT_DAMAGE, 0, '#90cfff');
@@ -2171,7 +4294,7 @@ export class GameScene extends Phaser.Scene {
     for (let i = this.enemyBullets.length - 1; i >= 0; i -= 1) {
       const shot = this.enemyBullets[i];
       if (fragmentHitsTarget(x, y, shot.sprite.x, shot.sprite.y, 8)) {
-        this.removeEnemyBullet(i);
+        this.removeEnemyBullet(i,true);
       }
     }
     if (this.combat.collateral && casualty) {
@@ -2211,8 +4334,19 @@ export class GameScene extends Phaser.Scene {
 
     // Exibe o ponto exato do disparo, não só a coordenada crua do cursor.
     // Isto também cobre o ângulo limitado e os alcances mínimo/máximo.
-    const { x, y } = specialTargetPoint(CANNON.x, CANNON.y, pointer.x, pointer.y);
+    const isWall=this.isV1Campaign&&this.specialBuild?.primary==='us';
+    const {x,y}=isWall
+      ?americanWallPlacement(pointer.x,pointer.y,CANNON.x,CANNON.y,W,H)
+      :specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
     const ready = this.time.now - this.lastSpecialFire >= this.combat.specialCooldown;
+    if(isWall&&this.specialBuild.usWall){
+      const radius=this.specialBuild.usWall.radius;
+      const angle=Math.atan2(y-CANNON.y,x-CANNON.x);
+      gfx.lineStyle(3,0x7bbdff,ready?0.66:0.25);
+      const center=americanWallArcCenter(x,y,angle,radius);
+      gfx.beginPath();gfx.arc(center.x,center.y,radius,angle-Math.PI/3,
+        angle+Math.PI/3,false);gfx.strokePath();
+    }
     const alpha = ready ? 0.65 : 0.25;
     gfx.fillStyle(0x37ddfb, ready ? 0.10 : 0.04);
     gfx.fillCircle(x, y, 14);
@@ -2237,6 +4371,10 @@ export class GameScene extends Phaser.Scene {
       onComplete:()=>ring.destroy()});
     for (let i = this.enemies.length-1; i>=0; i--) {
       const e = this.enemies[i];
+      if(e.type===6){
+        hitType6At(this,e,x,y,damage,radius);
+        continue;
+      }
       if (Math.hypot(e.sprite.x-x,e.sprite.y-y) <= radius+enemyContactRadius(e.type)) {
         if (slow) e.electricSlowUntil=this.time.now+2400;
         this.impactInvader(i,damage,slow?0.25:0,'#'+color.toString(16).padStart(6,'0'));
@@ -2244,67 +4382,862 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  // Apenas uma suprema por partida é possível: 9 das 10 escolhas seriam do mesmo país.
+  supremeExpectedCode() {
+    return supremeCodeFor(this.combat.ultimate);
+  }
+
+  handleSupremeCodeKey(event) {
+    if(!this.supremeTyping)return false;
+    if(event.ctrlKey||event.altKey||event.metaKey)return true;
+    if(event.code==='Space')event.preventDefault();
+    if(event.key==='Backspace'||event.key==='Escape'||/^[a-z]$/i.test(event.key))
+      event.preventDefault();
+    if(event.repeat)return true;
+    const expected=this.supremeExpectedCode();
+    const result=advanceSupremeCode(this.supremeCode,event.key,expected);
+    if(result.cancelled){this.closeSupremeCode();return true;}
+    if(result.ignored)return true;
+    this.supremeCode=result.code;
+    if(result.completed){
+      this.closeSupremeCode();
+      this.activateUltimate();
+      return true;
+    }
+    const feedback=result.invalid?'\nLETRA INCORRETA — BACKSPACE PARA CORRIGIR':'';
+    this.supremePrompt?.setText(
+      `PROTOCOLO SUPREMO: ${expected}\nDIGITE: ${this.supremeCode}_${feedback}\nBACKSPACE corrige • ESC cancela`
+    );
+    this.supremePrompt?.setColor(result.invalid?'#ffd4aa':'#ffeded');
+    return true;
+  }
+
+  closeSupremeCode() {
+    this.supremeTyping=false;
+    this.supremeCode='';
+    this.supremePrompt?.destroy();
+    this.supremePrompt=null;
+    if(this.supremeTimeScales){
+      this.time.timeScale=this.supremeTimeScales.time;
+      this.tweens.timeScale=this.supremeTimeScales.tweens;
+      this.supremeTimeScales=null;
+    }
+  }
+
+  openSupremeCode() {
+    if(this.supremeTyping||!this.isV1Campaign||!this.combat.ultimate||
+      this.ultimateUsed||this.tutorialComplete||this.countdownActive||
+      this.supremeCinematic)return false;
+    // Preserva a regra aprovada: o Supremo pode ser usado nos 5 s finais.
+    if(this.elapsed<this.waveDurationMs-5000){
+      if(this.time.now-this.lastSupremeNotReadyAt>2200){
+        this.lastSupremeNotReadyAt=this.time.now;
+        this.showAttackWarning('SUPREMO: DISPONÍVEL NOS ÚLTIMOS 5 SEGUNDOS');
+      }
+      return false;
+    }
+    const expected=this.supremeExpectedCode();
+    if(!expected)return false;
+    globalThis.document?.activeElement?.blur?.();
+    this.supremeTyping=true;
+    playSfx('supreme',{throttle:1000});
+    this.supremeCode='';
+    this.supremeReadyHint?.setVisible(false);
+    // A batalha e o cronômetro param por completo enquanto a palavra é
+    // digitada. Antes o tempo ainda avançava a 10%, encerrando o Supremo.
+    this.supremeTimeScales={
+      time:this.time.timeScale,tweens:this.tweens.timeScale,
+    };
+    this.time.timeScale=0;
+    this.tweens.timeScale=0;
+    this.supremePrompt?.destroy();
+    this.supremePrompt=this.add.text(W/2,H/2,
+      `PROTOCOLO SUPREMO: ${expected}\nDIGITE: _\nBACKSPACE corrige • ESC cancela`,{
+        fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',
+        color:'#ffeded',backgroundColor:'#690b19',
+        align:'center',padding:{x:22,y:18},
+      }).setOrigin(0.5).setDepth(300);
+    return true;
+  }
+
+  // Storyboards temporários: painéis estáticos, substituíveis por arte final.
+  supremeStoryboard(country) {
+    return {
+      br:[['CORCOVADO','O CRISTO REDENTOR DESPERTA'],['DECOLAGEM','BRAÇOS ABERTOS. PROPULSORES ACESOS.'],['CÉU DO RIO','O CRISTO ATRAVESSA A FROTA'],['COPACABANA','FOGOS DE ARTIFÍCIO POR TODA PARTE'],['CORCOVADO','FELIZ ANO NOVO!']],
+      us:[['ESQUADRÃO','FREEDOM IS COMING'],['BOMBARDEIRO LÍDER','O COMPARTIMENTO SE ABRE'],['CARGA ESPECIAL','UM MÍSSIL MAIOR QUE O AVIÃO'],['IMPACTO','ORÇAMENTO: CLASSIFICADO'],['MISSÃO CUMPRIDA','DEMOCRACIA ENTREGUE COM SUCESSO™']],
+      ru:[['RIO DE JANEIRO','CANHÃO RECOLHIDO'],['CORTINA DE FERRO','CÚPULA PROTEGE TODA A CIDADE'],['ÓRBITA','SATÉLITE SOVIÉTICO EM POSIÇÃO'],['DISPARO ORBITAL','LASER VERMELHO VARRE O CÉU'],['RIO DE JANEIRO','CÚPULA RECOLHIDA. CIDADE SEGURA.']],
+      cn:[['ENCOMENDA','UM PEQUENO DRONE NO ESPAÇO'],['ZOOM OUT','O DRONE É MAIOR QUE A TERRA'],['ENTREGA EXPRESSA','CONTÊINER SOBRE O RIO'],['ABERTURA','MILHARES DE DRONES SAEM DA CAIXA'],['CONFIRMAÇÃO','PEDIDO ENTREGUE COM SUCESSO!']],
+      kr:[['RIO DE JANEIRO','PALCO SURGE NO CAMPO DE BATALHA'],['CLOSE','KIM LIN DOO — AO VIVO NO RIO'],['REFRÃO','LASERS SEGUEM A COREOGRAFIA'],['ENCORE','A FROTA ALIENÍGENA DESAPARECE'],['FINGER HEART','TURNÊ INTERGALÁCTICA CANCELADA']],
+      jp:[['RIO DE JANEIRO','PALCO SURGE NO CAMPO DE BATALHA'],['CLOSE','KIM LIN DOO — AO VIVO NO RIO'],['REFRÃO','LASERS SEGUEM A COREOGRAFIA'],['ENCORE','A FROTA ALIENÍGENA DESAPARECE'],['FINGER HEART','TURNÊ INTERGALÁCTICA CANCELADA']],
+    }[country] || [];
+  }
+
   activateUltimate() {
     if (!this.isV1Campaign || this.tutorialComplete || this.countdownActive ||
       this.ultimateUsed || !this.combat.ultimate) return false;
     const country=this.combat.ultimate;
-    const config=V1_SUPREMES[country];
-    if (!config) return false;
+    const frames=this.supremeStoryboard(country);
+    if (!frames.length) return false;
     this.ultimateUsed=true;
-    this.cameras.main.shake(430,0.004);
-    this.showAttackWarning(config.title.toUpperCase()+' — SUPREMA!');
-    const p=this.input.activePointer;
-    const target=specialTargetPoint(CANNON.x,CANNON.y,p.x,p.y);
-    if(config.scope==='beam') {
-      const endX=CANNON.x+Math.cos(target.angle)*1300;
-      const endY=CANNON.y+Math.sin(target.angle)*1300;
-      const beam=this.add.graphics().setDepth(83);
-      beam.lineStyle(55,config.color,0.23);
-      beam.lineBetween(CANNON.x,CANNON.y,endX,endY);
-      beam.lineStyle(14,0xfff6fd,0.95);
-      beam.lineBetween(CANNON.x,CANNON.y,endX,endY);
+    this.supremeCinematic=true;
+    this.supremeSlideIndex=0;
+    const color=V1_SUPREMES[country]?.color || 0xffffff;
+    const backdrop=this.add.rectangle(W/2,H/2,W,H,0x080e1c,1).setDepth(500);
+    const border=this.add.rectangle(W/2,H/2,W-90,H-90,color,0.13)
+      .setStrokeStyle(5,color).setDepth(501);
+    const heading=this.add.text(W/2,H*0.27,'',{
+      fontFamily:'monospace',fontSize:'36px',fontStyle:'bold',color:'#ffffff',align:'center'
+    }).setOrigin(0.5).setDepth(502);
+    const symbol=this.add.text(W/2,H*0.48,'★',{
+      fontFamily:'monospace',fontSize:'92px',color:'#ffffff'
+    }).setOrigin(0.5).setDepth(502);
+    const caption=this.add.text(W/2,H*0.69,'',{
+      fontFamily:'monospace',fontSize:'21px',fontStyle:'bold',color:'#ffe5a0',
+      align:'center',wordWrap:{width:W-150}
+    }).setOrigin(0.5).setDepth(502);
+    const counter=this.add.text(W/2,H*0.83,'',{
+      fontFamily:'monospace',fontSize:'13px',color:'#c4cbd7'
+    }).setOrigin(0.5).setDepth(502);
+    const objects=[backdrop,border,heading,symbol,caption,counter];
+    const show=(index)=>{
+      if(!this.scene.isActive('GameScene') || !this.supremeCinematic)return;
+      const [title,description]=frames[index];
+      heading.setText(title);
+      caption.setText(description);
+      symbol.setText(['★','◆','✦','✷','★'][index%5]);
+      counter.setText(`SUPREMO — QUADRO ${index+1}/${frames.length} — PLACEHOLDER`);
+      border.setFillStyle(color,index%2===0?0.13:0.24);
+    };
+    show(0);
+    frames.slice(1).forEach((_,i)=>this.time.delayedCall((i+1)*1350,()=>show(i+1)));
+    this.time.delayedCall(frames.length*1350,()=>{
+      objects.forEach(object=>object.destroy());
+      if(!this.scene.isActive('GameScene'))return;
+      // Garante que os quadros acabem antes de encerrar a onda por morte do chefe.
+      this.supremeFinishing=true;
       for(let i=this.enemies.length-1;i>=0;i--){
-        const e=this.enemies[i];
-        if(laserHitsTarget(CANNON.x,CANNON.y,endX,endY,
-            e.sprite.x,e.sprite.y,28,enemyContactRadius(e.type))) {
-          this.impactInvader(i,32,0,'#f8baff');
-        }
+        this.impactInvader(i,1000000,0,'#ffffff',false);
       }
-      this.tweens.add({targets:beam,alpha:0,duration:760,onComplete:()=>beam.destroy()});
-    } else {
-      const points=config.scope==='sky'
-        ? [[125,105],[300,165],[500,100],[685,205],[840,125],
-           [175,300],[390,265],[575,345],[780,310]]
-        : [[0,0],[-74,10],[64,-42],[32,75],[-38,-76]];
-      for(let i=0;i<Math.min(MAX_COSMETIC_PARTICLES,points.length);i++){
-        const [px,py]=points[i];
-        const x=config.scope==='sky'?px:Phaser.Math.Clamp(target.x+px,70,W-70);
-        const y=config.scope==='sky'?py:Phaser.Math.Clamp(target.y+py,65,H-115);
-        this.time.delayedCall(i*85,()=>{
-          if(!this.tutorialComplete)this.pulseV1Area(x,y,
-            country==='ru'?128:country==='us'?112:125,
-            country==='ru'?12:country==='us'?11:8,
-            config.color,country==='ru');
-        });
-      }
-    }
+      this.supremeFinishing=false;
+      this.supremeCinematic=false;
+      if((this.mode==='wave10'||this.mode==='wave11')&&
+        !this.voyageActive&&!this.tutorialComplete)
+        this.showWaveComplete('cleared');
+    });
     return true;
   }
 
-  shootSpecial(pointer) {
-    if (this.tutorialComplete || this.countdownActive) return;
-    if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
-    const target = specialTargetPoint(
-      CANNON.x, CANNON.y, pointer.x, pointer.y,
-    );
-    this.lastSpecialFire = this.time.now;
-    if (this.isV1Campaign && this.combat.electricFence && this.combat.specialAmplifier > 1.3) {
-      this.pulseV1Area(target.x, target.y, 100, this.combat.electricDamage, 0x70f9ac);
+
+  // Especial chinês experimental: os tiros físicos formam uma fila colinear.
+  // A animação de 1,5 s afunila e reabre a DISPERSÃO, sem feixe contínuo.
+  updateLabChinaLine(pointer){
+    const line=this.cnConvergence;
+    if(!line)return;
+    const age=this.time.now-line.startedAt;
+    const focusMs=this.labExtra?.cnFocusMs??2500;
+    if(age>=chinaLineDuration(focusMs)||this.tutorialComplete){
+      this.cnConvergence=null;return;
     }
-    this.createProjectile(target.angle, true, target.distance);
-    // Coreia 4: raio no trajeto, mantendo a detonação no ponto marcado.
-    if (this.fourthIds.includes('jp')) this.fireSpecialLaser(target);
+    const focus=chinaLineFocus(age,focusMs);
+    const interval=chinaLineShotInterval(this.combat.basicInterval,
+      this.combat.bulletsPerShot,this.combat.chinaSplitCount>1,
+      this.labExtra?.cnCopyDamage??.5,this.labExtra?.cnRateFactor??1);
+    if(this.time.now-line.lastShotAt<interval)return;
+    line.lastShotAt=this.time.now;
+    const aim=restrictedAimAngle(CANNON.x,CANNON.y,pointer.x,pointer.y);
+    const angle=Phaser.Math.Clamp(chinaLineShotAngle(aim,focus,line.shots++),
+      -Math.PI+Math.PI/12,-Math.PI/12);
+    const shot=this.createProjectile(angle,false);
+    if(!shot)return;
+    // Cópias integram a fila, sem gerarem novas bifurcações fora do eixo.
+    shot.chinaSplit=false;
+    shot.chinaLineShot=true;
+    shot.koreanBouncesLeft=0;
+    shot.koreanRicochet=false;
+    shot.chinaLineArmorMultiplier=this.labExtra?.cnArmorMultiplier??1;
+    shot.damage*=this.labExtra?.cnShotMultiplier??1;
+    // A munição permanece fisicamente individual; não aplica dano instantâneo.
+    if(line.shots%5===1)playSfx('cannon',{throttle:95,volumeScale:.25});
+  }
+
+  // Coreia: um laser por vez, com saltos conforme o nível.
+  fireLabKoreanVolley(angle){
+    const level=this.specialBuild?.levels?.jp??this.labExtra?.jpPrimaryLevel??2;
+    const stage=Math.max(0,Math.min(3,Math.floor((Math.max(1,level)-1)/2)));
+    const bullet=this.createProjectile(angle,false);
+    if(!bullet)return;
+    bullet.koreanLaserBolt=true;
+    bullet.koreanBouncesLeft=[2,4,6,9][stage];
+    bullet.koreanCopiesLeft=[0,1,2,3][stage];
+    bullet.koreanChainId=this.basicShotCount;
+    bullet.koreanBounceRange=190;
+    bullet.vx*=.78;bullet.vy*=.78;
+    if(bullet.visual&&bullet.sprite?.setDisplaySize)bullet.sprite.setDisplaySize(8+stage*2,24+stage*5);
+    bullet.koreanBounceRetention=.85;
+    bullet.koreanVisualStage=stage+1;
+    bullet.damage*=[1,1.08,1.16,1.25][stage];
+    bullet.koreanRainbow=stage===3;
+    if(bullet.koreanRainbow&&bullet.visual)bullet.trail=this.add.graphics().setDepth(36);
+    playSfx('krBasicShot',{throttle:70,volumeScale:.55});
+    this.showMuzzleFlash(angle,shotVfxFor(this.activeUpgradeIds()));
+  }
+
+  createMobileControls(){
+    if(!this.sys.game.device.input.touch)return;
+    this.input.addPointer(3);
+    this.mobileAimAngle=-Math.PI/2;
+    this.mobileFire=false;
+    this.mobileSpecialArmed=false;
+    this.mobileSpecialPointer=null;
+    this.mobileSpecialStart=0;
+    this.mobileEditing=false;
+    this.mobileStickPointer=null;
+    this.mobileFirePointer=null;
+    this.mobileDrag=null;
+    const defaults={aim:{x:160,y:420},fire:{x:855,y:438},
+      special:{x:754,y:479},pause:{x:916,y:40}};
+    let saved={};
+    try{saved=JSON.parse(localStorage.getItem('soberania-touch-layout-v1')||'{}')||{};}catch(_error){}
+    const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+    const layout=Object.fromEntries(Object.entries(defaults).map(([key,p])=>[
+      key,{x:clamp(Number(saved[key]?.x)||p.x,75,W-75),
+        y:clamp(Number(saved[key]?.y)||p.y,35,H-35)}
+    ]));
+    const save=()=>{try{localStorage.setItem('soberania-touch-layout-v1',JSON.stringify(layout));}catch(_error){}};
+    const base=this.add.circle(layout.aim.x,layout.aim.y,68,0x1c4261,.20)
+      .setStrokeStyle(2,0xb5edff,.4).setDepth(290).setInteractive();
+    const knob=this.add.circle(layout.aim.x,layout.aim.y,27,0x8edfff,.33)
+      .setStrokeStyle(2,0xffffff,.6).setDepth(291);
+    const fire=this.add.circle(layout.fire.x,layout.fire.y,43,0x3bc2df,.24)
+      .setStrokeStyle(2,0xbef5ff,.6).setDepth(290).setInteractive();
+    const fireLabel=this.add.text(layout.fire.x,layout.fire.y,'TIRO',{
+      fontFamily:'monospace',fontSize:'12px',color:'#ffffff'
+    }).setOrigin(.5).setDepth(291);
+    const special=this.add.circle(layout.special.x,layout.special.y,34,0xc383fc,.25)
+      .setStrokeStyle(2,0xffddff,.6).setDepth(290).setInteractive();
+    const specialLabel=this.add.text(layout.special.x,layout.special.y,'ESP',{
+      fontFamily:'monospace',fontSize:'12px',color:'#ffffff'
+    }).setOrigin(.5).setDepth(291);
+    const pause=this.add.circle(layout.pause.x,layout.pause.y,28,0x183b57,.28)
+      .setStrokeStyle(2,0xcdeeff,.55).setDepth(290).setInteractive();
+    const pauseLabel=this.add.text(layout.pause.x,layout.pause.y,'Ⅱ',{
+      fontFamily:'sans-serif',fontSize:'24px',fontStyle:'bold',color:'#ffffff'
+    }).setOrigin(.5).setDepth(291);
+    const edit=this.add.rectangle(848,40,68,30,0x183b57,.36)
+      .setStrokeStyle(1,0xcdeeff,.55).setDepth(290).setInteractive().setVisible(false);
+    const editLabel=this.add.text(848,40,'MOVER',{
+      fontFamily:'monospace',fontSize:'12px',color:'#ffffff'
+    }).setOrigin(.5).setDepth(291).setVisible(false);
+    const objects={aim:[base,knob],fire:[fire,fireLabel],
+      special:[special,specialLabel],pause:[pause,pauseLabel]};
+    const setPosition=(key,x,y)=>{
+      layout[key]={x:clamp(x,key==='aim'?75:34,W-(key==='aim'?75:34)),
+        y:clamp(y, key==='aim'?75:34,H-(key==='aim'?75:34))};
+      for(const obj of objects[key])obj.setPosition(layout[key].x,layout[key].y);
+    };
+    const moveStick=p=>{
+      const center=layout.aim,dx=p.x-center.x,dy=p.y-center.y;
+      const d=Math.hypot(dx,dy),f=Math.min(1,52/Math.max(1,d));
+      knob.setPosition(center.x+dx*f,center.y+dy*f);
+      if(d>8)this.mobileAimAngle=Phaser.Math.Clamp(Math.atan2(dy,dx),
+        -Math.PI+Math.PI/12,-Math.PI/12);
+    };
+    const editDrag=(key,p)=>{
+      this.mobileDrag={key,id:p.id,offsetX:p.x-layout[key].x,offsetY:p.y-layout[key].y};
+    };
+    base.on('pointerdown',(p,_x,_y,e)=>{
+      e?.stopPropagation();
+      if(this.mobileEditing){editDrag('aim',p);return;}
+      this.mobileStickPointer=p.id;moveStick(p);
+    });
+    fire.on('pointerdown',(p,_x,_y,e)=>{
+      e?.stopPropagation();
+      if(this.mobileEditing){editDrag('fire',p);return;}
+      this.mobileFirePointer=p.id;this.mobileFire=true;
+      fire.setFillStyle(0x32d7aa,.38);
+    });
+    const SPECIAL_NEAR=95,SPECIAL_FAR=440,SPECIAL_CHARGE_MS=1300;
+    const chargeDistance=()=>SPECIAL_NEAR+(SPECIAL_FAR-SPECIAL_NEAR)*
+      Phaser.Math.Clamp((this.time.now-this.mobileSpecialStart)/SPECIAL_CHARGE_MS,0,1);
+    const chargedTarget=()=>({
+      x:CANNON.x+Math.cos(this.mobileAimAngle)*chargeDistance(),
+      y:CANNON.y+Math.sin(this.mobileAimAngle)*chargeDistance()
+    });
+    this.mobileSpecialPreview=this.add.graphics().setDepth(285);
+    const resetSpecial=()=>{
+      this.mobileSpecialPointer=null;this.mobileSpecialArmed=false;
+      special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
+      this.mobileSpecialPreview.clear();
+    };
+    special.on('pointerdown',(p,_x,_y,e)=>{
+      e?.stopPropagation();
+      if(this.mobileEditing){editDrag('special',p);return;}
+      if(this.mobileSpecialPointer!==null)return;
+      this.mobileSpecialPointer=p.id;this.mobileSpecialStart=this.time.now;
+      this.mobileSpecialArmed=true;
+      special.setFillStyle(0xf0a6ff,.48);specialLabel.setText('0%');
+    });
+    this.events.on('update',()=>{
+      if(this.mobileSpecialPointer===null||this.mobileEditing)return;
+      const target=chargedTarget(),g=this.mobileSpecialPreview;
+      g.clear();
+      g.lineStyle(2,0xf3b8ff,.66);
+      g.lineBetween(CANNON.x,CANNON.y,target.x,target.y);
+      g.fillStyle(0xdd99ff,.13);g.fillCircle(target.x,target.y,18);
+      g.lineStyle(2,0xffdcff,.88);g.strokeCircle(target.x,target.y,18);
+      specialLabel.setText(Math.round(100*Phaser.Math.Clamp(
+        (this.time.now-this.mobileSpecialStart)/SPECIAL_CHARGE_MS,0,1))+'%');
+    });
+    pause.on('pointerdown',(p,_x,_y,e)=>{
+      e?.stopPropagation();
+      if(this.mobileEditing){editDrag('pause',p);return;}
+      this.mobileFire=false;this.mobileFirePointer=null;
+      fire.setFillStyle(0x3bc2df,.24);
+      resetSpecial();
+      this.pauseGame();
+    });
+    this.setMobileControlEditing=enabled=>{
+      this.mobileEditing=Boolean(enabled);
+      this.mobileFire=false;this.mobileFirePointer=null;
+      resetSpecial();
+      fire.setFillStyle(0x3bc2df,.24);
+      if(!enabled)save();
+    };
+    edit.on('pointerdown',(_p,_x,_y,e)=>{
+      e?.stopPropagation();
+      this.mobileEditing=!this.mobileEditing;
+      this.mobileFire=false;this.mobileFirePointer=null;
+      resetSpecial();
+      fire.setFillStyle(0x3bc2df,.24);
+      editLabel.setText(this.mobileEditing?'SALVAR':'MOVER');
+      edit.setFillStyle(this.mobileEditing?0x318b8d:0x183b57,this.mobileEditing?.55:.36);
+      if(!this.mobileEditing)save();
+    });
+    this.input.on('pointermove',p=>{
+      if(this.mobileDrag?.id===p.id){
+        const d=this.mobileDrag;setPosition(d.key,p.x-d.offsetX,p.y-d.offsetY);
+      }else if(this.mobileStickPointer===p.id)moveStick(p);
+    });
+    this.input.on('pointerup',p=>{
+      if(this.mobileSpecialPointer===p.id){
+        const target=chargedTarget();resetSpecial();
+        if(!this.mobileEditing)this.shootSpecial(target);
+      }
+      if(this.mobileDrag?.id===p.id){this.mobileDrag=null;save();}
+      if(this.mobileStickPointer===p.id){
+        this.mobileStickPointer=null;knob.setPosition(layout.aim.x,layout.aim.y);
+      }
+      if(this.mobileFirePointer===p.id){
+        this.mobileFirePointer=null;this.mobileFire=false;fire.setFillStyle(0x3bc2df,.24);
+      }
+    });
+    this.input.on('gameout',()=>{
+      resetSpecial();
+      this.mobileFire=false;this.mobileFirePointer=null;
+      fire.setFillStyle(0x3bc2df,.24);
+      this.mobileStickPointer=null;knob.setPosition(layout.aim.x,layout.aim.y);
+    });
+    this.events.once('shutdown',()=>{
+      this.mobileFire=false;this.mobileFirePointer=null;save();
+    });
+  }
+
+  drawLabKoreanHologram(angle,active){
+    if(!this.labKoreanHologram&&active)
+      this.labKoreanHologram=this.add.graphics().setDepth(45);
+    const g=this.labKoreanHologram;if(!g)return;
+    g.clear();if(!active)return;
+    const time=this.time.now*.0045;
+    const x=CANNON.x+Math.cos(angle)*34,y=CANNON.y+Math.sin(angle)*34;
+    const dx=Math.cos(angle),dy=Math.sin(angle);
+    // Projeção holográfica ancorada à boca do canhão, sem rastro dos tiros.
+    for(let layer=0;layer<3;layer++){
+      const distance=9+layer*11+(time*13)%11;
+      const px=x+dx*distance,py=y+dy*distance;
+      const radius=6+layer*5+2*Math.sin(time+layer);
+      g.lineStyle(2,[0x66f1ff,0xce9cff,0xff96ee][layer],.55);
+      g.strokeEllipse(px,py,radius*2,radius*1.3);
+      g.lineStyle(1,0xe6ffff,.36);
+      g.lineBetween(px-dy*radius,py+dx*radius,px+dy*radius,py-dx*radius);
+    }
+    for(let side=-1;side<=1;side+=2){
+      const ox=x-dy*side*12,oy=y+dx*side*12;
+      g.lineStyle(2,side>0?0x72ecff:0xef8bff,.48);
+      g.lineBetween(ox,oy,ox+dx*44,oy+dy*44);
+    }
+  }
+
+  pandaDeploy(x,y) {
+    const stage=Math.max(1,Math.min(4,this.specialBuild?.stages?.cn??1));
+    const capacities=[8,14,22,32],radii=[100,130,160,200],intervals=[75,60,45,30];
+    if(this.pandaDrone){
+      if(this.pandaDrone.phase==='collect'){
+        const d=this.pandaDrone;
+        d.moveFromX=d.x;d.moveFromY=d.y;
+        d.targetX=x;d.targetY=y;d.moveStarted=this.time.now;
+      }
+      return;
+    }
+    this.pandaDrone={x,y,targetX:x,targetY:y,moveFromX:x,moveFromY:y,
+      moveStarted:-Infinity,stage,capacity:capacities[stage-1],
+      radius:radii[stage-1],interval:intervals[stage-1],
+      ammo:[],phase:'collect',lastShotAt:-Infinity,
+      graphics:this.add.graphics().setDepth(38)};
+    playSfx('cnCargoDeploy',{throttle:180,volumeScale:.60});
+  }
+
+  pandaClear(fireworks=false){
+    const drone=this.pandaDrone;if(!drone)return;
+    if(fireworks){
+      const flash=this.add.graphics().setDepth(54);
+      const x=drone.x,y=drone.y;
+      for(let i=0;i<24;i++){
+        const a=i*Math.PI/12,dist=14+(i%5)*9;
+        flash.lineStyle(2,[0xffd268,0xff767b,0xffffff,0x8dfae4][i%4],.85);
+        flash.lineBetween(x,y,x+Math.cos(a)*dist,y+Math.sin(a)*dist);
+      }
+      this.tweens.add({targets:flash,alpha:0,duration:420,onComplete:()=>flash.destroy()});
+    }
+    for(const bullet of drone.ammo){
+      bullet.trail?.destroy();bullet.specialMarker?.destroy();
+      bullet.sprite?.destroy();
+      if(bullet.visual)this.visibleProjectileCount=Math.max(0,this.visibleProjectileCount-1);
+    }
+    drone.graphics.destroy();this.pandaDrone=null;
+  }
+
+  updatePandaDrone(dt){
+    const d=this.pandaDrone;if(!d)return;
+    if(this.tutorialComplete||this.gameOver)return;
+    if(d.moveStarted!==-Infinity){
+      const p=Phaser.Math.Clamp((this.time.now-d.moveStarted)/500,0,1);
+      const ease=p*p*(3-2*p);
+      d.x=Phaser.Math.Linear(d.moveFromX,d.targetX,ease);
+      d.y=Phaser.Math.Linear(d.moveFromY,d.targetY,ease);
+      if(p>=1)d.moveStarted=-Infinity;
+    }
+    if(d.phase==='collect'){
+      for(let i=this.projectiles.length-1;i>=0&&d.ammo.length<d.capacity;i--){
+        const bullet=this.projectiles[i];
+        if(bullet.special||bullet.pandaReleased||bullet.pandaCapturing||bullet.koreanLaserBolt||
+          !bullet.sprite?.active)continue;
+        if(Math.hypot(bullet.sprite.x-d.x,bullet.sprite.y-d.y)>d.radius)continue;
+        this.projectiles.splice(i,1);
+        bullet.pandaCapturing=true;
+        bullet.pandaCaptureStart=this.time.now;
+        bullet.pandaStartX=bullet.sprite.x;bullet.pandaStartY=bullet.sprite.y;
+        d.ammo.push(bullet);
+      }
+      if(d.ammo.length===d.capacity)d.phase='ready';
+    }
+    const targets=()=>this.enemies.filter(e=>e?.sprite?.active&&e.type!==6)
+      .sort((a,b)=>Math.hypot(a.sprite.x-CANNON.x,a.sprite.y-CANNON.y)-
+        Math.hypot(b.sprite.x-CANNON.x,b.sprite.y-CANNON.y));
+    if(d.phase==='ready'&&targets().length){
+      d.phase='discharge';d.lastShotAt=-Infinity;d.shotIndex=0;
+    }
+    if(d.phase==='discharge'&&this.time.now-d.lastShotAt>=d.interval){
+      const bullet=d.ammo.shift(),alive=targets();
+      if(bullet&&alive.length){
+        const target=alive[d.shotIndex%alive.length];d.shotIndex++;
+        bullet.pandaCapturing=false;bullet.pandaReleased=true;
+        bullet.pandaTarget=target.uid;
+        bullet.sprite.setPosition(d.x,d.y);
+        const angle=Math.atan2(target.sprite.y-d.y,target.sprite.x-d.x);
+        const speed=Math.max(320,Math.hypot(bullet.vx,bullet.vy));
+        bullet.vx=Math.cos(angle)*speed;bullet.vy=Math.sin(angle)*speed;
+        bullet.sprite.setRotation?.(angle+Math.PI/2);
+        this.projectiles.push(bullet);
+        d.lastShotAt=this.time.now;
+      }else if(!alive.length&&bullet){
+        d.ammo.unshift(bullet);
+      }
+      if(!d.ammo.length){this.pandaClear();return;}
+    }
+    const g=d.graphics,t=this.time.now*.003;
+    g.clear();
+    g.fillStyle(0xc6283e,.18).fillCircle(d.x,d.y,d.radius);
+    g.lineStyle(1,0xf1a573,.24).strokeCircle(d.x,d.y,d.radius);
+    // Drone vermelho, dois braços mecânicos e rosto de panda.
+    const open=d.phase!=='collect',reach=open?31:24;
+    for(const side of [-1,1]){
+      g.lineStyle(6,0xe29b70,.9).lineBetween(d.x+side*13,d.y+7,d.x+side*reach,d.y+(open?-12:19));
+      g.fillStyle(0xffcf72,1).fillCircle(d.x+side*reach,d.y+(open?-12:19),5);
+      g.fillStyle(0x141722,.95).fillCircle(d.x+side*13,d.y-16,9);
+    }
+    g.fillStyle(0xcf3645,1).fillRoundedRect(d.x-23,d.y-20,46,41,11);
+    g.lineStyle(2,0xffd78e,.93).strokeRoundedRect(d.x-23,d.y-20,46,41,11);
+    g.fillStyle(0xf3f0e9,1).fillEllipse(d.x,d.y-3,33,28);
+    for(const side of [-1,1]){
+      g.fillStyle(0x191d2e,1).fillEllipse(d.x+side*9,d.y-5,10,13);
+      if(open)g.fillStyle(0xffe070,.95).fillCircle(d.x+side*9,d.y-6,3);
+    }
+    g.fillStyle(0x1b2030,1).fillCircle(d.x,d.y+5,3);
+    d.ammo.forEach((bullet,i)=>{
+      const age=Phaser.Math.Clamp((this.time.now-bullet.pandaCaptureStart)/260,0,1);
+      const ring=14+Math.floor(i/10)*11;
+      const a=t*1.5+i*2.39996,orbitX=d.x+Math.cos(a)*ring;
+      const orbitY=d.y+Math.sin(a)*ring*.58;
+      const spiral=(1-age)*Math.PI*3;
+      const px=Phaser.Math.Linear(bullet.pandaStartX,orbitX,age)+
+        Math.sin(spiral)*(1-age)*10;
+      const py=Phaser.Math.Linear(bullet.pandaStartY,orbitY,age)+
+        Math.cos(spiral)*(1-age)*10;
+      bullet.sprite.setPosition(px,py);
+      bullet.trail?.clear();
+    });
+  }
+
+  shootSpecial(pointer) {
+    if (this.tutorialComplete || this.countdownActive || this.supremeTyping ||
+      this.supremeCinematic || this.elapsed<this.cannonFrozenUntil)return;
+    if(this.mode==='wave0'&&!this.v1Playtest)return;
+    if(this.campaignMathEnabled&&!this.v1LabSpecial)return;
+    const existingPanda=this.pandaDrone;
+    const pandaSpecial=this.isV1Campaign&&this.specialBuild?.primary==='cn';
+    if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown && !(pandaSpecial&&existingPanda?.phase==='collect')) return;
+    const country=this.isV1Campaign?this.specialBuild?.primary:null;
+    const target=country==='us'
+      ?americanWallPlacement(pointer.x,pointer.y,CANNON.x,CANNON.y,W,H)
+      :specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
+    if(country==='cn'){
+      if(!this.pandaDrone)this.lastSpecialFire=this.time.now;
+      this.pandaDeploy(target.x,target.y);
+      return;
+    }
+    this.lastSpecialFire=this.time.now;
+    if(this.modernMathEnabled&&country==='cn'){
+      this.cnConvergence={startedAt:this.time.now,lastShotAt:-Infinity,shots:0};
+      return;
+    }
+    if(country==='us'){
+      this.createAmericanWall(target.x,target.y,this.specialBuild);
+      // Misturas com Rússia/China/Coreia/Brasil preservam seus componentes,
+      // mas o antigo dano de míssil americano não é reativado.
+      const build=this.specialBuild;
+      if(build.stages.br||build.stages.ru||build.stages.cn||build.stages.jp)
+        this.detonateV1HybridSpecial(target.x,target.y,{
+          ...build,stages:{...build.stages,us:0},
+        });
+      return;
+    }
+    // Som de lançamento por país. Som genérico apenas nos especiais legados.
+    // O impacto/suporte híbrido de outros países ocorre em detonateV1HybridSpecial.
+    const specialCountry=this.isV1Campaign?this.specialBuild?.primary:null;
+    if(specialCountry==='br')
+      playSfx('brFireworkLaunch',{throttle:190,volumeScale:0.70});
+    else if(specialCountry==='cn')
+      playSfx('cnCargoDeploy',{throttle:200,volumeScale:0.68});
+    else if(!['ru','jp'].includes(specialCountry))
+      playSfx('specialShot',{throttle:180,volumeScale:0.85});
+    if (this.isV1Campaign && this.combat.brazilTurboMultiplier>1)
+      this.brazilTurboUntil=this.time.now+5000;
+    const shot=this.createProjectile(target.angle,true,target.distance);
+    if(shot){
+      // O destino usado pela física DEVE ser o mesmo ponto limitado à
+      // tela, exibido pela mira, jamais recalculado por ângulo/distância.
+      shot.tx=target.x;
+      shot.ty=target.y;
+      shot.specialLaunchedAt=this.time.now;
+    }
+    const build=this.isV1Campaign ? this.specialBuild : null;
+    if(build?.primary && shot) {
+      shot.hybridConfig=build;
+      shot.hybridDestination={x:target.x,y:target.y};
+      const color=specialPalette(build.primary);
+      if(shot.visual) {
+        // Silhuetas simplificadas enquanto as sprites finais não existem.
+        const markers={br:'🎈',ru:'✧',cn:'▣',jp:'✦'};
+        shot.specialMarker=this.add.text(shot.sprite.x,shot.sprite.y,
+          markers[build.primary]||'✦',{
+          fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',
+          color:'#ffffff',stroke:'#0d1830',strokeThickness:3,
+        }).setOrigin(0.5).setDepth(36);
+        shot.sprite.setFillStyle(color);
+        shot.sprite.setStrokeStyle(3,0xffffff,0.95);
+        // Grande Muro nasce antes desse ramo, sem criar míssil americano.
+        const scale=build.primary==='cn'?1.7*build.cnDropScale:
+          build.primary==='ru'?1.8:build.primary==='jp'?2:1.5;
+        shot.sprite.setScale(Math.min(6,scale));
+      }
+    }
+    // Caminho do laboratório legado: não interferir nas árvores antigas.
+    if(!this.isV1Campaign && this.fourthIds.includes('jp'))this.fireSpecialLaser(target);
+  }
+
+  // Cada ativação resolve um único projétil híbrido, em fases finitas.
+  detonateV1HybridSpecial(x,y,build) {
+    const {br,us,ru,cn,jp}=build.stages;
+    // A Rússia instala um Sputnik persistente: congela por contato, sem
+    // explosão de dano própria. Outros países híbridos mantêm seus efeitos.
+    if(ru)this.createRussianSputnik(x,y,build);
+    // 2. China distribui a CARGA do mesmo projétil, sem lançar drones auxiliares.
+    if(cn) {
+      if(build.primary!=='cn')
+        playSfx('cnCargoDeploy',{throttle:230,volumeScale:0.55});
+      const count=build.cnPayloads;
+      for(let i=0;i<count;i++){
+        const angle=-Math.PI/2+(i-1)*Math.PI*2/Math.max(3,count-1);
+        const offset=i===0?0:Math.min(95,build.cnDropRadius*0.8);
+        const cx=x+Math.cos(angle)*offset,cy=y+Math.sin(angle)*offset;
+        this.pulseV1Area(cx,cy,build.cnDropRadius,build.cnDamage,0xffd562);
+      }
+      // Uma pancada por conjunto: não uma por subcarga.
+      playSfx('cnContainerImpact',{throttle:240,volumeScale:0.77});
+    }
+    // O componente americano cria proteção em arco, não explosão.
+    if(us)this.createAmericanWall(x,y,build);
+    if(br)this.createArraial(x,y);
+    // Sem componentes estrangeiros nem Arraial, preserva dano-base do especial.
+    if(!br&&!us&&!ru&&!cn&&!jp)this.pulseV1Area(x,y,70,3,0x80e8ff);
+    // 4. Coreia deixa um globo estacionário: cada tiro recebido gera uma salva.
+    if(jp)this.createDiscoGlobe(x,y,build);
+    // Repulsão americana ocorre somente no contato físico com o arco.
+  }
+
+  drawV1SpecialPulse(x,y,radius,color) {
+    const ring=this.add.circle(x,y,radius,color,0.14)
+      .setStrokeStyle(3,color,0.85).setDepth(55).setScale(0.25);
+    this.tweens.add({targets:ring,scale:1.15,alpha:0,duration:360,
+      onComplete:()=>ring.destroy()});
+  }
+
+  createRussianSputnik(x,y,build){
+    this.russianSputniks??=[];
+    // Até três unidades ativas: sem crescimento infinito de objetos gráficos.
+    while(this.russianSputniks.length>=MAX_ACTIVE_SPUTNIKS){
+      const old=this.russianSputniks.shift();
+      old.graphics?.destroy();
+    }
+    const sat={
+      x,y,radius:build.ruSputnikRadius||43,build,
+      expiresAt:this.elapsed+(build.ruSputnikDurationMs||4000),
+      nextPulseAt:this.elapsed+(build.ruSputnikPulseMs||Infinity),
+      graphics:this.add.graphics().setPosition(x,y).setDepth(56),
+    };
+    this.russianSputniks.push(sat);
+    playSfx('ruSputnikLaunch',{throttle:120,volumeScale:0.72});
+    this.updateRussianSputniks();
+  }
+
+  freezeWithSputnikFx(enemy,freezeMs,stage=1){
+    const firstContact=!isSputnikCrystalized(enemy,this.elapsed);
+    crystallizeSputnikEnemy(enemy,this.elapsed,freezeMs);
+    if(firstContact){
+      playSfx('ruSputnikFreeze',{throttle:130,volumeScale:0.45});
+      if(stage>=3)playSfx('ruCrystalDeep',{throttle:430,volumeScale:0.52});
+    }
+  }
+
+  sputnikFreezeArea(sat,radius){
+    for(const enemy of this.enemies){
+      if(enemy.type===6||!enemy?.sprite?.active)continue;
+      if(Math.hypot(enemy.sprite.x-sat.x,enemy.sprite.y-sat.y)>
+        radius+enemyContactRadius(enemy.type))continue;
+      this.freezeWithSputnikFx(enemy,sat.build.ruFreezeMs,sat.build.stages.ru);
+    }
+  }
+
+  drawRussianSputnik(sat){
+    const g=sat.graphics,age=this.elapsed,stage=sat.build.stages.ru;
+    const phase=age*0.00135;
+    g.clear();
+    const R=17+(stage-1)*1.6,halo=sat.radius;
+    // Contorno institucional dourado, interior criogênico azul-ciano.
+    g.lineStyle(2,0xe8b84c,0.22).strokeCircle(0,0,halo);
+    g.fillStyle(0x8ae7ff,0.065).fillCircle(0,0,halo);
+    // Antenas diagonais rotacionam suavemente com o Sputnik.
+    for(let i=0;i<4;i++){
+      const a=phase*0.13+i*Math.PI/2+Math.PI/4;
+      const ux=Math.cos(a),uy=Math.sin(a);
+      g.lineStyle(3,0x343c50,0.95).lineBetween(ux*R,uy*R,ux*(R+19),uy*(R+19));
+      g.lineStyle(1,0xffe8ac,0.94).lineBetween(ux*(R+2),uy*(R+2),ux*(R+18),uy*(R+18));
+      g.fillStyle(0xf7d98a,0.92).fillRect(ux*(R+19)-2,uy*(R+19)-2,4,4);
+    }
+    // Casco facetado pseudo-pixel art, sem blur.
+    g.fillStyle(0x18232e,0.98).fillCircle(0,0,R+2);
+    g.lineStyle(3,0xa9b8c3,0.98).strokeCircle(0,0,R+1);
+    g.fillStyle(0x3d5565).fillCircle(-4,-4,R*.67);
+    g.lineStyle(2,0xe8b84c,0.95).strokeCircle(0,0,R*.88);
+    for(let i=0;i<4;i++){
+      const a=phase*.22+i*Math.PI/2;
+      g.fillStyle(i%2?0x98a7b3:0x6c8193,0.95)
+        .fillRect(Math.cos(a)*R*.72-3,Math.sin(a)*R*.72-2,6,4);
+    }
+    g.fillStyle(0x69dff7,0.4).fillCircle(0,0,11+Math.sin(phase*3)*1.5);
+    g.fillStyle(0xb1f7ff,0.96).fillCircle(0,0,7);
+    g.fillStyle(0xffffff,0.84).fillRect(-2,-2,4,4);
+    // Cristais orbitais maiores em níveis altos, no máximo seis sprites vetoriais.
+    const n=3+Math.min(3,stage-1);
+    for(let i=0;i<n;i++){
+      const a=phase*(.5+stage*.03)+i*Math.PI*2/n;
+      const r=R+12+Math.sin(phase*2+i)*3;
+      const px=Math.cos(a)*r,py=Math.sin(a)*r;
+      const width=2+stage*.7,length=4+stage*1.2;
+      g.fillStyle(i%2?0xffffff:0x75dcff,.85);
+      g.fillTriangle(px,py-length,px-width,py,px,py+length*.45);
+      g.fillStyle(0x41a9d9,.9);
+      g.fillTriangle(px,py-length,px+width,py,px,py+length*.45);
+    }
+    const progress=Math.max(0,Math.min(1,(sat.expiresAt-age)/1000));
+    g.lineStyle(2,0xffda79,0.5).strokeCircle(0,0,R+7+Math.sin(phase*4)*2);
+    // Anel fino de duração evita HUD extra sobre os inimigos.
+    g.lineStyle(2,0xd3faff,0.42);
+    g.beginPath();g.arc(0,0,R+6,-Math.PI/2,
+      -Math.PI/2+Math.PI*2*Math.min(1,progress/5),false);g.strokePath();
+  }
+
+  updateRussianSputniks(){
+    if(!this.russianSputniks?.length)return;
+    for(let i=this.russianSputniks.length-1;i>=0;i--){
+      const sat=this.russianSputniks[i],build=sat.build;
+      if(this.elapsed>=sat.expiresAt){
+        if(build.ruSputnikFinalRadius){
+          this.sputnikFreezeArea(sat,build.ruSputnikFinalRadius);
+          this.drawV1SpecialPulse(sat.x,sat.y,build.ruSputnikFinalRadius,0xa2f3ff);
+        }
+        // Colapso criogênico, sem causar dano direto.
+        playSfx('ruSputnikCollapse',{throttle:210,volumeScale:0.76});
+        this.tweens.add({targets:sat.graphics,alpha:0,scale:0.2,duration:260,
+          onComplete:()=>sat.graphics.destroy()});
+        this.russianSputniks.splice(i,1);
+        continue;
+      }
+      for(const enemy of this.enemies)
+        if(sputnikTouchesEnemy(sat,enemy,
+          enemy.type===6?0:enemyContactRadius(enemy.type)))
+          this.freezeWithSputnikFx(enemy,build.ruFreezeMs,build.stages.ru);
+      if(build.ruSputnikPulseMs&&this.elapsed>=sat.nextPulseAt){
+        this.sputnikFreezeArea(sat,build.ruSputnikPulseRadius);
+        this.drawV1SpecialPulse(sat.x,sat.y,build.ruSputnikPulseRadius,0x83dffc);
+        playSfx('ruSputnikCollapse',{throttle:210,volumeScale:0.48});
+        sat.nextPulseAt=this.elapsed+build.ruSputnikPulseMs;
+      }
+      this.drawRussianSputnik(sat);
+    }
+  }
+
+  createDiscoGlobe(x,y,build) {
+    const graphics=this.add.graphics().setDepth(56);
+    const label=this.add.text(x,y+40,'4.0s',{
+      fontFamily:'monospace',fontSize:'11px',color:'#f5caff',
+      stroke:'#160d28',strokeThickness:3,
+    }).setOrigin(0.5).setDepth(57);
+    this.discoGlobes.push({x,y,build,graphics,label,
+      expiresAt:this.elapsed+DISCO_DURATION_MS,
+      lastVisualAt:-Infinity,lastReflectAt:-Infinity});
+    playSfx('krDiscoDeploy',{throttle:210,volumeScale:0.70});
+    this.updateDiscoGlobes();
+  }
+
+  updateDiscoGlobes() {
+    for(let i=this.discoGlobes.length-1;i>=0;i--){
+      const globe=this.discoGlobes[i];
+      if(this.elapsed>=globe.expiresAt){
+        globe.graphics.destroy();globe.label.destroy();this.discoGlobes.splice(i,1);continue;
+      }
+      const g=globe.graphics,r=DISCO_RADIUS,x=globe.x,y=globe.y;
+      const t=this.elapsed*.001;
+      const pulse=.5+.5*Math.sin(t*5.4);
+      const palette=[0x72edff,0xff78d7,0xb39aff,0xffd9a0];
+      g.clear();
+      // Halo de alcance real; discreto para deixar legíveis os inimigos.
+      g.fillStyle(0xb24bff,.028+.014*pulse).fillCircle(x,y,250);
+      g.lineStyle(1.5,0xdab6ff,.17+.09*pulse).strokeCircle(x,y,250);
+      // Feixes de holofote oscilantes, como luzes de um palco de K-pop.
+      for(let k=0;k<4;k++){
+        const angle=t*.75+k*Math.PI/2,reach=r+27+5*pulse;
+        g.lineStyle(5,palette[k],.12+.08*pulse);
+        g.lineBetween(x+Math.cos(angle)*r*.68,y+Math.sin(angle)*r*.68,
+          x+Math.cos(angle)*reach,y+Math.sin(angle)*reach);
+        g.fillStyle(palette[k],.46+.20*pulse);
+        g.fillCircle(x+Math.cos(angle)*reach,y+Math.sin(angle)*reach,2.2);
+      }
+      // Dois anéis orbitais em perspectiva, sobrepostos à bola espelhada.
+      g.lineStyle(3,0x9b59ef,.23).strokeEllipse(x,y,r*2.9,r*.86);
+      g.lineStyle(1.4,0x8df1ff,.43+.15*pulse).strokeEllipse(x,y,r*2.55,r*.65);
+      g.fillStyle(0x8b41eb,.15).fillCircle(x,y,r+9);
+      g.fillStyle(0x211d48,.98).fillCircle(x,y,r);
+      g.lineStyle(3,0x7cecff,.73).strokeCircle(x,y,r);
+      g.lineStyle(2,0xf7c4ff,.55+.30*pulse).strokeCircle(x,y,r-3);
+      // Facetas curvas: blocos escalonados projetados sobre uma esfera.
+      // Não esticar sprites nem criar objetos/tweens novos a cada frame.
+      const rowCount=7;
+      for(let row=0;row<rowCount;row++){
+        const ny=(row-3)/3.6;
+        const width=Math.sqrt(Math.max(0,1-ny*ny))*r*.88;
+        const yRow=y+ny*r*.88;
+        const count=Math.max(3,Math.round(width/5));
+        for(let col=0;col<count;col++){
+          const nx=(col+.5)/count*2-1;
+          const px=x+nx*width;
+          const longitude=nx*Math.PI*.75+t*1.2;
+          const facing=.5+.5*Math.cos(longitude);
+          const shimmer=Math.sin(t*7+row*2.4+col*1.8);
+          const color=palette[(row+col+Math.floor(t*2))%palette.length];
+          g.fillStyle(shimmer>.68?0xffffff:color,
+            .32+.48*facing+(shimmer>.68?.19:0));
+          const cellWidth=Math.max(2,(width*2/count)-1.4);
+          g.fillRoundedRect(px-cellWidth*.46,yRow-2.7,
+            cellWidth,5.2,1);
+        }
+      }
+      g.fillStyle(0xffffff,.35+.36*pulse).fillCircle(x-r*.27,y-r*.32,3);
+      g.lineStyle(1,0xeedaff,.65).strokeEllipse(x-r*.21,y-r*.28,r*.39,r*.18);
+      globe.label.setText(((globe.expiresAt-this.elapsed)/1000).toFixed(1)+'s');
+    }
+  }
+
+  drawV1DiscoReflectionArcs(x,y,targets,rainbow=false) {
+    animateDiscoReflectionArcs(this,x,y,targets,{rainbow});
+  }
+
+  fireV1DiscoReflections(x,y,build,globe,sourceBullet=null) {
+    // O globo volta a MULTIPLICAR reflexos; cada ramo herda os saltos.
+    // O orçamento de dano é partilhado entre os reflexos, nunca multiplicado.
+    if(globe && this.elapsed-(globe.lastReflectAt??-Infinity)<DISCO_REFLECTION_COOLDOWN_MS)return;
+    const limit=Math.min(build.krReflections||0,24);
+    const candidates=this.enemies.filter(e=>e?.sprite?.active&&e.type!==6&&
+      !sourceBullet?.hitEnemyIds?.has(e.uid)&&Math.hypot(e.sprite.x-x,e.sprite.y-y)<=250)
+      .sort((a,b)=>Math.hypot(a.sprite.x-x,a.sprite.y-y)-Math.hypot(b.sprite.x-x,b.sprite.y-y));
+    const firstTargets=candidates.slice(0,limit);
+    if(!firstTargets.length)return;
+    if(globe){globe.lastReflectAt=this.elapsed;globe.lastVisualAt=this.elapsed;}
+    const showTargets=[];
+    const stage=Math.max(1,Math.min(4,sourceBullet?.koreanVisualStage??build.stages?.jp??1));
+    const initialDamage=(build.krSalvoDamage||7.2)/firstTargets.length;
+    const jumps=sourceBullet?.koreanBouncesLeft??[1,2,4,7][stage-1];
+    for(let ray=0;ray<firstTargets.length;ray++){
+      const visited=new Set(sourceBullet?.hitEnemyIds??[]);
+      let target=firstTargets[ray],lastX=x,lastY=y,damage=initialDamage;
+      for(let hop=0;hop<=jumps&&target;hop++){
+        const id=this.enemies.findIndex(e=>e.uid===target.uid);
+        if(id<0||visited.has(target.uid))break;
+        if(showTargets.length<DISCO_REFLECTION_MAX_VISUAL_RAYS)
+          showTargets.push({x:target.sprite.x,y:target.sprite.y});
+        lastX=target.sprite.x;lastY=target.sprite.y;
+        visited.add(target.uid);
+        if(build.stages?.ru)this.freezeRussianEnemy(target,build.ruFreezeMs);
+        this.impactInvader(id,damage,0,'#f1baff',false);
+        if(hop===jumps)break;
+        damage*=.85;
+        target=nextKoreanRicochet(lastX,lastY,this.enemies,visited,150);
+      }
+    }
+    if(showTargets.length){
+      playSfx('krLaserRicochet',{throttle:105,volumeScale:.55});
+      this.drawV1DiscoReflectionArcs(x,y,showTargets,stage===4||build.stages?.jp>=4);
+    }
+  }
+
+  pushV1EnemiesUp(x,y,radius,strength) {
+    for(const enemy of this.enemies){
+      const d=Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y);
+      if(d>radius+enemyContactRadius(enemy.type))continue;
+      // Offset físico-visual vertical em direção à origem alienígena (topo).
+      enemy.shockOffset.vy=Math.min(enemy.shockOffset.vy||0,-strength);
+      if(enemy.phase==='dive')
+        enemy.recoilSpeed=applyRecoilImpulse(enemy.recoilSpeed,strength,420);
+    }
   }
 
   fireSpecialLaser(target) {
@@ -2317,6 +5250,10 @@ export class GameScene extends Phaser.Scene {
     beam.lineBetween(originX, originY, target.x, target.y);
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
       const enemy = this.enemies[i];
+      if(enemy.type===6){
+        hitType6Segment(this,enemy,originX,originY,target.x,target.y,2,9);
+        continue;
+      }
       if (laserHitsTarget(originX, originY, target.x, target.y,
         enemy.sprite.x, enemy.sprite.y, 9, enemyContactRadius(enemy.type))) {
         this.impactInvader(i, 2, 0, '#bcfaff');
@@ -2332,8 +5269,9 @@ export class GameScene extends Phaser.Scene {
     const color = country === 'br' ? 0x45ebae : 0xffc65d;
     const bullet = this.add.circle(x, y, country === 'br' ? 7 : 5, color)
       .setStrokeStyle(2, 0xffffff, 0.85).setDepth(44);
-    const dx = target.sprite.x - x;
-    const dy = target.sprite.y - y;
+    const aim=type6AimPosition(target);
+    const dx = aim.x - x;
+    const dy = aim.y - y;
     const distance = Math.max(1, Math.hypot(dx, dy));
     const speed = country === 'br' ? 340 : 390;
     this.supportProjectiles.push({
@@ -2346,27 +5284,324 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  createProjectile(angle, special, distance = 0, effects = null, centerGlow = false, offsetX = 0, generation = 0, origin = null) {
+  createAmericanRocketSprite(x,y,angle,radius){
+    // Sprite procedural de foguete 16/32-bit: uma única Graphics por bala.
+    const g=this.add.graphics({x,y}).setDepth(35);
+    const w=radius*0.65,len=radius*2.7;
+    g.fillStyle(0x12365a).fillTriangle(0,-len*.63,-w,-len*.22,w,-len*.22);
+    g.fillStyle(0xf2f8ff).fillTriangle(0,-len*.56,-w*.77,-len*.18,w*.77,-len*.18);
+    g.fillStyle(0xf3f6ff).fillRect(-w,-len*.18,w*2,len*.82);
+    g.fillStyle(0xd93650).fillRect(-w,-len*.07,w*2,len*.23);
+    g.fillStyle(0x2768c8).fillRect(-w,len*.25,w*2,len*.22);
+    g.fillStyle(0x2454a1).fillTriangle(-w,len*.31,-w*1.8,len*.69,-w,len*.62);
+    g.fillStyle(0xd93650).fillTriangle(w,len*.31,w*1.8,len*.69,w,len*.62);
+    g.fillStyle(0xffca58).fillTriangle(-w*.5,len*.64,w*.5,len*.64,0,len*1.04);
+    g.lineStyle(Math.max(1,radius*.11),0xfafcff,.86);
+    g.strokeRect(-w,-len*.18,w*2,len*.82);
+    return g.setRotation(angle+Math.PI/2);
+  }
+
+  detonateAmericanRocket(x,y,directId,radius){
+    // O alvo direto já foi atingido: o raio prejudica os vizinhos apenas uma vez.
+    this.explodeAmericanPrimary(x,y,directId,
+      this.combat.usRocketBlastDamage*2,radius);
+    playSfx('usShockwave',{throttle:120,volumeScale:0.52});
+    const colors=[0xe34a62,0xf7faff,0x3579e5];
+    for(let i=0;i<3;i++){
+      const ring=this.add.circle(x,y,radius*(.43+i*.25),colors[i],.16)
+        .setStrokeStyle(3+i%2,colors[i],.94).setDepth(53);
+      this.tweens.add({targets:ring,scale:1.25,alpha:0,duration:260+i*55,
+        onComplete:()=>ring.destroy()});
+    }
+  }
+
+  createAmericanWall(x,y,build){
+    const cfg=build?.usWall;
+    if(!cfg)return;
+    const point=americanWallPlacement(x,y,CANNON.x,CANNON.y,W,H);
+    const center=americanWallArcCenter(point.x,point.y,point.angle,cfg.radius);
+    const muzzle=this.cannonBarrelArt
+      ?cannonSpritePose(point.angle,CANNON.x,CANNON.y-11,this.cannonRecoil)
+      :null;
+    const muzzleX=muzzle?.muzzleX??CANNON.x+Math.cos(point.angle)*40;
+    const muzzleY=muzzle?.muzzleY??CANNON.y+Math.sin(point.angle)*40;
+    const travelMs=americanWallTravelDuration(muzzleX,muzzleY,point.x,point.y);
+    // Uma barreira por vez: o lançamento anterior também é substituído.
+    for(const old of this.americanWalls)old.graphics?.destroy();
+    this.americanWalls=[];
+    const openMs=this.modernMathEnabled?(this.labExtra?.usWallOpenMs??AMERICAN_WALL_OPEN_MS):AMERICAN_WALL_OPEN_MS;
+    const wall={...point,...center,...cfg,flashUntil:0,openMs,
+      labPushSpeed:this.modernMathEnabled?this.labExtra?.usWallPushSpeed:undefined,
+      reflectionDamage:this.modernMathEnabled?this.labExtra?.usWallReflectDamage:undefined,
+      targetX:point.x,targetY:point.y,muzzleX,muzzleY,
+      startedAt:this.time.now,travelMs,currentArc:0,arrived:false,
+      expiresAt:this.time.now+travelMs+openMs+cfg.durationMs,
+      lastPush:new Map(),graphics:this.add.graphics().setDepth(56)};
+    this.americanWalls.push(wall);
+    playSfx('specialShot',{throttle:180,volumeScale:.60});
+    this.paintAmericanWall(wall);
+  }
+
+  paintAmericanWall(wall,animation=americanWallAnimation(wall,this.time.now)){
+    const g=wall.graphics;
+    g.clear();
+    wall.currentArc=animation.arc;
+    if(animation.phase==='travel'){
+      const dx=animation.x-wall.muzzleX,dy=animation.y-wall.muzzleY;
+      const distance=Math.max(1,Math.hypot(dx,dy));
+      const tail=Math.min(42,distance);
+      g.lineStyle(5,0x2077e4,.70);
+      g.lineBetween(animation.x-dx/distance*tail,animation.y-dy/distance*tail,
+        animation.x,animation.y);
+      g.fillStyle(0x2b75ec,.25);g.fillCircle(animation.x,animation.y,13);
+      g.fillStyle(0xdaf4ff,.98);g.fillCircle(animation.x,animation.y,5);
+      g.fillStyle(0xffffff,.96);g.fillCircle(animation.x,animation.y,2);
+      return;
+    }
+    const remaining=Math.max(0,(wall.expiresAt-this.time.now)/wall.durationMs);
+    // Mantém o desenho legível até os últimos ~0,85 s de duração.
+    const visibility=Math.min(1,remaining*7);
+    const pulse=.90+.10*Math.sin(this.time.now*.007);
+    const a=wall.angle-animation.arc/2,b=wall.angle+animation.arc/2;
+    const draw=(radius,width,color,alpha)=>{
+      g.lineStyle(width,color,alpha*visibility*pulse);
+      g.beginPath();g.arc(wall.x,wall.y,radius,a,b,false);g.strokePath();
+    };
+    // Faixa azul, estrelas brancas e listras seguem A CURVATURA de 120°.
+    draw(wall.radius,31,0x123675,.34);
+    draw(wall.radius,24,cannonShieldColor(1,1),.75);
+    draw(wall.radius+10,5,0xef4865,.96);
+    draw(wall.radius+4,4,0xffffff,.91);
+    draw(wall.radius-4,4,0xee475c,.90);
+    draw(wall.radius-10,3,0xbde8ff,.96);
+    for(let k=0;k<9;k++){
+      const ang=a+(k+.5)*animation.arc/9;
+      const px=wall.x+Math.cos(ang)*(wall.radius-1);
+      const py=wall.y+Math.sin(ang)*(wall.radius-1);
+      g.fillStyle(0xffffff,.86*visibility);
+      // Estrela retrô legível, em pixels, acompanhando o azul do arco.
+      g.fillRect(px-2.5,py-.5,5,1);
+      g.fillRect(px-.5,py-2.5,1,5);
+    }
+    // Impactos normais fazem a barreira cintilar, mas não a danificam.
+    if(this.time.now<wall.flashUntil)
+      draw(wall.radius,26,0xffffff,.40*((wall.flashUntil-this.time.now)/130));
+    if(animation.phase==='deploy'){
+      const spark=1-animation.progress;
+      g.lineStyle(3,0xeaf8ff,.85*spark);
+      g.strokeCircle(wall.targetX,wall.targetY,5+17*spark);
+      g.fillStyle(0xffffff,.75*spark);
+      g.fillCircle(wall.targetX,wall.targetY,3+3*spark);
+    }
+  }
+
+  destroyAmericanWall(wall,shattered=false){
+    wall.graphics?.destroy();
+    this.americanWalls=this.americanWalls.filter(item=>item!==wall);
+    if(!shattered)return;
+    playSfx('shieldBreak',{throttle:210,volumeScale:.75});
+    const fx=this.add.graphics().setDepth(58);
+    for(let i=0;i<17;i++){
+      const angle=wall.angle-wall.arc/2+i*wall.arc/16;
+      const x=wall.x+Math.cos(angle)*wall.radius;
+      const y=wall.y+Math.sin(angle)*wall.radius;
+      fx.lineStyle(3,[0xe94660,0xe8f7ff,0x347bdf][i%3],.86);
+      fx.lineBetween(x,y,x+Math.cos(angle)*17,y+Math.sin(angle)*17);
+    }
+    this.tweens.add({targets:fx,alpha:0,scale:1.18,duration:290,
+      onComplete:()=>fx.destroy()});
+  }
+
+  blockEnemyWithAmericanWall(enemy,fromX,fromY){
+    if(enemy.type===6||!enemy.sprite?.active)return false;
+    for(const wall of this.americanWalls){
+      if(this.time.now>=wall.expiresAt)continue;
+      const animation=americanWallAnimation(wall,this.time.now);
+      if(animation.phase==='travel')continue;
+      wall.currentArc=animation.arc;
+      const hit=solidAmericanWallCollision(wall,fromX,fromY,
+        enemy.sprite.x,enemy.sprite.y,enemyContactRadius(enemy.type));
+      if(!hit)continue;
+      enemy.sprite.setPosition(hit.x,hit.y);
+      if(this.time.now-(wall.lastPush.get(enemy.uid)??-Infinity)>=
+        US_WALL_PUSH_COOLDOWN_MS){
+        wall.lastPush.set(enemy.uid,this.time.now);
+        enemy.wallPush=addWallPush(enemy.wallPush,
+          wallPushImpulse(wall,enemy.sprite));
+        wall.flashUntil=this.time.now+130;
+        playSfx('shieldHit',{throttle:140,volumeScale:.55});
+      }
+      return true;
+    }
+    return false;
+  }
+
+  updateAmericanWalls(){
+    for(const wall of [...this.americanWalls]){
+      if(this.time.now>=wall.expiresAt){
+        this.destroyAmericanWall(wall);continue; // Prazo natural, sem estilhaços.
+      }
+      const animation=americanWallAnimation(wall,this.time.now);
+      wall.currentArc=animation.arc;
+      if(animation.phase==='travel'){
+        this.paintAmericanWall(wall,animation);continue;
+      }
+      if(!wall.arrived){
+        wall.arrived=true;
+        playSfx('shieldOn',{throttle:250,volumeScale:.92});
+      }
+      for(const enemy of this.enemies){
+        if(enemy.type===6||!enemy.sprite?.active)continue;
+        if(!americanWallTouches(wall,enemy.sprite.x,enemy.sprite.y,
+          enemyContactRadius(enemy.type)))continue;
+        if(this.time.now-(wall.lastPush.get(enemy.uid)??-Infinity)<
+          US_WALL_PUSH_COOLDOWN_MS)continue;
+        wall.lastPush.set(enemy.uid,this.time.now);
+        // Agora desloca realmente a hitbox no mundo; não só o tremor
+        // cosmético que o cálculo de rota apagava no quadro seguinte.
+        enemy.wallPush=addWallPush(enemy.wallPush,
+          wallPushImpulse(wall,enemy.sprite));
+        wall.flashUntil=this.time.now+130;
+        playSfx('shieldHit',{throttle:140,volumeScale:.52});
+      }
+      this.paintAmericanWall(wall,animation);
+    }
+  }
+
+  hitAmericanWallWithBullet(shot,x1,y1){
+    for(const wall of [...this.americanWalls]){
+      if(!wall.currentArc)continue; // Projétil do muro ainda em voo.
+      if(!americanWallIntersects(wall,x1,y1,shot.sprite.x,shot.sprite.y,
+        shot.radius??8))continue;
+      wall.flashUntil=this.time.now+130;
+      if(canReflectWallShot(shot))this.reflectAmericanWallShot(shot,wall);
+      playSfx('shieldHit',{throttle:130,volumeScale:.57});
+      this.paintAmericanWall(wall);
+      return true; // Tiros leves refletem; os pesados são só absorvidos.
+    }
+    return false;
+  }
+
+  reflectAmericanWallShot(shot,wall){
+    if(this.wallReflections.length>=US_WALL_REFLECTION_CAP)return;
+    const x=shot.sprite.x,y=shot.sprite.y;
+    const source=this.enemies.find(enemy=>enemy.uid===shot.sourceEnemyId &&
+      enemy.sprite?.active && enemy.type!==6);
+    const candidate=source??this.enemies.filter(enemy=>
+      enemy.type!==6&&enemy.sprite?.active).sort((a,b)=>
+      Math.hypot(a.sprite.x-x,a.sprite.y-y)-
+      Math.hypot(b.sprite.x-x,b.sprite.y-y))[0];
+    const vector=wallReflectionVector(wall,x,y,candidate);
+    const orb=this.add.circle(x,y,5,0xe3fbff,0.98)
+      .setStrokeStyle(2.5,0x4ea9ff,0.94).setDepth(46);
+    this.wallReflections.push({sprite:orb,x,y,...vector,
+      bornAt:this.time.now,damage:wall.reflectionDamage??US_WALL_REFLECTION_DAMAGE});
+    // Pequeno núcleo branco vindo do arco e rumando para o agressor.
+    const ping=this.add.circle(x,y,12,0xffffff,0.30)
+      .setStrokeStyle(2,0xbbefff,0.75).setDepth(47);
+    this.tweens.add({targets:ping,scale:1.7,alpha:0,duration:210,
+      onComplete:()=>ping.destroy()});
+  }
+
+  updateAmericanWallReflections(dt){
+    for(let i=this.wallReflections.length-1;i>=0;i--){
+      const shot=this.wallReflections[i];
+      if(!shot.sprite?.active){this.wallReflections.splice(i,1);continue;}
+      const previousX=shot.sprite.x,previousY=shot.sprite.y;
+      shot.sprite.x+=shot.vx*dt;shot.sprite.y+=shot.vy*dt;
+      let hit=false;
+      for(let j=this.enemies.length-1;j>=0;j--){
+        const enemy=this.enemies[j];
+        if(!enemy.sprite?.active)continue;
+        if(enemy.type===6){
+          // Respeita a barreira e os módulos; não atravessa o casco.
+          if(hitType6Segment(this,enemy,previousX,previousY,
+            shot.sprite.x,shot.sprite.y,shot.damage,5)){hit=true;break;}
+          continue;
+        }
+        if(!segmentHitsCircle(previousX,previousY,
+          shot.sprite.x,shot.sprite.y,enemy.sprite.x,enemy.sprite.y,
+          this.enemyCombatRadius(enemy)+5))continue;
+        this.impactInvader(j,shot.damage,0,'#b7f1ff',false);
+        hit=true;break;
+      }
+      if(hit||this.time.now-shot.bornAt>US_WALL_REFLECTION_LIFETIME_MS||
+        shot.sprite.y< -35||shot.sprite.y>H+35||
+        shot.sprite.x< -35||shot.sprite.x>W+35){
+        shot.sprite.destroy();this.wallReflections.splice(i,1);
+      }
+    }
+  }
+
+  clearAmericanWallReflections(){
+    for(const shot of this.wallReflections??[])shot.sprite?.destroy();
+    this.wallReflections=[];
+  }
+
+  // Laser de Cerco e feixe final do núcleo Tipo 6: únicas exceções.
+  breakAmericanWallsWithType6Beam(x1,y1,x2,y2,source,halfWidth=0){
+    let broke=false;
+    for(const wall of [...this.americanWalls]){
+      wall.currentArc=americanWallAnimation(wall,this.time.now).arc;
+      if(!americanWallBreaksFromBeam(wall,source,x1,y1,x2,y2,halfWidth))
+        continue;
+      this.destroyAmericanWall(wall,true);
+      broke=true;
+    }
+    return broke;
+  }
+
+  createProjectile(angle, special, distance = 0, effects = null, centerGlow = false, offsetX = 0, generation = 0, origin = null, patriotic = false) {
     const vx = Math.cos(angle);
     const vy = Math.sin(angle);
-    const x = (origin?.x ?? CANNON.x + vx * 29) + offsetX;
-    const y = origin?.y ?? CANNON.y + vy * 29;
+    // A origem física acompanha a boca desenhada, mesmo entre dois frames.
+    // Se o tiro foi gerado por outra arma, preservamos sua origem explícita.
+    const muzzle=this.cannonBarrelArt
+      ? cannonSpritePose(this.aimAngle??angle,CANNON.x,CANNON.y-11,this.cannonRecoil)
+      : null;
+    const x=(origin?.x??muzzle?.muzzleX??(CANNON.x+vx*40))+offsetX;
+    const y=origin?.y??muzzle?.muzzleY??(CANNON.y+vy*40);
     const style = shotVisualFor(this.activeUpgradeIds());
     if (this.isV1Campaign && this.combat.transformed === 'br') style.color = 0x55e99e;
+    if (this.isV1Campaign && this.combat.transformed === 'cn') style.color = centerGlow ? 0xffe56a : 0xff5651;
+    if (this.isV1Campaign && this.combat.transformed === 'ru') style.color = 0x8beaff;
     const vfx = special ? null : (effects ?? shotVfxFor(this.activeUpgradeIds()));
+    const julyShot=!special&&patriotic;
+    // Identidade coreana: pulso laser visual em cada tiro físico, sem mudar física.
+    const koreanLaserBolt=!special&&((this.modernMathEnabled&&this.v1LabPrincipal==='jp')||(this.isV1Campaign&&this.combat.koreaContinuous));
+    const koreanLaserPulse=!special&&!this.modernMathEnabled&&this.isV1Campaign&&this.combat.plasmaEvery>0;
+    const usRocket=!special&&this.isV1Campaign&&this.combat.usRocketRadius>0;
     // Somente a representação gráfica é limitada. Balas invisíveis continuam com física e dano.
     const visible = special || this.visibleProjectileCount < MAX_VISUAL_PROJECTILES;
     if (visible) this.visibleProjectileCount += 1;
     const dot = !visible ? {x, y, destroy(){}} : special
-      ? this.add.circle(x, y, 8, 0x72eaf8).setDepth(35)
-      : this.add.rectangle(x, y, style.width, style.length, style.color)
-        .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff, centerGlow ? 0.95 : 0.65)
-        .setRotation(angle + Math.PI / 2)
-        .setDepth(35);
+      ? this.add.circle(x, y, 5, 0x72eaf8).setDepth(35)
+      : usRocket ? this.createAmericanRocketSprite(x,y,angle,this.combat.usRocketRadius)
+      : koreanLaserBolt
+        ? this.add.rectangle(x,y,this.labWinner==='jp'?4:3,
+            this.labWinner==='jp'?22:15,
+            this.labWinner==='jp'?[0x9cf5ff,0xffb3f6,0xd18dff][this.basicShotCount%3]:0xb78aff)
+          .setStrokeStyle(1,0xffffff,.9).setRotation(angle+Math.PI/2).setDepth(35)
+      : julyShot
+        ? this.add.circle(x,y,9,0xf5f8ff)
+          .setStrokeStyle(3,0x427ee3,0.96).setDepth(36)
+      : vfx?.cryogenic
+        ? this.add.circle(x, y, style.width * 0.6, style.color, 0.30)
+          .setStrokeStyle(1,0xf0ffff,0.34).setDepth(35)
+        : this.add.rectangle(x, y, style.width, style.length, style.color)
+          .setStrokeStyle(centerGlow ? 2 : 1, 0xffffff, centerGlow ? 0.95 : 0.65)
+          .setRotation(angle + Math.PI / 2)
+          .setDepth(35);
+    if(koreanLaserPulse && visible && !vfx?.cryogenic && !julyShot && !usRocket){
+      // Mesma forma base para não afetar os outros países; mudança visual local.
+      dot.setFillStyle(0xb96aff).setScale(1,Math.max(1,20/style.length))
+        .setStrokeStyle(centerGlow ? 2 : 1,0xffffff,0.98);
+    }
     const speed = special ? 300 : this.combat.basicSpeed;
     // Uma única Graphics por bala, redesenhada enquanto ela se move.
     // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
-    const trail = visible && vfx && (vfx.heavy || vfx.multiple)
+    const trail = visible && vfx && !koreanLaserBolt &&
+      (vfx.heavy || vfx.multiple || koreanLaserPulse || julyShot || usRocket)
       ? this.add.graphics().setDepth(34) : null;
     const bullet = {
       sprite: dot,
@@ -2375,6 +5610,14 @@ export class GameScene extends Phaser.Scene {
       trail,
       vfx,
       centerGlow,
+      koreanLaserPulse,koreanLaserBolt,
+      koreanRicochet:false,
+      koreanBouncesLeft:!special&&this.modernMathEnabled?(this.labExtra?.jpBounces??0):0,
+      koreanBounceRange:this.labExtra?.jpBounceRange??180,
+      koreanBounceRetention:this.labExtra?.jpBounceRetention??.7,
+      patriotic:julyShot,
+      usRocket,
+      usBlastRadius:usRocket?this.combat.usRocketBlastRadius:0,
       vx: vx * speed,
       vy: vy * speed,
       special,
@@ -2383,9 +5626,14 @@ export class GameScene extends Phaser.Scene {
       damage: special ? 0 : this.combat.basicDamage,
       pierceLeft: special ? 0 : this.combat.pierce,
       knockback: special ? 0 : this.combat.knockback,
-      fragmentation: !special && this.combat.fragmentation,
+      fragmentation: !special && !usRocket && this.combat.fragmentation,
       impactColor: style.impactColor,
       hitEnemyIds: new Set(),
+      distanceTravelled:0,
+      usRadius:usRocket?this.combat.usRocketRadius:julyShot?10:
+        7*(this.labExtra?.projectileRadiusMultiplier??1),
+      chinaSplit:!special && !julyShot && generation===0 &&
+        this.combat.chinaSplitCount>1,
     };
     this.projectiles.push(bullet);
     this.drawProjectileTrail(bullet);
@@ -2400,14 +5648,65 @@ export class GameScene extends Phaser.Scene {
     const dx = bullet.vx / length;
     const dy = bullet.vy / length;
     gfx.clear();
-    if (bullet.vfx.heavy) {
-      // Rastro quente russo: halo vermelho e núcleo branco-alaranjado.
-      gfx.lineStyle(10, 0xff594c, 0.18);
-      gfx.lineBetween(x - dx * 30, y - dy * 30, x, y);
-      gfx.lineStyle(3, 0xffd6ab, 0.92);
-      gfx.lineBetween(x - dx * 23, y - dy * 23, x, y);
+    if(bullet.koreanRainbow){
+      const palette=[0xff75c6,0xffd86e,0x77f7ff,0x9d8dff,0x8cffa6];
+      const t=Math.floor((this.time.now/85+bullet.distanceTravelled/24)%palette.length);
+      gfx.lineStyle(13,palette[t],.20);
+      gfx.lineBetween(x-dx*64,y-dy*64,x,y);
+      gfx.lineStyle(6,palette[(t+2)%palette.length],.72);
+      gfx.lineBetween(x-dx*48,y-dy*48,x,y);
+      gfx.lineStyle(2,0xffffff,.95);
+      gfx.lineBetween(x-dx*36,y-dy*36,x,y);
+      bullet.sprite.setFillStyle?.(palette[t]);
+      return;
     }
-    if (bullet.vfx.multiple) {
+    if(bullet.usRocket){
+      // Chama de foguete tricolor, sem criar objetos a cada quadro.
+      const r=Math.max(4,bullet.usRadius);
+      gfx.lineStyle(r*1.05,0x2366c8,0.28);
+      gfx.lineBetween(x-dx*r*4,y-dy*r*4,x-dx*r,y-dy*r);
+      gfx.lineStyle(r*0.60,0xe8505b,0.70);
+      gfx.lineBetween(x-dx*r*3.2,y-dy*r*3.2,x-dx*r,y-dy*r);
+      gfx.lineStyle(r*0.26,0xffffff,0.92);
+      gfx.lineBetween(x-dx*r*2.2,y-dy*r*2.2,x-dx*r,y-dy*r);
+      return;
+    }
+    if(bullet.patriotic){
+      // Feixe de três cores: espetáculo patriótico, não fogos de São João.
+      gfx.lineStyle(10,0x316bb9,0.25);
+      gfx.lineBetween(x-dx*36,y-dy*36,x,y);
+      gfx.lineStyle(5,0xe54a5a,0.70);
+      gfx.lineBetween(x-dx*29,y-dy*29,x,y);
+      gfx.lineStyle(2,0xffffff,0.98);
+      gfx.lineBetween(x-dx*23,y-dy*23,x,y);
+    }
+    if (bullet.vfx?.cryogenic) {
+      // 5 volutas por projétil; nenhuma partícula nova por frame.
+      const sidewaysX=-dy,sidewaysY=dx;
+      for(let i=0;i<5;i++){
+        const d=8+i*10;
+        const sway=Math.sin(bullet.distanceTravelled*0.033+i*2.35)*(3+i*1.2);
+        const px=x-dx*d+sidewaysX*sway;
+        const py=y-dy*d+sidewaysY*sway;
+        gfx.fillStyle(i%2?0xd9f8ff:0x80cce9,0.40-i*0.055);
+        gfx.fillCircle(px,py,7+i*1.7);
+        if(i%2===0){
+          gfx.fillStyle(0xf1fdff,0.70-i*0.10);
+          gfx.fillRect(px-1.5,py-1.5,3,3);
+        }
+      }
+      gfx.fillStyle(0xffffff,0.58).fillCircle(x,y,3.3);
+    }
+    if (bullet.koreanLaserPulse) {
+      // Trilha de laser branco/violeta na Graphics reutilizada por projétil.
+      gfx.lineStyle(9,0x7531e2,0.20);
+      gfx.lineBetween(x-dx*37,y-dy*37,x,y);
+      gfx.lineStyle(4,0xc86cff,0.68);
+      gfx.lineBetween(x-dx*30,y-dy*30,x,y);
+      gfx.lineStyle(1,0xffffff,0.92);
+      gfx.lineBetween(x-dx*26,y-dy*26,x,y);
+    }
+    if (bullet.vfx?.multiple) {
       // Destaque independente dos dois/três tiros da China. Pode coexistir
       // com o rastro russo sem perder o brilho vermelho/dourado.
       gfx.lineStyle(bullet.centerGlow ? 11 : 8, 0xffa52c,
@@ -2421,9 +5720,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   explode(x, y) {
+    playSfx('explosion',{throttle:130});
+    if (this.isV1Campaign && v1CountryLevels(this.combatCampaign).br >= 2) {
+      this.createArraial(x, y);
+      return;
+    }
     this.specialBlasts.push({
       id: this.nextBlastId++,
       x, y, bornAt: this.time.now,
+      radiusScale:0.58,damageScale:0.40, // Especial neutro é menor que os nacionais.
       hits: new Set(),
       graphics: this.add.graphics().setDepth(39),
     });
@@ -2467,19 +5772,260 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+
+  createArraial(x, y) {
+    // O balão é um ALVO do jogador, não uma sequência automática de fogos.
+    const graphics = this.add.graphics().setDepth(39);
+    this.arraialNuclei.push({
+      x,y,graphics,bornAt:this.time.now,bursts:0,
+      // Upgrades pares brasileiros ampliam a região, não a força de cada rojão.
+      radius:this.modernMathEnabled?(this.labExtra?.brBalloonRadius??ARRAIAL.orbitRadius):
+        ARRAIAL.orbitRadius+10*Math.max(0,(this.specialBuild?.stages?.br??1)-1),
+    });
+  }
+
+  arraialDamage(x, y, radius, amount, color) {
+    // Uma única regra de dano em área, aplicada a naves e projéteis.
+    // Nada de remover bombas ou matar inimigos mais fortes automaticamente.
+    for(let i=this.enemies.length-1;i>=0;i--){
+      const enemy=this.enemies[i];
+      if(enemy.type===6){hitType6At(this,enemy,x,y,amount,radius);continue;}
+      if(withinBlast(x,y,enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy),radius))
+        this.impactInvader(i,amount,0,color,false);
+    }
+    for(let i=this.enemyBullets.length-1;i>=0;i--){
+      const bullet=this.enemyBullets[i];
+      if(!bullet?.sprite?.active)continue;
+      if(!withinBlast(x,y,bullet.sprite.x,bullet.sprite.y,
+        bullet.radius??8.25,radius))continue;
+      bullet.hp=Math.max(0,(bullet.hp??1)-amount);
+      if(bullet.hp<=0){
+        if(bullet.colossal)detonateType6Bomb(this,bullet);
+        else this.removeEnemyBullet(i,true);
+      }else this.showEnemyBulletHit(bullet);
+    }
+  }
+
+  arraialFirework(x, y, hue, damaging = true, stage = arraialStage(0)) {
+    // TODO: a morte de inimigos NÃO deve depender de um orçamento de VFX.
+    // A colisão e o dano acontecem sempre, mesmo com 50 tiros/segundo.
+    if(damaging)this.arraialDamage(x,y,
+      this.modernMathEnabled?(this.labExtra?.brFireworkRadius??ARRAIAL.fireworkRadius):ARRAIAL.fireworkRadius,
+      stage.damage,'#ffe8b7');
+    if(damaging&&this.modernMathEnabled&&(this.labExtra?.brElectricRate??0)>0&&
+       this.time.now-(this.labLastElectricAt??-Infinity)>=
+         1000/this.labExtra.brElectricRate){
+      this.labLastElectricAt=this.time.now;
+      this.arraialDamage(x,y,this.labExtra.brElectricRange,
+        this.labExtra.brElectricDamage,'#fffab2');
+    }
+    playSfx('brFireworkBurst',{throttle:95,volumeScale:0.50});
+    if(this.arraialBurstVisuals>=ARRAIAL.maxBurstVisuals)return;
+    this.arraialBurstVisuals++;
+    const gfx=this.add.graphics().setPosition(x,y).setDepth(46);
+    const palette=stage.palette;
+    const color=palette[hue%palette.length];
+    const started=this.time.now,duration=290;
+    const paint=()=>{
+      if(!gfx.active)return;
+      const t=Math.min(1,(this.time.now-started)/duration);
+      const radius=2+18*Math.sin(Math.PI*t);
+      const fade=1-t*t;
+      gfx.clear();
+      gfx.fillStyle(color,0.18*fade);gfx.fillCircle(0,0,radius+4);
+      gfx.fillStyle(0xfff8d6,0.75*fade);gfx.fillCircle(0,0,Math.max(1,4*(1-t)));
+      for(let k=0;k<12;k++){
+        const angle=k*Math.PI/6;
+        const outer=radius*(k%3===0?1:0.78);
+        const spark=palette[(hue+k)%palette.length];
+        gfx.fillStyle(k%4===0?0xfff9db:spark,fade);
+        gfx.fillRect(Math.round(Math.cos(angle)*outer)-1,
+          Math.round(Math.sin(angle)*outer)-1,k%3===0?3:2,k%3===0?3:2);
+        if(k%3===0){gfx.fillStyle(color,fade*0.7);
+          gfx.fillRect(Math.round(Math.cos(angle)*outer*0.57),
+            Math.round(Math.sin(angle)*outer*0.57),2,2);}
+      }
+    };
+    paint();
+    this.time.addEvent({delay:32,repeat:Math.ceil(duration/32)+1,callback:()=>{
+      if(!gfx.active)return;
+      if(this.time.now-started>=duration){
+        gfx.destroy();
+        this.arraialBurstVisuals=Math.max(0,this.arraialBurstVisuals-1);
+        return;
+      }
+      paint();
+    }});
+  }
+
+  updateArraial() {
+    for(let i=this.arraialNuclei.length-1;i>=0;i--){
+      const n=this.arraialNuclei[i], age=this.time.now-n.bornAt;
+      if(age>=ARRAIAL.duration){
+        this.arraialDamage(n.x,n.y,n.radius,
+          this.modernMathEnabled?(this.labExtra?.brFinalDamage??ARRAIAL.finaleDamage):ARRAIAL.finaleDamage,'#fff2aa');
+        playSfx('brFireworkBurst',{throttle:0,volumeScale:0.86});
+        // Frase pequena composta somente de pixels: sem objeto Text ou HUD.
+        const phrase=arraialPhrasePixels(arraialFinalPhrase());
+        const scale=2, centerX=Math.max(phrase.width,
+          Math.min(W-phrase.width,n.x));
+        const centerY=Math.max(phrase.height+8,Math.min(H-phrase.height-8,n.y-34));
+        const coords=phrase.points.map(p=>({
+          x:centerX+(p.x-phrase.width/2)*scale,
+          y:centerY+(p.y-phrase.height/2)*scale,
+        }));
+        const phraseGfx=this.add.graphics().setDepth(110);
+        const phraseColors=arraialStage(n.bursts).palette;
+        const drawPhrase=(scatter=0,fade=1)=>{
+          if(!phraseGfx.active)return;
+          phraseGfx.clear();
+          coords.forEach((p,k)=>{
+            const a=k*2.39996;
+            const x=p.x+Math.cos(a)*scatter*(0.5+k%4/5);
+            const y=p.y+Math.sin(a)*scatter*(0.5+k%5/6);
+            phraseGfx.fillStyle(phraseColors[k%phraseColors.length],fade);
+            phraseGfx.fillRect(Math.round(x),Math.round(y),2,2);
+          });
+        };
+        drawPhrase();
+        // O estouro aplica 1 de dano por alvo, independentemente da densidade
+        // de pixels; projéteis inimigos seguem a mesma regra.
+        this.time.delayedCall(210,()=>{
+          if(!phraseGfx.active)return;
+          for(let j=this.enemies.length-1;j>=0;j--){
+            const e=this.enemies[j];
+            const x=e.sprite.x,y=e.sprite.y,r=enemyContactRadius(e.type);
+            if(!coords.some(p=>Math.abs(p.x-x)<=r+5&&Math.abs(p.y-y)<=r+5))continue;
+            if(e.type===6)hitType6At(this,e,x,y,1,r);
+            else this.impactInvader(j,1,0,'#ffe8b7',false);
+          }
+          for(let j=this.enemyBullets.length-1;j>=0;j--){
+            const b=this.enemyBullets[j];
+            if(!b?.sprite?.active)continue;
+            if(!coords.some(p=>Math.abs(p.x-b.sprite.x)<=13&&
+              Math.abs(p.y-b.sprite.y)<=13))continue;
+            b.hp=Math.max(0,(b.hp??1)-1);
+            if(b.hp<=0){
+              if(b.colossal)detonateType6Bomb(this,b);
+              else this.removeEnemyBullet(j,true);
+            }else this.showEnemyBulletHit(b);
+          }
+          let frame=0;
+          const timer=this.time.addEvent({delay:35,repeat:8,callback:()=>{
+            frame++;
+            if(!phraseGfx.active)return;
+            drawPhrase(frame*3,Math.max(0,1-frame/9));
+            if(frame>=9)phraseGfx.destroy();
+          }});
+        });
+        // Clarão final mais expressivo, também ancorado no balão sem escala.
+        const finale=this.add.graphics().setPosition(n.x,n.y).setDepth(48);
+        const startFinal=this.time.now;
+        const shades=[0xffe46b,0xff6b72,0x6df5af,0x9bcbff,0xf2a4ff];
+        const paintFinal=()=>{
+          if(!finale.active)return;
+          const t=Math.min(1,(this.time.now-startFinal)/680);
+          const fade=1-t*t;
+          const radius=8+(n.radius-8)*t;
+          finale.clear();
+          finale.fillStyle(0xffefaf,0.22*fade);finale.fillCircle(0,0,radius);
+          for(let ring=0;ring<3;ring++){
+            finale.lineStyle(4,shades[ring],fade);
+            finale.strokeCircle(0,0,radius*(0.5+ring*0.24));
+          }
+          for(let k=0;k<20;k++){
+            const angle=k*Math.PI/10;
+            finale.lineStyle(3,shades[k%shades.length],fade);
+            finale.lineBetween(Math.cos(angle)*radius*0.35,Math.sin(angle)*radius*0.35,
+              Math.cos(angle)*radius,Math.sin(angle)*radius);
+          }
+        };
+        paintFinal();
+        this.time.addEvent({delay:32,repeat:22,callback:()=>{
+          if(!finale.active)return;
+          if(this.time.now-startFinal>=680){finale.destroy();return;}
+          paintFinal();
+        }});
+        n.graphics.destroy(); this.arraialNuclei.splice(i,1);
+        continue;
+      }
+      const g=n.graphics;g.clear();
+      // O círculo visível marca onde as pequenas explosões podem nascer.
+      const pulse=0.6+0.4*Math.sin(age*0.008);
+      g.lineStyle(1.6,0x6af2aa,0.30+0.13*pulse);
+      g.strokeCircle(n.x,n.y,n.radius);
+      g.fillStyle(0x42a871,0.034*pulse);
+      g.fillCircle(n.x,n.y,n.radius);
+      // Balão junino em pixel-art geométrica, núcleo luminoso, cordão e boca.
+      g.fillStyle(0xffdf69,0.19*pulse);g.fillCircle(n.x,n.y,22);
+      g.fillStyle(0xdb544b,1);g.fillTriangle(n.x,n.y-18,n.x-12,n.y-7,n.x+12,n.y-7);
+      g.fillStyle(0xf6b948,1);g.fillTriangle(n.x-12,n.y-7,n.x+12,n.y-7,n.x,n.y+12);
+      g.lineStyle(2,0xffeb98,0.95);g.lineBetween(n.x,n.y-17,n.x,n.y+12);
+      g.fillStyle(0xffedb2,pulse);g.fillCircle(n.x,n.y-1,4);
+      g.lineStyle(1,0xeeb979,0.9);g.lineBetween(n.x,n.y+12,n.x,n.y+20);
+    }
+  }
+
+  updateArraialFlames() {
+    if(!this.isV1Campaign || v1CountryLevels(this.combatCampaign).br<2 || this.shield<=0) return;
+    if(this.firePulse){
+      const elapsed=this.time.now-this.firePulse.bornAt;
+      if(elapsed>=ARRAIAL.firePulseDuration) this.firePulse=null;
+      else {
+        const radius=firePulseRadius(elapsed);
+        for(let i=this.enemies.length-1;i>=0;i--){
+          const enemy=this.enemies[i];
+          if(this.firePulse.hits.has(enemy.uid))continue;
+          if(withinBlast(CANNON.x,CANNON.y+7,
+            enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy),radius)){
+            this.firePulse.hits.add(enemy.uid);
+            this.impactInvader(i,ARRAIAL.firePulseDamage,0,'#ffac50',false);
+          }
+        }
+      }
+    }
+    if(this.time.now-this.lastFlameTick<ARRAIAL.flameInterval) return;
+    this.lastFlameTick=this.time.now;
+    for(let i=this.enemies.length-1;i>=0;i--){
+      const enemy=this.enemies[i];
+      if(withinFlame(CANNON.x,CANNON.y+7,
+        ARRAIAL.fireRingRadius,enemy.sprite.x,enemy.sprite.y,
+        enemyContactRadius(enemy.type),true))
+        this.impactInvader(i,ARRAIAL.flameDamage,0,'#ffb85b',false);
+    }
+  }
+
   hitEnemyWithBlast(index) {
     const enemy = this.enemies[index];
     if (!enemy) return;
+    if(enemy.type===6){
+      for(const blast of this.specialBlasts){
+        const radius=specialBlastRadius(this.time.now-blast.bornAt,blast.radiusScale??1);
+        const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
+        const targets=type6AreaTargets(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+          blast.x,blast.y,radius);
+        for(const id of targets){
+          const key=enemy.uid+':'+id;
+          if(blast.hits.has(key))continue;
+          const rect=rects.find(r=>r.id===id);
+          if(!rect)continue;
+          blast.hits.add(key);
+          hitType6At(this,enemy,rect.x,rect.y,
+            4*(blast.damageScale??1)*(this.isV1Campaign?this.combat.specialAmplifier:1),0,true);
+        }
+      }
+      return;
+    }
     for (const blast of this.specialBlasts) {
       if (blast.hits.has(enemy.uid)) continue;
       if (!blastCatchesTarget(
         blast.x, blast.y, this.time.now - blast.bornAt,
-        enemy.sprite.x, enemy.sprite.y, enemyContactRadius(enemy.type),
+        enemy.sprite.x, enemy.sprite.y, this.enemyCombatRadius(enemy),blast.radiusScale??1,
       )) continue;
       blast.hits.add(enemy.uid);
       // Cada explosão pode atingir o mesmo alvo uma única vez.
       // Naves grandes recebem dano, não morrem instantaneamente.
-      this.impactInvader(index, (enemy.type === 5 ? 4 : 3) * (this.isV1Campaign ? this.combat.specialAmplifier : 1), 0, '#a8faff');
+      this.impactInvader(index, (enemy.type === 5 ? 4 : 3) * (blast.damageScale??1) * (this.isV1Campaign ? this.combat.specialAmplifier : 1), 0, '#a8faff');
       break;
     }
   }
@@ -2493,7 +6039,7 @@ export class GameScene extends Phaser.Scene {
         this.specialBlasts.splice(i, 1);
         continue;
       }
-      const radius = specialBlastRadius(age);
+      const radius = specialBlastRadius(age,blast.radiusScale??1);
       const pulse = 0.5 + 0.5 * Math.sin(age / 105);
       const fade = Math.min(1, (SPECIAL_BLAST_DURATION - age) / 500);
       const gfx = blast.graphics;
@@ -2578,19 +6124,193 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  // O clarão no cano avisa quando uma salva Quatro de Julho sai de fato.
+  // Só UMA animação por salva, sem partículas persistentes nem novos assets.
+  showAmericanJulyMuzzle(angle){
+    const x=CANNON.x+Math.cos(angle)*35;
+    const y=CANNON.y+Math.sin(angle)*35;
+    const colors=[0x2769cf,0xf3f8ff,0xe74c60];
+    for(let i=0;i<3;i++){
+      const ring=this.add.circle(x,y,7+i*4,colors[i],0.27)
+        .setStrokeStyle(2,colors[i],0.85).setDepth(39);
+      this.tweens.add({targets:ring,scale:1.8+i*0.33,alpha:0,
+        duration:190+i*55,onComplete:()=>ring.destroy()});
+    }
+  }
+
+  // Quatro de Julho: dano APENAS no impacto do projétil carregado.
+  // Estilhaços e ondas não alimentam o medidor nem provocam novas explosões.
+  detonateAmericanJuly(x,y,directId,baseDamage){
+    const radius=this.combat.usJulyBlastRadius;
+    if(!radius)return;
+    playSfx('usShockwave',{throttle:105,volumeScale:0.44});
+    this.explodeAmericanPrimary(x,y,directId,
+      Math.max(this.combat.usJulyBlastDamage,baseDamage*2),radius);
+    const colors=[0x367bd4,0xf4f7ff,0xe24b62];
+    for(let i=0;i<3;i++){
+      const ring=this.add.circle(x,y,Math.max(10,radius*(0.40+i*0.23)),
+        colors[i],0.18).setStrokeStyle(i===1?4:3,colors[i],0.92)
+        .setDepth(53);
+      this.tweens.add({targets:ring,scale:1.10+i*0.15,alpha:0,
+        duration:270+i*85,onComplete:()=>ring.destroy()});
+    }
+    const spark=this.add.graphics().setPosition(x,y).setDepth(54);
+    for(let k=0;k<15;k++){
+      const a=(Math.PI*2*k)/15;
+      const inner=radius*(0.19+(k%3)*0.08);
+      const outer=radius*(0.56+(k%4)*0.09);
+      spark.lineStyle(k%3===1?3.2:2.3,colors[k%3],0.95);
+      spark.lineBetween(Math.cos(a)*inner,Math.sin(a)*inner,
+        Math.cos(a)*outer,Math.sin(a)*outer);
+    }
+    this.tweens.add({targets:spark,scale:1.35,alpha:0,
+      duration:360,onComplete:()=>spark.destroy()});
+    if(!this.combat.usJulyShards)return;
+    // Coroa limitada (30 px) além do raio principal; não duplica o dano nos
+    // inimigos que já estavam dentro da explosão nem gera colisões recursivas.
+    const outer=radius+30;
+    for(let k=this.enemies.length-1;k>=0;k--){
+      const enemy=this.enemies[k];
+      if(enemy.type===6){
+        // Escudos e módulos do Tipo 6 usam as regras existentes de área.
+        const innerSet=new Set(type6AreaTargets(enemy.type6,
+          enemy.sprite.x,enemy.sprite.y,x,y,radius));
+        const rects=type6TargetRects(enemy.type6,enemy.sprite.x,enemy.sprite.y);
+        const additional=type6AreaTargets(enemy.type6,
+          enemy.sprite.x,enemy.sprite.y,x,y,outer);
+        for(const id of additional){
+          if(innerSet.has(id))continue;
+          const rect=rects.find(rect=>rect.id===id);
+          if(rect)hitType6At(this,enemy,rect.x,rect.y,0.65,0,true);
+        }
+        continue;
+      }
+      if(enemy.uid===directId)continue;
+      const d=Math.hypot(enemy.sprite.x-x,enemy.sprite.y-y)-
+        enemyContactRadius(enemy.type);
+      if(d>radius&&d<=outer)
+        this.impactInvader(k,0.65,0,'#c9defe',false);
+    }
+  }
+
+  explodeAmericanPrimary(x,y,primaryId,damage,radius) {
+    // O alvo direto já recebeu o dano: onda secundária atinge apenas outros.
+    const flash=this.add.circle(x,y,radius,0x3b79d9,0.17)
+      .setStrokeStyle(3,0xffffff,0.82).setDepth(52);
+    this.tweens.add({targets:flash,scale:1.35,alpha:0,duration:210,
+      onComplete:()=>flash.destroy()});
+    for(let k=this.enemies.length-1;k>=0;k--){
+      const other=this.enemies[k];
+      if(other.type===6){
+        // A onda do projétil americano alcança outros módulos, além do alvo
+        // direto; o componente atingido pela bala não recebe o mesmo dano 2x.
+        const direct=type6PointTarget(other.type6,other.sprite.x,other.sprite.y,x,y,0);
+        const targets=type6AreaTargets(other.type6,other.sprite.x,other.sprite.y,x,y,radius);
+        const rects=type6TargetRects(other.type6,other.sprite.x,other.sprite.y);
+        for(const id of targets){
+          if(id===direct&&other.uid===primaryId)continue;
+          const rect=rects.find(rect=>rect.id===id);
+          if(rect)hitType6At(this,other,rect.x,rect.y,damage*0.5,0,true);
+        }
+        continue;
+      }
+      if(other.uid===primaryId)continue;
+      if(Math.hypot(other.sprite.x-x,other.sprite.y-y)<=radius+enemyContactRadius(other.type))
+        this.impactInvader(k,damage*0.5,0,'#b5d9ff',false);
+    }
+  }
+
   updatePlayerProjectiles(dt) {
     for (let i = this.projectiles.length - 1; i >= 0; i -= 1) {
       const bullet = this.projectiles[i];
-      bullet.sprite.x += bullet.vx * dt;
-      bullet.sprite.y += bullet.vy * dt;
+      // Os foguetes americanos não usam guiagem.
+      // O tamanho do foguete é fixado na criação. Não há mudança de direção no ar.
+      const previousX=bullet.sprite.x,previousY=bullet.sprite.y;
+      let specialArrived=false;
+      if(bullet.special){
+        // Partir da boca real do canhão pode deslocar o projétil em relação
+        // ao raio da mira: guiar diretamente ao alvo impede ultrapassagens.
+        const next=advanceSpecialProjectile(
+          previousX,previousY,bullet.tx,bullet.ty,300,dt);
+        bullet.sprite.setPosition(next.x,next.y);
+        specialArrived=next.arrived;
+      }else{
+        if(bullet.pandaTarget){
+          let target=this.enemies.find(e=>e.uid===bullet.pandaTarget&&e.sprite?.active);
+          if(!target){
+            target=this.enemies.filter(e=>e.sprite?.active&&e.type!==6)
+              .sort((a,b)=>Math.hypot(a.sprite.x-CANNON.x,a.sprite.y-CANNON.y)-
+                Math.hypot(b.sprite.x-CANNON.x,b.sprite.y-CANNON.y))[0];
+            bullet.pandaTarget=target?.uid??null;
+          }
+          if(target){
+            const angle=Math.atan2(target.sprite.y-bullet.sprite.y,target.sprite.x-bullet.sprite.x);
+            const speed=Math.hypot(bullet.vx,bullet.vy);
+            bullet.vx=Math.cos(angle)*speed;bullet.vy=Math.sin(angle)*speed;
+            bullet.sprite.setRotation?.(angle+Math.PI/2);
+          }
+        }
+        bullet.sprite.x+=bullet.vx*dt;
+        bullet.sprite.y+=bullet.vy*dt;
+      }
+      bullet.distanceTravelled+=Math.hypot(
+        bullet.sprite.x-previousX,bullet.sprite.y-previousY);
+      if(bullet.specialMarker)bullet.specialMarker.setPosition(bullet.sprite.x,bullet.sprite.y);
       this.drawProjectileTrail(bullet);
       let remove = false;
+      if(!bullet.special){
+        const hit=bullet.koreanDiscoRedirected?null:hitDiscoGlobe(this.discoGlobes,previousX,previousY,
+          bullet.sprite.x,bullet.sprite.y,this.elapsed,Math.max(7,bullet.usRadius||0));
+        if(hit){
+          // O projétil é consumido: o globo divide a energia em
+          // reflexos curvos que continuam ricocheteando entre inimigos.
+          this.fireV1DiscoReflections(hit.globe.x,hit.globe.y,
+            hit.globe.build,hit.globe,
+            bullet.koreanLaserBolt||bullet.koreanRicochet?bullet:null);
+          remove=true;
+        }
+      }
+      // O jogador ALIMENTA o Arraial acertando o balão com o tiro principal.
+      // Usar o segmento evita atravessar a hitbox em FPS baixos. Cada acerto
+      // produz uma explosão em ponto ALEATÓRIO dentro do círculo do balão.
+      if(!remove&&!bullet.special&&this.arraialNuclei.length){
+        for(const n of this.arraialNuclei){
+          if(this.time.now-n.bornAt>=ARRAIAL.duration)continue;
+          if(!shotHitsArraialBalloon(previousX,previousY,
+            bullet.sprite.x,bullet.sprite.y,n.x,n.y,
+            Math.max(3,bullet.usRadius??0)))continue;
+          const baseStage=arraialStage(n.bursts++);
+          const stage=this.modernMathEnabled&&this.specialBuild?.primary==='br'
+            ?{...baseStage,fireworks:this.labExtra?.brFireworks??1,
+              damage:this.labExtra?.brFireworkDamage??1}:baseStage;
+          for(let spark=0;spark<stage.fireworks;spark++){
+            const p=randomArraialBurst(n.x,n.y,n.radius);
+            this.arraialFirework(p.x,p.y,n.bursts+spark,true,stage);
+          }
+          remove=true;
+          break;
+        }
+      }
+      if(!remove && bullet.chinaSplit && bullet.distanceTravelled>=100){
+        // Dez balas se dividem em vinte; filhos de geração 1 não se dividem.
+        const originalAngle=Math.atan2(bullet.vy,bullet.vx);
+        for(const offset of [-0.075,0.075]){
+          const child=this.createProjectile(originalAngle+offset,false,0,bullet.vfx,
+            bullet.centerGlow,0,bullet.generation+1,{x:bullet.sprite.x,y:bullet.sprite.y});
+          child.damage=bullet.damage*(this.modernMathEnabled?(this.labExtra?.cnCopyDamage??1):1);
+        }
+        remove=true;
+      }
 
-      if (bullet.special && Phaser.Math.Distance.Between(
-        bullet.sprite.x, bullet.sprite.y, bullet.tx, bullet.ty,
-      ) <= 300 * dt + 6) {
+      if (bullet.special && (
+        specialArrived ||
+        // Mesmo se houver interrupção grande da simulação, o efeito nunca
+        // pode ficar sem detonador.
+        this.time.now-(bullet.specialLaunchedAt??this.time.now)>4200
+      )) {
         bullet.sprite.setPosition(bullet.tx, bullet.ty);
-        this.explode(bullet.tx, bullet.ty);
+        if(bullet.hybridConfig)this.detonateV1HybridSpecial(bullet.tx,bullet.ty,bullet.hybridConfig);
+        else this.explode(bullet.tx,bullet.ty);
         remove = true;
       }
 
@@ -2601,10 +6321,13 @@ export class GameScene extends Phaser.Scene {
           const hostile = this.enemyBullets[j];
           if (Phaser.Math.Distance.Between(
             bullet.sprite.x, bullet.sprite.y, hostile.sprite.x, hostile.sprite.y,
-          ) >= 16) continue;
+          ) >= (hostile.radius??8.25)+Math.max(7,bullet.usRadius)+3) continue;
           hostile.hp -= bullet.damage;
-          if (hostile.hp <= 0) this.removeEnemyBullet(j);
-          else hostile.sprite.setFillStyle(0xfff5d0);
+          if (hostile.hp <= 0){
+            if(hostile.colossal)detonateType6Bomb(this,hostile);
+            else this.removeEnemyBullet(j,true);
+          }
+          else this.showEnemyBulletHit(hostile);
           remove = true;
           break;
         }
@@ -2614,10 +6337,44 @@ export class GameScene extends Phaser.Scene {
       if (!remove && !bullet.special) {
         for (let j = this.enemies.length - 1; j >= 0; j -= 1) {
           const enemy = this.enemies[j];
+          if(enemy.type===6){
+            const target=type6PointTarget(enemy.type6,enemy.sprite.x,enemy.sprite.y,
+              bullet.sprite.x,bullet.sprite.y,Math.max(7,bullet.usRadius));
+            const key=enemy.uid+':'+target;
+            if(target!==null&&bullet.hitEnemyIds.has(key))continue;
+            const hit=hitType6Bullet(this,enemy,bullet.sprite.x,bullet.sprite.y,
+              bullet.damage*(bullet.chinaLineArmorMultiplier??1),
+              Math.max(7,bullet.usRadius),previousX,previousY);
+            if(!hit.blocked)continue;
+            if(hit.target!==null)bullet.hitEnemyIds.add(enemy.uid+':'+hit.target);
+            if(hit.target!==null&&hit.target!=='barrier')
+              this.usJulyHits=registerAmericanJulyHit(this.usJulyHits,
+                this.combat.usJulyHitsRequired,bullet);
+            if(bullet.usRocket){
+              if(hit.target!==null&&hit.target!=='barrier')
+                this.detonateAmericanRocket(bullet.sprite.x,bullet.sprite.y,
+                  enemy.uid,bullet.usBlastRadius);
+              remove=true;break;
+            }
+            if(bullet.patriotic){
+              if(hit.target!==null&&hit.target!=='barrier')
+                this.detonateAmericanJuly(bullet.sprite.x,bullet.sprite.y,enemy.uid,bullet.damage);
+              remove=true;break;
+            }
+            if(bullet.koreanLaserBolt){remove=true;break;}
+            if(bullet.fragmentation)this.explodeFragments(bullet.sprite.x,bullet.sprite.y,
+              enemy.uid);
+            if(bullet.knockback>0)this.showHeavyImpact(bullet.sprite.x,bullet.sprite.y);
+            if(bullet.fragmentation){remove=true;break;}
+            bullet.pierceLeft-=1;
+            remove=hit.target===null||bullet.pierceLeft<=0;
+            if(remove)break;
+            continue;
+          }
           if (bullet.hitEnemyIds.has(enemy.uid)) continue;
           if (Phaser.Math.Distance.Between(
             bullet.sprite.x, bullet.sprite.y, enemy.sprite.x, enemy.sprite.y,
-          ) >= enemyContactRadius(enemy.type) + 7) continue;
+          ) >= this.enemyCombatRadius(enemy) + Math.max(7,bullet.usRadius)) continue;
 
           const directTargetId = enemy.uid;
           bullet.hitEnemyIds.add(directTargetId);
@@ -2625,10 +6382,27 @@ export class GameScene extends Phaser.Scene {
           const knockback = this.combat.strategicRecoil && bullet.knockback > 0
             ? strategicKnockback(bullet.knockback, enemy.sprite.y)
             : bullet.knockback;
+          if(this.combat.russianFreezeMs && bullet.damage<1000000){
+            this.freezeRussianEnemy(enemy,this.combat.russianFreezeMs);
+
+          }
+          const bulletDamage=bullet.damage*
+            (bullet.chinaLineArmorMultiplier&&enemy.type===5&&enemy.shield>0
+              ?bullet.chinaLineArmorMultiplier:1);
+          const hitDamage=this.combat.russianFreezeMs>0
+            ?sputnikPrimaryDamage(enemy,this.elapsed,bulletDamage,this.specialBuild)
+            :bulletDamage;
           const destroyed = this.impactInvader(
-            j, bullet.damage, knockback, bullet.impactColor,
+            j, hitDamage, knockback, bullet.impactColor,
             true, this.combat.strategicRecoil ? 720 : 400,
           );
+          this.usJulyHits=registerAmericanJulyHit(this.usJulyHits,
+            this.combat.usJulyHitsRequired,bullet);
+          if(bullet.usRocket)
+            this.detonateAmericanRocket(deathPosition.x,deathPosition.y,
+              directTargetId,bullet.usBlastRadius);
+          if(bullet.patriotic)
+            this.detonateAmericanJuly(deathPosition.x,deathPosition.y,directTargetId,bullet.damage);
           if (bullet.knockback > 0) {
             if (this.combat.strategicRecoil) {
               this.showStrategicRecoilImpact(deathPosition.x, deathPosition.y);
@@ -2642,8 +6416,76 @@ export class GameScene extends Phaser.Scene {
               bullet.generation + 1, {x:deathPosition.x+8,y:deathPosition.y-8});
             replica?.hitEnemyIds.add(directTargetId);
           }
-          if (bullet.fragmentation) {
-            this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
+          if(bullet.koreanLaserBolt||bullet.koreanRicochet||bullet.koreanBouncesLeft>0){
+            const next=bullet.koreanBouncesLeft>0
+              ?nextKoreanRicochet(deathPosition.x,deathPosition.y,
+                this.enemies,bullet.hitEnemyIds,bullet.koreanBounceRange):null;
+            if(next){
+              const angle=Math.atan2(next.sprite.y-deathPosition.y,
+                next.sprite.x-deathPosition.x);
+              const speed=this.combat.basicSpeed*.78;
+              // Cada corrente pode ramificar, mas tem orçamento finito.
+              if(bullet.koreanCopiesLeft>0&&this.projectiles.length<95){
+                const excluded=new Set(bullet.hitEnemyIds);
+                excluded.add(next.uid);
+                const alternate=nextKoreanRicochet(deathPosition.x,deathPosition.y,
+                  this.enemies,excluded,bullet.koreanBounceRange);
+                if(alternate){
+                  const alternateAngle=Math.atan2(alternate.sprite.y-deathPosition.y,
+                    alternate.sprite.x-deathPosition.x);
+                  const clone=this.createProjectile(alternateAngle,false,0,bullet.vfx,false,0,
+                    bullet.generation+1,{x:deathPosition.x,y:deathPosition.y});
+                  if(clone){
+                    clone.koreanLaserBolt=true;clone.koreanRicochet=true;
+                    clone.koreanBouncesLeft=Math.max(0,bullet.koreanBouncesLeft-1);
+                    clone.koreanCopiesLeft=0;
+                    clone.koreanBounceRange=bullet.koreanBounceRange;
+                    clone.koreanBounceRetention=bullet.koreanBounceRetention;
+                    clone.koreanVisualStage=bullet.koreanVisualStage;
+                    clone.koreanRainbow=bullet.koreanRainbow;
+                    clone.damage=bullet.damage*bullet.koreanBounceRetention*.55;
+                    clone.hitEnemyIds=new Set(bullet.hitEnemyIds);
+                    clone.vx=Math.cos(alternateAngle)*speed;
+                    clone.vy=Math.sin(alternateAngle)*speed;
+                    if(clone.visual&&clone.sprite?.setDisplaySize)
+                      clone.sprite.setDisplaySize(7+bullet.koreanVisualStage*2,22+bullet.koreanVisualStage*5);
+                    if(clone.koreanRainbow&&clone.visual)clone.trail=this.add.graphics().setDepth(36);
+                    bullet.koreanCopiesLeft--;
+                  }
+                }
+              }
+              bullet.vx=Math.cos(angle)*speed;
+              bullet.vy=Math.sin(angle)*speed;
+              bullet.sprite.setRotation?.(angle+Math.PI/2);
+              bullet.damage=koreanRicochetDamage(bullet.damage,bullet.koreanBounceRetention);
+              bullet.koreanBouncesLeft--;
+              bullet.koreanRicochet=true;
+              const flash=this.add.graphics().setDepth(48);
+              const stage=bullet.koreanVisualStage??1;
+              // Três camadas luminosas sobre uma curva real amostrada.
+              const color=stage>=4?[0xff75c6,0x78efff,0xb68dff][
+                Math.floor(this.time.now/110)%3]:0xb775ff;
+              const startX=deathPosition.x,startY=deathPosition.y;
+              const endX=next.sprite.x,endY=next.sprite.y;
+              const curveX=(startX+endX)/2,curveY=(startY+endY)/2-12-stage*4;
+              const points=[];
+              for(let part=0;part<=18;part++){
+                const t=part/18,u=1-t;
+                points.push({x:u*u*startX+2*u*t*curveX+t*t*endX,
+                  y:u*u*startY+2*u*t*curveY+t*t*endY});
+              }
+              for(const [width,tint,alpha] of [[12,color,.18],[6,color,.53],[2,0xffffff,.96]]){
+                flash.lineStyle(width,tint,alpha);
+                flash.strokePoints(points,false);
+              }
+              this.tweens.add({targets:flash,alpha:0,duration:120+(bullet.koreanVisualStage??1)*60,
+                onComplete:()=>flash.destroy()});
+              remove=false;
+            }else remove=true;
+            break;
+          }
+          if (bullet.fragmentation || bullet.patriotic || bullet.usRocket) {
+            if(!bullet.patriotic)this.explodeFragments(bullet.sprite.x, bullet.sprite.y, directTargetId,
               destroyed ? deathPosition : null);
             remove = true;
           } else {
@@ -2653,12 +6495,15 @@ export class GameScene extends Phaser.Scene {
           if (remove) break;
         }
       }
-      if (!remove && (
+      // Um especial nunca deve sumir sem executar seu efeito. Seu alvo
+      // é limitado à área visível, e o passo final sempre o alcança.
+      if (!remove && !bullet.special && (
         bullet.sprite.x < -30 || bullet.sprite.x > W + 30 ||
         bullet.sprite.y < -30 || bullet.sprite.y > H + 30
       )) remove = true;
       if (remove) {
         bullet.trail?.destroy();
+        bullet.specialMarker?.destroy();
         bullet.sprite.destroy();
         if (bullet.visual) this.visibleProjectileCount = Math.max(0, this.visibleProjectileCount - 1);
         this.projectiles.splice(i, 1);
@@ -2667,19 +6512,29 @@ export class GameScene extends Phaser.Scene {
   }
 
   damageCannon(amount) {
+    if (this.tutorialComplete) return;
+    if(this.mode==='wave0'&&!this.v1Playtest&&!this.unifiedLab){
+      this.shield=Math.max(10,this.shield-amount*.04);return;
+    }
     this.lastDamageAt = this.time.now;
+    const oldShield=this.shield;
     if (this.mode === 'upgradeLab' || this.mode === 'lab') {
       // Laboratórios: escudo ainda pode sofrer dano, mas o teste não termina.
       this.shield = Math.max(0, this.shield - amount);
+      if(oldShield>0&&this.shield<=0){
+        shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
+        this.shieldRebuildStartedAt=this.time.now;
+      }
       this.cannonHealth = 100;
       return;
     }
     const result = applyShieldedHit(this.shield, this.cannonHealth, amount);
     this.shield = result.shield;
-    this.cannonHealth = result.health;
-    if (this.isV1Campaign && this.combat.shieldPulse && this.shield > 0) {
-      this.shield = Math.min(this.shieldMax, this.shield + amount*0.08);
+    if(oldShield>0&&this.shield<=0){
+      shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
+      this.shieldRebuildStartedAt=this.time.now;
     }
+    this.cannonHealth = result.health;
     if (this.cannonHealth === 0) this.showDefeat();
   }
 
@@ -2687,8 +6542,15 @@ export class GameScene extends Phaser.Scene {
     if (target.kind === 'tower') {
       const tower = target.tower;
       if (!tower || tower.health <= 0) return;
-      const result = applyShieldedHit(tower.shield ?? 0, tower.health, amount);
+      const oldShield=tower.shield??0;
+      const result = applyShieldedHit(oldShield, tower.health, amount);
       tower.shield = result.shield;
+      if(oldShield>0&&tower.shield<=0){
+        shatterShieldSprite(this,tower.x,tower.y+10,tower.shieldRadius);
+        playSfx('shieldBreak',{throttle:400});
+      }else if(oldShield>tower.shield){
+        playSfx('shieldHit',{throttle:160,volumeScale:0.55});
+      }
       tower.health = result.health;
       tower.lastDamageAt = this.time.now;
       if (tower.health === 0 && tower.sprite) tower.sprite.setAlpha(0.32);
@@ -2708,7 +6570,7 @@ export class GameScene extends Phaser.Scene {
       graphics.fillRect(x - 1, y - 1, width + 2, 10);
       graphics.fillStyle(tower.health > 0 ? 0x76e5b5 : 0xff716f, 1);
       graphics.fillRect(x, y, width * (tower.health / tower.healthMax), 4);
-      graphics.fillStyle(0x70d7f4, 0.90);
+      graphics.fillStyle(cannonShieldColor(tower.shield,tower.shieldMax), 0.90);
       graphics.fillRect(x, y + 5, width * (tower.shield / tower.shieldMax), 3);
     }
   }
@@ -2787,96 +6649,251 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  updateShieldRebuild() {
+    if(this.shieldRebuildStartedAt===null||this.shieldRebuildStartedAt===undefined)return;
+    if(this.countdownActive||this.tutorialComplete)return;
+    const elapsed=this.time.now-this.shieldRebuildStartedAt;
+    if(elapsed<6000)return;
+    this.shield=this.shieldMax;
+    this.shieldRebuildStartedAt=null;
+    this.hexShieldTransition='active';
+    this.hexShieldTransitionAt=this.time.now;
+    this.hexShieldFlashUntil=this.time.now+HEX_SHIELD_WHITE_FLASH_MS;
+    playSfx('shieldReady',{throttle:250,volumeScale:.84});
+  }
+
   drawShield() {
-    const graphics = this.shieldGraphics;
+    this.updateShieldRebuild();
+    // Malha holográfica não precisa recalcular dezenas de hexágonos 60×/s.
+    // Máximo 30 FPS visuais; ataques e colisões seguem na taxa normal.
+    if(this.hexShieldTransition==='active' &&
+       this.time.now-(this.lastHexShieldDrawAt??-Infinity)<33)return;
+    this.lastHexShieldDrawAt=this.time.now;
+    const graphics=this.shieldGraphics;
     graphics.clear();
-    const dome = (x, y, radius, shield, max) => {
-      if (shield <= 0) return;
-      // A melhoria brasileira AUMENTA visualmente a cúpula e sua faixa
-      // de detecção, sem alterar a resistência total (HP) do escudo.
-      const drawRadius = radius + (this.combat.electricFence ? ELECTRIC_FENCE_RADIUS_BONUS : 0);
-      const fraction = shield / max;
-      const color = fraction > 0.6 ? 0x70e6ec : fraction > 0.3 ? 0xf4c15e : 0xf06c77;
-      graphics.lineStyle(3, color, Math.max(0.35, fraction));
-      graphics.beginPath();
-      graphics.arc(x, y + 10, drawRadius, Math.PI, Math.PI * 2, false);
-      graphics.strokePath();
-      if (this.combat.electricFence) {
-        // Verde de cerca elétrica + cacos de vidro acompanhando a borda.
-        const cy = y + 10;
-        const electricGlow = fenceGlowAt(this.time.now, fraction);
-        graphics.lineStyle(5, 0x60ffb9, electricGlow * 0.16);
-        graphics.beginPath();
-        graphics.arc(x, cy, drawRadius + 3, Math.PI, Math.PI * 2, false);
-        graphics.strokePath();
-        graphics.lineStyle(1, 0xa4faad, Math.max(0.23, fraction * 0.70));
-        graphics.beginPath();
-        graphics.arc(x, cy, drawRadius + 2, Math.PI, Math.PI * 2, false);
-        graphics.strokePath();
-        graphics.fillStyle(0xa6f2bf, Math.max(0.3, fraction * 0.78));
-        for (let i = 1; i <= 11; i += 1) {
-          const angle = Math.PI + (i / 12) * Math.PI;
-          const cos = Math.cos(angle);
-          const sin = Math.sin(angle);
-          const gx = x + drawRadius * cos;
-          const gy = cy + drawRadius * sin;
-          graphics.fillTriangle(
-            gx - sin * 3, gy + cos * 3,
-            gx + sin * 3, gy - cos * 3,
-            gx + cos * 7, gy + sin * 7,
-          );
-        }
-        // Reflexos correm ao longo dos cacos mesmo quando não há OVNIs.
-        // Reutiliza o Graphics da cúpula em vez de emitir partículas.
-        for (let i = 0; i < 3; i += 1) {
-          const position = ((this.time.now * 0.00016 + i / 3) % 1);
-          const angle = Math.PI + position * Math.PI;
-          const cos = Math.cos(angle);
-          const sin = Math.sin(angle);
-          const gx = x + (drawRadius + 4) * cos;
-          const gy = cy + (drawRadius + 4) * sin;
-          graphics.lineStyle(1.4, 0xf3fff4, electricGlow * 0.75);
-          graphics.lineBetween(gx - 3, gy, gx + 3, gy);
-          graphics.lineBetween(gx, gy - 3, gx, gy + 3);
-        }
-        // Pequenos arcos da cerca: brilho somente decorativo.
-        for (let i = 0; i < 3; i += 1) {
-          const angle = Math.PI + (i + 0.5) * Math.PI / 3;
-          const cx = x + (drawRadius + 3) * Math.cos(angle);
-          const sy = cy + (drawRadius + 3) * Math.sin(angle);
-          const flicker = Math.sin(this.time.now * 0.017 + i * 2.7);
-          if (flicker < 0) continue;
-          graphics.lineStyle(1.2, 0xc9ffd5, flicker * electricGlow * 0.7);
-          graphics.lineBetween(cx - 5, sy, cx, sy - 4);
-          graphics.lineBetween(cx, sy - 4, cx + 4, sy + 1);
-        }
+    // Escudo hexagonal é uma cúpula translúcida sobre o canhão real.
+    // Os escudos das torres continuam usando os sprites atuais.
+    updateShieldSprites(this,CANNON.x,CANNON.y+10,this.supportTowers);
+    this.cannonDomeSprite?.setVisible(false);
+    // Antes da onda zero (e durante a contagem), nenhum escudo é desenhado.
+    if(this.hexShieldTransition==='hidden'){
+      this.hexShieldGraphics.clear();
+      return;
+    }
+    let phase=this.hexShieldTransition??'active',progress=1;
+    const elapsed=this.time.now-(this.hexShieldTransitionAt??this.time.now);
+    if(phase==='disabling'){
+      progress=Math.min(1,Math.max(0,elapsed/HEX_SHIELD_COLLAPSE_MS));
+    }else if(phase==='forming'){
+      progress=Math.min(1,Math.max(0,elapsed/HEX_SHIELD_FORM_MS));
+      if(progress>=1){
+        phase='active';this.hexShieldTransition='active';
+        this.hexShieldFlashUntil=this.time.now+HEX_SHIELD_WHITE_FLASH_MS;
+        if(this.shield>0)playSfx('shieldReady',{throttle:250,volumeScale:.84});
       }
-    };
-    dome(CANNON.x, CANNON.y, 62, this.shield, this.shieldMax);
-    for (const tower of this.supportTowers) {
-      if (tower.health > 0) {
-        dome(tower.x, tower.y, tower.shieldRadius, tower.shield, tower.shieldMax);
-      }
+    }
+    if(this.shieldRebuildStartedAt!==null&&this.shieldRebuildStartedAt!==undefined){
+      const t=Phaser.Math.Clamp((this.time.now-this.shieldRebuildStartedAt)/6000,0,1);
+      // A malha cresce do chão à posição original, sem fornecer HP antes do fim.
+      drawHexShieldDome(this.hexShieldGraphics,{
+        cx:CANNON.x,cy:CANNON.y+10,shield:this.shieldMax,
+        maxShield:this.shieldMax,progress:t,mode:'forming',rebuild:true,
+        now:this.time.now,flash:0,
+      });
+      return;
+    }
+    drawHexShieldDome(this.hexShieldGraphics,{
+      cx:CANNON.x,cy:CANNON.y+10,shield:this.shield,maxShield:this.shieldMax,
+      progress,mode:phase,now:this.time.now,
+      flash:Math.max(0,(this.hexShieldFlashUntil-this.time.now)/
+        HEX_SHIELD_WHITE_FLASH_MS),
+    });
+    // Congelamento russo: cristal gigante envolve o canhão por 2 segundos.
+    if(this.elapsed<this.cannonFrozenUntil){
+      const x=CANNON.x,y=CANNON.y-14;
+      graphics.fillStyle(0x9bdcff,0.40);
+      graphics.fillPoints([{x:x-66,y:y+27},{x:x-48,y:y-50},{x:x-6,y:y-98},
+        {x:x+38,y:y-68},{x:x+67,y:y+26},{x:x+22,y:y+46},{x:x-42,y:y+41}],true);
+      graphics.lineStyle(4,0xe5ffff,0.90);
+      graphics.strokePoints([{x:x-66,y:y+27},{x:x-48,y:y-50},{x:x-6,y:y-98},
+        {x:x+38,y:y-68},{x:x+67,y:y+26},{x:x+22,y:y+46},{x:x-42,y:y+41}],true);
+      graphics.lineStyle(2,0xffffff,0.7).lineBetween(x-45,y-45,x+22,y+36);
     }
   }
 
-  showDefeat() {
+  // O retrato de Zeca surge somente na primeira derrota contra um traidor.
+  showZecaProposal() {
+    if(this.zecaProposalOpened||this.zecaRevenge)return;
+    this.zecaProposalOpened=true;
+    this.add.rectangle(W/2,H/2,W,H,0x071021,0.96)
+      .setInteractive().setDepth(246);
+    addCuboBroadcastFrame(this,{
+      section:'Cubo News • Conversa reservada',
+      headline:'ZÉ MARIA TEM UM PLANO',
+      footer:'A decisão é sua • Nenhum contrato estrangeiro envolvido',
+      depth:261,
+    });
+    this.add.text(W/2,110,'ZÉ MARIA TEM UMA PROPOSTA',{
+      fontFamily:'monospace',fontSize:'28px',fontStyle:'bold',color:'#ffe2a6',
+    }).setOrigin(0.5).setDepth(250);
+    this.add.text(W/2,233,
+      'ZÉ MARIA: "Conheço uns motoristas que resolvem isso.\n'+
+      'A gente pega de volta tudo que eles levaram.\n'+
+      'O Supremo não cabe no carro. Esse vai ficar.\n\n'+
+      'Mas é uma corrida só, chefe. Se perder de novo, acabou."',{
+        fontFamily:'monospace',fontSize:'17px',color:'#e9f3ff',
+        align:'center',wordWrap:{width:840},lineSpacing:11,
+      }).setOrigin(0.5).setDepth(250);
+    addMenuButton(this,{x:W/2,y:368,width:440,height:49,
+      text:'▶  ACEITAR AJUDA DE ZÉ MARIA',primary:true,depth:255,
+      onClick:()=>this.scene.start('ZecaRecoveryScene',{
+        campaign:this.campaign,selectedBetrayer:this.selectedBetrayer,
+      }),
+    });
+    addMenuButton(this,{x:W/2,y:434,width:390,height:44,
+      text:'NÃO, ACEITAR DERROTA',depth:255,
+      onClick:()=>this.scene.start('EndingScene',{
+        campaign:this.finaleCampaign,won:false,
+      }),
+    });
+  }
+
+  showFinaleDefeat(reason='cannon') {
+    this.music.play('gameOver',{loop:false});
+    this.tutorialComplete=true;
+    this.gameOver=true;
+    const available=canOfferZecaRecovery(
+      this.campaign,this.selectedBetrayer,this.zecaRevenge) && !this.finale.fullBrazil;
+    const lastChance=this.zecaRevenge&&!this.finale.fullBrazil;
+    const copy=zecaOperationCopy(this.selectedBetrayer);
+    this.add.rectangle(W/2,H/2,W,H,0x070c1c,0.90)
+      .setInteractive().setDepth(220);
+    addCuboBroadcastFrame(this,{
+      section:'Plantão da resistência',
+      headline:lastChance?'A última chance acabou':'Soberania em risco',
+      footer:'Cubo News • Cobertura do confronto final',
+      depth:232,
+    });
+    this.add.text(W/2,118,'SOBERANIA PERDIDA',{
+      fontFamily:'monospace',fontSize:'34px',fontStyle:'bold',
+      color:'#ff9ca1',align:'center',
+    }).setOrigin(0.5).setDepth(222);
+    const caption=(this.finale.fullBrazil
+      ? [reason==='timeout'?'O TEMPO ACABOU E A ÚLTIMA FROTA CONTINUOU ATIVA.':'A ÚLTIMA FROTA ALIENÍGENA ROMPEU AS DEFESAS.',
+        'O BRASIL LUTOU SOZINHO.']
+      : lastChance
+        ? [reason==='timeout'?'A ÚLTIMA CHANCE ACABOU.':'O CANHÃO CAIU NA ÚLTIMA BATALHA.',
+          'ZÉ MARIA: "'+(copy?.farewell??'A gente fez o que podia, chefe.')+'"']
+        : [reason==='timeout'?'O PRAZO ACABOU ANTES DE DERRUBAR O TRAIDOR.':'O TRAIDOR QUEBROU AS DEFESAS.',
+          available?'NEM TODO MUNDO ACEITOU O RESULTADO.':'O BRASIL FOI COLONIZADO.']).join(String.fromCharCode(10));
+    this.add.text(W/2,238,caption,{
+      fontFamily:'monospace',fontSize:'17px',fontStyle:'bold',
+      color:'#e9f0ff',align:'center',wordWrap:{width:825},lineSpacing:9,
+    }).setOrigin(0.5).setDepth(223);
+
+    addMenuButton(this,{
+      x:W/2,y:393,width:420,height:49,
+      text:'ACEITAR DERROTA / VER FINAL',depth:225,
+      onClick:()=>this.scene.start('EndingScene',{
+        campaign:this.finaleCampaign,won:false,
+      }),
+    });
+
+    if(available){
+      const px=747,py=393;
+      const talkToZeca=()=>this.showZecaProposal();
+      // Retrato pixelado provisório, sem substituir a arte que o usuário criará.
+      const portrait=this.add.rectangle(px,py,72,76,0x244052,1)
+        .setStrokeStyle(3,0xffd69f).setDepth(240)
+        .setInteractive({useHandCursor:true});
+      const g=this.add.graphics().setDepth(241);
+      g.fillStyle(0x101e2d).fillRect(px-27,py-19,54,46);
+      g.fillStyle(0xe0a57b).fillRect(px-19,py-12,38,36);
+      g.fillStyle(0x4a2c2a).fillRect(px-24,py-25,48,13);
+      g.fillStyle(0x12202b).fillRect(px-13,py-1,9,5);
+      g.fillStyle(0x12202b).fillRect(px+4,py-1,9,5);
+      g.fillStyle(0x55322f).fillRect(px-13,py-9,12,3);
+      g.fillStyle(0x55322f).fillRect(px+3,py-9,12,3);
+      g.fillStyle(0x42251f).fillRect(px-8,py+16,16,4);
+      this.add.text(px,py+51,'ZÉ MARIA?',{
+        fontFamily:'monospace',fontSize:'14px',fontStyle:'bold',color:'#ffe2aa',
+      }).setOrigin(0.5).setDepth(242);
+      portrait.on('pointerdown',(pointer,_x,_y,event)=>{
+        if(!pointer.leftButtonDown())return;
+        event?.stopPropagation();
+        talkToZeca();
+      });
+      // Clicar no desenho, na legenda ou no botão deve abrir a proposta.
+      // Hitbox acima dos textos decorativos, mas fora do botão de rendição.
+      this.add.rectangle(px+13,py+16,118,132,0x244052,0.001)
+        .setDepth(245).setInteractive({useHandCursor:true})
+        .on('pointerdown',(pointer,_x,_y,event)=>{
+          if(!pointer.leftButtonDown())return;
+          event?.stopPropagation();
+          talkToZeca();
+        });
+     }
+  }
+
+  showDefeat(reason='cannon') {
     if (this.tutorialComplete) return;
+    if (reason === 'cannon') { this.beginCannonDestruction(); return; }
+    this.finishDefeat(reason);
+  }
+
+  beginCannonDestruction() {
+    if (this.deathSequence || this.tutorialComplete) return;
     this.tutorialComplete = true;
     this.gameOver = true;
-    this.statusText.setText('CANHÃO DESTRUÍDO');
-    this.healthText.setText('CANHÃO 0 | ESCUDO 0 | DEFESA PERDIDA');
+    this.closeSupremeCode();
+    this.clearDiscoGlobes();
+    this.specialAimGraphics.clear();
+    this.shieldGraphics.clear();
+    this.time.removeAllEvents();
+    this.tweens.killAll();
+    this.statusText.setText('SINAL PERDIDO');
+    this.healthText.setText('CANHÃO 0 | DEFESA PERDIDA');
+    this.deathSequence = createCannonDestruction(this, {
+      x: CANNON.x, y: CANNON.y, width: W, height: H,
+      onComplete: () => {
+        this.deathSequence = null;
+        this.finishDefeat('cannon');
+      },
+    });
+  }
+
+  finishDefeat(reason='cannon') {
+    this.clearDiscoGlobes();
+    this.music.stop();
+    if (this.mode==='wave11' && !this.waveMakerTest) {this.showFinaleDefeat(reason);return;}
+    // O efeito da destruição termina primeiro; o tema curto entra
+    // ao abrir a tela de Game Over, sem misturar com música de combate.
+    this.music.play('gameOver',{loop:false});
+    if(this.waveMakerTest)this.saveWaveMakerReport('derrota');
+    this.tutorialComplete = true;
+    this.gameOver = true;
+    this.statusText.setText(reason==='timeout'?'TEMPO ESGOTADO':'CANHÃO DESTRUÍDO');
+    this.healthText.setText(reason==='timeout'
+      ? `CANHÃO ${Math.ceil(this.cannonHealth)} | FORTALEZA AINDA ATIVA`
+      : 'CANHÃO 0 | ESCUDO 0 | DEFESA PERDIDA');
     this.tutorialText.setText('');
 
     this.add.rectangle(W / 2, H / 2, W, H, 0x030714, 0.78)
       .setDepth(120).setInteractive();
     this.add.rectangle(W / 2, H / 2, 470, 320, 0x0a1930, 0.98)
       .setStrokeStyle(2, 0xe16c66).setDepth(121);
+    addCuboBroadcastFrame(this,{
+      section:'Sinal de emergência',
+      headline:'Defesa nacional interrompida • Aguarde novo boletim',
+      footer:'Plantão Cubo News • A transmissão será retomada',
+      depth:132,
+    });
     this.add.text(W / 2, 174, 'DERROTA', {
       fontFamily: 'monospace', fontSize: '42px',
       color: '#ff9c8f', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(122);
-    this.add.text(W / 2, 221, 'O CANHÃO FOI DESTRUÍDO!', {
+    this.add.text(W / 2, 221,
+      reason==='timeout'?'A FORTALEZA-MÃE NÃO FOI DESTRUÍDA!':'O CANHÃO FOI DESTRUÍDO!', {
       fontFamily: 'monospace', fontSize: '17px', color: '#ecf3ff',
     }).setOrigin(0.5).setDepth(122);
     addMenuButton(this, {
@@ -2884,8 +6901,10 @@ export class GameScene extends Phaser.Scene {
       onClick: () => this.scene.restart(this.getRunOptions()), primary: true, depth: 124,
     });
     if (this.unifiedLab) addMenuButton(this, {
-      x: W / 2, y: 410, text: 'CONFIGURAR LAB',
-      onClick: () => this.scene.start('LabSetupScene', { config: this.labConfig }), depth: 124,
+      x: W / 2, y: 410, text: this.waveMakerTest?'VOLTAR AO WAVE MAKER':'CONFIGURAR LAB',
+      onClick: () => this.waveMakerTest
+        ? this.scene.start('WaveMakerScene', {wave:Number(this.mode.slice(4)),labConfig:this.labConfig})
+        : this.scene.start('LabSetupScene', { config: this.labConfig }), depth: 124,
     });
     addMenuButton(this, {
       x: W / 2, y: 362, text: '⌂  MENU PRINCIPAL',
@@ -2893,10 +6912,68 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  beginDawnWithdrawal(){
+    if(this.sunrisePlaying||this.tutorialComplete)return;
+    this.sunrisePlaying=true;
+    this.sunriseStartedAt=this.time.now;
+    this.sunriseFinished=false;
+    this.countdownActive=true;
+    // A etiqueta alienígena proíbe combater sob a luz do sol.
+    // Nenhum projétil novo, dano ou animação de onda ocorre até a saída.
+    for(let i=this.enemyBullets.length-1;i>=0;i--)this.removeEnemyBullet(i);
+    this.sunriseOverlay?.setAlpha(0);
+    if(this.sunriseOverlay)this.tweens.add({
+      targets:this.sunriseOverlay,alpha:0.48,duration:1100,ease:'Sine.Out',
+    });
+    const label=this.add.text(W/2,153,'AMANHECEU! ETs RECUAM POR EDUCAÇÃO',{
+      fontFamily:'IBM Plex Sans, sans-serif',fontSize:'29px',fontStyle:'bold',
+      color:'#fff4d3',stroke:'#19372d',strokeThickness:5,
+      align:'center',
+    }).setOrigin(0.5).setDepth(140);
+    for(const enemy of this.enemies){
+      if(!enemy.sprite?.active)continue;
+      this.tweens.add({targets:enemy.sprite,y:-130,x:enemy.sprite.x+
+        (enemy.sprite.x<W/2?-40:40),alpha:0,duration:3800,ease:'Sine.In'});
+    }
+    this.sunriseLabel=label;
+    this.time.delayedCall(4200,()=>this.finishDawnWithdrawal());
+  }
+
+  finishDawnWithdrawal(){
+    if(!this.sunrisePlaying||this.sunriseFinished||this.tutorialComplete||
+      !this.scene.isActive('GameScene'))return;
+    this.sunriseFinished=true;
+    this.sunriseLabel?.destroy();
+    this.sunriseLabel=null;
+    this.countdownActive=false;
+    this.showWaveComplete('survived');
+  }
+
+  saveWaveMakerReport(outcome){
+    if(!this.waveMakerTest||!this.waveMakerMetrics)return;
+    const report={wave:Number(this.mode.slice(4)),outcome,health:Math.ceil(this.cannonHealth),
+      shield:Math.ceil(this.shield),playerShots:this.basicShotCount,
+      ...this.waveMakerMetrics,completedAt:new Date().toISOString()};
+    appendWaveResult(typeof localStorage==='undefined'?null:localStorage,report);
+  }
   showWaveComplete(outcome = 'cleared') {
     if (this.tutorialComplete) return;
+    if(this.unifiedLab||this.v1Playtest){
+      if(this.waveMakerTest)this.saveWaveMakerReport(outcome);
+      this.showLabWaveComplete(outcome);return;
+    }
+    this.clearDiscoGlobes();
+    this.music.stop();
     this.tutorialComplete = true;
 
+    if (this.mode === 'wave11') {
+      this.statusText.setText('CONFRONTO FINAL VENCIDO — BRASIL SOBERANO!');
+      this.tutorialText.setText('');
+      this.time.delayedCall(1250,()=>this.scene.start('EndingScene',{
+        campaign:this.finaleCampaign,won:true,
+      }));
+      return;
+    }
     if (this.mode === 'wave10') {
       this.statusText.setText('FORTALEZA-MÃE DESTRUÍDA');
       this.time.delayedCall(1200, () => this.advanceAfterWave());
@@ -2949,9 +7026,110 @@ export class GameScene extends Phaser.Scene {
     this.advanceAfterWave();
   }
 
+  playFirstNightCinematic() {
+    // Evento narrativo: uma nave superior aparece depois da primeira vitória.
+    // Não altera o resultado da onda nem conta como derrota do jogador.
+    this.countdownActive = true;
+    const depth=220;
+    const veil=this.add.rectangle(W/2,H/2,W,H,0x030913,0.72)
+      .setDepth(depth).setInteractive();
+    const ship=this.add.container(W/2,-115).setDepth(depth+2);
+    // Mesma carcaça/spritesheet do Tipo 6 que retornará na onda 10.
+    const hull=this.textures.exists(TYPE6_HULL_SHEET.key)
+      ?this.add.image(0,-5,TYPE6_HULL_SHEET.key,0).setDisplaySize(650,217)
+      :this.add.ellipse(0,0,560,126,0x182534)
+        .setStrokeStyle(6,0xa0acb5);
+    const dome=this.add.ellipse(0,-38,240,92,0x344757)
+      .setStrokeStyle(4,0xee4d65);
+    const core=this.add.circle(0,18,37,0xf5485b).setStrokeStyle(8,0x721d33);
+    const wings=[-235,-160,160,235].map(x=>this.add.rectangle(x,28,58,32,0x334454)
+      .setStrokeStyle(3,0xc9485f));
+    ship.add([hull,dome,core,...wings]);
+    const notice=this.add.text(W/2,96,'CUBO NEWS • ALERTA DE ÚLTIMA HORA',{
+      fontFamily:'monospace',fontSize:'21px',fontStyle:'bold',
+      color:'#ffdfaa',backgroundColor:'#081426dd',padding:{x:15,y:9},
+    }).setOrigin(0.5).setDepth(depth+3);
+    const beam=this.add.rectangle(CANNON.x,320,14,0,0xff5b6f,0.95)
+      .setOrigin(0.5,0).setDepth(depth+1).setVisible(false);
+    const impact=this.add.circle(CANNON.x,CANNON.y,12,0xffefbc,0.95)
+      .setDepth(depth+4).setVisible(false);
+    const finish=()=>{
+      [veil,ship,notice,beam,impact].forEach(item=>item.destroy());
+      this.scene.start('PrologueSurvivalScene',{campaign:this.campaign});
+    };
+    this.tweens.add({targets:ship,y:154,duration:1600,ease:'Cubic.Out',
+      onComplete:()=>{
+        notice.setText('AMEAÇA DE NÍVEL SUPERIOR • CANHÃO NA MIRA');
+        this.tweens.add({targets:core,scale:1.7,alpha:0.6,duration:230,yoyo:true,repeat:3,
+          onComplete:()=>{
+            beam.setVisible(true);beam.setDisplaySize(14,Math.max(1,CANNON.y-172));
+            this.cameras.main.shake(450,0.013);
+            this.shield=0;
+            this.hexShieldFlashUntil=0;
+            this.hexShieldGraphics?.clear();
+            this.cannonDomeSprite?.setVisible(false);
+            shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
+            playSfx('shieldBreak',{throttle:450});
+            impact.setVisible(true);
+            this.tweens.add({targets:impact,scale:12,alpha:0,duration:620,
+              onComplete:()=>{
+                beam.setVisible(false);
+                notice.setText('CANHÃO GRAVEMENTE AVARIADO • ARMAMENTO EM SOBRECARGA');
+                this.time.delayedCall(1400,finish);
+              }});
+          }});
+      }});
+  }
+
+  showLabWaveComplete(outcome){
+    this.clearDiscoGlobes();this.music.stop();this.tutorialComplete=true;
+    this.cuboNewsHud?.cancelDawnIntro?.();
+    this.add.rectangle(W/2,H/2,W,H,0x061022,.84).setDepth(230).setInteractive();
+    this.add.text(W/2,180,'FASE CONCLUÍDA',{
+      fontFamily:'monospace',fontSize:'27px',color:'#e5f5ff',fontStyle:'bold',
+    }).setOrigin(.5).setDepth(231);
+    this.add.text(W/2,230,'Seguir mantém a combinação e os valores do laboratório.',{
+      fontFamily:'monospace',fontSize:'14px',color:'#b9d4dd',
+    }).setOrigin(.5).setDepth(231);
+    const wave=Number(this.mode.slice(4));
+    if(Number.isInteger(wave)&&wave<11)addMenuButton(this,{
+      x:W/2,y:300,width:390,height:48,text:'SEGUIR CAMPANHA',primary:true,depth:235,
+      onClick:()=>{
+        const next={...this.getRunOptions(),mode:'wave'+(wave+1)};
+        // A próxima fase usa a agenda normal, não o snapshot do Wave Maker.
+        delete next.waveMakerTest;delete next.waveMakerEvents;delete next.waveMakerDuration;
+        if(next.labConfig)next.labConfig={...next.labConfig,wave:wave+1};
+        this.scene.start('GameScene',next);
+      },
+    });
+    addMenuButton(this,{x:W/2,y:370,width:390,height:48,
+      text:this.waveMakerTest?'VOLTAR AO WAVE MAKER':'VOLTAR AO LABORATÓRIO',depth:235,
+      onClick:()=>{
+        if(this.waveMakerTest)this.scene.start('WaveMakerScene',{wave,labConfig:this.labConfig});
+        else if(this.v1Playtest)this.scene.start('V1PlaytestScene',{
+          principal:this.v1LabPrincipal,especial:this.v1LabSpecial,
+          allocation:this.v1LabAllocation,arenaIndex:Number.isInteger(wave)?wave:12,
+        });
+        else this.scene.start('LabSetupScene',{config:this.labConfig});
+      },
+    });
+  }
+
   advanceAfterWave() {
+    this.pandaClear(true);
+    if(this.mode==='wave10') {
+      this.scene.start('GameScene',{
+        mode:'wave11',campaign:this.campaign,
+        v1Playtest:this.v1Playtest,
+      });
+      return;
+    }
+    if (!this.unifiedLab && this.mode==='wave0' && !this.v1Playtest) {
+      this.playFirstNightCinematic();
+      return;
+    }
     if (!this.unifiedLab && /^wave[0-9]$/.test(this.mode)) {
-      this.scene.start('UpgradeScene', {
+      this.scene.start('BotecoElevatorScene', {
         campaign: this.campaign,
         completedWave: Number(this.mode.at(-1)),
       });
@@ -2973,6 +7151,12 @@ export class GameScene extends Phaser.Scene {
       .setDepth(120).setInteractive();
     this.add.rectangle(W / 2, H / 2, 530, 332, 0x0b1c33, 0.98)
       .setStrokeStyle(2, 0x71e2b9).setDepth(121);
+    addCuboBroadcastFrame(this,{
+      section:'Plantão de vitória',
+      headline:'Rio de Janeiro resiste a mais uma noite',
+      footer:'Transmissão especial • Edição da manhã',
+      depth:132,
+    });
     this.add.text(W / 2, 166, this.mode === 'lab' ? 'TESTE CONCLUÍDO' : 'ONDA 9 CONCLUÍDA!', {
       fontFamily: 'monospace', fontSize: '32px',
       color: '#f4e3a3', fontStyle: 'bold',
@@ -3003,46 +7187,93 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  // Evita regenerar texturas Phaser sem alteração visível (inclusive em textos ocultos).
+  updateHudText(label,value) {
+    if(!label?.active || !label.visible) return;
+    if(label.text!==value) label.setText(value);
+  }
+
   updateHud() {
+    if(this.cuboNewsState){
+      const story=tickCuboNews(this.cuboNewsState,this.elapsed,this.waveDurationMs);
+      this.cuboNewsHud?.update(this.elapsed,this.waveDurationMs,story,{
+        frozen:this.boss6IntroPaused,
+        voyageProgress:this.voyageActive?Math.max(0,this.waveEvents.length-this.eventsSpawned):null,
+      });
+    }
     const remaining = Math.max(
       0, (this.lastSpecialFire + this.combat.specialCooldown - this.time.now) / 1000,
     );
     const clock = this.mode.startsWith('wave')
-      ? 'NOITE ' + String(Math.ceil(Math.max(0, WAVE_DURATION_MS - this.elapsed) / 1000))
+      ? 'NOITE ' + String(Math.ceil(Math.max(0, this.waveDurationMs - this.elapsed) / 1000))
         .padStart(2, '0') + 's | ' : '';
-    this.statusText.setText(clock + (remaining
+    this.updateHudText(this.statusText,clock + (remaining
       ? 'ESPECIAL ' + remaining.toFixed(1) + 's' : 'ESPECIAL PRONTO'));
+    if(this.specialLabel) {
+      const titles={br:'ARRAIAL',us:'GRANDE MURO',ru:'SPUTNIK',
+        cn:'ENTREGA',jp:'DISCOTECA'};
+      const base=titles[this.specialBuild.primary] || 'ESPECIAL';
+      this.updateHudText(this.specialLabel,`DIR. ${base} — ${remaining?remaining.toFixed(1)+'s':'PRONTO'}`);
+    }
+    if(this.usJulyStatusLabel){
+      const ready=americanJulyReady(this.usJulyHits,this.combat.usJulyHitsRequired);
+      const message=ready?'★ 4 JULHO PRONTO!':
+        '★ 4 JULHO '+this.usJulyHits+'/'+this.combat.usJulyHitsRequired;
+      const color=ready?'#ffdae0':'#c4e3ff';
+      // Phaser redesenha a textura de textos sempre que setColor é chamado.
+      // Não recriar o canvas 60 vezes/s quando a carga não mudou.
+      if(this.usJulyStatusLabel.style.color!==color)
+        this.usJulyStatusLabel.setColor(color);
+      this.updateHudText(this.usJulyStatusLabel,message);
+    }
+    if(this.wasSpecialCooling&&remaining===0)this.queueBattleBanter('special');
+    this.wasSpecialCooling=remaining>0;
+    if(this.supremeReadyHint){
+      this.supremeReadyHint.setVisible(!this.ultimateUsed && !this.supremeTyping &&
+        !this.supremeCinematic && !this.tutorialComplete && !this.countdownActive &&
+        this.elapsed>=this.waveDurationMs-5000);
+    }
     if (this.ultimateLabel) {
       const title = V1_SUPREMES[this.combat.ultimate]?.title ?? 'SUPREMA';
-      this.ultimateLabel.setText(`ESPAÇO — ${title}\n${this.ultimateUsed ? 'USADA' : 'PRONTA'}`);
+      this.updateHudText(this.ultimateLabel,`${this.ultimateUsed ? 'SUPREMO USADO' : this.elapsed >= this.waveDurationMs-5000 ? '🔴 ESPAÇO — '+title : 'SUPREMO — AGUARDE'}`);
     }
-    this.healthText.setText(
+    this.updateHudText(this.healthText,
       'CANHÃO ' + Math.ceil(this.cannonHealth) +
       ' | ESCUDO ' + Math.ceil(this.shield) +
       ' | OVNIS ' + this.enemies.length,
     );
     if (this.mode === 'wave0') {
       if (this.elapsed < 6500) {
-        this.tutorialText.setText('Mova o mouse e segure o botão esquerdo para atirar');
+        this.updateHudText(this.tutorialText,'SEU NELSON: Aponta para eles. Move o mouse para mirar.');
       } else if (this.elapsed < 15000) {
-        this.tutorialText.setText('Mira azul = explosão do especial • Botão direito: dispara');
+        this.updateHudText(this.tutorialText,'SEU NELSON: Agora atira. Segura o botão esquerdo.');
       } else {
-        this.tutorialText.setText('Proteja o canhão! Escudos regeneram sem dano.');
+        this.updateHudText(this.tutorialText,'SEU NELSON: Derruba o resto.');
       }
     } else if (this.mode.startsWith('wave')) {
-      const history = this.campaign.choices.map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' + ');
-      const special = this.combat.plasmaEvery ? ' | LIGHTSTICK: ' +
-        (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/' + PLASMA_EVERY_SHOTS
-        : this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
+      const history = this.combatCampaign.choices.map((id) =>
+        getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' + ');
+      const special = this.combat.usJulyHitsRequired
+        ? ' | 4 JULHO: '+(americanJulyReady(this.usJulyHits,this.combat.usJulyHitsRequired)
+          ? 'PRONTO!' : this.usJulyHits+'/'+this.combat.usJulyHitsRequired)
+        : this.combat.plasmaEvery ? ' | LIGHTSTICK: ' +
+          (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/' + PLASMA_EVERY_SHOTS
+        : this.combat.usRocketRadius ? ' | FOGUETES EUA' :
+          this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
       const towerLabel = this.supportTowers.map((tower) => tower.definition.label).join(' + ');
-      const levelTwo = unlockedSecondUpgrades(this.campaign)
+      const levelTwo = unlockedSecondUpgrades(this.combatCampaign)
         .map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join(' + ');
-      this.tutorialText.setText(
+      const enemies=this.mode==='wave11'&&this.finale?.coalition.length
+        ? ' | TRAIDORES: '+this.finale.coalition
+          .map(id=>FINALE_COUNTRIES[id].name).join('+') : '';
+      const recovery=this.zecaRevenge?' | CARGA RECUPERADA': '';
+      this.updateHudText(this.tutorialText,
         'ALIADOS: ' + (history || 'NENHUM') +
         (levelTwo ? ' | N2: ' + levelTwo : '') +
-        (towerLabel ? ' | TORRE: ' + towerLabel : '') + special,
+        (towerLabel ? ' | APOIO: ' + towerLabel : '') +
+        enemies + recovery + special,
       );
-    } else if (this.mode === 'upgradeLab') {
+    } else if (this.mode === 'upgradeLab' && !this.v1Playtest) {
       this.tutorialText.setText('1–5: GERAR   SHIFT+1–5: NÍVEL 2   C: LIMPAR   U: UPGRADES');
       const names = this.upgradeIds.map((id) => getFirstUpgrade(id)?.flag).filter(Boolean);
       const secondNames = this.labSecondIds.map((id) => getFirstUpgrade(id)?.flag ?? id.toUpperCase()).join('+');
@@ -3067,37 +7298,113 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time, delta) {
+    if(this.deathSequence||this.tutorialComplete||this.boss6Victory){
+      this.iceBreathGraphics?.clear();
+      stopRussianSfxLoops();
+      stopNationalSpecialSfxLoops();
+    }
+    if (this.deathSequence) {
+      this.deathSequence.update(delta, this.input.activePointer);
+      return;
+    }
     // Também anima durante a contagem 3–2–1 e as telas de resultado,
     // sem consumir eventos de mouse e sem alterar o ritmo do combate.
     this.crtOverlay?.update(this.time.now);
     const pointer = this.input.activePointer;
     this.drawSpecialAim(pointer);
+    if(this.boss6Victory)return;
     if (this.tutorialComplete) {
       if (!this.gameOver) this.updateBlasts();
       return;
     }
+    // Se a onda for interrompida, o cone não permanece desenhado no céu.
+    this.iceBreathGraphics?.clear();
     // Sem disparos, movimentação ou cronômetro de onda antes do "1".
-    if (this.countdownActive) return;
-    const dt = Math.min(delta / 1000, 0.05);
-    this.elapsed += delta;
-    if (this.sunriseOverlay) {
-      const sunrise = Math.max(0, 1 - (WAVE_DURATION_MS - this.elapsed) / 5000);
-      this.sunriseOverlay.setAlpha(sunrise * 0.28);
+    if (this.countdownActive||this.supremeCinematic||this.supremeTyping){
+      stopRussianSfxLoops();
+      stopNationalSpecialSfxLoops();
     }
+    if (this.countdownActive){
+      // Failsafes independentes dos callbacks das animações DOM/Phaser.
+      if(this.sunrisePlaying&&!this.sunriseFinished &&
+        this.time.now-(this.sunriseStartedAt??this.time.now)>=4600){
+        this.finishDawnWithdrawal();return;
+      }
+      if(this.waveOpeningStartedAt!==null &&
+        this.waveOpeningStartedAt!==undefined &&
+        this.time.now-this.waveOpeningStartedAt>=5800 &&
+        typeof this.waveOpeningFinish==='function'){
+        this.waveOpeningFinish();return;
+      }
+      this.drawShield(); // escudo se desliga e se forma com o jogo pausado
+      return;
+    }
+    if (this.supremeCinematic) return;
+    if (this.supremeTyping) return;
+    const dt = Math.min(delta / 1000, 0.05);
+    this.elapsed += this.boss6IntroPaused?0:delta;
+    // Não aplicar o limite do chefão às batalhas contínuas nas cidades.
+    if((this.mode==='wave10'||this.mode==='wave11')&&!this.voyageActive)
+      this.elapsed=Math.min(this.elapsed,this.waveDurationMs);
+    this.updateBattleBanterPanel();
+    this.updateDiscoGlobes();
+    this.updateRussianSputniks();
+    setSfxLoopActive('ruSputnikHum',(this.russianSputniks?.length??0)>0,{volumeScale:0.30});
+    // Loops nacionais ativos somente enquanto existem objetos correspondentes.
+    setSfxLoopActive('brBonfire',(this.arraialNuclei?.length??0)>0,{volumeScale:0.27});
+    setSfxLoopActive('krDiscoSpin',(this.discoGlobes?.length??0)>0,{volumeScale:0.34});
+    // Amanhecer nos dez segundos finais; o Supremo congela o relógio e a imagem.
+    if(!this.voyageActive&&this.dawnLayers?.length===4&&this.dawnLayers.every(Boolean)){
+      const alphas=dawnLayerAlphas(this.waveDurationMs-this.elapsed);
+      this.dawnLayers.forEach((layer,i)=>layer.setAlpha(alphas[i]));
+    }
+    if(this.sunriseOverlay)this.sunriseOverlay.setAlpha(0);
     // À meia-noite de 30 segundos, sobreviver basta — mesmo com inimigos vivos.
     // A verificação vem ANTES das atualizações hostis do quadro final.
-    if (this.mode === 'wave10' && this.elapsed >= 60000) {
-      this.showDefeat();
-      return;
+    if((this.mode==='wave10'||this.mode==='wave11')&&!this.voyageActive){
+      // O mostrador precisa mostrar 00:00 ANTES da animação fatal.
+      if(this.elapsed>=this.waveDurationMs)this.updateHud();
+      type6NextDeadline(this);
+      if(this.boss6DoomFired)return; // Núcleo ativo: aguarda o laser, não vitória automática.
+      if(this.elapsed>=this.waveDurationMs){
+        // Só há timeout direto como fallback se não existe mais uma fortaleza.
+        this.showDefeat('timeout');
+        return;
+      }
     }
     if (/^wave[0-9]$/.test(this.mode) && this.elapsed >= WAVE_DURATION_MS) {
-      this.showWaveComplete('survived');
+      this.beginDawnWithdrawal();
       return;
     }
-    this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
+    const mobilePointer=this.mobileAimAngle===undefined?pointer:{
+      x:CANNON.x+Math.cos(this.mobileAimAngle)*450,
+      y:CANNON.y+Math.sin(this.mobileAimAngle)*450,
+      leftButtonDown:()=>this.mobileFire};
+    this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, mobilePointer.x, mobilePointer.y);
     this.barrel.rotation = this.aimAngle + Math.PI / 2;
-    if (pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer)) this.shootBasic(pointer);
-    else this.heatStartedAt = null;
+    if(this.cannonArtwork){
+      // O sprite mais próximo serve de base, com rotação complementar
+      // para que o cano realmente acompanhe a mira até as laterais.
+      const pose=cannonSpritePose(this.aimAngle,CANNON.x,CANNON.y-11,this.cannonRecoil);
+      this.cannonArtwork.setTexture('cannon-pivot-'+pose.frame);
+      this.cannonBarrelArt.setTexture('cannon-barrel-'+pose.frame)
+        .setOrigin(pose.originX,pose.originY)
+        .setRotation(pose.rotation)
+        .setPosition(pose.pivotX,pose.pivotY);
+    }
+    // O laser coreano é um projétil único, nunca um feixe contínuo paralelo.
+    const firing=(this.mobileAimAngle!==undefined?this.mobileFire:pointer.leftButtonDown())&&
+      !this.pointerOverEnemyLabControls(pointer);
+    const breathActive=this.isV1Campaign&&this.combat.russianFreezeMs>0&&
+      firing&&this.elapsed>=this.cannonFrozenUntil;
+    if(this.iceBreathGraphics)this.drawRussianBreath(this.aimAngle,breathActive);
+    setSfxLoopActive('ruIceBreath',breathActive,{volumeScale:0.43});
+    if(this.modernMathEnabled&&this.cnConvergence)this.updateLabChinaLine(pointer);
+    if(this.modernMathEnabled&&this.v1LabPrincipal==='jp')
+      this.drawLabKoreanHologram(this.aimAngle,
+        this.labWinner==='jp'&&firing);
+    if(firing&&!(this.modernMathEnabled&&this.cnConvergence))this.shootBasic(mobilePointer);
+    // O ciclo de calor continua mesmo quando o jogador solta o disparo.
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
     // volta ao lugar sem alterar a origem física das balas.
     this.cannonRecoil *= Math.exp(-19 * dt);
@@ -3106,21 +7413,31 @@ export class GameScene extends Phaser.Scene {
       CANNON.x - Math.cos(this.aimAngle) * this.cannonRecoil,
       CANNON.y - 20 - Math.sin(this.aimAngle) * this.cannonRecoil,
     );
+    if(this.cannonBarrelArt){
+      const pose=cannonSpritePose(this.aimAngle,CANNON.x,CANNON.y-11,this.cannonRecoil);
+      this.cannonBarrelArt.setPosition(pose.pivotX,pose.pivotY);
+    }
+
 
     this.updateEnemies(dt);
     if (this.gameOver) return;
+    this.updateAmericanWalls();
     this.updateEnemyBullets(dt);
     if (this.gameOver) return;
+    this.updateAmericanWallReflections(dt);
     this.updatePlayerProjectiles(dt);
+    this.updatePandaDrone(dt);
     this.updateResidualSlashes();
     this.updateElectricFences();
     this.updateSupportTowers(dt);
     this.updateSupportProjectiles(dt);
     this.updateBlasts();
+    this.updateArraial();
+    this.updateArraialFlames();
     this.drawEnemyHealthBars();
 
     if (this.time.now - this.lastDamageAt > SHIELD_REGEN_DELAY && this.shield < this.shieldMax) {
-      this.shield = Math.min(this.shieldMax, this.shield + (this.isV1Campaign ? this.combat.shieldRegen : SHIELD_REGEN_RATE) * dt);
+      this.shield = Math.min(this.shieldMax, this.shield + SHIELD_REGEN_RATE * dt);
     }
     for (const tower of this.supportTowers) {
       if (tower.health > 0 && tower.shield < tower.shieldMax &&
@@ -3132,9 +7449,20 @@ export class GameScene extends Phaser.Scene {
     this.drawTowerStatus();
     this.updateHud();
 
+    // A rota Full Brazil só parte depois do último reforço e de limpar o céu.
+    // O tempo decorrido não concede vitória automática.
+    if(this.voyageActive&&!this.voyageTransitioning&&voyageCanDepart({
+      elapsed:this.elapsed,spawned:this.eventsSpawned,scheduled:this.waveEvents.length,
+      enemies:this.enemies.length,hostileShots:this.enemyBullets.length,
+      portals:this.activeSpawnPortals?.size??0,
+      lastAt:this.waveEvents.at(-1)?.at??0,
+    })){
+      this.finishVoyageDestination();
+      return;
+    }
     // A Arena Livre deve continuar indefinidamente, inclusive quando o
     // jogador eliminar todas as naves de treino.
-    if (!(this.unifiedLab && this.mode === 'lab')) {
+    if (!(this.unifiedLab && this.mode === 'lab') && !(this.v1Playtest && this.mode === 'upgradeLab')) {
       const outcome = waveOutcome({
         mode: this.mode,
         elapsed: this.elapsed,

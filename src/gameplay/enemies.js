@@ -19,14 +19,19 @@ export const ENEMY_TYPES = {
   },
   4: {
     id: 4, name: 'Caça Relâmpago', color: 0xfa5275,
-    hp: 4, speed: 300, width: 36, height: 28,
+    hp: 6, speed: 300, width: 36, height: 28,
     behavior: 'fighter',
   },
   5: {
     id: 5, name: 'Cruzador-Colmeia', color: 0x45cddd,
-    hp: 24, speed: 28, width: 126, height: 60,
+    hp: 32, speed: 28, width: 126, height: 60,
     behavior: 'boss',
     shotHp: 1,
+  },
+  6: {
+    id: 6, name: 'Fortaleza Tipo 6', color: 0xff4967,
+    hp: 600, speed: 38, width: 790, height: 122,
+    behavior: 'boss6', shotHp: 2,
   },
 };
 
@@ -56,6 +61,7 @@ export function enemyDefinition(type) {
 
 export function enemyContactRadius(type) {
   const e = enemyDefinition(type);
+  if(type===6)return 55; // colisão real delegada aos cinco alvos independentes
   return Math.max(e.width, e.height) * 0.34;
 }
 
@@ -79,9 +85,9 @@ export function enemyTierColor(level) {
   return ENEMY_TIER_COLORS[tier] ?? null;
 }
 
-// A v0.35 mantém HP dos níveis 1 e 2, mas reduz bastante a
-// resistência do Tipo 1: o perigo dos enxames está no número de naves.
-// Os Tipos 2–5 conservam sua progressão de blindagem anterior.
+// O Tipo 1 continua frágil: o perigo está na quantidade de naves.
+// Tipos 4 e 5 recebem reforço de casco v0.884 em todos os níveis; os
+// Tipos 1–3 e a Fortaleza Tipo 6 permanecem com os atributos anteriores.
 // A velocidade dos níveis 3+ NÃO continua aumentando: resistência,
 // e não aceleração descontrolada, é a base da dificuldade.
 export const BASIC_INVADER_HP_BY_LEVEL = Object.freeze([
@@ -91,15 +97,15 @@ export function enemyStats(type, level = 1) {
   const base = enemyDefinition(type);
   const tier = Math.max(1, Math.min(10, Math.trunc(level) || 1));
   const advanced = tier >= 2;
-  const baseBonus = { 2: 1, 3: 2, 4: 1, 5: 8 };
-  const hpPerLevel = { 2: 1, 3: 2, 4: 1, 5: 4 };
+  const baseBonus = { 2: 1, 3: 2, 4: 2, 5: 10, 6: 0 };
+  const hpPerLevel = { 2: 1, 3: 2, 4: 1.5, 5: 5, 6: 0 };
   const tint = enemyTierColor(tier);
   return {
     ...base,
     level: tier,
     hp: type === 1 ? BASIC_INVADER_HP_BY_LEVEL[tier - 1]
-      : base.hp + (advanced ? baseBonus[type] : 0)
-        + Math.max(0, tier - 2) * hpPerLevel[type],
+      : Math.round(base.hp + (advanced ? baseBonus[type] : 0)
+        + Math.max(0, tier - 2) * hpPerLevel[type]),
     color: tint ?? base.color,
     tintColor: tint ?? (advanced ? 0xffd5a0 : 0xffffff),
     speed: Math.round(base.speed * (advanced ? 1.17 : 1)),
@@ -142,8 +148,9 @@ export function orbitalFormationPosition(centerX, centerY, index, count, age) {
     + age * (2 * Math.PI / 3.4);
   // O centro do círculo se desloca lentamente para dar vida ao esquadrão.
   return {
-    x: centerX + Math.sin(age * 0.85) * 50 + Math.cos(theta) * 185,
-    y: centerY + Math.sin(theta) * 62,
+    // A formação orbital também cresce; antes era achatada na vertical.
+    x: centerX + Math.sin(age * 0.85) * 25 + Math.cos(theta) * 205,
+    y: centerY + Math.sin(theta) * 120,
   };
 }
 

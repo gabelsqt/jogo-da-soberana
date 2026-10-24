@@ -1,6 +1,163 @@
-# Soberania — Jogo para a Soberana Game Jam
+# Operação Soberania — Jogo para a Soberana Game Jam
 
 Jogo arcade de defesa antiaérea em pixel art ambientado no Rio de Janeiro, inspirado em **Missile Command** e **Utopia Must Fall**.
+
+## Versão atual — 0.904 (prólogo, onda 0.5, Zé Maria e Boteco)
+
+O prólogo agora apresenta a **onda 0 com armamento temporariamente muito potente**, seguido do **Tipo 6 provocando sobrecarga no Obuseiro**, da **onda 0.5 de sobrevivência (15 segundos)** e da retirada coletiva inexplicável ao amanhecer. O General telefona a **Zé Maria**, que chega em um **guincho azul** e diagnostica o canhão. A primeira escolha no Boteco define o tiro principal, instalado e testado antes da onda 1; a segunda instala o especial antes da onda 2. Boteco preservado com elevador de carga e falas de **Seu Anselmo** sobre a instalação e as invasões dos anos 1980. Arte de Zé Maria, guincho, elevador e reconstrução permanece temporariamente procedural. [Notas da v0.904](docs/versao-0.904.md).
+
+## Versão anterior — 0.903 (duas identidades e escolha P/S no boteco)
+
+A campanha agora define **a identidade do tiro principal na 1ª escolha**, depois da onda 0, e **a identidade do tiro especial na 2ª escolha**, depois da onda 1. Da 3ª à 10ª escolha, cada representante oferece **duas alternativas mecânicas: upgrade P para o principal ou upgrade S para o especial**, com progressão P1–P4 e S1–S4 independentes e confirmação explícita. As armas mantêm suas identidades, o especial é liberado imediatamente após a 2ª escolha e o Supremo mais as duas transformações só são concedidos às **dez escolhas do mesmo país**. [Notas e limitações da v0.903](docs/versao-0.903.md).
+
+## Versão anterior — 0.902 (Saraivadas coreanas e alinhamento chinês)
+
+No **Laboratório**, o especial chinês agora dispara uma **fila de projéteis reais alinhados**, sem feixe, com convergência e dispersão de 1,5 s cada. A Coreia usa **saraivadas de lasers individuais** que ricocheteiam progressivamente com P1–P4, sem rastro Lightstick. Na transformação nacional, o canhão dispara 9 lasers por salva com projeção holográfica. Todos esses efeitos estão no painel matemático e são isolados da campanha. [Notas da v0.902](docs/versao-0.902.md).
+
+## Versão anterior — 0.901 (Laboratório Matemático)
+
+O menu **LABORATÓRIO** agora exige a escolha das identidades do tiro principal e do tiro especial antes de distribuir melhorias independentes P1–P4/S1–S4. O botão **⚙ BALANCEAMENTO** abre a lista de parâmetros numéricos editáveis dos **40 upgrades**. Os ajustes conectados ao combate são reaplicados durante a arena; o perfil pode ser **exportado/importado em JSON**, restaurado e salvo no navegador. As mecânicas híbridas e alguns campos ainda estão sinalizados como **EM PREPARAÇÃO**, sem afetar a campanha normal. Veja [guia e limitações da v0.901](docs/versao-0.901.md).
+
+## Versão anterior — 0.900 (interface sem botão de pausa)
+
+O botão visível **PAUSAR [P]** foi retirado da tela, inclusive seu desenho alternativo para ambientes sem DOM. A pausa continua disponível pelas teclas **P** e **Esc**, com o menu normal de pausa e retomada. Sem alterações nas mecânicas, HUD da Cubo News ou música. [Notas da v0.900](docs/versao-0.900.md).
+
+## Versão anterior — 0.899 (Grande Muro fisicamente intransponível)
+
+A repulsão do Grande Muro ganhou **colisão física contínua**: um inimigo que cruzaria o arco entre quadros é reposicionado na face externa da barreira, incluindo as pontas arredondadas. As naves em mergulho não conseguem danificar o canhão depois de atravessar o muro: a colisão acontece antes da aplicação do dano e elas retomam o ataque somente após o recuo. O escudo mantém os **120°**, sua duração, os ricochetes e a exceção dos lasers de cerco do Tipo 6. Os inimigos ainda podem contornar o arco **por fora das extremidades**. Veja [detalhes v0.899](docs/versao-0.899.md).
+
+## Versão anterior — 0.898 (Grande Muro aprimorado + recuperação de transições)
+
+- **Grande Muro americano:** o contato agora afasta os inimigos de verdade, com impulso forte e deslocamento persistente da hitbox, preservando o dano zero do próprio muro.
+- **Reflexão:** disparos básicos dos invasores Tipos 1 e 2 ricocheteiam como projéteis aliados, retornam na direção dos inimigos e podem abatê-los. Bombas/lasers pesados continuam só bloqueados; lasers do Tipo 6 ainda podem romper o muro.
+- **Contador:** salvaguardas redundantes para não prender o jogo ao final da animação de amanhecer ou à abertura das ondas se um callback/tween falhar. Os avisos amarelos de WebGL/áudio no Firefox não indicam, sozinhos, travamento.
+- [Detalhes v0.898](docs/versao-0.898.md).
+
+## Versão anterior — 0.897 (música da Cubo News só na introdução)
+
+A trilha da Cubo News toca **uma única vez, sem loop**, no primeiro plantão da introdução. As demais notícias (incluindo abertura da onda 0 e prévia da onda 11) conservam seus diálogos e efeitos, mas **não** reiniciam a música da emissora. A batalha mantém sua trilha nacional/de onda desde a contagem regressiva. [Notas de implementação v0.897](docs/versao-0.897.md).
+
+## Versão anterior — 0.896 (escudos, cruzadores e caças)
+
+- Escudos do Tipo 5 e da Fortaleza Tipo 6 agora ondulam e piscam discretamente ao absorver dano, sem flash branco no casco.
+- O Cruzador Tipo 5 recebe escudo próprio, carrega por **5 segundos** um **laser pesado** telegráfico de **68 de dano**, dispara uma única vez e depois recarrega. Seus enxames continuam funcionando.
+- O Caça Tipo 4 não desaparece após o ataque: recolhe altitude e volta a patrulhar até ser destruído; sua morte tem **três detonações** e flash branco curto.
+- Whoosh retrô de voo em PCM, com pequenas variações de afinação e limite de repetição, acompanha suas passagens.
+- [Detalhes técnicos v0.896](docs/versao-0.896.md).
+
+## Versão anterior — 0.895 (Coreia + laboratório combinado)
+
+Corrigido o travamento do **Lightstick contínuo coreano**, especialmente na **onda 10**, quando bombas da Fortaleza Tipo 6 são removidas no mesmo quadro. O **laboratório V1** agora permite selecionar **níveis 0–10 independentemente nos cinco países**, combinar efeitos primários e especiais, definir o país do especial principal e retornar à tela de combinações pelo botão **ALTERAR COMBINAÇÃO [U]** da arena. A campanha continua limitada às dez escolhas tradicionais. Veja [notas da v0.895](docs/versao-0.895.md).
+
+## Versão anterior — 0.894 (progressão de spawns)
+
+O número de naves **agendadas na campanha cresce em todas as ondas 0–9**: 20, 23, 26, 33, 40, 47, 53, 59, 65 e 71. As ondas 3/4 não expandem mais a população para quase cem inimigos; as ondas 5–9 passam a ter quantidades explicitamente controladas, mantendo a identidade dos padrões, os bombardeiros, as pinças e o miniboss Tipo 5 nas ondas 8/9. Os cinco portais da onda 0 permanecem nas mesmas posições. Todos os encontros comuns abrem em até 13,5 segundos; os 15 segundos restantes continuam dedicados à defesa. Reforços gerados por Tipo 5 durante o combate não estão incluídos nesses totais. Veja [notas da v0.894](docs/versao-0.894.md).
+
+## Registro anterior — 0.50
+
+**Boteco diurno:** imagem enviada pelo criador integrada em 960×540 (WebP) ao menu de negociações, com cinco retratos provisórios nas cadeiras. Selecionar representante escurece o cenário, faz o retrato crescer no canto superior esquerdo e apresenta simultaneamente flavor, descrição real do upgrade e uma área reservada para futura prévia animada. Histórias de Brasil, EUA, Coreia, Rússia e China aparecem progressivamente como placeholders.
+
+**Correção Brasil nível 10 × Tipo 6:** tiros físicos que acertam o casco no vão entre módulos agora causam dano no módulo vivo mais próximo, mantendo barreira, escudos e núcleo corretamente protegidos. Há teste específico da Metralhadora da Soberania contra o Tipo 6.
+
+**Identidade da Cubo News:** paleta azul-noturno jornalístico `#0B1621`, azul-aço `#193043`, branco suave `#DCE8EE`, âmbar `#E2A45E` e vermelho discreto `#C45151`. IBM Plex Sans para interface e IBM Plex Mono para números; cronômetro ainda maior, sem caixa.
+
+**Visual novel do expediente:** após escolher iniciar, o protagonista faz login em um computador velho da repartição, abre manualmente o site da Cubo News e assiste a aproximadamente 24 segundos de notícias/diálogos alienígenas, com clique para avançar e opção de pular. As histórias e piadas continuam provisórias para a revisão de texto perto do lançamento.
+
+Veja [notas técnicas e de design da v0.50](docs/versao-0.50.md).
+
+## Versão anterior — 0.49.3
+
+**Novos portais da onda 0:** 48 inimigos distribuídos em **cinco portais realmente distintos**, com entradas em três etapas: um portal central sozinho (8 naves, 0,8 s); dois portais simultâneos à esquerda/direita (10 + 10 naves, 4,6 s); e outros dois simultâneos mais externos (10 + 10 naves, 9,6 s). Posições X: 480; 235 e 725; 125 e 835. O portal final conclui a entrada de todos antes dos 15 segundos regulamentares. Os disparos graduais e as pausas longas da onda 0 foram preservados.
+
+**Velocidade dos inimigos em todas as ondas:** voos, perseguições e mergulhos dos invasores comuns (tipos 1–5) passam a usar **78% da velocidade anterior**, além de coreografias desaceleradas nas outras ondas; a onda 0 conserva o mergulho didático a 70% e a dança lenta de 6,5 s. O Tipo 6 mantém seu ritmo especial para não alterar o equilíbrio dos chefões.
+
+## Versão anterior — 0.49.2
+
+**Balanceamento da onda 0:** 22 inimigos em quatro grupos (5, 5, 6 e 6). Entradas aos 0,9 s, 4,2 s, 7,8 s e 11,4 s. Os movimentos sincronizados foram desacelerados: cada formação passa 6,5 segundos coreografando, seguida de 3,1 segundos pairando antes do mergulho. O primeiro tiro acontece no mínimo 1,5 segundo após começar a pairar, com defasagem de 0,2 segundo entre as naves. Durante a onda 0, mergulhos têm 70% da velocidade anterior e projéteis, 85%. **Ondas 1–11, regras de amanhecer e mecânicas ofensivas dos países permanecem inalteradas.**
+
+## Versão anterior — 0.49.1
+
+**Ajuste de balanceamento da onda 0:** 16 inimigos em quatro formações coreografadas (3, 4, 4 e 5 naves), espaçadas de 1,1 s até 11,6 s; preserva os padrões e reduz significativamente a pressão inicial. As ondas 1–11 não foram modificadas neste ajuste.
+
+## Versão anterior — 0.49
+
+**Cubo News — Emissora Oficial Brasileira:** abandona tipografia em pixels na interface e passa para **IBM Plex Sans**, fundo verde-petróleo, ouro, creme e grafite, mantendo todos os menus na mesma linguagem visual. A imprensa elogia gastronomia, música e cinema dos países que ajudam o Brasil e muda imediatamente de discurso quando ocorre uma traição.
+
+**Nova introdução (22,5 s):** jogador identifica seu nome (lembrado pelo navegador, sorteio entre 40 nomes comuns se deixar em branco). Um plantão explica que os ETs consideram o Cristo Redentor de braços abertos uma afronta e só atacam à noite, por etiqueta. Um ex de São Paulo se vingou do jogador carioca depois de ouvir “biscoito” em vez de “bolacha”, inscrevendo-o como mesário; após baixas na cadeia de comando, a lista de mesários vira a lista de generais. Intro ilustrada e com opção de pular. Kim Lin Doo, representante sul-coreano, usa BTS como “Batalhão Tático de Seul”.
+
+**Correções e simplificação:** projéteis comuns fazem colisão contínua contra o Tipo 6; limites de render e projéteis protegem a onda 11 com China e Coreia; todos os benefícios de escudo das melhorias da campanha foram removidos **sem reduzir os 50 upgrades ou mudar os efeitos ofensivos existentes**. O escudo básico se torna uma cúpula 180% maior (inclusive colisão), azul → verde → amarelo → vermelho.
+
+**Ondas mais agressivas:** Tipos 1 e 2 disparam ao pairar; formam senoides, círculos e espirais coordenados. Inimigos não entram mais após 15 s decorridos nas ondas comuns; nos dez finais, atacam diretamente. Tiros inimigos 50% maiores e interceptáveis. O Lightstick exige o dobro do acúmulo. Amanhecer cinematográfico começa **somente no zero** (imagem definitiva do Rio amanhecendo ainda pendente).
+
+Leia [notas da versão 0.49](docs/versao-0.49.md).
+
+## Versão anterior — 0.48
+
+**Cubo News assume os menus:** a tela inicial, pausa, negociação de upgrades, laboratório tático, configuração de testes, finais e telas de resultado passam a usar uma identidade compartilhada de telejornal: cabeçalho vermelho com **Cubo News**, indicação **AO VIVO**, molduras azul-marinho, botões retangulares de plantão e faixa editorial inferior. A mesa de negociações continua no cenário de boteco.
+
+**Fonte pixel com letras minúsculas:** o renderizador bitmap 5×7 ganhou **26 glifos minúsculos autênticos**, além dos maiúsculos, com acentuação do português preservada. Manchetes e subtítulos voltam à fonte em pixels, agora em **caixa mista**; chamadas originalmente em CAIXA ALTA são apresentadas em forma de frase, preservando nomes próprios e siglas como CBF, ETs, Brasil, Cristo, Flamengo e Cubo News. O **cronômetro grande volta a ser bitmap**, com apenas os segundos, sem a caixa.
+
+**A vinheta cinematográfica do amanhecer continua igual** (2,2 segundos de destaque, depois zoom-out de 1,75 segundo). O HUD da partida continua fora do canvas, imóvel durante screenshake. Toda a implementação está na branch `feat/brasil2-arraial-balístico`, sem modificar a `main`.
+
+Leia as [notas da versão 0.48](docs/versao-0.48.md).
+
+## Versão anterior — 0.47
+
+**Cubo News mais legível e abertura cinematográfica:** as letras 5×7 de baixa resolução foram substituídas na interface ativa por **tipografia retrô nítida**, com contornos duros, blocos de cor e molduras quadradas preservando a estética de pixel art. Manchetes e subtítulos ficam mais fáceis de acompanhar. O relógio segue mostrando **somente segundos**, enorme e sem caixa.
+
+A abertura **TEMPO ATÉ O AMANHECER** agora começa com **zoom real da câmera sobre o cenário**, enquanto o número central é significativamente maior. O jogador tem aproximadamente **2,2 segundos de leitura**, seguidos de **1,75 segundo de zoom-out sincronizado**: cenário se afasta, moldura e título desaparecem por transparência e o número se desloca e dissolve suavemente no relógio do canto direito. Somente então começa a batalha, sem consumir tempo. A camada do telejornal continua **fora da câmera** e não recebe zoom/screen shake durante as ondas.
+
+Veja [notas da versão 0.47](docs/versao-0.47.md).
+
+## Versão anterior — 0.46
+
+**Cubo News em pixel art + abertura do amanhecer:** o HUD inferior agora usa uma fonte bitmap 5×7 própria do jogo, cores chapadas e contornos retos. O cronômetro está ainda maior e exibe apenas os **segundos** (30, 29, 28...), sem `00:`. Antes de cada onda, o texto **TEMPO ATÉ O AMANHECER** e o número total (30 ou 60) aparecem centralizados; o número desliza até o relógio à direita, e **somente depois** os disparos, spawns e o cronômetro começam. Nos chefões, a contagem permanece parada até que a fortaleza esteja alvejável.
+
+Nas ondas **0–9**, a Cubo News se mantém tranquilíssima: os ETs prometeram deixar o Rio ao amanhecer assim que o “Líder Supremo” cruzar os braços. Como o Cristo Redentor nunca cruza os braços, a invasão se repete todas as noites. A emissora insiste em tratar o compromisso como confiável. A cobertura de emergência passa a ser desesperada somente nas ondas 10–11.
+
+O noticiário continua uma **faixa externa e imóvel** abaixo do canvas; zoom/screen shake não afetam letras, ticker ou relógio. Nenhum PNG ou fonte extra é necessário. [Notas da versão 0.46](docs/versao-0.46.md).
+
+## Versão anterior — 0.45
+
+**Cubo News compacta e independente da câmera:** a faixa agora ocupa apenas **44 pixels lógicos** de altura, renderizada em HTML **ABAIXO** do canvas do jogo, como uma transmissão televisiva. O canhão e os prédios ficam inteiramente acima da faixa, sem trocar a imagem do Rio e sem alterar a posição ou a física das armas. Manchete preta sobre prata, selo vermelho `CUBO NEWS` e **subtítulo rolando da direita para a esquerda** sobre uma tira vermelha, conforme a referência aprovada. À direita, um relógio **maior, sem caixa e semitransparente**, piscando em vermelho nos últimos cinco segundos. Como o HUD não é parte da cena Phaser, nem tremores de câmera nem zooms de destruição o movem.
+
+Em menus, o jogo volta a usar toda a área normal de 960×540. Durante ondas, a composição ajusta automaticamente o canvas + faixa ao espaço disponível, inclusive no celular e em iframes. O selo de versão antigo fica oculto durante a transmissão. [Notas da versão 0.45](docs/versao-0.45.md).
+
+## Versão anterior — 0.44
+
+**Fortaleza de Cerco + Cubo News:** a versão 0.44 atualiza os chefões Tipo 6 com quatro módulos de função fixa, barreira frontal e escudos individuais, ataques alternados, projéteis interceptáveis, laser de 10 s de carga e 3 s de emissão, hangares de invasores Tipo 3 e diferenças entre os países traidores. A entrada do chefão pausa o cronômetro até que fique alvejável. O HUD único da Cubo News ocupa a faixa inferior, com cronômetro grande à direita e manchetes e subtítulos rotativos, além de alerta nos cinco segundos finais.
+
+**Atenção:** os sprites definitivos e as cinematografias nacionais continuam em produção. O banco de notícias inclui somente textos aprovados e algumas notícias iniciais provisórias; duas variantes seguem pendentes de revisão. Os testes automatizados não substituem o playtest visual e de balanceamento. Veja [notas da versão 0.44](docs/versao-0.44.md) e [GDD atualizado do Tipo 6](docs/GDD-TIPO-6.md).
+
+### Testar a v0.44
+
+No GitHub Actions, abra **Verificação do protótipo** na branch `feat/brasil2-arraial-balístico` e baixe o artefato `soberana-v1-playtest` (HTML único para executar no navegador). Alternativamente, rode `npm install && npm run dev` no checkout dessa branch; use **Shift+0** para a onda 10 ou **Shift+1** para a onda 11 durante desenvolvimento. **Playtest com um clique:** https://gabelsqt.github.io/jogo-da-soberana/ — GitHub Pages publicou a build v0.44 a partir da branch de desenvolvimento.
+
+## Versão anterior — 0.43
+
+**Rússia reformulada:** os tiros comuns passam a parecer sopros de névoa gelada branca-azulada, com volutas e partículas de gelo. O congelamento mantém a atração e agora **contagia** até quatro alvos próximos, com um único salto e duração menor nos alvos contagiados. O especial Matryoshka ganha **25% de redução no cooldown** (8 s → 6 s como base), preservando bônus de builds híbridas. [Notas da versão 0.43](docs/versao-0.43.md).
+
+### Como testar a Rússia
+
+No menu, use **TESTAR UPGRADES V1 → Rússia**: nível 1 para névoa e contágio, nível 2 para a Matryoshka com recarga de 6 segundos; níveis 3/5/7/10 ampliam o raio de propagação. Procure grupos de inimigos: o contágio ocorre quando se aproximam, quando a origem congelada recebe novos tiros ou quando morre. O jogo ainda precisa de validação visual e ajuste fino no navegador.
+
+## Versão anterior — 0.42
+
+**Chefão Tipo 6 — primeira versão jogável.** Ondas 10 e 11 passam a usar uma nave colossal com quatro módulos independentes, escudos individuais e núcleo exposto na fase final; variantes alienígena, americana, russa, chinesa e sul-coreana, com **um único traidor estrangeiro sorteado** na Onda 11. Superarma carrega nos últimos 5 s e dispara no segundo final, caso o núcleo sobreviva. Os visuais de naves são **provisórios em Phaser Graphics**; spritesheets definitivas e ajustes de balanceamento ficam para a próxima etapa. [Notas da versão 0.42](docs/versao-0.42.md).
+
+### Teste rápido (ambiente de desenvolvimento)
+
+Em qualquer onda, **Shift+0** abre diretamente a Onda 10 (fortaleza alienígena) e **Shift+1** abre a Onda 11 (confronto final). Para testar traidores estrangeiros, comece com a campanha contendo uma escolha estrangeira; o sorteio considera apenas os países estrangeiros escolhidos. Esses atalhos funcionam somente com `npm run dev`, não na versão de produção.
+
+## Versão anterior — 0.41
+
+Especial coreano: globo estacionário por 4 segundos, gerando 3/6/12/24 reflexos direcionados aos inimigos por tiro recebido. Compatível com balas e pulsos do laser contínuo. [Notas da versão 0.41](docs/versao-0.41.md).
+
+Para conferir o globo: **TESTAR UPGRADES V1 → Coreia → nível 2, 4, 6 ou 8**. Lance o especial e atire no globo. A prévia de destruição continua disponível pelo atalho D.
+
+**Registro de versões:** a cada nova versão jogável, atualizar o número visível em `src/config/version.js`, o equivalente semântico em `package.json`, este resumo e as notas em `docs/versao-<versão>.md`. Registrar mudanças de design no GDD e distinguir testes automatizados de validação visual pelo jogador. A versão 0.39 reúne as mudanças recentes; não atribui retrospectivamente versões 0.36–0.38.
+
+## Histórico anterior
 
 > **Protótipo 0.26 — Torres mecanizadas com sprites independentes.** Substituímos os retângulos provisórios das primeiras cinco torres por 10 PNGs transparentes, cada corpo e sua arma lateral em texturas separadas. Os canhões apontam suavemente para o alvo e recuam sozinhos; o animal não gira nem recua ao disparar. A lógica de danos, alcance, alvos, HP, escudo e intervalo das torres permanece intacta. O identificador 'jp' continua mapeado ao sprite KR/Kkachi sem alterar os saves. As artes aprovadas foram reduzidas a 128 px na maior dimensão, com 48 cores, para publicação mais leve; os PNGs de alta resolução permanecem preservados no pacote original.\n\n> **Protótipo 0.25 — Identidade da Coreia do Sul.** Os nomes mostrados ao jogador foram atualizados: **Coreia do Sul (KR)**, **Lightstick Tático** (nível 1), **Encore!** (nível 2) e **Projeto Kkachi I / KKACHI** (torre do nível 3). HUD, cartões, laboratório e histórico de escolhas exibem a identidade coreana. O identificador interno legado `jp` permanece para preservar a progressão e as combinações já existentes. Nenhuma mecânica de combate, valor de dano ou arma foi alterado.
 

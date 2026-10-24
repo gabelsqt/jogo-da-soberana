@@ -1,89 +1,55 @@
+import {bindSceneMusic,addMenuMusicControl} from '../audio/music.js';
 import Phaser from 'phaser';
 import {
-  GAME_WIDTH as W,
-  GAME_HEIGHT as H,
-  preloadRioBackdrop,
-  drawRioBackdrop,
+  GAME_WIDTH as W,GAME_HEIGHT as H,
+  preloadRioBackdrop,drawRioBackdrop,
 } from '../config/scenery.js';
-import { addMenuButton } from '../ui/menuButton.js';
-import { GAME_VERSION_LABEL } from '../config/version.js';
+import {addMenuButton} from '../ui/menuButton.js';
+import {GAME_VERSION_LABEL} from '../config/version.js';
 
-export class MenuScene extends Phaser.Scene {
-  constructor() {
-    super({ key: 'MenuScene' });
-  }
-
-  preload() {
-    preloadRioBackdrop(this);
-  }
-
-  create() {
+// A tela inicial é uma vitrine da pixel art do Rio.
+// Cubo News fica reservada para o noticiário e para as cenas do jogo.
+export class MenuScene extends Phaser.Scene{
+  constructor(){super({key:'MenuScene'});}
+  preload(){preloadRioBackdrop(this);}
+  create(){
+    bindSceneMusic(this,'menu');
     drawRioBackdrop(this);
 
-    // Mantém o céu e a cidade visíveis, com contraste para o título.
-    this.add.rectangle(W / 2, H / 2, W, H, 0x020712, 0.45).setDepth(20);
-    this.add.rectangle(W / 2, 258, 650, 440, 0x071327, 0.88)
-      .setStrokeStyle(2, 0x4279a1).setDepth(21);
+    const titleStyle={
+      fontFamily:"'IBM Plex Sans',system-ui,sans-serif",
+      fontSize:'65px',fontStyle:'bold',color:'#f2af68',
+      stroke:'#081423',strokeThickness:7,
+      shadow:{offsetX:3,offsetY:4,color:'#06101e',blur:0,fill:true},
+    };
+    this.add.text(W/2,116,'Operação Soberania',titleStyle)
+      .setOrigin(0.5).setDepth(30);
+    this.add.text(W/2,178,'O RIO NÃO VAI CAIR',{
+      fontFamily:"'IBM Plex Sans',system-ui,sans-serif",
+      fontSize:'18px',fontStyle:'bold',color:'#f2f2e4',
+      stroke:'#06101e',strokeThickness:4,
+    }).setOrigin(0.5).setDepth(30);
 
-    this.add.text(W / 2, 97, 'SOBERANIA', {
-      fontFamily: 'monospace',
-      fontSize: '54px',
-      color: '#f3de8c',
-      fontStyle: 'bold',
-      stroke: '#12223c',
-      strokeThickness: 6,
-    }).setOrigin(0.5).setDepth(22);
-
-    this.add.text(W / 2, 149, 'O RIO NÃO VAI CAIR', {
-      fontFamily: 'monospace',
-      fontSize: '17px',
-      color: '#96e0e2',
-    }).setOrigin(0.5).setDepth(22);
-
-    this.add.text(W / 2, 185, 'DEFESA ANTIAÉREA  •  PLAYTEST V1', {
-      fontFamily: 'monospace',
-      fontSize: '13px',
-      color: '#d2dff2',
-    }).setOrigin(0.5).setDepth(22);
-
-    // A versão 1 não oferece mais os antigos laboratórios de animais no menu.
-    const startGame = () => this.scene.start('GameScene', { mode: 'wave0', campaign: {choices: []} });
-    const testUpgrades = () => this.scene.start('V1PlaytestScene');
-    addMenuButton(this, {
-      x: W / 2, y: 235, text: '▶  COMEÇAR CAMPANHA V1',
-      onClick: startGame, primary: true, depth: 23, width: 360,
+    const startGame=()=>this.scene.start('IntroScene',{campaign:{choices:[]}});
+    const testUpgrades=()=>this.scene.start('V1PlaytestScene');
+    addMenuButton(this,{
+      x:W/2,y:319,width:390,height:56,text:'▶  COMEÇAR CAMPANHA',
+      primary:true,depth:31,onClick:startGame,
     });
-    addMenuButton(this, {
-      x: W / 2, y: 305, text: '★  TESTAR UPGRADES V1',
-      onClick: testUpgrades, depth: 23, width: 340,
+    addMenuButton(this,{
+      x:W/2,y:389,width:354,height:49,text:'⚙  LABORATÓRIO',
+      depth:31,onClick:testUpgrades,
     });
-    this.add.text(W / 2, 359, '5 PAÍSES • 50 UPGRADES • SEM TORRES ANIMAIS', {
-      fontFamily:'monospace',fontSize:'13px',color:'#a2eddb',
-    }).setOrigin(0.5).setDepth(23);
 
-    this.add.text(W / 2, 413,
-      'MOUSE: MIRAR    ESQUERDO: TIRO    DIREITO: ESPECIAL', {
-        fontFamily: 'monospace', fontSize: '13px', color: '#e0ecfa',
-      }).setOrigin(0.5).setDepth(22);
+    // O volume fica fechado em um único botão no canto inferior esquerdo.
+    // Clicar revela slider real e mudo, sem cobrir o cenário permanentemente.
+    addMenuMusicControl(this,{x:91,y:H-22,depth:45});
+    this.add.text(W-16,H-14,GAME_VERSION_LABEL,{
+      fontFamily:'monospace',fontSize:'11px',color:'#d0dce6',
+      stroke:'#06101e',strokeThickness:3,
+    }).setOrigin(1,1).setDepth(40);
 
-    this.add.text(W / 2, 442, 'ESPAÇO: SUPREMA N9  •  ESC/P: PAUSAR  •  R: REINICIAR', {
-      fontFamily: 'monospace', fontSize: '13px', color: '#9fc1dd',
-    }).setOrigin(0.5).setDepth(22);
-
-    // Rodapé de versão visível tanto no navegador quanto no HTML do itch.io.
-    // Fora do painel central para não competir com os botões ou o título.
-    this.add.text(W - 16, H - 12, GAME_VERSION_LABEL + ' • PLAYTEST V1', {
-      fontFamily: 'monospace', fontSize: '13px',
-      color: '#bfd2e9',
-      stroke: '#061124', strokeThickness: 3,
-    }).setOrigin(1, 1).setDepth(24);
-
-    this.add.text(W / 2, 497, 'PRESSIONE ENTER PARA COMEÇAR', {
-      fontFamily: 'monospace', fontSize: '13px', color: '#f5e69b',
-    }).setOrigin(0.5).setDepth(22);
-
-    this.input.keyboard.on('keydown-ENTER', startGame);
-    
-    this.input.keyboard.on('keydown-U', testUpgrades);
+    this.input.keyboard.on('keydown-ENTER',startGame);
+    this.input.keyboard.on('keydown-U',testUpgrades);
   }
 }

@@ -10,16 +10,16 @@ test('Brasil nível 1 tem +50% de cadência e mantém as outras estatísticas', 
   const base = combatStatsFor(null);
   const brazil = combatStatsFor('br');
   const combined = combatStatsForLoadout(['br']);
-  assert.equal(base.basicInterval, 400);
-  assert.equal(brazil.basicInterval, 267);
-  assert.equal(combined.basicInterval, 267);
+  assert.equal(base.basicInterval, 300);
+  assert.equal(brazil.basicInterval, 200);
+  assert.equal(combined.basicInterval, 200);
   assert.ok(Math.abs(base.basicInterval / combined.basicInterval - 1.5) < 0.003);
   assert.equal(brazil.brazilZigzag, true);
   assert.equal(combined.brazilZigzag, true);
   assert.equal(base.brazilZigzag, false);
   assert.equal(combined.basicDamage, base.basicDamage);
   assert.equal(combined.bulletsPerShot, 1);
-  assert.equal(combatStatsForLoadout(['br', 'br']).basicInterval, 267,
+  assert.equal(combatStatsForLoadout(['br', 'br']).basicInterval, 200,
     'não multiplica um país repetido duas vezes');
 });
 
@@ -58,10 +58,11 @@ test('spread chinês permanece simétrico em torno da alternância brasileira', 
 test('os efeitos visuais RU e CN coexistem em builds multinacionais', () => {
   const base = shotVfxFor([]);
   assert.deepEqual(base, {
-    heavy: false, multiple: false, improvised: false, fragments: false, recoil: 2,
+    heavy: false, cryogenic: false, multiple: false, improvised: false, fragments: false, recoil: 2,
   });
   const ru = shotVfxFor(['ru']);
   assert.equal(ru.heavy, true);
+  assert.equal(ru.cryogenic, true);
   assert.equal(ru.multiple, false);
   assert.equal(ru.recoil, 8);
 
@@ -72,11 +73,11 @@ test('os efeitos visuais RU e CN coexistem em builds multinacionais', () => {
 
   const all = shotVfxFor(['br', 'us', 'jp', 'ru', 'cn']);
   assert.deepEqual(all, {
-    heavy: true, multiple: true, improvised: true, fragments: true, recoil: 8,
+    heavy: true, cryogenic: true, multiple: true, improvised: true, fragments: true, recoil: 8,
   });
 
   const stats = combatStatsForLoadout(['br', 'us', 'jp', 'ru', 'cn']);
-  assert.equal(stats.basicInterval, 267);
+  assert.equal(stats.basicInterval, 200);
   assert.equal(stats.basicDamage, 1.75);
   assert.equal(stats.knockback, 0.12);
   assert.equal(stats.bulletsPerShot, 2);
@@ -121,14 +122,17 @@ test('o aumento russo não modifica velocidade, dano ou alcance físico', () => 
   assert.equal(combined.knockback, before.knockback);
   const scene = readFileSync(new URL('../src/scenes/GameScene.js', import.meta.url), 'utf8');
   assert.match(scene, /this\.add\.rectangle\(x, y, style\.width, style\.length, style\.color\)/);
-  assert.match(scene, /enemyContactRadius\(enemy\.type\) \+ 7/,
-    'colisão continua fixa, independente da largura do sprite');
+  assert.match(scene,/return enemy\.type===5&&enemy\.shield>0\?70:enemyContactRadius\(enemy\.type\)/,
+    'só escudos Tipo 5 possuem raio maior; casco/russa continuam fixos');
+  assert.match(scene,/this\.enemyCombatRadius\(enemy\) \+ Math\.max\(7,bullet\.usRadius\)/,
+    'colisão usa a largura do escudo ativo e não a espessura do sprite');
 });
 
 test('rastro visual e recuo são puramente gráficos, com limpeza por bala', () => {
   const src = readFileSync(new URL('../src/scenes/GameScene.js', import.meta.url), 'utf8');
   assert.match(src, /brazilAlternatingAngle\(angle, nextShot, this\.combat\.brazilZigzag\)/);
-  assert.match(src, /shotAngles\(aimed, this\.combat\.bulletsPerShot\)/);
+  assert.match(src, /horizontalOffsets\(count,0\.065\)/);
+  assert.match(src, /: shotAngles\(aimed,count\)/);
   assert.match(src, /this\.fireLightstickBeam\(angle\)/,
     'laser coreano mantém a direção da mira original');
   assert.match(src, /drawProjectileTrail\(bullet\)/);

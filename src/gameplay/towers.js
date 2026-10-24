@@ -1,28 +1,28 @@
 // Protótipos visuais e mecânicos das primeiras torres de apoio.
 export const TOWER_DEFINITIONS = {
   br: {
-    id: 'br', label: 'CARAMELO', glyph: 'C', color: 0xc58b51,
+    id: 'br', label: 'RAJADAS BR', glyph: 'C', color: 0xc58b51,
     healthMax: 110, shieldMax: 65, range: 550, interval: 720,
     damage: 1.15, speed: 400, type: 'bullet',
   },
   us: {
-    id: 'us', label: 'ÁGUIA', glyph: 'A', color: 0x619fff,
+    id: 'us', label: 'MÍSSEIS EUA', glyph: 'A', color: 0x619fff,
     healthMax: 100, shieldMax: 65, range: 680, interval: 1550,
     damage: 2.5, speed: 290, type: 'missile',
   },
   jp: {
-    id: 'jp', label: 'KKACHI', glyph: 'K', color: 0xd4a7ff,
+    id: 'jp', label: 'FEIXES COREIA', glyph: 'K', color: 0xd4a7ff,
     healthMax: 95, shieldMax: 70, range: 710, interval: 1450,
     damage: 2.5, speed: 0, type: 'laser',
   },
   ru: {
-    id: 'ru', label: 'URSO', glyph: 'U', color: 0xf27e75,
+    id: 'ru', label: 'ARTILHARIA RU', glyph: 'U', color: 0xf27e75,
     healthMax: 130, shieldMax: 75, range: 600, interval: 2000,
     damage: 3.7, speed: 410, knockback: 0.13, type: 'shell',
     blastRadius: 85,
   },
   cn: {
-    id: 'cn', label: 'PANDA', glyph: 'P', color: 0xf4d46e,
+    id: 'cn', label: 'DRONES CHINA', glyph: 'P', color: 0xf4d46e,
     healthMax: 100, shieldMax: 70, range: 640, interval: 1850,
     damage: 1.1, speed: 320, count: 2, type: 'drone',
   },
@@ -30,18 +30,18 @@ export const TOWER_DEFINITIONS = {
 
 // Arsenal da v0.32: o ataque antienxame e o destruidor possuem papéis fixos.
 export const SWARM_WEAPONS = {
-  br: { ...TOWER_DEFINITIONS.br, label: 'CARAMELO', type: 'bullet', count: 3, damage: 0.9, interval: 850, speed: 450 },
+  br: { ...TOWER_DEFINITIONS.br, label: 'RAJADAS BR', type: 'bullet', count: 3, damage: 0.9, interval: 850, speed: 450 },
   us: { ...TOWER_DEFINITIONS.us, type: 'missile', damage: 1.1, count: 2, interval: 1700, splashRadius: 70 },
   jp: { ...TOWER_DEFINITIONS.jp, type: 'laser', damage: 1.1, interval: 1500, pierce: true },
-  ru: { ...TOWER_DEFINITIONS.ru, label: 'LOBO', type: 'bullet', damage: 1.05, count: 3, interval: 1150, speed: 490 },
+  ru: { ...TOWER_DEFINITIONS.ru, label: 'RAJADAS RU', type: 'bullet', damage: 1.05, count: 3, interval: 1150, speed: 490 },
   cn: { ...TOWER_DEFINITIONS.cn, type: 'drone', count: 3, damage: 0.9 },
 };
 export const DESTROYER_WEAPONS = {
-  br: { ...TOWER_DEFINITIONS.br, label: 'CAPIVARA', type: 'missile', count: 1, damage: 9, interval: 2450, speed: 285 },
-  us: { ...TOWER_DEFINITIONS.us, label: 'BISÃO', type: 'missile', count: 1, damage: 10, interval: 2550, speed: 310 },
-  jp: { ...TOWER_DEFINITIONS.jp, label: 'HAECHI', type: 'laser', damage: 9, interval: 2700 },
-  ru: { ...TOWER_DEFINITIONS.ru, label: 'URSO', type: 'shell', damage: 12, interval: 2900, blastRadius: 45 },
-  cn: { ...TOWER_DEFINITIONS.cn, label: 'DRAGÃO', type: 'missile', count: 1, damage: 10, interval: 2750, speed: 250 },
+  br: { ...TOWER_DEFINITIONS.br, label: 'PESADO BR', type: 'missile', count: 1, damage: 9, interval: 2450, speed: 285 },
+  us: { ...TOWER_DEFINITIONS.us, label: 'PERFURANTE EUA', type: 'missile', count: 1, damage: 10, interval: 2550, speed: 310 },
+  jp: { ...TOWER_DEFINITIONS.jp, label: 'RAIO COREIA', type: 'laser', damage: 9, interval: 2700 },
+  ru: { ...TOWER_DEFINITIONS.ru, label: 'ARTILHARIA RU', type: 'shell', damage: 12, interval: 2900, blastRadius: 45 },
+  cn: { ...TOWER_DEFINITIONS.cn, label: 'CARGA CHINA', type: 'missile', count: 1, damage: 10, interval: 2750, speed: 250 },
 };
 export function upgradedTowerWeapon(country, role = 'swarm', level = 5) {
   const base = (role === 'destroyer' ? DESTROYER_WEAPONS : SWARM_WEAPONS)[country];

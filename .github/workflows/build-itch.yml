@@ -1,0 +1,44 @@
+name: Build itch.io
+
+on:
+  push:
+    branches:
+      - 'feat/brasil2-arraial-balístico'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-itch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build itch.io
+        run: npm run build:itch
+      - name: Check release files
+        run: |
+          test -s itch-build/index.html
+          test -s itch-build/operacao-soberania-itch.zip
+          unzip -l itch-build/operacao-soberania-itch.zip | grep 'index.html'
+      - name: Upload itch.io ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: operacao-soberania-itch-zip
+          path: itch-build/operacao-soberania-itch.zip
+          retention-days: 30
+          if-no-files-found: error
+      - name: Upload single HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: operacao-soberania-itch-html
+          path: itch-build/index.html
+          retention-days: 30
+          if-no-files-found: error

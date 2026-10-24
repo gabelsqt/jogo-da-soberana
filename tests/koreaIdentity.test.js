@@ -13,7 +13,7 @@ test('Coreia do Sul usa identidade oficial nos três níveis e na torre', () => 
   assert.equal(korea.title, 'Lightstick Tático');
   assert.equal(SECOND_UPGRADES.jp.title, 'Encore!');
   assert.equal(THIRD_UPGRADES.jp.title, 'Palco de Luz I');
-  assert.equal(TOWER_DEFINITIONS.jp.label, 'KKACHI');
+  assert.equal(TOWER_DEFINITIONS.jp.label, 'FEIXES COREIA');
   assert.equal(TOWER_DEFINITIONS.jp.glyph, 'K');
 
   assert.equal(FIRST_UPGRADES.length, 5);

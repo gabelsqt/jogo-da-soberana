@@ -1,11 +1,73 @@
+import { getBalancedWaveEvents } from './campaignWavePacing.js';
+
 // Soberana v0.35 — grupos coreografados. Matemática sem Phaser,
 // compartilhada por campanha e laboratório e testável de forma isolada.
 
 export const SWARM_DANCES = Object.freeze([
-  'serpentine', 'traverse', 'cross', 'spiral', 'scattered',
+  'serpentine', 'cross', 'spiral', 'circle',
 ]);
 export const SWARM_ENTRIES = Object.freeze(['together', 'staggered']);
-export const TACTICAL_FORMATIONS = Object.freeze(['v', 'line', 'column']);
+export const TACTICAL_FORMATIONS = Object.freeze(['triangle', 'square']);
+/** Ritmo global dos inimigos comuns (tipos 1–5). Chefões Tipo 6
+ * conservam seu sistema próprio de fases, velocidades e telegráficos. */
+export const STANDARD_INVADER_FLIGHT_FACTOR = 0.78;
+
+/** Cinemática da onda 0: 1 portal sozinho, depois pares simultâneos.
+ * Cinco pontos reais distintos, sem encaixe nos três corredores antigos. */
+export const WAVE0_PORTAL_SEQUENCE = Object.freeze([
+  Object.freeze({at:800, portalX:480, count:6}),
+  Object.freeze({at:4600, portalX:235, count:6}),
+  Object.freeze({at:4600, portalX:725, count:6}),
+  Object.freeze({at:9600, portalX:125, count:6}),
+  Object.freeze({at:9600, portalX:835, count:6}),
+]);
+
+
+export const WAVE0_EASY_PACING=Object.freeze({
+  // A quantidade e a posição de cada portal ficam em WAVE0_PORTAL_SEQUENCE.
+  danceDuration:6.5,    // Movimentos iniciais mais suaves e previsíveis.
+  holdDuration:3.1,     // Dar tempo de mirar antes do mergulho.
+  firstShotDelay:1.5,   // v0.49.1: 0,4 s após terminar a dança.
+  shotStagger:0.20,     // Tiros da mesma formação não caem todos de uma vez.
+  diveSpeedMultiplier:0.70,
+  bulletSpeedMultiplier:0.85,
+});
+
+// Onda 1: primeiro combate após a introdução. Grupos menores, menos salvas
+// e voo progressivamente mais baixo. Não modifica as outras ondas/laboratórios.
+export const WAVE1_PACING = Object.freeze({
+  swarmTimes: Object.freeze([500,3300,6100,8900,11700]),
+  swarmCounts: Object.freeze([3,3,3,3,3]),
+  tacticalTimes: Object.freeze([2400,7600]),
+  squadCounts: Object.freeze([4,4]),
+  swarmPortalY: 120,
+  tacticalPortalY: 192,
+  bulletSpeedMultiplier: 0.9,
+  bulletDamage: 10,
+  impactDamageMultiplier: 0.75,
+});
+
+// v0.891: Onda 2 tem grupos cuidadosamente espaçados, nunca o
+// autoexpansor que elevava a população para mais de cem naves.
+export const WAVE2_PACING = Object.freeze({
+  // Onda 2 de transição: menos saturação, com janelas para respirar.
+  swarmTimes:Object.freeze([550,3450,6750,10100]),
+  swarmCounts:Object.freeze([3,4,4,4]),
+  tacticalTimes:Object.freeze([4950,9200]),
+  tacticalCounts:Object.freeze([3,3]),
+  orbitAt:12400,
+  orbitCount:5,
+  portalY:155,
+  tacticalPortalY:175,
+});
+
+
+// Um ou dois atiradores por esquadrilha: as outras naves ainda podem mergulhar.
+export function wave1FormationShooter(kind,index,count) {
+  const n=Math.max(1,Math.trunc(Number(count)||1));
+  if(kind==='swarm')return index===Math.floor((n-1)/2);
+  return index===Math.floor(n/3) || index===Math.floor(2*n/3);
+}
 
 export const V035_SWARM_SIZES = Object.freeze([
   [3, 5], [3, 5], [3, 5],
@@ -14,10 +76,10 @@ export const V035_SWARM_SIZES = Object.freeze([
   [15, 18], [15, 18],
 ]);
 export const V035_SQUAD_SIZES = Object.freeze([
-  [3, 4], [3, 4], [3, 4],
-  [3, 5], [4, 6], [4, 6],
-  [5, 7], [5, 7],
-  [6, 8], [6, 8],
+  [6, 8], [6, 8], [7, 9],
+  [8, 10], [8, 11], [9, 12],
+  [10, 13], [10, 14],
+  [12, 15], [12, 16],
 ]);
 
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
@@ -39,37 +101,39 @@ export function progressiveGroupCount(wave, type, progress) {
 export function getV035WaveEvents(mode, legacyEvents) {
   const wave = campaignWaveIndex(mode);
   if (wave === null) return legacyEvents.map(event => ({ ...event }));
-  const regular = legacyEvents.filter(event => event.type !== 1).map(event => {
-    if (event.type !== 2) return { ...event };
-    return {
-      ...event,
-      pattern: 'tactical',
-      group: true,
-      count: progressiveGroupCount(wave, 2, event.at / 19500),
-    };
-  });
-  const basic = legacyEvents.filter(event => event.type === 1);
-  if (!basic.length) return regular.sort((a, b) => a.at - b.at);
-  const totalOldShips = basic.reduce((sum, event) =>
-    sum + (event.pattern === 'spread' || event.pattern === 'line'
-      ? (event.count ?? 1) : 1), 0);
-  const [lo, hi] = V035_SWARM_SIZES[wave];
-  const groupCount = Math.max(2, Math.ceil(totalOldShips / ((lo + hi) / 2)));
-  const lastWarning = [...basic].reverse().find(event => event.warning)?.warning;
-  const firstLevel = basic[0]?.level ?? 1;
-  const lastLevel = basic.at(-1)?.level ?? firstLevel;
-  const swarms = Array.from({ length: groupCount }, (_, i) => {
-    const progress = groupCount === 1 ? 1 : i / (groupCount - 1);
-    return {
-      at: Math.round(420 + 19080 * Math.pow(progress, 0.73)),
-      type: 1,
-      pattern: 'swarm',
-      count: progressiveGroupCount(wave, 1, progress),
-      level: progress >= 0.55 ? lastLevel : firstLevel,
-      ...(i === groupCount - 1 && lastWarning ? { warning: lastWarning } : {}),
-    };
-  });
-  return [...regular, ...swarms].sort((a, b) => a.at - b.at);
+  // Cinco portais coreografados: um central e depois dois pares.
+  // São 30 naves no tutorial, mantendo a entrada de tiros retardada.
+  if (wave === 0) {
+    return WAVE0_PORTAL_SEQUENCE.map(({at,portalX,count})=>({
+      at,portalX,type:1,pattern:'swarm',count,level:1,
+    }));
+  }
+  if(wave===1){
+    const squads=WAVE1_PACING.tacticalTimes.map((at,index)=>({
+      at,type:2,level:1,pattern:'tactical',group:true,
+      count:WAVE1_PACING.squadCounts[index],
+    }));
+    const swarms=WAVE1_PACING.swarmTimes.map((at,index)=>({
+      at,type:1,level:1,pattern:'swarm',count:WAVE1_PACING.swarmCounts[index],
+    }));
+    return [...squads,...swarms].sort((a,b)=>a.at-b.at);
+  }
+  if(wave===2){
+    const swarms=WAVE2_PACING.swarmTimes.map((at,index)=>({
+      at,type:1,pattern:'swarm',count:WAVE2_PACING.swarmCounts[index],
+      level:index>=4?2:1,portalY:WAVE2_PACING.portalY,
+    }));
+    const squads=WAVE2_PACING.tacticalTimes.map((at,index)=>({
+      at,type:2,level:index?2:1,pattern:'tactical',group:true,
+      count:WAVE2_PACING.tacticalCounts[index],
+      portalY:WAVE2_PACING.tacticalPortalY,
+    }));
+    const orbit={at:WAVE2_PACING.orbitAt,type:2,level:2,
+      pattern:'orbit',count:WAVE2_PACING.orbitCount};
+    return [...swarms,...squads,orbit].sort((a,b)=>a.at-b.at);
+  }
+  // Ondas 3–9 usam agendas explícitas e limitadas, sem o expansor antigo.
+  return getBalancedWaveEvents(wave);
 }
 
 export function swarmOffset(index, count, pattern = 'serpentine') {
@@ -78,7 +142,7 @@ export function swarmOffset(index, count, pattern = 'serpentine') {
   const col = index % columns, row = Math.floor(index / columns);
   const stepX = count >= 15 ? 36 : 43;
   const stepY = count >= 15 ? 28 : 34;
-  const stagger = pattern === 'scattered' ? (row % 2 ? 13 : -8) : 0;
+  const stagger = 0; // sem posições aleatórias: grupo sempre simétrico
   return {
     x: (col - (columns - 1) / 2) * stepX + stagger,
     y: (row - (rows - 1) / 2) * stepY,
@@ -94,33 +158,60 @@ export function swarmDanceCenter(group, elapsed) {
   switch (group.pattern) {
     case 'traverse':
       return { x: x + direction * (t * 350 - 175),
-        y: mix(-28, 183, t) + 17 * Math.sin(t * Math.PI * 2) };
+        y: mix((group.portalY ?? 68)+46, 213, t) + 17 * Math.sin(t * Math.PI * 2) };
     case 'cross':
       return { x: x + Math.sin(t * Math.PI * 2) * 165,
-        y: mix(-28, 191, t) + 20 * Math.sin(t * Math.PI * 4) };
+        y: mix((group.portalY ?? 68)+46, 215, t) + 20 * Math.sin(t * Math.PI * 4) };
     case 'spiral': {
       const radius = 125 * (1 - 0.6 * t);
       const angle = t * Math.PI * 3;
       return { x: x + Math.cos(angle) * radius - 125,
-        y: mix(-28, 172, t) + Math.sin(angle) * 37 * t };
+        y: mix((group.portalY ?? 68)+46, 205, t) + Math.sin(angle) * 37 * t };
     }
-    case 'scattered':
-      return { x: x + Math.sin(t * Math.PI * 2.5) * 65,
-        y: mix(-28, 175, t) };
+    case 'lowSweep':
+      // Onda 1: o conjunto entra perto de y=120 e desce de forma legível.
+      return {x:x+Math.sin(t*Math.PI*2)*90,
+        y:120+115*t+7*Math.sin(t*Math.PI)};
+    case 'lowZigzag':
+      return {x:x+Math.sin(t*Math.PI*3)*78,
+        y:120+115*t+5*Math.sin(t*Math.PI*2)};
+    case 'circle':
+      return {x:x+Math.sin(t*Math.PI*2)*94,
+        y:mix((group.portalY ?? 68)+46,210,t)-Math.cos(t*Math.PI*2)*26};
     default:
       return { x: x + Math.sin(t * Math.PI * 3) * 115,
-        y: mix(-28, 179, t) };
+        y: mix((group.portalY ?? 68)+46, 210, t) };
   }
 }
 
 export function swarmDancePosition(group, index, elapsed) {
   const center = swarmDanceCenter(group, elapsed);
-  const slot = swarmOffset(index, group.count, group.pattern);
-  return { x: center.x + slot.x, y: center.y + slot.y };
+  const slots = Array.from({length:group.count},(_,i)=>
+    swarmOffset(i,group.count,group.pattern));
+  const minX=Math.min(...slots.map(p=>p.x));
+  const maxX=Math.max(...slots.map(p=>p.x));
+  const minY=Math.min(...slots.map(p=>p.y));
+  const maxY=Math.max(...slots.map(p=>p.y));
+  // Limita o CENTRO, não as naves: preserva a dança e a formação.
+  const x=group.boundToScreen?clamp(center.x,38-minX,960-38-maxX):center.x;
+  const y=group.boundToScreen?clamp(center.y,42-minY,540-105-maxY):center.y;
+  const slot=slots[index];
+  return {x:x+slot.x,y:y+slot.y};
 }
 
 export function tacticalFormationOffset(formation, index, count) {
   const i = index - (count - 1) / 2;
+  if (formation === 'square') {
+    const columns=Math.ceil(Math.sqrt(count)),rows=Math.ceil(count/columns);
+    return {x:(index%columns-(columns-1)/2)*38,
+      y:(Math.floor(index/columns)-(rows-1)/2)*35};
+  }
+  if (formation === 'triangle') {
+    let row=0,slot=index;
+    while(slot>=row+1){slot-=row+1;row++;}
+    const rows=Math.ceil((Math.sqrt(8*count+1)-1)/2);
+    return {x:(slot-row/2)*43,y:(row-(rows-1)/2)*37};
+  }
   if (formation === 'column') {
     return { x: (index % 2 === 0 ? -13 : 13), y: i * 29 };
   }
@@ -128,24 +219,37 @@ export function tacticalFormationOffset(formation, index, count) {
   return { x: i * 43, y: 0 };
 }
 
+// Tipo 2: duas voltas GRANDES no céu, depois parada em formação e investida.
 export function tacticalManeuverPosition(group, index, elapsed) {
-  const t = clamp(elapsed / group.duration, 0, 1);
-  const segment = Math.min(2, Math.floor(t * 3));
-  const blend = clamp(t * 3 - segment, 0, 1);
-  const smooth = blend * blend * (3 - 2 * blend);
-  const formA = tacticalFormationOffset(TACTICAL_FORMATIONS[segment], index, group.count);
-  const formB = tacticalFormationOffset(
-    TACTICAL_FORMATIONS[Math.min(2, segment + 1)], index, group.count);
-  return {
-    x: group.centerX + Math.sin(t * Math.PI * 1.8) * 78
-      + mix(formA.x, formB.x, smooth),
-    y: mix(-48, 164, t) + mix(formA.y, formB.y, smooth),
-  };
+  const hold = group.holdDuration ?? 1.5;
+  const moveDuration = Math.max(0.5, group.duration - hold);
+  const t = clamp(elapsed / moveDuration, 0, 1);
+  const eased = t * t * (3 - 2 * t);
+  const angle = Math.PI * 4 * eased * (group.direction ?? 1);
+  const orbitRadiusX = 140; // antes 78: a órbita agora preenche o céu.
+  const orbitRadiusY = group.lowFlight ? 100 : 125;
+  // Inicia no portal, desenha duas voltas abaixo dele e retorna ao início
+  // antes da formação de ataque, sem teletransportar os invasores.
+  const cx = group.centerX + orbitRadiusX * Math.sin(angle);
+  const cy = (group.portalY ?? 125) +
+    orbitRadiusY * (1 - Math.cos(angle));
+  const formA = {x:0,y:0};
+  const formB = tacticalFormationOffset(group.finalFormation ?? 'triangle',index,group.count);
+  // Em formação para toda a pausa, sem oscilação nem deslocamento.
+  const offsets=Array.from({length:group.count},(_,i)=>tacticalFormationOffset(group.finalFormation??'triangle',i,group.count));
+  const minX=Math.min(...offsets.map(p=>p.x))*eased;
+  const maxX=Math.max(...offsets.map(p=>p.x))*eased;
+  const minY=Math.min(...offsets.map(p=>p.y))*eased;
+  const maxY=Math.max(...offsets.map(p=>p.y))*eased;
+  const safeX=group.boundToScreen?clamp(cx,38-minX,960-38-maxX):cx;
+  const safeY=group.boundToScreen?clamp(cy,42-minY,540-105-maxY):cy;
+  return {x:safeX+mix(formA.x,formB.x,eased),
+    y:safeY+mix(formA.y,formB.y,eased)};
 }
 
 export function tacticalAttackPosition(group, index, elapsed) {
   const t = clamp(elapsed / group.attackDuration, 0, 1);
-  const form = tacticalFormationOffset('column', index, group.count);
+  const form = tacticalFormationOffset(group.finalFormation ?? 'triangle', index, group.count);
   const start = group.attackOrigin;
   const target = group.target;
   // O centro faz a investida; as posições relativas seguem intactas,

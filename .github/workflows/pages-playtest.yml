@@ -1,11 +1,12 @@
-name: Playtest v1 — GitHub Pages
+name: Playtest v0.50 — GitHub Pages
 
 on:
   push:
     branches:
-      - feat/v1-upgrades-64-68
+      - feat/brasil2-arraial-balístico
     paths:
       - 'src/**'
+      - 'tests/**'
       - 'public/**'
       - 'index.html'
       - 'package.json'
@@ -19,14 +20,14 @@ permissions:
   id-token: write
 
 concurrency:
-  group: soberana-v1-pages
+  group: soberana-v050-pages
   cancel-in-progress: true
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
+      name: soberana-v050-playtest
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Baixar versão de teste (não publica outras branches)
@@ -37,15 +38,65 @@ jobs:
           node-version: '22'
       - name: Instalar dependências
         run: npm install
-      - name: Testar regras
-        run: npm test
+      # A suíte geral segue sendo executada no workflow "Verificação do protótipo".
+      # O playtest publica independentemente de expectativas legadas obsoletas,
+      # mas bloqueia se os testes críticos de gameplay atual falharem.
+      - name: Testar mecânicas e HUD do playtest
+        run: >
+          node --test
+          tests/americanArsenal876.test.js
+          tests/americanWallDeployment877.test.js
+          tests/americanWallInvulnerable878.test.js
+          tests/balanceAndSiege879.test.js
+          tests/fixes880.test.js
+          tests/fullBrazilVoyage881.test.js
+          tests/battleBanter881.test.js
+          tests/voyageFlight882.test.js
+          tests/verticalVoyageType2Orbit883.test.js
+          tests/balanceVoyage884.test.js
+          tests/hexShieldVoyage885.test.js
+          tests/hexShieldShimmer886.test.js
+          tests/hexShieldArcUom887.test.js
+          tests/pagesMusic888.test.js
+          tests/stabilityMusicVoyage889.test.js
+          tests/hexShieldCeremony890.test.js
+          tests/wave2SpecialFix891.test.js
+          tests/wave2SpecialRegression892.test.js
+          tests/arraialTruckBalloon893.test.js
+          tests/sputnikRework.test.js
+          tests/v1Specials.test.js
+          tests/cuboNewsDomHud.test.js
+          tests/russianFrost.test.js
+          tests/russianDamageProgression.test.js
+          tests/iceBreath.test.js
+          tests/iceBreathBossDamage.test.js
+          tests/type2Facing.test.js
+          tests/type2SpriteSheet.test.js
+          tests/type5SpriteSheet.test.js
+          tests/type6HullSprite.test.js
+          tests/type6ModuleSprite.test.js
+          tests/music.test.js
+          tests/russianRetroSfx.test.js
+          tests/nationalSpecialSfx.test.js
+          tests/enemyBulletVisuals.test.js
+          tests/discoGlobe.test.js
+          tests/discoReflectionVfx.test.js
       - name: Gerar HTML único do jogo
         run: npm run build:itch
-      - name: Preparar página
+      - name: Disponibilizar ZIP pronto para itch.io
+        uses: actions/upload-artifact@v4
+        with:
+          name: operacao-soberania-itch
+          path: itch-build/operacao-soberania-itch.zip
+          retention-days: 14
+      # O Pages serve os arquivos estáticos e MP3s do Vite diretamente.
+      # Não reutilizar HTML único de 97 MB com MP3 em data URIs.
+      - name: Preparar página com músicas em arquivos separados
         run: |
           mkdir -p pages-site
-          cp itch-build/index.html pages-site/index.html
+          cp -a dist/. pages-site/
           touch pages-site/.nojekyll
+          node scripts/verify-pages-audio.mjs pages-site
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Carregar site

@@ -6,7 +6,7 @@ import { normalizeLabConfig, configuredTowerLoadout, changeLabLevel } from '../s
 import { upgradeRepresentativeLine } from '../src/gameplay/upgradeDialogue.js';
 
 const countries = ['br','us','jp','ru','cn'];
-test('cada país tem dois animais e dois níveis de evolução', () => {
+test('cada país tem duas armas de apoio e dois níveis de evolução', () => {
   for (const id of countries) {
     for (const tree of [FIFTH_UPGRADES,SIXTH_UPGRADES,SEVENTH_UPGRADES,EIGHTH_UPGRADES]) assert.ok(tree[id].title);
     assert.equal(nextUpgradeOptions({choices:Array(4).fill(id)}).find(x=>x.id===id).level,5);
@@ -28,9 +28,10 @@ test('cada país tem dois animais e dois níveis de evolução', () => {
     assert.ok(evolvedSwarm.damage > swarm.damage);
     assert.ok(evolvedDestroyer.damage > destroyer.damage);
   }
-  assert.match(FIFTH_UPGRADES.ru.title,/Lobo/);
-  assert.match(SEVENTH_UPGRADES.ru.title,/Urso/);
-  assert.match(SEVENTH_UPGRADES.jp.title,/Haechi/);
+  assert.match(FIFTH_UPGRADES.ru.title,/Rajada Siberiana/);
+  assert.match(SEVENTH_UPGRADES.ru.title,/Impacto Siberiano/);
+  assert.match(SEVENTH_UPGRADES.jp.title,/Justiça Radiante/);
+  assert.doesNotMatch(FIFTH_UPGRADES.ru.title+SEVENTH_UPGRADES.jp.title,/Lobo|Urso|Haechi/);
 });
 test('laboratório separa antienxame e destruidora e limita duas estruturas',()=>{
   let conf=normalizeLabConfig({levels:{ru:8}});

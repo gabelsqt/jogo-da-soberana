@@ -12,6 +12,7 @@ import {
   SPECIAL_MIN_DISTANCE,
   SPECIAL_MAX_DISTANCE,
 } from '../src/gameplay/specialBlast.js';
+import { MIN_CANNON_ELEVATION_DEGREES } from '../src/gameplay/combat.js';
 
 test('explosão cresce, permanece ativa e se retrai por 3 segundos', () => {
   assert.equal(specialBlastRadius(0), SPECIAL_BLAST_START_RADIUS);
@@ -72,8 +73,8 @@ test('mira respeita a distância mínima e máxima usada pelo tiro especial', ()
   assert.ok(Math.abs(close.y - 354) < 1e-8);
 
   const distant = specialTargetPoint(480, 494, 480, -10000);
-  assert.equal(distant.distance, SPECIAL_MAX_DISTANCE);
-  assert.ok(Math.abs(distant.y + 86) < 1e-8);
+  assert.equal(distant.y,24); // Limite superior visível, nunca fora da tela.
+  assert.ok(distant.distance<SPECIAL_MAX_DISTANCE);
 });
 
 test('mira reflete a elevação mínima do canhão em vez de seguir o cursor impossível', () => {
@@ -83,8 +84,10 @@ test('mira reflete a elevação mínima do canhão em vez de seguir o cursor imp
 
   assert.ok(right.y < origin.y && left.y < origin.y);
   assert.ok(right.x > origin.x && left.x < origin.x);
-  assert.ok(Math.abs(right.angle + Math.PI / 12) < 1e-8,
-    'o tiro da direita fica a pelo menos 15 graus acima do horizonte');
-  assert.ok(Math.abs(left.angle + Math.PI * 11 / 12) < 1e-8,
-    'o tiro da esquerda fica a pelo menos 15 graus acima do horizonte');
+  assert.equal(MIN_CANNON_ELEVATION_DEGREES,2);
+  const minimumAngle=MIN_CANNON_ELEVATION_DEGREES*Math.PI/180;
+  assert.ok(Math.abs(right.angle + minimumAngle) < 1e-8,
+    'o tiro da direita respeita a elevação atual de dois graus');
+  assert.ok(Math.abs(left.angle + Math.PI - minimumAngle) < 1e-8,
+    'o tiro da esquerda respeita a mesma elevação mínima');
 });

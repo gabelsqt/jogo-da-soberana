@@ -48,16 +48,16 @@ test('a fileira final cobre praticamente toda a largura sem sair da tela', () =>
 
 test('dez naves em órbita possuem posições distribuídas e movimento circular', () => {
   const positions = Array.from(
-    { length: 10 }, (_, i) => orbitalFormationPosition(480, 162, i, 10, 0),
+    { length: 10 }, (_, i) => orbitalFormationPosition(480, 215, i, 10, 0),
   );
   assert.equal(positions.length, 10);
   const roundedPositions = new Set(positions.map((p) => p.x.toFixed(2) + '/' + p.y.toFixed(2)));
   assert.equal(roundedPositions.size, 10);
   for (const p of positions) {
     assert.ok(p.x > 240 && p.x < 720);
-    assert.ok(p.y >= 100 && p.y <= 224);
+    assert.ok(p.y >= 95 && p.y <= 335);
   }
-  const later = orbitalFormationPosition(480, 162, 0, 10, 0.8);
+  const later = orbitalFormationPosition(480, 215, 0, 10, 0.8);
   assert.ok(Math.hypot(later.x - positions[0].x, later.y - positions[0].y) > 25);
   assert.ok(getWaveEvents('lab').some((e) => (
     e.type === 2 && e.level === 2 && e.pattern === 'orbit' && e.count === 10

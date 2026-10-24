@@ -1,5 +1,5 @@
 // Regras matemáticas sem dependência do Phaser; fáceis de testar separadamente.
-export const MIN_CANNON_ELEVATION_DEGREES = 15;
+export const MIN_CANNON_ELEVATION_DEGREES = 2;
 
 // No canvas, Y cresce para baixo. A direção válida fica entre -165° e -15°.
 export function restrictedAimAngle(originX, originY, targetX, targetY) {

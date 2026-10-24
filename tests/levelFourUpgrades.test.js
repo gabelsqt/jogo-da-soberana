@@ -9,7 +9,7 @@ test('Onda 5 dura 30 segundos e preserva 49 invasores agendados', () => {
   const events = getAdvancedWaveEvents('wave5');
   assert.equal(MODES.wave5.minDuration, 30000);
   assert.equal(events.at(-1).at, 44500);
-  assert.equal(getWaveEvents('wave5').at(-1).at, 19500);
+  assert.equal(getWaveEvents('wave5').at(-1).at, 13500);
   assert.equal(scheduledEnemyCount(events), 49);
 });
 test('cinco upgrades de nível 4 têm efeito adicional ao tiro especial', () => {

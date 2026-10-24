@@ -21,13 +21,13 @@ test('Tipo 1 continua fraco individualmente mesmo no nível 10', () => {
   assert.equal(enemyStats(1, 10).speed, enemyStats(1, 3).speed);
 });
 
-test('a redução não altera HP dos inimigos Tipos 2–5', () => {
+test('HP dos Tipos 2/3 continua igual, e Tipos 4/5 recebem blindagem maior', () => {
   assert.deepEqual([2,3,4,5].map(type => enemyStats(type,10).hp),
-    [11, 24, 13, 64]);
+    [11, 24, 20, 82]);
   assert.equal(enemyStats(2,1).hp,2);
   assert.equal(enemyStats(3,1).hp,6);
-  assert.equal(enemyStats(4,1).hp,4);
-  assert.equal(enemyStats(5,1).hp,24);
+  assert.equal(enemyStats(4,1).hp,6);
+  assert.equal(enemyStats(5,1).hp,32);
 });
 
 test('enxames de campanha chegam no máximo a 18 e mantêm aumento de pressão', () => {
