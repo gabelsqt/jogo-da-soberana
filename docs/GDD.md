@@ -1367,3 +1367,16 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - **Derrota:** proclama que **venceu moralmente** e exige **uma cerimônia de premiação**. Não usar, como conclusão canônica, a alternativa de retirada estratégica.
 - **Orientação de fala, não roteiro final:** elogios grandiosos, linguagem de propaganda, promessas contraditórias sobre o muro, convites à oficina, inversão oportunista de qualquer revés em vitória moral.
 - **Status:** decisões documentadas; **não implementar** cenas, retratos, diálogos finais ou código sem autorização própria.
+
+
+## Kim Lin Du — personalidade, origem e motivação (24/10/2026; APROVADO, SOMENTE PLANEJAMENTO)
+
+> Estas decisões do criador são canônicas e prevalecem sobre alternativas incompatíveis de planejamento. Não implementar automaticamente arte, cenas, textos jogáveis ou código. A encenação exata da traição e a reação à derrota ainda não foram aprovadas.
+
+- **Dupla carreira:** Kim **continua sendo líder de um grupo de K-pop em atividade**. Não é ex-idol. Por ter atingido a idade de cumprir o serviço militar obrigatório, entrou no exército. Sua obsessão por liderar, performar e ter sucesso o fez ascender até o posto de **general do BTS — Batalhão Tático de Seul**, sigla deliberadamente cômica dentro do universo fictício do jogo. Veio ao Brasil com suas forças para ajudar a combater a invasão alienígena.
+- **Personalidade privada:** perfeccionista **exausto**, incapaz de parar de trabalhar, treinar ou ensaiar, mesmo longe das câmeras. É obcecado pela qualidade de suas apresentações e por exercer liderança.
+- **Personalidade pública e humor:** demonstra carinho pelos fãs, mas **transforma operações militares em shows**, exigindo coreografias, entradas triunfais, ritmo, teatralidade e espetáculo. Faz comentários frequentes sobre como deixar **o canhão** mais bonito, interessante ou visualmente impressionante. A teatralidade não cancela sua competência militar nem seu cansaço pessoal.
+- **Relação com Zé Maria:** adora a autenticidade do mecânico; afirma que Zé Maria seria ótimo integrante de um grupo e insiste em **transformá-lo num astro do K-pop**.
+- **Relação com o protagonista:** trata o jogador como **parceiro de palco**, quer ensiná-lo a se apresentar e acredita que ele precisa **aprender a gostar mais dos palcos**.
+- **Objetivo de conquista e traição:** Kim pretende dominar o Brasil para **explorar seus recursos e minérios**, impulsionando a indústria sul-coreana de **K-pop, tecnologia, maquinaria de palco, shows e espetáculos**. Quer fortalecer o império tecnológico-musical da Coreia, com mais equipamentos e máquinas para apresentações. **A regra geral da campanha permanece: Kim, como todos os líderes estrangeiros, trairá o jogador; amizade não cancela a conquista.** Forma específica de anúncio da traição e fala de derrota: **a definir**.
+- **Visual anterior preservado:** homem jovem de **1,79 m**, magro e atlético (físico de dançarino), figurino branco inspirado em idol com detalhes roxos, sorriso ensaiado, gesto de **finger heart**, estética de espetáculo e laser. Direção artística retro JRPG em pixel art aprovada para os cinco líderes permanece vigente.
