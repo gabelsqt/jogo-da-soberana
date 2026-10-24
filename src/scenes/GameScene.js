@@ -1811,16 +1811,18 @@ export class GameScene extends Phaser.Scene {
 
   createBattleBanterPanel(){
     // Zona morta inferior esquerda: HUD não-interativo, um recado por vez.
-    this.banterBackground=this.add.rectangle(150,423,252,100,0x0b1a2d,0.88)
+    // Margem de segurança: manter retrato e texto dentro da área útil,
+    // inclusive em viewport móvel com recorte lateral.
+    this.banterBackground=this.add.rectangle(169,423,258,100,0x0b1a2d,0.88)
       .setStrokeStyle(2,0x608ca8).setDepth(104).setVisible(false);
-    this.banterPortrait=this.add.image(57,423,'battle-portrait-br')
-      .setDisplaySize(58,78).setDepth(105).setVisible(false);
-    this.banterName=this.add.text(91,387,'',{
+    this.banterPortrait=this.add.image(81,423,'battle-portrait-br')
+      .setDisplaySize(54,74).setDepth(105).setVisible(false);
+    this.banterName=this.add.text(117,387,'',{
       fontFamily:'monospace',fontSize:'12px',fontStyle:'bold',color:'#ffe2ad',
     }).setDepth(105).setVisible(false);
-    this.banterText=this.add.text(91,408,'',{
+    this.banterText=this.add.text(117,408,'',{
       fontFamily:'monospace',fontSize:'11px',color:'#ecf4ff',
-      wordWrap:{width:175},lineSpacing:3,
+      wordWrap:{width:166},lineSpacing:3,
     }).setDepth(105).setVisible(false);
     this.lastBanterKey=null;
     this.banterWriter=createDialogueTypewriter(this,{
