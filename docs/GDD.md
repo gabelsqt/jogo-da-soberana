@@ -1521,3 +1521,11 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - O quadro 12 (aprovando, joinha) não deve ter tinta branca no dedo. Expressões: neutro, feliz, gargalhando, surpreso, preocupado, irritado, desconfiado, convencido, triste, assustado, determinado, aprovando, orgulhoso, envergonhado, pensativo, vitória.
 - Arquivos esperados: `public/assets/lideres/ze_maria_expressoes_4x4.png` e `.json`. `UpgradeScene.js` usa o novo atlas quando disponível e preserva o retrato legado como fallback.
 - Integração **parcial** até o PNG ser copiado para o repositório; as trocas automáticas de expressão por emoção do diálogo permanecem para etapa posterior.
+
+
+## Seu Nelson — retratos de diálogo (24/10/2026; APROVADO)
+
+- Aprovada a segunda spritesheet de Seu Nelson: homem mais velho e elegante, cabelo grisalho penteado para trás, bigode marcante, blazer bege, camisa floral vermelha, corrente de ouro e pequena medalha. Expressões discretas e contidas, com serenidade e malandragem; ele é quase imperturbável.
+- Atlas de 16 expressões 4×4, 256×256 px por quadro, 16 px de margens externas e espaçamento, 1104×1104 px total; moldura da arte dourada.
+- `UpgradeScene.js` reconhece `SEU NELSON` independentemente dos representantes e usa `nelson-expressions` nos diálogos quando o PNG estiver presente; caso contrário, permanece sem novo retrato, sem afetar as outras falas.
+- O PNG `public/assets/lideres/seu_nelson_expressoes_4x4.png` precisa ser instalado no repositório; JSON já integrado. Troca dinâmica de emoções é etapa futura.
