@@ -7244,11 +7244,11 @@ export class GameScene extends Phaser.Scene {
     );
     if (this.mode === 'wave0') {
       if (this.elapsed < 6500) {
-        this.updateHudText(this.tutorialText,'Mova o mouse e segure o botão esquerdo para atirar');
+        this.updateHudText(this.tutorialText,'SEU NELSON: Aponta para eles. Move o mouse para mirar.');
       } else if (this.elapsed < 15000) {
-        this.updateHudText(this.tutorialText,'Mira azul = explosão do especial • Botão direito: dispara');
+        this.updateHudText(this.tutorialText,'SEU NELSON: Agora atira. Segura o botão esquerdo.');
       } else {
-        this.updateHudText(this.tutorialText,'ARMAMENTO PROVISÓRIO EM POTÊNCIA MÁXIMA • DEFENDA O RIO');
+        this.updateHudText(this.tutorialText,'SEU NELSON: Derruba o resto.');
       }
     } else if (this.mode.startsWith('wave')) {
       const history = this.combatCampaign.choices.map((id) =>
