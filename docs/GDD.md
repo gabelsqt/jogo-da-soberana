@@ -1,3 +1,11 @@
+## Revisão 0.920 — Correntes e cópias dos lasers coreanos
+
+- Principal da Coreia: laser físico ~22% mais lento e mais grosso, com comprimento/largura crescentes em P1–P4.
+- Ricochetes P1–P4: **2 / 4 / 6 / 9** saltos; raio de busca ampliado para **190 px**. Retenção de dano de 85% por salto permanece.
+- Ramificação por corrente original P1–P4: **0 / 1 / 2 / 3 cópias** no máximo. Uma cópia segue para alvo alternativo vivo, herda os alvos já atingidos, os saltos restantes e o estágio visual; causa 55% do dano reduzido do próximo salto. Cópias não se multiplicam novamente (controle de crescimento).
+- Guarda de desempenho: impedir novas ramificações quando há pelo menos 95 projéteis ativos. O especial da discoteca mantém seu próprio orçamento de reflexos e não passa a criar ramificações infinitas.
+- Revisar em execução balanceamento e efeitos visuais, inclusive no celular.
+
 ## Revisão 0.918 — Discoteca K-pop (implementação visual)
 
 - Bola de Discoteca Orbital redesenhada em Phaser Graphics: esfera espelhada com facetas escalonadas, brilho cintilante e rotação de cores ciano/rosa/violeta/dourado.
