@@ -3897,7 +3897,12 @@ export class GameScene extends Phaser.Scene {
       phase<riseFraction+plateauFraction?1:(1-phase)/riseFraction;
     const heat = this.combat.heat ? Math.max(0, wave) * (this.combat.brazilHeatPeak || 0.65) : 0;
     const turbo = this.time.now < (this.brazilTurboUntil || 0) ? this.combat.brazilTurboMultiplier : 1;
-    if (this.time.now - this.lastBasicFire < this.combat.basicInterval / ((1 + heat) * turbo)) return;
+    const koreaMain=(this.modernMathEnabled&&this.v1LabPrincipal==='jp')||
+      (this.isV1Campaign&&(this.combat.koreaContinuous||this.specialBuild?.levels?.jp>0));
+    const kLevel=this.specialBuild?.levels?.jp??this.labExtra?.jpPrimaryLevel??2;
+    const kStage=Math.max(0,Math.min(3,Math.floor((Math.max(1,kLevel)-1)/2)));
+    const rate=koreaMain?[1,1.06,1.12,1.18][kStage]:1;
+    if (this.time.now - this.lastBasicFire < this.combat.basicInterval / ((1 + heat) * turbo * rate)) return;
     this.lastBasicFire = this.time.now;
     // Coreia usa laser de arcade mesmo em builds híbridas; se não houver
     // upgrades coreanos, preservar gelo russo e metralhadora dos outros países.
@@ -4529,6 +4534,9 @@ export class GameScene extends Phaser.Scene {
     bullet.koreanBounceRange=150;
     bullet.koreanBounceRetention=.85;
     bullet.koreanVisualStage=stage+1;
+    bullet.damage*=[1,1.08,1.16,1.25][stage];
+    bullet.koreanRainbow=stage===3;
+    if(bullet.koreanRainbow&&bullet.visual)bullet.trail=this.add.graphics().setDepth(36);
     playSfx('krBasicShot',{throttle:70,volumeScale:.55});
     this.showMuzzleFlash(angle,shotVfxFor(this.activeUpgradeIds()));
   }
@@ -4961,8 +4969,8 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  drawV1DiscoReflectionArcs(x,y,targets) {
-    animateDiscoReflectionArcs(this,x,y,targets);
+  drawV1DiscoReflectionArcs(x,y,targets,rainbow=false) {
+    animateDiscoReflectionArcs(this,x,y,targets,{rainbow});
   }
 
   fireV1DiscoReflections(x,y,build,globe,sourceBullet=null) {
@@ -4999,7 +5007,7 @@ export class GameScene extends Phaser.Scene {
     }
     if(showTargets.length){
       playSfx('krLaserRicochet',{throttle:105,volumeScale:.55});
-      this.drawV1DiscoReflectionArcs(x,y,showTargets);
+      this.drawV1DiscoReflectionArcs(x,y,showTargets,stage===4||build.stages?.jp>=4);
     }
   }
 
@@ -5422,6 +5430,18 @@ export class GameScene extends Phaser.Scene {
     const dx = bullet.vx / length;
     const dy = bullet.vy / length;
     gfx.clear();
+    if(bullet.koreanRainbow){
+      const palette=[0xff75c6,0xffd86e,0x77f7ff,0x9d8dff,0x8cffa6];
+      const t=Math.floor((this.time.now/85+bullet.distanceTravelled/24)%palette.length);
+      gfx.lineStyle(13,palette[t],.20);
+      gfx.lineBetween(x-dx*64,y-dy*64,x,y);
+      gfx.lineStyle(6,palette[(t+2)%palette.length],.72);
+      gfx.lineBetween(x-dx*48,y-dy*48,x,y);
+      gfx.lineStyle(2,0xffffff,.95);
+      gfx.lineBetween(x-dx*36,y-dy*36,x,y);
+      bullet.sprite.setFillStyle?.(palette[t]);
+      return;
+    }
     if(bullet.usRocket){
       // Chama de foguete tricolor, sem criar objetos a cada quadro.
       const r=Math.max(4,bullet.usRadius);
