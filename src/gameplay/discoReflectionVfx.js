@@ -31,7 +31,7 @@ function trace(g,points,count,offsetX=0,offsetY=0){
 
 // Uma única Graphics e um tween por salva. Os arcos "fantasmas" e pequenos
 // ramos elétricos são puramente estéticos: não aumentam dano nem refletem tiro.
-export function animateDiscoReflectionArcs(scene,x,y,targets){
+export function animateDiscoReflectionArcs(scene,x,y,targets,{rainbow=false}={}){
   const beams=targets.slice(0,DISCO_REFLECTION_MAX_VISUAL_RAYS)
     .map((p,i)=>discoReflectionArcPoints(x,y,p.x,p.y,i));
   if(!beams.length)return;
@@ -52,8 +52,11 @@ export function animateDiscoReflectionArcs(scene,x,y,targets){
       if(t<=0)return;
       const count=clamp(Math.ceil(t*(points.length-1))+1,2,points.length);
       // Arco principal roxo com miolo branco + sombra de energia curvada.
-      graphics.lineStyle(13,0x6d29ff,0.16*glow);trace(graphics,points,count);
-      graphics.lineStyle(7,0xaf52ff,0.43*glow);trace(graphics,points,count);
+      const colors=[0xff65b5,0xffd36a,0x67eaff,0x8d86ff,0x7dffbd];
+      const outer=rainbow?colors[(i+Math.floor(progress*5))%colors.length]:0x6d29ff;
+      const inner=rainbow?colors[(i+2+Math.floor(progress*5))%colors.length]:0xaf52ff;
+      graphics.lineStyle(13,outer,0.24*glow);trace(graphics,points,count);
+      graphics.lineStyle(7,inner,0.58*glow);trace(graphics,points,count);
       graphics.lineStyle(2,0xffffff,0.98*glow);trace(graphics,points,count);
       // Descarga paralela menor: dobra elétrica visível, não outro projétil.
       if(count>7){
