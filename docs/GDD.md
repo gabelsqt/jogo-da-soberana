@@ -1380,3 +1380,14 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - **Relação com o protagonista:** trata o jogador como **parceiro de palco**, quer ensiná-lo a se apresentar e acredita que ele precisa **aprender a gostar mais dos palcos**.
 - **Objetivo de conquista e traição:** Kim pretende dominar o Brasil para **explorar seus recursos e minérios**, impulsionando a indústria sul-coreana de **K-pop, tecnologia, maquinaria de palco, shows e espetáculos**. Quer fortalecer o império tecnológico-musical da Coreia, com mais equipamentos e máquinas para apresentações. **A regra geral da campanha permanece: Kim, como todos os líderes estrangeiros, trairá o jogador; amizade não cancela a conquista.** Forma específica de anúncio da traição e fala de derrota: **a definir**.
 - **Visual anterior preservado:** homem jovem de **1,79 m**, magro e atlético (físico de dançarino), figurino branco inspirado em idol com detalhes roxos, sorriso ensaiado, gesto de **finger heart**, estética de espetáculo e laser. Direção artística retro JRPG em pixel art aprovada para os cinco líderes permanece vigente.
+
+
+### Kim Lin Du — traição e confronto (24/10/2026; DECISÕES APROVADAS, SOMENTE PLANEJAMENTO)
+
+- **Anúncio da traição:** Kim **convida o protagonista a subir ao palco** e anuncia que **os dois governarão o Brasil**. Isso é a oferta de Kim, não uma aceitação do protagonista. A traição estrangeira permanece inevitável, conforme a regra geral da campanha.
+- **Justificativa para conquistar o Brasil:** afirma que a conquista é necessária para **financiar a próxima geração de tecnologia musical coreana**, usando os recursos brasileiros em benefício do império de K-pop e tecnologia da Coreia, já estabelecido.
+- **Atitude:** durante a revelação e o ataque continua **sorridente, encantador e teatral**, tratando toda a batalha como uma apresentação. Não adotar a opção de revelar um comandante frio que abandona a persona pública.
+- **Proposta para Zé Maria:** anuncia que Zé Maria será **diretor técnico de todos os palcos do novo império**, coerente com sua admiração pelo mecânico e com a tentativa de recrutá-lo ao K-pop.
+- **Identidade do confronto:** um **concerto militar**, com **luzes, lasers e coreografias sincronizadas**. A apresentação audiovisual deve aproveitar as mecânicas coreanas já aprovadas, **sem alterá-las por esta decisão documental**.
+- **Reação à derrota:** **exige repetir a batalha**, afirmando que **a coreografia saiu errada**. A indignação se concentra na execução imperfeita do espetáculo, coerente com seu perfeccionismo.
+- **Status:** seis decisões canônicas de narrativa; **planejamento apenas**. Falas exemplificativas não equivalem a diálogos finais aprovados. Nenhum sprite, cena jogável ou código autorizado por esta seção.
