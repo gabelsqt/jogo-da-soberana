@@ -596,6 +596,7 @@ export class GameScene extends Phaser.Scene {
     this.wallReflections = [];
     this.enemies = [];
     this.projectiles = [];
+    this.pandaDrone=null;
     this.visibleProjectileCount = 0;
     this.enemyBullets = [];
     this.specialBlasts = [];
@@ -4762,16 +4763,144 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  pandaDeploy(x,y) {
+    const stage=Math.max(1,Math.min(4,this.specialBuild?.stages?.cn??1));
+    const capacities=[8,14,22,32],radii=[100,130,160,200],intervals=[75,60,45,30];
+    if(this.pandaDrone){
+      if(this.pandaDrone.phase==='collect'){
+        const d=this.pandaDrone;
+        d.moveFromX=d.x;d.moveFromY=d.y;
+        d.targetX=x;d.targetY=y;d.moveStarted=this.time.now;
+      }
+      return;
+    }
+    this.pandaDrone={x,y,targetX:x,targetY:y,moveFromX:x,moveFromY:y,
+      moveStarted:-Infinity,stage,capacity:capacities[stage-1],
+      radius:radii[stage-1],interval:intervals[stage-1],
+      ammo:[],phase:'collect',lastShotAt:-Infinity,
+      graphics:this.add.graphics().setDepth(38)};
+    playSfx('cnCargoDeploy',{throttle:180,volumeScale:.60});
+  }
+
+  pandaClear(fireworks=false){
+    const drone=this.pandaDrone;if(!drone)return;
+    if(fireworks){
+      const flash=this.add.graphics().setDepth(54);
+      const x=drone.x,y=drone.y;
+      for(let i=0;i<24;i++){
+        const a=i*Math.PI/12,dist=14+(i%5)*9;
+        flash.lineStyle(2,[0xffd268,0xff767b,0xffffff,0x8dfae4][i%4],.85);
+        flash.lineBetween(x,y,x+Math.cos(a)*dist,y+Math.sin(a)*dist);
+      }
+      this.tweens.add({targets:flash,alpha:0,duration:420,onComplete:()=>flash.destroy()});
+    }
+    for(const bullet of drone.ammo){
+      bullet.trail?.destroy();bullet.specialMarker?.destroy();
+      bullet.sprite?.destroy();
+      if(bullet.visual)this.visibleProjectileCount=Math.max(0,this.visibleProjectileCount-1);
+    }
+    drone.graphics.destroy();this.pandaDrone=null;
+  }
+
+  updatePandaDrone(dt){
+    const d=this.pandaDrone;if(!d)return;
+    if(this.tutorialComplete||this.gameOver)return;
+    if(d.moveStarted!==-Infinity){
+      const p=Phaser.Math.Clamp((this.time.now-d.moveStarted)/500,0,1);
+      const ease=p*p*(3-2*p);
+      d.x=Phaser.Math.Linear(d.moveFromX,d.targetX,ease);
+      d.y=Phaser.Math.Linear(d.moveFromY,d.targetY,ease);
+      if(p>=1)d.moveStarted=-Infinity;
+    }
+    if(d.phase==='collect'){
+      for(let i=this.projectiles.length-1;i>=0&&d.ammo.length<d.capacity;i--){
+        const bullet=this.projectiles[i];
+        if(bullet.special||bullet.pandaReleased||bullet.pandaCapturing||bullet.koreanLaserBolt||
+          !bullet.sprite?.active)continue;
+        if(Math.hypot(bullet.sprite.x-d.x,bullet.sprite.y-d.y)>d.radius)continue;
+        this.projectiles.splice(i,1);
+        bullet.pandaCapturing=true;
+        bullet.pandaCaptureStart=this.time.now;
+        bullet.pandaStartX=bullet.sprite.x;bullet.pandaStartY=bullet.sprite.y;
+        d.ammo.push(bullet);
+      }
+      if(d.ammo.length===d.capacity)d.phase='ready';
+    }
+    const targets=()=>this.enemies.filter(e=>e?.sprite?.active&&e.type!==6)
+      .sort((a,b)=>Math.hypot(a.sprite.x-CANNON.x,a.sprite.y-CANNON.y)-
+        Math.hypot(b.sprite.x-CANNON.x,b.sprite.y-CANNON.y));
+    if(d.phase==='ready'&&targets().length){
+      d.phase='discharge';d.lastShotAt=-Infinity;d.shotIndex=0;
+    }
+    if(d.phase==='discharge'&&this.time.now-d.lastShotAt>=d.interval){
+      const bullet=d.ammo.shift(),alive=targets();
+      if(bullet&&alive.length){
+        const target=alive[d.shotIndex%alive.length];d.shotIndex++;
+        bullet.pandaCapturing=false;bullet.pandaReleased=true;
+        bullet.pandaTarget=target.uid;
+        bullet.sprite.setPosition(d.x,d.y);
+        const angle=Math.atan2(target.sprite.y-d.y,target.sprite.x-d.x);
+        const speed=Math.max(320,Math.hypot(bullet.vx,bullet.vy));
+        bullet.vx=Math.cos(angle)*speed;bullet.vy=Math.sin(angle)*speed;
+        bullet.sprite.setRotation?.(angle+Math.PI/2);
+        this.projectiles.push(bullet);
+        d.lastShotAt=this.time.now;
+      }else if(!alive.length&&bullet){
+        d.ammo.unshift(bullet);
+      }
+      if(!d.ammo.length){this.pandaClear();return;}
+    }
+    const g=d.graphics,t=this.time.now*.003;
+    g.clear();
+    g.fillStyle(0xc6283e,.18).fillCircle(d.x,d.y,d.radius);
+    g.lineStyle(1,0xf1a573,.24).strokeCircle(d.x,d.y,d.radius);
+    // Drone vermelho, dois braços mecânicos e rosto de panda.
+    const open=d.phase!=='collect',reach=open?31:24;
+    for(const side of [-1,1]){
+      g.lineStyle(6,0xe29b70,.9).lineBetween(d.x+side*13,d.y+7,d.x+side*reach,d.y+(open?-12:19));
+      g.fillStyle(0xffcf72,1).fillCircle(d.x+side*reach,d.y+(open?-12:19),5);
+      g.fillStyle(0x141722,.95).fillCircle(d.x+side*13,d.y-16,9);
+    }
+    g.fillStyle(0xcf3645,1).fillRoundedRect(d.x-23,d.y-20,46,41,11);
+    g.lineStyle(2,0xffd78e,.93).strokeRoundedRect(d.x-23,d.y-20,46,41,11);
+    g.fillStyle(0xf3f0e9,1).fillEllipse(d.x,d.y-3,33,28);
+    for(const side of [-1,1]){
+      g.fillStyle(0x191d2e,1).fillEllipse(d.x+side*9,d.y-5,10,13);
+      if(open)g.fillStyle(0xffe070,.95).fillCircle(d.x+side*9,d.y-6,3);
+    }
+    g.fillStyle(0x1b2030,1).fillCircle(d.x,d.y+5,3);
+    d.ammo.forEach((bullet,i)=>{
+      const age=Phaser.Math.Clamp((this.time.now-bullet.pandaCaptureStart)/260,0,1);
+      const ring=14+Math.floor(i/10)*11;
+      const a=t*1.5+i*2.39996,orbitX=d.x+Math.cos(a)*ring;
+      const orbitY=d.y+Math.sin(a)*ring*.58;
+      const spiral=(1-age)*Math.PI*3;
+      const px=Phaser.Math.Linear(bullet.pandaStartX,orbitX,age)+
+        Math.sin(spiral)*(1-age)*10;
+      const py=Phaser.Math.Linear(bullet.pandaStartY,orbitY,age)+
+        Math.cos(spiral)*(1-age)*10;
+      bullet.sprite.setPosition(px,py);
+      bullet.trail?.clear();
+    });
+  }
+
   shootSpecial(pointer) {
     if (this.tutorialComplete || this.countdownActive || this.supremeTyping ||
       this.supremeCinematic || this.elapsed<this.cannonFrozenUntil)return;
     if(this.mode==='wave0'&&!this.v1Playtest)return;
     if(this.campaignMathEnabled&&!this.v1LabSpecial)return;
-    if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown) return;
+    const existingPanda=this.pandaDrone;
+    const pandaSpecial=this.isV1Campaign&&this.specialBuild?.primary==='cn';
+    if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown && !(pandaSpecial&&existingPanda?.phase==='collect')) return;
     const country=this.isV1Campaign?this.specialBuild?.primary:null;
     const target=country==='us'
       ?americanWallPlacement(pointer.x,pointer.y,CANNON.x,CANNON.y,W,H)
       :specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
+    if(country==='cn'){
+      if(!this.pandaDrone)this.lastSpecialFire=this.time.now;
+      this.pandaDeploy(target.x,target.y);
+      return;
+    }
     this.lastSpecialFire=this.time.now;
     if(this.modernMathEnabled&&country==='cn'){
       this.cnConvergence={startedAt:this.time.now,lastShotAt:-Infinity,shots:0};
@@ -6103,6 +6232,21 @@ export class GameScene extends Phaser.Scene {
         bullet.sprite.setPosition(next.x,next.y);
         specialArrived=next.arrived;
       }else{
+        if(bullet.pandaTarget){
+          let target=this.enemies.find(e=>e.uid===bullet.pandaTarget&&e.sprite?.active);
+          if(!target){
+            target=this.enemies.filter(e=>e.sprite?.active&&e.type!==6)
+              .sort((a,b)=>Math.hypot(a.sprite.x-CANNON.x,a.sprite.y-CANNON.y)-
+                Math.hypot(b.sprite.x-CANNON.x,b.sprite.y-CANNON.y))[0];
+            bullet.pandaTarget=target?.uid??null;
+          }
+          if(target){
+            const angle=Math.atan2(target.sprite.y-bullet.sprite.y,target.sprite.x-bullet.sprite.x);
+            const speed=Math.hypot(bullet.vx,bullet.vy);
+            bullet.vx=Math.cos(angle)*speed;bullet.vy=Math.sin(angle)*speed;
+            bullet.sprite.setRotation?.(angle+Math.PI/2);
+          }
+        }
         bullet.sprite.x+=bullet.vx*dt;
         bullet.sprite.y+=bullet.vy*dt;
       }
@@ -7278,6 +7422,7 @@ export class GameScene extends Phaser.Scene {
     if (this.gameOver) return;
     this.updateAmericanWallReflections(dt);
     this.updatePlayerProjectiles(dt);
+    this.updatePandaDrone(dt);
     this.updateResidualSlashes();
     this.updateElectricFences();
     this.updateSupportTowers(dt);
