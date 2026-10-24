@@ -1,3 +1,10 @@
+## Revisão 0.908 — Coreia ricocheteante e controles móveis
+
+- Coreia: tiro principal passa a ser **um projétil laser por disparo**, com corrente de ricochetes para o inimigo mais próximo até 150 px; mesmo alvo não pode repetir na corrente. Estágios P1–P4: 1/2/4/7 saltos, cada salto retém 85% do dano do anterior.
+- Discoteca: raio de seleção visual de 250 px; o laser pode ser redirecionado para inimigo dentro do halo, sem perder saltos ou sofrer redução extra de dano. A trajetória desviada deixa arco luminoso temporário. Não há alcance global.
+- Touch: controle analógico transparente à esquerda para apontar o canhão; à direita, botão TIRO ON/OFF (alternância) e ESP (acionamento). Desktop permanece com mouse.
+- Validação pendente em aparelho: tamanho dos botões, multitouch, interações com cenas de laboratório, renderização de rastros curvos e comportamento do laser diante de múltiplos globos.
+
 ## Revisão 0.907 — terminologia, amanhecer e upgrades (23/10/2026)
 
 - O armamento fixo do protagonista é denominado **canhão**, não obuseiro, em falas, interface e documentação. Não alterar nomes internos de variáveis/arquivos que sejam identificadores técnicos.
