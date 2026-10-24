@@ -1391,3 +1391,15 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - **Identidade do confronto:** um **concerto militar**, com **luzes, lasers e coreografias sincronizadas**. A apresentação audiovisual deve aproveitar as mecânicas coreanas já aprovadas, **sem alterá-las por esta decisão documental**.
 - **Reação à derrota:** **exige repetir a batalha**, afirmando que **a coreografia saiu errada**. A indignação se concentra na execução imperfeita do espetáculo, coerente com seu perfeccionismo.
 - **Status:** seis decisões canônicas de narrativa; **planejamento apenas**. Falas exemplificativas não equivalem a diálogos finais aprovados. Nenhum sprite, cena jogável ou código autorizado por esta seção.
+
+
+### Kátia Strófika — traição, objetivos e derrota (24/10/2026; APROVADO, SOMENTE PLANEJAMENTO)
+
+- **Motivação principal:** quer provar que consegue **conquistar um país inteiro**, estabelecendo um recorde impossível. **Principalmente, deseja que os melhores atletas brasileiros passem a ser da Rússia, com foco especial nos jogadores de futebol**. A apropriação do talento esportivo brasileiro é objetivo central, não detalhe secundário; não substituir pelo plano de exploração mineral/militar oferecido como outra alternativa.
+- **Revelação da traição:** **desafia o protagonista para uma competição final valendo o controle do Brasil**. A amizade e o respeito que desenvolveu pelo jogador não impedem a traição.
+- **Atitude no conflito:** trata o protagonista como **adversário digno** e exige que dê tudo de si, mantendo o espírito competitivo e o reconhecimento pela perseverança do jogador.
+- **Zé Maria:** tenta convencê-lo a **abandonar o Brasil**, alegando que **um homem forte merece estar do lado dos vencedores**; isso coexiste com o respeito por sua força física e habilidade mecânica.
+- **Identidade do confronto aprovada como direção narrativa:** **competição militar, com placar de recordes e contagem regressiva**. Preservar as regras de combate existentes até autorização específica de implementação.
+- **Ideia adicional explicitamente adiada para o fim das prioridades:** explorar **um placar de pontos e/ou mecânicas esportivas** na batalha contra Kátia. É um **conceito em aberto, não mecânica aprovada detalhadamente**; deixar como último item de desenvolvimento, sem implementar ou fixar pontuação, regras ou equilíbrio agora.
+- **Reação à derrota:** **aceita a derrota com dignidade e entrega simbolicamente uma medalha ao protagonista**. Não insistir em revanche imediata na versão canônica desta cena.
+- **Status:** decisões canônicas de planejamento. As falas e a encenação exatas ainda dependerão de roteiro; nenhum código, sprite ou sistema de pontos deve ser alterado por este registro.
