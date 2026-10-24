@@ -1846,7 +1846,7 @@ export class GameScene extends Phaser.Scene {
       choices:this.combatCampaign?.choices??this.campaign?.choices,
       traitor:this.mode==='wave11'?this.selectedBetrayer:null,
       voyage:this.voyageActive,
-      wave:/^wave(\d+)$/.test(this.mode)?Number(this.mode.slice(4)):1,
+      wave:this.mode.startsWith('wave')?Number(this.mode.slice(4))||0:1,
     },this.time.now);
   }
 
