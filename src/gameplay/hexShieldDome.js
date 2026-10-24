@@ -74,14 +74,16 @@ export function hexShieldOpacity({shield=80,maxShield=80,progress=1,mode='active
 }
 export function drawHexShieldDome(graphics,{
   cx=480,cy=504,radius=CANNON_DOME_RADIUS,
-  shield=80,maxShield=80,progress=1,mode='active',now=0,flash=0,
+  shield=80,maxShield=80,progress=1,mode='active',now=0,flash=0,rebuild=false,
 }={}){
   graphics.clear();
   const opacity=hexShieldOpacity({shield,maxShield,progress,mode});
   if(opacity<=0.001)return;
   const cells=hexShieldCells(radius);
   const total=Math.max(1,cells.length);
-  const stage=mode==='forming'?hexShieldFormationStage(progress):{arc:1,cells:1};
+  const stage=mode==='forming'?(rebuild
+    ?{arc:clamp01(progress),cells:clamp01((progress-.4)/.6)}
+    :hexShieldFormationStage(progress)):{arc:1,cells:1};
   const whiteFlash=clamp01(flash);
   const visualScale=hexShieldFlashScale(whiteFlash);
   const visualRadius=radius*visualScale;
