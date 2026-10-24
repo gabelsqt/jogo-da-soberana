@@ -1,3 +1,10 @@
+## Revisão 0.912 — pausa em combate e Boteco
+
+- Menu de pausa unificado em GameScene e UpgradeScene (Boteco), aberto por ícone touch ou teclas P/Esc.
+- Opções: continuar, reiniciar onda (ou rejogar última onda no Boteco), menu principal, controles musicais e orientação dos comandos; preservar proibição de reinício na onda 11.
+- No celular, a edição do posicionamento dos controles agora é iniciada pelo menu de pausa: **Mover controles** retoma com arraste habilitado; abrir pausa novamente oferece **Salvar posição dos controles**.
+- Remover botão MOVER permanente da tela de batalha. Persistência do layout local no navegador preservada.
+
 ## Revisão 0.911 — especial touch e layout móvel personalizável
 
 - **Especial touch com duas formas de ativação:** primeiro toque no botão ESP prepara a habilidade e marca o botão como ALVO. Em seguida, tocar num ponto do cenário dispara o especial naquela posição, ou tocar ESP novamente dispara na direção atual do analógico. A pontaria segue as regras de cada especial no código (inclusive limitações de distância/posicionamento).
