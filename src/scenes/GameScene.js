@@ -4969,35 +4969,41 @@ export class GameScene extends Phaser.Scene {
     animateDiscoReflectionArcs(this,x,y,targets);
   }
 
-  fireV1DiscoReflections(x,y,build,globe) {
-    // Salvas limitadas pela cadência; raios compartilham um total fixo de dano.
+  fireV1DiscoReflections(x,y,build,globe,sourceBullet=null) {
+    // O globo volta a MULTIPLICAR reflexos; cada ramo herda os saltos.
+    // O orçamento de dano é partilhado entre os reflexos, nunca multiplicado.
     if(globe && this.elapsed-(globe.lastReflectAt??-Infinity)<DISCO_REFLECTION_COOLDOWN_MS)return;
-    if(!this.enemies.length)return;
-    const show=!globe||this.elapsed-globe.lastVisualAt>=80;
-    if(globe&&show)globe.lastVisualAt=this.elapsed;
-    const visualTargets=[];
-    const targets=[...this.enemies].sort((a,b)=>
-      Math.hypot(a.sprite.x-x,a.sprite.y-y)-Math.hypot(b.sprite.x-x,b.sprite.y-y));
-    let cursor=0;
-    for(let ray=0;ray<build.krReflections;ray++){
-      const liveIds=new Set(this.enemies.map(e=>e.uid));
-      const alive=targets.filter(t=>liveIds.has(t.uid));
-      if(!alive.length)break;
-      const target=alive[cursor++%alive.length];
-      if(show&&visualTargets.length<DISCO_REFLECTION_MAX_VISUAL_RAYS)
-        visualTargets.push({x:target.sprite.x,y:target.sprite.y});
-      const index=this.enemies.findIndex(enemy=>enemy.uid===target.uid);
-      if(index>=0){
-        if(build.stages.ru)this.freezeRussianEnemy(target,build.ruFreezeMs);
-        this.impactInvader(index,build.krReflectDamage,0,'#f1baff',false);
+    const limit=Math.min(build.krReflections||0,24);
+    const candidates=this.enemies.filter(e=>e?.sprite?.active&&e.type!==6&&
+      !sourceBullet?.hitEnemyIds?.has(e.uid)&&Math.hypot(e.sprite.x-x,e.sprite.y-y)<=250)
+      .sort((a,b)=>Math.hypot(a.sprite.x-x,a.sprite.y-y)-Math.hypot(b.sprite.x-x,b.sprite.y-y));
+    const firstTargets=candidates.slice(0,limit);
+    if(!firstTargets.length)return;
+    if(globe){globe.lastReflectAt=this.elapsed;globe.lastVisualAt=this.elapsed;}
+    const showTargets=[];
+    const stage=Math.max(1,Math.min(4,sourceBullet?.koreanVisualStage??build.stages?.jp??1));
+    const initialDamage=(build.krSalvoDamage||7.2)/firstTargets.length;
+    const jumps=sourceBullet?.koreanBouncesLeft??[1,2,4,7][stage-1];
+    for(let ray=0;ray<firstTargets.length;ray++){
+      const visited=new Set(sourceBullet?.hitEnemyIds??[]);
+      let target=firstTargets[ray],lastX=x,lastY=y,damage=initialDamage;
+      for(let hop=0;hop<=jumps&&target;hop++){
+        const id=this.enemies.findIndex(e=>e.uid===target.uid);
+        if(id<0||visited.has(target.uid))break;
+        if(showTargets.length<DISCO_REFLECTION_MAX_VISUAL_RAYS)
+          showTargets.push({x:target.sprite.x,y:target.sprite.y});
+        lastX=target.sprite.x;lastY=target.sprite.y;
+        visited.add(target.uid);
+        if(build.stages?.ru)this.freezeRussianEnemy(target,build.ruFreezeMs);
+        this.impactInvader(id,damage,0,'#f1baff',false);
+        if(hop===jumps)break;
+        damage*=.85;
+        target=nextKoreanRicochet(lastX,lastY,this.enemies,visited,150);
       }
     }
-    if(visualTargets.length){
-      if(globe)globe.lastReflectAt=this.elapsed;
-      // Os testes de dano executam o método isoladamente, sem módulo de áudio.
-      if(typeof playSfx==='function')
-        playSfx('krLaserRicochet',{throttle:105,volumeScale:0.55});
-      this.drawV1DiscoReflectionArcs(x,y,visualTargets);
+    if(showTargets.length){
+      playSfx('krLaserRicochet',{throttle:105,volumeScale:.55});
+      this.drawV1DiscoReflectionArcs(x,y,showTargets);
     }
   }
 
@@ -6007,36 +6013,12 @@ export class GameScene extends Phaser.Scene {
         const hit=bullet.koreanDiscoRedirected?null:hitDiscoGlobe(this.discoGlobes,previousX,previousY,
           bullet.sprite.x,bullet.sprite.y,this.elapsed,Math.max(7,bullet.usRadius||0));
         if(hit){
-          if(bullet.koreanLaserBolt||bullet.koreanRicochet){
-            const candidates=this.enemies.filter(enemy=>enemy.sprite?.active!==false&&
-              !bullet.hitEnemyIds.has(enemy.uid)&&
-              Phaser.Math.Distance.Between(hit.globe.x,hit.globe.y,enemy.sprite.x,enemy.sprite.y)<=250);
-            candidates.sort((a,b)=>Phaser.Math.Distance.Between(hit.globe.x,hit.globe.y,a.sprite.x,a.sprite.y)-
-              Phaser.Math.Distance.Between(hit.globe.x,hit.globe.y,b.sprite.x,b.sprite.y));
-            if(candidates.length){
-              const target=candidates[0];
-              const angle=Math.atan2(target.sprite.y-hit.globe.y,target.sprite.x-hit.globe.x);
-              bullet.sprite.setPosition(hit.globe.x,hit.globe.y);
-              bullet.vx=Math.cos(angle)*this.combat.basicSpeed;
-              bullet.vy=Math.sin(angle)*this.combat.basicSpeed;
-              bullet.sprite.setRotation?.(angle+Math.PI/2);
-              bullet.koreanDiscoTarget=target.uid;
-              bullet.koreanDiscoRedirected=true;
-              // Redirecionamento não gasta salto nem reduz o dano.
-              const arc=this.add.graphics().setDepth(49);
-              arc.lineStyle(2+Math.min(3,bullet.koreanVisualStage??1),0xbab0ff,.85);
-              arc.beginPath();arc.moveTo(hit.globe.x,hit.globe.y);
-              const mx=(hit.globe.x+target.sprite.x)/2;
-              const my=(hit.globe.y+target.sprite.y)/2-32;
-              arc.lineTo(mx,my);arc.lineTo(target.sprite.x,target.sprite.y);arc.strokePath();
-              this.tweens.add({targets:arc,alpha:0,duration:140+(bullet.koreanVisualStage??1)*65,
-                onComplete:()=>arc.destroy()});
-              remove=false;
-            }else remove=true;
-          }else{
-            this.fireV1DiscoReflections(hit.globe.x,hit.globe.y,hit.globe.build,hit.globe);
-            remove=true;
-          }
+          // O projétil é consumido: o globo divide a energia em
+          // reflexos curvos que continuam ricocheteando entre inimigos.
+          this.fireV1DiscoReflections(hit.globe.x,hit.globe.y,
+            hit.globe.build,hit.globe,
+            bullet.koreanLaserBolt||bullet.koreanRicochet?bullet:null);
+          remove=true;
         }
       }
       // O jogador ALIMENTA o Arraial acertando o balão com o tiro principal.
