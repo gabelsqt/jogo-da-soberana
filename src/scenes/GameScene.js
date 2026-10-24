@@ -509,6 +509,7 @@ export class GameScene extends Phaser.Scene {
     this.events.on('pause',stopRussianSfxLoops);
     this.events.on('pause',stopNationalSpecialSfxLoops);
     this.events.once('shutdown',()=>{
+      this.pandaClear(false);
       this.events.off('pause',stopRussianSfxLoops);
       this.events.off('pause',stopNationalSpecialSfxLoops);
       stopRussianSfxLoops();
@@ -7113,6 +7114,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   advanceAfterWave() {
+    this.pandaClear(true);
     if(this.mode==='wave10') {
       this.scene.start('GameScene',{
         mode:'wave11',campaign:this.campaign,
