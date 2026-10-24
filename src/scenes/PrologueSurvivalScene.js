@@ -91,10 +91,16 @@ export class PrologueSurvivalScene extends Phaser.Scene{
         invader.x=pose.x;invader.y=pose.y;
         invader.sprite.setAlpha(pose.alpha);
       }else{
-        const p=Phaser.Math.Clamp((this.elapsed-invader.slot.delayMs)/2400,0,1);
-        const ease=1-Math.pow(1-p,3);
-        invader.x=invader.slot.entryX+(invader.slot.x-invader.slot.entryX)*ease;
-        invader.y=invader.slot.y+Math.sin(this.elapsed*.0017+invader.seed)*3;
+        const arrival=Phaser.Math.Clamp((this.elapsed-invader.slot.delayMs)/2400,0,1);
+        const ease=1-Math.pow(1-arrival,3);
+        const approach=Phaser.Math.Clamp((this.elapsed-3400-invader.slot.delayMs*.13)/9500,0,1);
+        const advance=approach*approach*(3-2*approach);
+        const formationX=invader.slot.entryX+(invader.slot.x-invader.slot.entryX)*ease;
+        // A esquadrilha fecha o cerco ao obuseiro, sem tocar nele.
+        const targetX=W/2+(invader.seed%10-4.5)*33;
+        const targetY=368+Math.floor(invader.seed/10)*11;
+        invader.x=Phaser.Math.Linear(formationX,targetX,advance);
+        invader.y=Phaser.Math.Linear(invader.slot.y,targetY,advance)+Math.sin(this.elapsed*.0017+invader.seed)*2*(1-advance);
       }
       invader.sprite.setPosition(invader.x,invader.y);
     }
@@ -121,8 +127,10 @@ export class PrologueSurvivalScene extends Phaser.Scene{
     if(this.withdrawal)return;
     this.withdrawal=true;this.withdrawElapsed=0;
     for(const invader of this.invaders){invader.withdrawX=invader.x;invader.withdrawY=invader.y;}
-    this.add.rectangle(W/2,H/2,W,H,0xffd5a3,.14).setDepth(90);
-    this.add.text(W/2,156,'OS INVASORES RECUAM SEM EXPLICAÇÃO',{
+    // Clarão de amanhecer: interrompe a aproximação antes da colisão.
+    this.dawnFlash=this.add.rectangle(W/2,H/2,W,H,0xffd5a3,0).setDepth(90);
+    this.tweens.add({targets:this.dawnFlash,alpha:.34,duration:2100,yoyo:true,hold:400});
+    this.add.text(W/2,156,'AMANHECE • OS INVASORES RECUAM',{
       fontFamily:'monospace',fontSize:'21px',fontStyle:'bold',color:'#ffedc4',
       stroke:'#081420',strokeThickness:5,
     }).setOrigin(.5).setDepth(105);
