@@ -1,3 +1,12 @@
+## Revisão 0.913 — Discoteca multiplicadora restaurada
+
+- Tiro principal da Coreia permanece um laser por disparo, com progressão de 1/2/4/7 saltos e retenção de 85% do dano a cada salto.
+- Ao tocar a Bola de Discoteca, o laser é consumido e gera **3/6/12/24 reflexos máximos** conforme S1–S4, limitados a inimigos vivos e distintos dentro do raio de 250 px.
+- Cada reflexo pode continuar ricocheteando pelo raio normal de 150 px, herdando a quantidade restante de saltos; cada ramo não repete o mesmo alvo.
+- O orçamento de dano `krSalvoDamage` é dividido pelo número de reflexos criados. Saltos adicionais decaem multiplicativamente 15%.
+- A representação visual reutiliza os arcos prismáticos animados da discoteca antiga; o total de traçados simultâneos é limitado para preservar performance móvel. Impactos e efeitos visuais são processados separadamente.
+- Pendente teste de execução em dispositivos e ajuste fino das curvas/rastros por estágio.
+
 ## Revisão 0.912 — pausa em combate e Boteco
 
 - Menu de pausa unificado em GameScene e UpgradeScene (Boteco), aberto por ícone touch ou teclas P/Esc.
