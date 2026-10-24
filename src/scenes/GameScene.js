@@ -671,6 +671,7 @@ export class GameScene extends Phaser.Scene {
     this.towerChargeGraphics = this.add.graphics().setDepth(36);
     this.createSupportTowers();
     this.createHud();
+    this.createMobileControls();
     if(this.labMathEnabled){
       this.mathEditor=mountLabBalanceEditor({
         allocation:this.v1LabAllocation,especial:this.v1LabSpecial,
@@ -3922,7 +3923,7 @@ export class GameScene extends Phaser.Scene {
     if (this.isV1Campaign && this.combat.koreaContinuous) {
       this.basicShotCount=nextShot;
       // Não cria balas físicas: o Lightstick torna-se o disparo principal.
-      this.fireLightstickBeam(angle,false);
+      this.fireLabKoreanVolley(angle);
       return;
     }
     // A alternância brasileira é aplicada à rajada INTEIRA; todos os
@@ -4515,23 +4516,57 @@ export class GameScene extends Phaser.Scene {
     if(line.shots%5===1)playSfx('cannon',{throttle:95,volumeScale:.25});
   }
 
-  // Principal coreano: saraivada de pequenos lasers independentes.
-  // Após cada impacto, cada laser pode ricochetear para outro inimigo.
+  // Coreia: um laser por vez, com saltos conforme o nível.
   fireLabKoreanVolley(angle){
-    const count=this.labExtra?.jpVolleyCount??3;
-    const angles=koreanSalvoAngles(angle,count,count>6?.045:.10);
-    for(let i=0;i<angles.length;i++){
-      const direction=Phaser.Math.Clamp(angles[i],-Math.PI+Math.PI/12,-Math.PI/12);
-      const bullet=this.createProjectile(direction,false);
-      if(!bullet)continue;
-      bullet.koreanBouncesLeft=this.labExtra?.jpBounces??0;
-      bullet.koreanBounceRange=this.labExtra?.jpBounceRange??180;
-      bullet.koreanBounceRetention=this.labExtra?.jpBounceRetention??.7;
-      bullet.damage*=this.labWinner==='jp'?.6:1;
-      // Sem fenda de Lightstick, sem rastro contínuo.
-    }
+    const level=this.specialBuild?.levels?.jp??this.labExtra?.jpPrimaryLevel??2;
+    const stage=Math.max(0,Math.min(3,Math.floor((Math.max(1,level)-1)/2)));
+    const bullet=this.createProjectile(angle,false);
+    if(!bullet)return;
+    bullet.koreanLaserBolt=true;
+    bullet.koreanBouncesLeft=[1,2,4,7][stage];
+    bullet.koreanBounceRange=150;
+    bullet.koreanBounceRetention=.85;
+    bullet.koreanVisualStage=stage+1;
     playSfx('krBasicShot',{throttle:70,volumeScale:.55});
     this.showMuzzleFlash(angle,shotVfxFor(this.activeUpgradeIds()));
+  }
+
+  createMobileControls(){
+    if(!this.sys.game.device.input.touch)return;
+    this.mobileAimAngle=-Math.PI/2;
+    this.mobileFire=false;
+    this.mobileStickPointer=null;
+    const base=this.add.circle(100,435,68,0x1c4261,.20)
+      .setStrokeStyle(2,0xb5edff,.4).setDepth(290).setInteractive();
+    const knob=this.add.circle(100,435,27,0x8edfff,.33)
+      .setStrokeStyle(2,0xffffff,.6).setDepth(291);
+    const move=p=>{
+      const dx=p.x-100,dy=p.y-435,d=Math.hypot(dx,dy),f=Math.min(1,52/Math.max(1,d));
+      knob.setPosition(100+dx*f,435+dy*f);
+      if(d>8)this.mobileAimAngle=Phaser.Math.Clamp(Math.atan2(dy,dx),
+        -Math.PI+Math.PI/12,-Math.PI/12);
+    };
+    base.on('pointerdown',(p,_x,_y,e)=>{e?.stopPropagation();this.mobileStickPointer=p.id;move(p);});
+    this.input.on('pointermove',p=>{if(p.id===this.mobileStickPointer)move(p);});
+    this.input.on('pointerup',p=>{if(p.id===this.mobileStickPointer){this.mobileStickPointer=null;knob.setPosition(100,435);}});
+    const fire=this.add.circle(855,438,43,0x3bc2df,.24)
+      .setStrokeStyle(2,0xbef5ff,.6).setDepth(290).setInteractive();
+    const label=this.add.text(855,438,'TIRO\nOFF',{fontFamily:'monospace',fontSize:'12px',
+      color:'#ffffff',align:'center'}).setOrigin(.5).setDepth(291);
+    fire.on('pointerdown',(_p,_x,_y,e)=>{
+      e?.stopPropagation();this.mobileFire=!this.mobileFire;
+      label.setText(this.mobileFire?'TIRO\nON':'TIRO\nOFF');
+      fire.setFillStyle(this.mobileFire?0x32d7aa:0x3bc2df,this.mobileFire?.38:.24);
+    });
+    const special=this.add.circle(754,479,34,0xc383fc,.25)
+      .setStrokeStyle(2,0xffddff,.6).setDepth(290).setInteractive();
+    this.add.text(754,479,'ESP',{fontFamily:'monospace',fontSize:'12px',
+      color:'#ffffff'}).setOrigin(.5).setDepth(291);
+    special.on('pointerdown',(_p,_x,_y,e)=>{
+      e?.stopPropagation();
+      this.shootSpecial({x:CANNON.x+Math.cos(this.mobileAimAngle)*450,
+        y:CANNON.y+Math.sin(this.mobileAimAngle)*450});
+    });
   }
 
   drawLabKoreanHologram(angle,active){
@@ -4802,6 +4837,8 @@ export class GameScene extends Phaser.Scene {
       }
       const g=globe.graphics,r=DISCO_RADIUS;
       g.clear();
+      g.fillStyle(0xa75aff,0.035);g.fillCircle(globe.x,globe.y,250);
+      g.lineStyle(2,0xb78bff,0.2+Math.sin(this.elapsed*.005)*.08);g.strokeCircle(globe.x,globe.y,250);
       g.fillStyle(0xc452ef,0.16);g.fillCircle(globe.x,globe.y,r+7);
       g.fillStyle(0x563778,0.95);g.fillCircle(globe.x,globe.y,r);
       g.lineStyle(2,0xf8d9ff,0.95);g.strokeCircle(globe.x,globe.y,r);
@@ -5191,7 +5228,7 @@ export class GameScene extends Phaser.Scene {
     const vfx = special ? null : (effects ?? shotVfxFor(this.activeUpgradeIds()));
     const julyShot=!special&&patriotic;
     // Identidade coreana: pulso laser visual em cada tiro físico, sem mudar física.
-    const koreanLaserBolt=!special&&this.modernMathEnabled&&this.v1LabPrincipal==='jp';
+    const koreanLaserBolt=!special&&((this.modernMathEnabled&&this.v1LabPrincipal==='jp')||(this.isV1Campaign&&this.combat.koreaContinuous));
     const koreanLaserPulse=!special&&!this.modernMathEnabled&&this.isV1Campaign&&this.combat.plasmaEvery>0;
     const usRocket=!special&&this.isV1Campaign&&this.combat.usRocketRadius>0;
     // Somente a representação gráfica é limitada. Balas invisíveis continuam com física e dano.
@@ -6896,7 +6933,11 @@ export class GameScene extends Phaser.Scene {
       this.beginDawnWithdrawal();
       return;
     }
-    this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, pointer.x, pointer.y);
+    const mobilePointer=this.mobileAimAngle===undefined?pointer:{
+      x:CANNON.x+Math.cos(this.mobileAimAngle)*450,
+      y:CANNON.y+Math.sin(this.mobileAimAngle)*450,
+      leftButtonDown:()=>this.mobileFire};
+    this.aimAngle = restrictedAimAngle(CANNON.x, CANNON.y, mobilePointer.x, mobilePointer.y);
     this.barrel.rotation = this.aimAngle + Math.PI / 2;
     if(this.cannonArtwork){
       // O sprite mais próximo serve de base, com rotação complementar
@@ -6910,8 +6951,9 @@ export class GameScene extends Phaser.Scene {
     }
     if(this.isV1Campaign && this.combat.koreaContinuous)
       this.drawEncoreContinuousBeam(this.aimAngle,
-        pointer.leftButtonDown() && !this.pointerOverEnemyLabControls(pointer));
-    const firing=pointer.leftButtonDown()&&!this.pointerOverEnemyLabControls(pointer);
+        (this.mobileAimAngle!==undefined?this.mobileFire:pointer.leftButtonDown()) && !this.pointerOverEnemyLabControls(pointer));
+    const firing=(this.mobileAimAngle!==undefined?this.mobileFire:pointer.leftButtonDown())&&
+      !this.pointerOverEnemyLabControls(pointer);
     const breathActive=this.isV1Campaign&&this.combat.russianFreezeMs>0&&
       firing&&this.elapsed>=this.cannonFrozenUntil;
     if(this.iceBreathGraphics)this.drawRussianBreath(this.aimAngle,breathActive);
@@ -6920,7 +6962,7 @@ export class GameScene extends Phaser.Scene {
     if(this.modernMathEnabled&&this.v1LabPrincipal==='jp')
       this.drawLabKoreanHologram(this.aimAngle,
         this.labWinner==='jp'&&firing);
-    if(firing&&!(this.modernMathEnabled&&this.cnConvergence))this.shootBasic(pointer);
+    if(firing&&!(this.modernMathEnabled&&this.cnConvergence))this.shootBasic(mobilePointer);
     // O ciclo de calor continua mesmo quando o jogador solta o disparo.
     // Recuo puramente visual. A rotação continua ligada à mira, e o canhão
     // volta ao lugar sem alterar a origem física das balas.
