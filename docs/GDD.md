@@ -1,3 +1,9 @@
+## Revisão 0.907 — terminologia, amanhecer e upgrades (23/10/2026)
+
+- O armamento fixo do protagonista é denominado **canhão**, não obuseiro, em falas, interface e documentação. Não alterar nomes internos de variáveis/arquivos que sejam identificadores técnicos.
+- **Onda 0.5:** 60 invasores avançam até muito perto do canhão (sem colisão); o canhão avariado ainda dispara lentamente, com dano **zero** e tiros que somem ao encostar nos inimigos. Aos 15 segundos, um amanhecer gradual com clarão e sol crescente interrompe o ataque e provoca a retirada pelos portais.
+- **Upgrades:** revisão sem implementação de números. Cada melhoria precisa afetar apenas atributos coerentes com a arma: o Grande Muro dos EUA não deve receber aumento de cadência como benefício principal. Avaliar duração, alcance angular, velocidade de formação, repulsão, cobertura e estabilidade sem introduzir dano no muro. Exigir análise de interações entre tiro principal e especial de todos os países antes de aprovar rebalanceamento.
+
 > Revisão 0.906: retirada do prólogo em 6,5 s, Tipo 1 proporcional com altura 72 px; combate somente depois da animação do relógio; conclusão no laboratório oferece seguir as ondas com a combinação experimental ou voltar ao editor; escudos com HP usam azul (>75%), verde (>50%), amarelo (>25%) e vermelho (≤25%) em toda a superfície.
 
 > Revisão 0.905 — abertura em apartamento simples de classe média baixa no Rio, em uma manhã tranquila: laptop abre e liga, e-mail de convocação; plantão na televisão informa que as Forças Armadas foram destruídas e os mesários estão sendo alocados nas armas antiaéreas. A antiga “onda 0.5” é a segunda parte contínua da onda 0, sem título ou cronômetro próprios. Após o Tipo 6, canhão fumegante sem escudo, disparos quase inoperantes e 60 Tipo 1 grandes em dois grupos de 30 no céu. Sprite destruído fica para revisão futura. Clarão branco do domo reduzido de 840 ms para 180 ms. Esta revisão prevalece sobre referências anteriores a 0.5/84 inimigos.
@@ -1077,7 +1083,7 @@ O PNG do Cruzador-Colmeia agora é RGBA verdadeiro em 896×512. O feedback de da
 ### José Maria — Zé Maria, representante do Brasil
 
 - **Identidade:** José Maria, chamado **Zé Maria**, dono da **Oficina do Zé Maria**; civil, não militar nem convocado. Oficina tradicional e familiar de bairro, célebre por fazer andar Marea, Peugeot 206 e qualquer lata velha; resolve praticamente qualquer problema mecânico. Antigo mecânico de confiança do General.
-- **Personalidade:** 48–55 anos, alegria contagiante, prestativo e confiante na própria competência. É contratado para recuperar o Obuseiro e fica também para proteger a cidade. Aceita propostas estrangeiras de início; só nas ondas finais passa a desconfiar dos representantes. Suas propostas brasileiras são alternativas plenamente válidas.
+- **Personalidade:** 48–55 anos, alegria contagiante, prestativo e confiante na própria competência. É contratado para recuperar o Canhão e fica também para proteger a cidade. Aceita propostas estrangeiras de início; só nas ondas finais passa a desconfiar dos representantes. Suas propostas brasileiras são alternativas plenamente válidas.
 - **Design permanente:** homem grande, largo, forte, barrigudo; rosto redondo, bochechas cheias, pele marrom escuro quente (base de referência `#985B3A`), olhos castanhos abertos e amigáveis, bigodão espesso. Cabelo afro curto, crespo e **achatado pelo boné**, com volume nas laterais, sem grandes cachos esféricos. Boné verde bastante surrado e amassado (variação visual 16 aprovada).
 - **Uniforme:** macacão verde usado, com discretas manchas de graxa, gola aberta, camiseta branca antiga, mangas dobradas até os cotovelos, patch **retangular “ZÉ MARIA”**, botinas marrons gastas, relógio **analógico de ponteiros** com pulseira de couro marrom.
 - **Itens invariáveis:** no bolso do peito, uma **chave Phillips** e uma **caneta Bic azul**. Na mão, **chave inglesa ajustável de 12”**, prateada, com mandíbula móvel e rosca de ajuste aparente. Não substituí-la por chave fixa, grifo ou outro instrumento.
@@ -1086,10 +1092,10 @@ O PNG do Cruzador-Colmeia agora é RGBA verdadeiro em 896×512. O feedback de da
 
 ### Prólogo revisto: onda 0, Tipo 6 e onda 0.5
 
-1. **Onda 0 — falsa superioridade:** o **mesmo modelo visual de canhão base** opera provisoriamente com cadência extrema e dano muito alto. Inimigos comuns caem com facilidade. No final surge um **Tipo 6**; trata-se do **mesmo chefe que retornará mais tarde**. Seu laser causa sobrecarga e deixa o Obuseiro **gravemente danificado, não completamente destruído**. Cena obrigatória, não derrota por falha do jogador.
-2. **Onda 0.5 — “O Céu Tomado”:** começa **imediatamente** após o laser e dura **15 segundos**. O Obuseiro mantém somente o tiro básico, **muito lento e fraco**. Grandes grupos de alienígenas **Tipo 1 descem lentamente em massa**, lotando o céu. Não disparam nem causam dano nessa sequência, mas não podem ser todos eliminados. Objetivo é sobreviver, sem punição injusta por batalha impossível. **Ao amanhecer todos fogem simultaneamente para os portais, inexplicavelmente.** Direção sonora: tensão musical crescente e ruptura na fuga; música específica não definida.
+1. **Onda 0 — falsa superioridade:** o **mesmo modelo visual de canhão base** opera provisoriamente com cadência extrema e dano muito alto. Inimigos comuns caem com facilidade. No final surge um **Tipo 6**; trata-se do **mesmo chefe que retornará mais tarde**. Seu laser causa sobrecarga e deixa o Canhão **gravemente danificado, não completamente destruído**. Cena obrigatória, não derrota por falha do jogador.
+2. **Onda 0.5 — “O Céu Tomado”:** começa **imediatamente** após o laser e dura **15 segundos**. O Canhão mantém somente o tiro básico, **muito lento e fraco**. Grandes grupos de alienígenas **Tipo 1 descem lentamente em massa**, lotando o céu. Não disparam nem causam dano nessa sequência, mas não podem ser todos eliminados. Objetivo é sobreviver, sem punição injusta por batalha impossível. **Ao amanhecer todos fogem simultaneamente para os portais, inexplicavelmente.** Direção sonora: tensão musical crescente e ruptura na fuga; música específica não definida.
 3. **Telefonema:** depois da retirada, o General constata os danos e que muitos militares/especialistas morreram na invasão; sem outra equipe de apoio, **liga imediatamente para Zé Maria**, seu antigo mecânico.
-4. **Chegada:** Zé Maria chega dirigindo um **caminhão-guincho azul antigo**, mostrado em curta cena de pixel art. O General reage com **alívio imediato**. Piada escolhida de Zé Maria ao ver o Obuseiro: **“Se eu fiz um Marea andar, faço isso aqui funcionar.”**
+4. **Chegada:** Zé Maria chega dirigindo um **caminhão-guincho azul antigo**, mostrado em curta cena de pixel art. O General reage com **alívio imediato**. Piada escolhida de Zé Maria ao ver o Canhão: **“Se eu fiz um Marea andar, faço isso aqui funcionar.”**
 
 ### Reconstrução e primeiras escolhas de país
 
@@ -1102,7 +1108,7 @@ O PNG do Cruzador-Colmeia agora é RGBA verdadeiro em 896×512. O feedback de da
 
 ### O Boteco e a antiga instalação
 
-- Boteco **diretamente abaixo da área do Obuseiro**, com acesso por **elevador antigo de carga**.
+- Boteco **diretamente abaixo da área do Canhão**, com acesso por **elevador antigo de carga**.
 - É um **boteco carioca simples, tradicional e com vista bonita**, no cenário pixel art **já aprovado e existente**. Preservar o layout, a mesa, a TV CRT, as cadeiras e a composição visual; **não redesenhar como bunker**.
 - O Boteco **ocupou parte de uma instalação militar antiga e abandonada**. Motivos originais de sua construção, abandono e reativação ainda não foram definidos.
 - É o local das negociações recorrentes com os cinco representantes. Preservar a transição existente planejada entre o combate e a televisão do Boteco, compatibilizando-a com o elevador de carga quando houver storyboard.
