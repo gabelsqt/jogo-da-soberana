@@ -1,0 +1,415 @@
+{
+  "textures": [
+    {
+      "image": "kim_lin_du_expressoes_4x4.png",
+      "format": "RGBA8888",
+      "size": {
+        "w": 1104,
+        "h": 1104
+      },
+      "scale": 1,
+      "frames": [
+        {
+          "filename": "neutro",
+          "frame": {
+            "x": 16,
+            "y": 16,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "feliz",
+          "frame": {
+            "x": 288,
+            "y": 16,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "rindo",
+          "frame": {
+            "x": 560,
+            "y": 16,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "surpreso",
+          "frame": {
+            "x": 832,
+            "y": 16,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "serio",
+          "frame": {
+            "x": 16,
+            "y": 288,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "irritado",
+          "frame": {
+            "x": 288,
+            "y": 288,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "gentil",
+          "frame": {
+            "x": 560,
+            "y": 288,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "satisfeito",
+          "frame": {
+            "x": 832,
+            "y": 288,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "pensativo",
+          "frame": {
+            "x": 16,
+            "y": 560,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "apreensivo",
+          "frame": {
+            "x": 288,
+            "y": 560,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "avaliando",
+          "frame": {
+            "x": 560,
+            "y": 560,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "ajustando_oculos",
+          "frame": {
+            "x": 832,
+            "y": 560,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "animado",
+          "frame": {
+            "x": 16,
+            "y": 832,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "segurando_riso",
+          "frame": {
+            "x": 288,
+            "y": 832,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "reservado",
+          "frame": {
+            "x": 560,
+            "y": 832,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "coracao_dedos",
+          "frame": {
+            "x": 832,
+            "y": 832,
+            "w": 256,
+            "h": 256
+          },
+          "rotated": false,
+          "trimmed": false,
+          "spriteSourceSize": {
+            "x": 0,
+            "y": 0,
+            "w": 256,
+            "h": 256
+          },
+          "sourceSize": {
+            "w": 256,
+            "h": 256
+          },
+          "pivot": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        }
+      ]
+    }
+  ]
+}
