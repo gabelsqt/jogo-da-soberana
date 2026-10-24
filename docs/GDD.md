@@ -1542,3 +1542,12 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 ## Kim Lin Du: retratos aprovados em 24/10/2026
 
 Visual: idol sul-coreano jovem, simpático, cabelo prateado/lilás, uniforme branco com detalhes roxos e dourados. Expressões menos arrogantes e mais amáveis. O quadro 16 mostra Kim piscando e fazendo coração com os dedos, com um coração rosa pequeno. Padrão de atlas 4x4, 16 expressões, 256px por retrato, gutters/margens de 16px, tamanho 1104x1104px. Moldura roxa. UpgradeScene carrega kim-expressions e mantém fallback para retrato legado. PNG ainda precisa ser publicado no caminho public/assets/lideres/kim_lin_du_expressoes_4x4.png. JSON Phaser 3 hash correspondente já no GitHub.
+
+
+## Comentários durante as ondas — cronologia (24/10/2026)
+
+- Onda 0 e onda 0.5: **nenhum representante fala no painel de comentários de batalha**; Zé Maria só chega depois da retirada e do telefonema para consertar o canhão, antes da onda 1.
+- Da onda 1 em diante, Zé Maria pode falar. Os representantes estrangeiros só participam se já houver uma escolha do país na campanha; personagens não recrutados ficam fora do sorteio de falas.
+- Traidor da onda 11 nunca comenta como aliado. Na viagem brasileira o rádio é de Zé Maria, com falas de chegada/partida específicas, sem antecipar os acontecimentos do prólogo.
+- O gatilho de especial pronto continua condicionado à recarga de combate. Eventos de conclusão e chegada de cidade são exclusivos da viagem final.
+- Código de seleção: `src/gameplay/battleBanter.js`; contexto da onda fornecido por `GameScene.queueBattleBanter`.
