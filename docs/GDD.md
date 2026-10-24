@@ -1332,3 +1332,21 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 ### Terminologia canônica do armamento (24/10/2026)
 
 - O equipamento de defesa controlado pelo jogador chama-se **canhão** em toda a narrativa, diálogos, UI e documentação, **não obuseiro**. A confirmação do criador substitui denominações anteriores. Zé Maria instala e repara o **canhão**. Corrigir textos antigos na futura revisão/implementação; este registro documental não implica edição automática dos arquivos de jogo nem alteração de identificadores técnicos internos.
+
+
+### Mingda Mai — personalidade, relações e traição (24/10/2026; aprovado, planejamento)
+
+> **Precedência:** estas escolhas do criador consolidam a personagem e sua motivação; são canônicas para a próxima revisão narrativa, mas **não** autorizam implementação de cenas, diálogos, arte ou código. A cena de exemplo abaixo é orientação de tom, não roteiro final.
+
+- **Origem:** começou vendendo produtos baratos em uma pequena banca e construiu, com talento comercial, um vasto império de comércio e logística. Conserva a energia de vendedora de rua: rápida, comunicativa, sorridente, persuasiva e sempre pronta a oferecer algo.
+- **Ética e afeto:** é oportunista e gosta de levar vantagem, mas tem limites com os amigos; presta **favores enormes** e depois disfarça a generosidade dizendo que tudo foi apenas um **investimento**. Desenvolve afeição quase familiar pelo grupo, mas isso **não impede nem cancela sua traição**.
+- **Humor:** oferece produtos e descontos nos momentos mais inadequados, inclusive durante batalhas e revelações dramáticas. **Detesta desperdício** de qualquer recurso, inclusive sucata e tecnologia alienígena; ver recursos valiosos desperdiçados é o que a faz perder o sorriso.
+- **Objeto de bolso:** leva uma **calculadora** que saca inesperadamente para estimar preços, descontos, perdas e possibilidades de lucro.
+- **Relação com Zé Maria:** admira suas soluções técnicas e tenta contratá-lo repetidamente, chegando a cogitar comprar sua oficina. Pode oferecer-lhe cargo na indústria que pretende instalar.
+- **Relação com o protagonista:** quer torná-lo seu **garoto-propaganda** e explorar comercialmente suas vitórias; o afeto e os favores são reais, mas não substituem sua ambição.
+- **Objetivo de conquista:** pretende **dominar o Brasil e transformá-lo em uma gigantesca loja e plataforma de fabricação e distribuição de eletrônicos**, explorando os recursos **minerais e energéticos** brasileiros como insumos para seus produtos. Na sua lógica empresarial, trata a invasão como “aquisição”, “reestruturação” ou “expansão operacional”, não como uma agressão.
+- **Regra geral de campanha:** **todos os representantes estrangeiros traem o jogador**; nenhum desiste da tentativa de dominar o Brasil por causa da amizade. Mingda é exemplar dessa contradição: gosta sinceramente do grupo, mas permanece decidida a conquistar o país.
+- **Acessório visual e revelação:** sua decoração de cabelo vermelha/dourada **esconde uma adaga**. O ornamento está presente desde as primeiras aparições, parecendo apenas decorativo. **No momento da traição**, ela o retira, revela a lâmina e **aponta simbolicamente para o jogador**; não foi aprovada uma luta corpo a corpo com a adaga.
+- **Entrada da traição:** apresenta **um contrato de aquisição do Brasil** e anuncia a invasão como simples formalidade contratual. Continua **alegre e oferecendo produtos e descontos como se nada tivesse mudado**, inclusive com a adaga em mãos.
+- **Derrota:** sua reação principal é **reclamar do prejuízo financeiro**: frota, investimentos, estoque e infraestrutura perdidos. Não alterar essa reação para discurso de arrependimento ou desistência do comércio.
+- **Tom de diálogo ilustrativo, ainda não aprovado palavra por palavra:** Zé Maria protesta que ninguém concordou com a aquisição; Mingda descreve isso como “pequeno detalhe contratual”, aponta a adaga e apresenta as tropas como sua “equipe de negociação”. Após perder, lamenta os investimentos destruídos.
