@@ -1818,6 +1818,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   createBattleBanterPanel(){
+    // Diagnóstico A/B no celular: desativa o painel de comentários por padrão.
+    // ?battleComments=1 reativa para comparar o mesmo aparelho e mesma onda.
+    // Não muda o combate, a campanha nem os efeitos dos especiais.
+    this.mobileBanterDisabled=this.sys.game.device.input.touch &&
+      !new URLSearchParams(globalThis.location?.search??'').has('battleComments');
+    if(this.mobileBanterDisabled)return;
     // Zona morta inferior esquerda: HUD não-interativo, um recado por vez.
     // Margem de segurança: manter retrato e texto dentro da área útil,
     // inclusive em viewport móvel com recorte lateral.
@@ -1841,6 +1847,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   queueBattleBanter(event){
+    if(this.mobileBanterDisabled)return;
     if(this.tutorialComplete||this.voyageTransitioning)return;
     enqueueBattleBanter(this.banterState,event,{
       choices:this.combatCampaign?.choices??this.campaign?.choices,
@@ -1851,6 +1858,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   updateBattleBanterPanel(){
+    if(this.mobileBanterDisabled)return;
     const line=currentBattleBanter(this.banterState,this.time.now);
     const show=Boolean(line);
     for(const part of [this.banterBackground,this.banterPortrait,this.banterName,this.banterText])
