@@ -31,6 +31,7 @@ export class IntroScene extends Phaser.Scene {
     this.promotionShown=false;
     this.highlightWord=null;
     this.promotionWave=null;
+    this.emailPages=[];this.emailPageIndex=0;
   }
   preload(){
     preloadRioBackdrop(this);
@@ -137,6 +138,7 @@ export class IntroScene extends Phaser.Scene {
     for(const object of this.objects)object.destroy();
     this.objects=[];
     this.body=null;this.footnote=null;
+    this.emailPages=[];this.emailPageIndex=0;
     this.promotionLabel=null;this.statusLabel=null;
     this.highlightWord=null;this.promotionWave=null;
   }
@@ -177,8 +179,36 @@ export class IntroScene extends Phaser.Scene {
     this.drawApartment();
     const start=this.objects.length;
     this.drawEmail(slide);
-    this.frameDevice(start,'email');
-    this.beginTyping(this.body,slide.body,'body');
+    // Começar com a tela do laptop pequena e aproximar até ocupar o canvas.
+    // O texto só começa a aparecer quando o zoom termina.
+    const contents=this.objects.splice(start);
+    const zoom=this.keep(this.add.container(0,0,contents).setDepth(20));
+    zoom.setPosition(W*.31,H*.29).setScale(.38);
+    this.phase='zoom';
+    this.emailPages=this.splitEmailPages(slide.body);
+    this.emailPageIndex=0;
+    this.tweens.add({targets:zoom,x:0,y:0,scale:1,
+      duration:900,ease:'Sine.easeInOut',
+      onComplete:()=>{
+        if(this.finished||this.page!==index)return;
+        this.beginTyping(this.body,this.emailPages[0],'body');
+      },
+    });
+  }
+  splitEmailPages(text){
+    // Parágrafos pequenos para manter no máximo três linhas em tela.
+    const pages=[];
+    for(const paragraph of text.split(/\n\s*\n/)){
+      const words=paragraph.trim().split(/\s+/).filter(Boolean);
+      let line='';
+      for(const word of words){
+        if(line && (line+' '+word).length>43){
+          pages.push(line);line=word;
+        }else line+=(line?' ':'')+word;
+      }
+      if(line)pages.push(line);
+    }
+    return pages.length?pages:[''];
   }
   drawEmail(slide){
     this.box(W/2,H/2,W,H,0x07111c,0.96).setDepth(4);
@@ -187,49 +217,31 @@ export class IntroScene extends Phaser.Scene {
       .setStrokeStyle(2,0x64869b).setDepth(8);
     this.box(W/2,68,810,53,0x254558).setDepth(9);
     this.label(100,51,'✉  CAIXA DE ENTRADA  /  MENSAGEM OFICIAL',{
-      fontFamily:CUBO_FONT,fontSize:'16px',fontStyle:'bold',color:'#dce8ee',
+      fontFamily:CUBO_FONT,fontSize:'21px',fontStyle:'bold',color:'#dce8ee',
     },12);
     this.label(102,109,`DE: ${slide.from}`,{
-      fontFamily:CUBO_FONT,fontSize:'14px',color:'#9fc0d3',
+      fontFamily:CUBO_FONT,fontSize:'20px',color:'#9fc0d3',
     });
     this.label(102,136,`ASSUNTO: ${slide.subject}`,{
-      fontFamily:CUBO_FONT,fontSize:'19px',fontStyle:'bold',color:'#e4e9e6',
+      fontFamily:CUBO_FONT,fontSize:'25px',fontStyle:'bold',color:'#e4e9e6',
       wordWrap:{width:755},
     });
     this.box(W/2,170,753,2,0x5c7c8f).setDepth(11);
-    this.body=this.label(104,194,'',{
-      fontFamily:CUBO_FONT,fontSize:'21px',color:'#e4eff4',lineSpacing:6,
+    this.body=this.label(104,207,'',{
+      fontFamily:CUBO_FONT,fontSize:'28px',color:'#e4eff4',lineSpacing:10,
       wordWrap:{width:750},
     });
-    if(slide.id==='convocation'){
-      // O destaque acompanha os caracteres revelados, em vez de antecipar
-      // a palavra no meio da digitação. O asterisco continua sem efeito.
-      const word='MESÁRIO';
-      const before=slide.body.split('\n').find(line=>line.includes(word))
-        ?.split(word)[0]??'';
-      const x=this.body.x+this.body.context.measureText(before).width;
-      const lineHeight=(this.body.style.metrics?.fontSize||21)+6;
-      const y=this.body.y+2*lineHeight;
-      const width=this.body.context.measureText(word).width;
-      this.box(x+width/2,y+12,width+4,26,0x132638).setDepth(29);
-      this.highlightWord=createWavyWord(this,{
-        word,x,y,fontFamily:CUBO_FONT,fontSize:21,color:'#f7a547',
-        stroke:'#513021',strokeThickness:1,amplitude:1.7,depth:30,
-      });
-      this.highlightWord.glyphs.forEach(item=>this.keep(item));
-      this.highlightWord.setRevealed(0);
-    }
     if(slide.promotion){
       this.promotionLabel=this.label(W/2,341,'',{
         fontFamily:CUBO_FONT,fontSize:'43px',fontStyle:'bold',
         color:'#ff634d',stroke:'#542637',strokeThickness:3,
       }).setOrigin(0.5).setAlpha(0).setDepth(30);
-      this.footnote=this.label(102,406,'',{
-        fontFamily:CUBO_FONT,fontSize:'13px',color:'#b6c6d1',lineSpacing:3,
+      this.footnote=this.label(102,374,'',{
+        fontFamily:CUBO_FONT,fontSize:'23px',color:'#b6c6d1',lineSpacing:6,
         wordWrap:{width:755},
       });
       this.statusLabel=this.label(104,383,'',{
-        fontFamily:CUBO_FONT,fontSize:'13px',fontStyle:'bold',color:'#85e5ae',
+        fontFamily:CUBO_FONT,fontSize:'18px',fontStyle:'bold',color:'#85e5ae',
       });
     }
   }
@@ -340,6 +352,10 @@ export class IntroScene extends Phaser.Scene {
   }
   completeSegment(){
     const slide=this.slides[this.page];
+    if(this.typeField==='body'&&this.emailPageIndex<this.emailPages.length-1){
+      this.phase='emailPageHold';
+      return;
+    }
     if(this.typeField==='body'&&slide.promotion){
       this.phase='promotionPending';
       this.segmentTimer=this.time.delayedCall(650,()=>this.revealPromotion());
@@ -383,8 +399,14 @@ export class IntroScene extends Phaser.Scene {
       this.typeTimer?.remove();this.typeTimer=null;
       this.completeSegment();return;
     }
+    if(this.phase==='emailPageHold'){
+      this.emailPageIndex++;
+      this.beginTyping(this.body,this.emailPages[this.emailPageIndex],'body');
+      return;
+    }
     if(this.phase==='promotionPending'){this.revealPromotion();return;}
     if(this.phase==='footnotePending'){this.beginFootnote();return;}
+    if(this.phase==='zoom')return;
     if(this.phase!=='hold')return;
     this.show(this.page+1);
   }
