@@ -18,6 +18,7 @@ export class PrologueSurvivalScene extends Phaser.Scene{
     this.elapsed=0;this.finished=false;this.withdrawal=false;
     this.shots=[];this.invaders=[];this.lastShot=-Infinity;
     this.lastSpawn=0;this.created=0;this.destroyed=0;
+    this.mobileFire=false;
   }
   preload(){
     preloadRioBackdrop(this);
@@ -64,7 +65,13 @@ export class PrologueSurvivalScene extends Phaser.Scene{
       sprite.setScale(72/sprite.height); // Escala uniforme: nunca esticar largura/altura separadamente.
       this.invaders.push({sprite,x:slot.entryX,y:slot.y,slot,seed:i,alive:true});
     }
-    this.events.once('shutdown',()=>{this.invaders=[];this.shots=[];});
+    // Toque contínuo ou mouse: o canhão danificado continua respondendo.
+    this.input.on('pointerdown',()=>{this.mobileFire=true;});
+    this.input.on('pointerup',()=>{this.mobileFire=false;});
+    this.input.on('gameout',()=>{this.mobileFire=false;});
+    this.events.once('shutdown',()=>{
+      this.mobileFire=false;this.invaders=[];this.shots=[];
+    });
   }
   update(_time,delta){
     if(this.finished)return;
@@ -81,12 +88,15 @@ export class PrologueSurvivalScene extends Phaser.Scene{
     this.cannonBarrel.setPosition(W/2,483).setOrigin(pose.originX,pose.originY)
       .setRotation(angle+Math.PI/2);
     // Disparo básico muito fraco: não se consegue eliminar o enxame.
-    if(!this.withdrawal&&pointer.leftButtonDown()&&
+    if((pointer.isDown||this.mobileFire)&&
        this.elapsed>=1000&&this.elapsed-this.lastShot>=PROLOGUE_CANNON.damaged.intervalMs){
       this.lastShot=this.elapsed;
       const shot=this.add.circle(W/2,420,3,0xcbdbe9).setDepth(40);
+      // Motor avariado: munição perde propulsão e apaga antes de alcançar
+      // os inimigos, independentemente de mira ou posição deles.
       this.shots.push({sprite:shot,x:W/2,y:420,
-        vx:Math.cos(angle)*95,vy:Math.sin(angle)*95});
+        vx:Math.cos(angle)*250,vy:Math.sin(angle)*250,
+        travelled:0,maxTravel:95+Math.random()*45});
     }
     const smoke=this.smokeGraphics;smoke.clear();
     for(let i=0;i<9;i++){
@@ -111,21 +121,31 @@ export class PrologueSurvivalScene extends Phaser.Scene{
         // A esquadrilha fecha o cerco ao canhão, sem tocar nele.
         // Avanço ameaçador em leque espaçado, evitando sobreposição que
         // fazia os sprites parecerem deformados quando se aglomeravam.
-        const column=invader.seed%12,row=Math.floor(invader.seed/12);
-        const targetX=105+column*68;
-        const targetY=322+row*25;
+        const ring=invader.seed<12?0:invader.seed<32?1:2;
+        const count=[12,20,28][ring];
+        const within=invader.seed-[0,12,32][ring];
+        const radius=[165,260,370][ring];
+        // Três arcos alinhados sobre o canhão (centro da circunferência).
+        // Extremidades próximas da base e topo sobre a posição do jogador.
+        const theta=.16+(Math.PI-.32)*(within+.5*(ring%2))/Math.max(1,count-1);
+        const targetX=W/2-radius*Math.cos(theta);
+        const targetY=483-radius*Math.sin(theta);
         invader.x=Phaser.Math.Linear(formationX,targetX,advance);
         invader.y=Phaser.Math.Linear(invader.slot.y,targetY,advance)+Math.sin(this.elapsed*.0017+invader.seed)*2*(1-advance);
       }
       invader.sprite.setPosition(invader.x,invader.y);
     }
     for(let i=this.shots.length-1;i>=0;i--){
-      const shot=this.shots[i];shot.x+=shot.vx*dt/1000;shot.y+=shot.vy*dt/1000;
-      shot.sprite.setPosition(shot.x,shot.y);
-      // Disparos não causam dano: impacto inútil e desaparecimento.
-      const hitsInvader=this.invaders.some(inv=>inv.alive&&
-        Phaser.Math.Distance.Between(shot.x,shot.y,inv.x,inv.y)<24);
-      if(hitsInvader||shot.x<0||shot.x>W||shot.y<110||shot.y>H){
+      const shot=this.shots[i];
+      const travel=Math.hypot(shot.vx,shot.vy)*dt/1000;
+      shot.travelled+=travel;
+      shot.x+=shot.vx*dt/1000;shot.y+=shot.vy*dt/1000;
+      shot.sprite.setPosition(shot.x,shot.y)
+        .setAlpha(Math.max(0,1-shot.travelled/shot.maxTravel))
+        .setScale(Math.max(.2,1-shot.travelled/shot.maxTravel));
+      // Sem colisão ou dano: o projétil falha antes do destino da mira.
+      if(shot.travelled>=shot.maxTravel||shot.x<0||shot.x>W||
+        shot.y<0||shot.y>H){
         shot.sprite.destroy();this.shots.splice(i,1);
       }
     }
@@ -160,8 +180,8 @@ export class PrologueSurvivalScene extends Phaser.Scene{
       fontFamily:'monospace',fontSize:'21px',fontStyle:'bold',color:'#ffedc4',
       stroke:'#081420',strokeThickness:5,
     }).setOrigin(.5).setDepth(105);
-    for(const shot of this.shots)shot.sprite.destroy();
-    this.shots.length=0;
+    // O canhão ainda pode atirar inutilmente durante a retirada.
+    // Tiros existentes seguem apagando após a curta trajetória.
   }
   finish(){
     if(this.finished)return;this.finished=true;
