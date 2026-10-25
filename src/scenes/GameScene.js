@@ -2425,10 +2425,36 @@ export class GameScene extends Phaser.Scene {
       enemy.shieldGraphics=this.add.graphics().setDepth(38);
     }
     this.enemies.push(enemy);
+    if(options.portalReleased && Number.isFinite(options.y)){
+      // Revelação vertical na linha horizontal do portal: a nave emerge
+      // de cima para baixo, sem fade nem novos efeitos por quadro.
+      this.animatePortalCrop(enemy.sprite,true,420);
+    }
     // Só teletransportes que aparecem já dentro da área de jogo precisam
     // de portal. Entradas pelas bordas continuam voando normalmente.
 
     return enemy;
+  }
+
+  animatePortalCrop(sprite,entering,duration=480,delay=0){
+    if(!sprite?.active||typeof sprite.setCrop!=='function')return;
+    const state={progress:0};
+    const apply=()=>{
+      if(!sprite.active)return;
+      const frame=sprite.frame;
+      if(!frame)return;
+      const width=frame.width,height=frame.height;
+      const amount=Math.max(0,Math.min(height,Math.round(height*state.progress)));
+      // Entrada: revela a nave de cima para baixo.
+      // Saída: o topo atravessa primeiro e só o trecho inferior sobra.
+      const y=entering?0:amount;
+      const visible=entering?amount:height-amount;
+      sprite.setCrop(0,y,width,Math.max(0.01,visible));
+    };
+    apply();
+    this.tweens.add({targets:state,progress:1,duration,delay,
+      ease:'Linear',onUpdate:apply,
+      onComplete:()=>{if(sprite.active)sprite.resetCrop();}});
   }
 
   moveAlongRoute(enemy, dt) {
@@ -7027,10 +7053,15 @@ export class GameScene extends Phaser.Scene {
       color:'#fff4d3',stroke:'#19372d',strokeThickness:5,
       align:'center',
     }).setOrigin(0.5).setDepth(140);
+    const portalX=W/2,portalY=95;
+    const retreatPortal=this.add.ellipse(portalX,portalY,92,60,0x661442,.63)
+      .setStrokeStyle(5,0xfa647c,.94).setDepth(17);
+    this.tweens.add({targets:retreatPortal,alpha:0,delay:3300,duration:850});
     for(const enemy of this.enemies){
       if(!enemy.sprite?.active)continue;
-      this.tweens.add({targets:enemy.sprite,y:-130,x:enemy.sprite.x+
-        (enemy.sprite.x<W/2?-40:40),alpha:0,duration:3800,ease:'Sine.In'});
+      this.tweens.add({targets:enemy.sprite,y:portalY,x:portalX,
+        duration:3800,ease:'Sine.In'});
+      this.animatePortalCrop(enemy.sprite,false,550,3250);
     }
     this.sunriseLabel=label;
     this.time.delayedCall(4200,()=>this.finishDawnWithdrawal());
@@ -7101,7 +7132,8 @@ export class GameScene extends Phaser.Scene {
           delay: 700, duration: 850 });
         for (const enemy of this.enemies) {
           this.tweens.add({ targets: enemy.sprite, x: W / 2, y: 95,
-            alpha: 0, scale: 0.05, duration: 1250, ease: 'Sine.easeIn' });
+            duration: 1250, ease: 'Sine.easeIn' });
+          this.animatePortalCrop(enemy.sprite,false,500,750);
         }
       } else if (!survived) {
         // Fogos para comunicar claramente a vitória antes dos 30 segundos.
