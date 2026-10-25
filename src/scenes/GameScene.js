@@ -6449,17 +6449,22 @@ export class GameScene extends Phaser.Scene {
       if (!remove && !bullet.special) {
         for (let j = this.enemyBullets.length - 1; j >= 0; j -= 1) {
           const hostile = this.enemyBullets[j];
+          // Um mesmo tiro não pode atingir a mesma munição hostil em
+          // quadros sucessivos, mas pode atravessar várias na mesma linha.
+          bullet.hitHostileBullets??=new WeakSet();
+          if(!hostile?.sprite?.active||bullet.hitHostileBullets.has(hostile))continue;
           if (Phaser.Math.Distance.Between(
             bullet.sprite.x, bullet.sprite.y, hostile.sprite.x, hostile.sprite.y,
           ) >= (hostile.radius??8.25)+Math.max(7,bullet.usRadius)+3) continue;
+          bullet.hitHostileBullets.add(hostile);
           hostile.hp -= bullet.damage;
           if (hostile.hp <= 0){
             if(hostile.colossal)detonateType6Bomb(this,hostile);
             else this.removeEnemyBullet(j,true);
           }
           else this.showEnemyBulletHit(hostile);
-          remove = true;
-          break;
+          // Não consumir o tiro aliado ao interceptar munição inimiga.
+          // Ele segue até atingir uma nave, seu alcance ou outro obstáculo.
         }
       }
 
