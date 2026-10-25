@@ -4378,10 +4378,15 @@ export class GameScene extends Phaser.Scene {
   // Explosões cinematográficas calculam dano de forma independente da quantidade de partículas.
   pulseV1Area(x, y, radius, damage, color, slow = false) {
     if (this.tutorialComplete) return;
-    const ring = this.add.circle(x, y, radius, color, 0.23)
-      .setStrokeStyle(4, 0xffffff, 0.78).setDepth(65).setScale(0.15);
-    this.tweens.add({targets:ring, scale:1.15, alpha:0, duration:440,
-      onComplete:()=>ring.destroy()});
+    // Animação decorativa: não deve disparar centenas de tweens no celular.
+    if(!this.sys.game.device.input.touch ||
+       this.time.now-(this.lastMobileAreaFxAt??-Infinity)>=180){
+      this.lastMobileAreaFxAt=this.time.now;
+      const ring = this.add.circle(x, y, radius, color, 0.23)
+        .setStrokeStyle(4, 0xffffff, 0.78).setDepth(65).setScale(0.15);
+      this.tweens.add({targets:ring, scale:1.15, alpha:0, duration:440,
+        onComplete:()=>ring.destroy()});
+    }
     for (let i = this.enemies.length-1; i>=0; i--) {
       const e = this.enemies[i];
       if(e.type===6){
@@ -4960,7 +4965,7 @@ export class GameScene extends Phaser.Scene {
       if(shot.visual) {
         // Silhuetas simplificadas enquanto as sprites finais não existem.
         const markers={br:'🎈',ru:'✧',cn:'▣',jp:'✦'};
-        shot.specialMarker=this.add.text(shot.sprite.x,shot.sprite.y,
+        if(!this.sys.game.device.input.touch)shot.specialMarker=this.add.text(shot.sprite.x,shot.sprite.y,
           markers[build.primary]||'✦',{
           fontFamily:'monospace',fontSize:'22px',fontStyle:'bold',
           color:'#ffffff',stroke:'#0d1830',strokeThickness:3,
@@ -5131,7 +5136,10 @@ export class GameScene extends Phaser.Scene {
         playSfx('ruSputnikCollapse',{throttle:210,volumeScale:0.48});
         sat.nextPulseAt=this.elapsed+build.ruSputnikPulseMs;
       }
-      this.drawRussianSputnik(sat);
+      if(!this.sys.game.device.input.touch || this.elapsed-(sat.lastDrawAt??-Infinity)>=100){
+        sat.lastDrawAt=this.elapsed;
+        this.drawRussianSputnik(sat);
+      }
     }
   }
 
@@ -5154,6 +5162,9 @@ export class GameScene extends Phaser.Scene {
       if(this.elapsed>=globe.expiresAt){
         globe.graphics.destroy();globe.label.destroy();this.discoGlobes.splice(i,1);continue;
       }
+      if(this.sys.game.device.input.touch &&
+         this.elapsed-(globe.lastDrawAt??-Infinity)<100)continue;
+      globe.lastDrawAt=this.elapsed;
       const g=globe.graphics,r=DISCO_RADIUS,x=globe.x,y=globe.y;
       const t=this.elapsed*.001;
       const pulse=.5+.5*Math.sin(t*5.4);
@@ -5180,12 +5191,12 @@ export class GameScene extends Phaser.Scene {
       g.lineStyle(2,0xf7c4ff,.55+.30*pulse).strokeCircle(x,y,r-3);
       // Facetas curvas: blocos escalonados projetados sobre uma esfera.
       // Não esticar sprites nem criar objetos/tweens novos a cada frame.
-      const rowCount=7;
+      const rowCount=this.sys.game.device.input.touch?4:7;
       for(let row=0;row<rowCount;row++){
-        const ny=(row-3)/3.6;
+        const ny=(row-(rowCount-1)/2)/(rowCount/2);
         const width=Math.sqrt(Math.max(0,1-ny*ny))*r*.88;
         const yRow=y+ny*r*.88;
-        const count=Math.max(3,Math.round(width/5));
+        const count=Math.max(3,Math.round(width/(this.sys.game.device.input.touch?10:5)));
         for(let col=0;col<count;col++){
           const nx=(col+.5)/count*2-1;
           const px=x+nx*width;
