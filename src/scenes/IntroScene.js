@@ -32,6 +32,7 @@ export class IntroScene extends Phaser.Scene {
     this.highlightWord=null;
     this.promotionWave=null;
     this.emailPages=[];this.emailPageIndex=0;
+    this.footnotePages=[];this.footnotePageIndex=0;
   }
   preload(){
     preloadRioBackdrop(this);
@@ -187,6 +188,8 @@ export class IntroScene extends Phaser.Scene {
     this.phase='zoom';
     this.emailPages=this.splitEmailPages(slide.body);
     this.emailPageIndex=0;
+    this.footnotePages=this.splitEmailPages(slide.footnote??'');
+    this.footnotePageIndex=0;
     this.tweens.add({targets:zoom,x:0,y:0,scale:1,
       duration:900,ease:'Sine.easeInOut',
       onComplete:()=>{
@@ -240,7 +243,7 @@ export class IntroScene extends Phaser.Scene {
         fontFamily:CUBO_FONT,fontSize:'23px',color:'#b6c6d1',lineSpacing:6,
         wordWrap:{width:755},
       });
-      this.statusLabel=this.label(104,383,'',{
+      this.statusLabel=this.label(104,472,'',{
         fontFamily:CUBO_FONT,fontSize:'18px',fontStyle:'bold',color:'#85e5ae',
       });
     }
@@ -356,6 +359,10 @@ export class IntroScene extends Phaser.Scene {
       this.phase='emailPageHold';
       return;
     }
+    if(this.typeField==='footnote'&&this.footnotePageIndex<this.footnotePages.length-1){
+      this.phase='footnotePageHold';
+      return;
+    }
     if(this.typeField==='body'&&slide.promotion){
       this.phase='promotionPending';
       this.segmentTimer=this.time.delayedCall(650,()=>this.revealPromotion());
@@ -388,7 +395,7 @@ export class IntroScene extends Phaser.Scene {
     this.segmentTimer?.remove();this.segmentTimer=null;
     const slide=this.slides[this.page];
     if(!slide?.footnote)return;
-    this.beginTyping(this.footnote,slide.footnote,'footnote');
+    this.beginTyping(this.footnote,this.footnotePages[0],'footnote');
   }
   advance(){
     if(this.finished)return;
@@ -402,6 +409,11 @@ export class IntroScene extends Phaser.Scene {
     if(this.phase==='emailPageHold'){
       this.emailPageIndex++;
       this.beginTyping(this.body,this.emailPages[this.emailPageIndex],'body');
+      return;
+    }
+    if(this.phase==='footnotePageHold'){
+      this.footnotePageIndex++;
+      this.beginTyping(this.footnote,this.footnotePages[this.footnotePageIndex],'footnote');
       return;
     }
     if(this.phase==='promotionPending'){this.revealPromotion();return;}
