@@ -1821,8 +1821,12 @@ export class GameScene extends Phaser.Scene {
     // Diagnóstico A/B no celular: desativa o painel de comentários por padrão.
     // ?battleComments=1 reativa para comparar o mesmo aparelho e mesma onda.
     // Não muda o combate, a campanha nem os efeitos dos especiais.
-    this.mobileBanterDisabled=this.sys.game.device.input.touch &&
-      !new URLSearchParams(globalThis.location?.search??'').has('battleComments');
+    const params=new URLSearchParams(globalThis.location?.search??'');
+    const mobileDevice=this.sys.game.device.input.touch ||
+      (globalThis.navigator?.maxTouchPoints??0)>0 ||
+      globalThis.matchMedia?.('(pointer: coarse)')?.matches;
+    this.mobileBanterDisabled=params.get('battleComments')==='0' ||
+      (mobileDevice && params.get('battleComments')!=='1');
     if(this.mobileBanterDisabled)return;
     // Zona morta inferior esquerda: HUD não-interativo, um recado por vez.
     // Margem de segurança: manter retrato e texto dentro da área útil,
@@ -5239,8 +5243,14 @@ export class GameScene extends Phaser.Scene {
   fireV1DiscoReflections(x,y,build,globe,sourceBullet=null) {
     // O globo volta a MULTIPLICAR reflexos; cada ramo herda os saltos.
     // O orçamento de dano é partilhado entre os reflexos, nunca multiplicado.
-    if(globe && this.elapsed-(globe.lastReflectAt??-Infinity)<DISCO_REFLECTION_COOLDOWN_MS)return;
-    const limit=Math.min(build.krReflections||0,24);
+    if(globe && this.elapsed-(globe.lastReflectAt??-Infinity)<
+      (this.sys.game.device.input.touch?Math.max(350,DISCO_REFLECTION_COOLDOWN_MS):DISCO_REFLECTION_COOLDOWN_MS))return;
+    // Proteção contra picos de trabalho do ricochete em aparelhos touch.
+    // Distribuir os raios entre pulsos em vez de resolver dezenas de cadeias no mesmo quadro.
+    const touchDevice=this.sys.game.device.input.touch ||
+      (globalThis.navigator?.maxTouchPoints??0)>0 ||
+      globalThis.matchMedia?.('(pointer: coarse)')?.matches;
+    const limit=Math.min(build.krReflections||0,touchDevice?6:24);
     const candidates=this.enemies.filter(e=>e?.sprite?.active&&e.type!==6&&
       !sourceBullet?.hitEnemyIds?.has(e.uid)&&Math.hypot(e.sprite.x-x,e.sprite.y-y)<=250)
       .sort((a,b)=>Math.hypot(a.sprite.x-x,a.sprite.y-y)-Math.hypot(b.sprite.x-x,b.sprite.y-y));
@@ -5250,7 +5260,7 @@ export class GameScene extends Phaser.Scene {
     const showTargets=[];
     const stage=Math.max(1,Math.min(4,sourceBullet?.koreanVisualStage??build.stages?.jp??1));
     const initialDamage=(build.krSalvoDamage||7.2)/firstTargets.length;
-    const jumps=sourceBullet?.koreanBouncesLeft??[1,2,4,7][stage-1];
+    const jumps=Math.min(sourceBullet?.koreanBouncesLeft??[1,2,4,7][stage-1],touchDevice?2:7);
     for(let ray=0;ray<firstTargets.length;ray++){
       const visited=new Set(sourceBullet?.hitEnemyIds??[]);
       let target=firstTargets[ray],lastX=x,lastY=y,damage=initialDamage;
