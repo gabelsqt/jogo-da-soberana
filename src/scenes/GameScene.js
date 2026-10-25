@@ -2276,8 +2276,9 @@ export class GameScene extends Phaser.Scene {
       const portalY=type===1?68:type===2?125:type===3?100:type===5?110:145;
       this.showSpawnPortal(portalX,portalY,type===5?70:38,1,()=>{
         this.spawnEnemy(type,{...options,portalReleased:true,
-          x:options.x ?? portalX,
-          y:options.y ?? (type===1?portalY:undefined)});
+          // A origem visual deve coincidir com o centro do portal,
+          // inclusive para Tipo 5 e naves que entram pelas laterais.
+          x:portalX,y:portalY});
       });
       return null;
     }
@@ -2289,13 +2290,15 @@ export class GameScene extends Phaser.Scene {
     const groupCount = options.formationCount ?? 3;
     const center = options.center ?? W / 2;
     const formationOffset = index - (groupCount - 1) / 2;
-    const startX = type === 5 ? (options.x ?? W / 2) :
+    const startX = options.portalReleased && Number.isFinite(options.x) ? options.x :
+      type === 5 ? (options.x ?? W / 2) :
       type === 4 ? (options.side === 'left' ? -64
         : options.side === 'right' ? W + 64
           : Phaser.Math.Between(0, 1) ? -64 : W + 64) :
       type === 2 ? (options.x ?? center + formationOffset * (orbiting ? 60 : 83)) :
       options.x ?? Phaser.Math.Between(120, W - 120);
-    const startY = type === 4 ? Phaser.Math.Between(120, 180) :
+    const startY = options.portalReleased && Number.isFinite(options.y) ? options.y :
+      type === 4 ? Phaser.Math.Between(120, 180) :
       type === 2 ? (options.y ?? -45 - Math.abs(formationOffset) * 7) :
       type === 1 ? (options.y ?? -28) : -65;
     const visual = this.makeEnemyVisual(type, startX, startY, level);
