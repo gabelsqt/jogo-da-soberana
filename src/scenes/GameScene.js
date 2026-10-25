@@ -2454,7 +2454,14 @@ export class GameScene extends Phaser.Scene {
     apply();
     this.tweens.add({targets:state,progress:1,duration,delay,
       ease:'Linear',onUpdate:apply,
-      onComplete:()=>{if(sprite.active)sprite.resetCrop();}});
+      onComplete:()=>{
+        if(!sprite.active)return;
+        // Phaser 3 disponibiliza setCrop(), mas não resetCrop().
+        // Remover o recorte restaurando a área integral do frame.
+        const frame=sprite.frame;
+        if(frame && typeof sprite.setCrop==='function')
+          sprite.setCrop(0,0,frame.width,frame.height);
+      }});
   }
 
   moveAlongRoute(enemy, dt) {
