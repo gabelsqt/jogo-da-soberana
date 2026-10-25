@@ -4693,6 +4693,12 @@ export class GameScene extends Phaser.Scene {
       y:CANNON.y+Math.sin(this.mobileAimAngle)*chargeDistance()
     });
     this.mobileSpecialPreview=this.add.graphics().setDepth(285);
+    // O botão existe durante toda a campanha, mas o especial só é adquirido
+    // na segunda visita ao Boteco. Não armar preview enquanto indisponível.
+    const mobileSpecialUnlocked=()=>Boolean(this.isV1Campaign
+      ? this.specialBuild?.primary && (!this.campaignMathEnabled||this.v1LabSpecial)
+      : this.combat?.specialCooldown<Infinity);
+    let lastSpecialPreviewDraw=-Infinity;
     const resetSpecial=()=>{
       this.mobileSpecialPointer=null;this.mobileSpecialArmed=false;
       special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
@@ -4702,12 +4708,20 @@ export class GameScene extends Phaser.Scene {
       e?.stopPropagation();
       if(this.mobileEditing){editDrag('special',p);return;}
       if(this.mobileSpecialPointer!==null)return;
+      if(!mobileSpecialUnlocked()){
+        specialLabel.setText('BLOQ');
+        this.time.delayedCall(700,()=>{if(specialLabel.active)specialLabel.setText('ESP');});
+        return;
+      }
       this.mobileSpecialPointer=p.id;this.mobileSpecialStart=this.time.now;
       this.mobileSpecialArmed=true;
       special.setFillStyle(0xf0a6ff,.48);specialLabel.setText('0%');
     });
     this.events.on('update',()=>{
       if(this.mobileSpecialPointer===null||this.mobileEditing)return;
+      // Evita reconstrução do Graphics e alteração de Text em cada frame.
+      if(this.time.now-lastSpecialPreviewDraw<80)return;
+      lastSpecialPreviewDraw=this.time.now;
       const target=chargedTarget(),g=this.mobileSpecialPreview;
       g.clear();
       g.lineStyle(2,0xf3b8ff,.66);
