@@ -4926,6 +4926,17 @@ export class GameScene extends Phaser.Scene {
     const pandaSpecial=this.isV1Campaign&&this.specialBuild?.primary==='cn';
     if (this.time.now - this.lastSpecialFire < this.combat.specialCooldown && !(pandaSpecial&&existingPanda?.phase==='collect')) return;
     const country=this.isV1Campaign?this.specialBuild?.primary:null;
+    // Isolamento de falhas na campanha mobile:
+    // ?specialProbe=launch simula o disparo sem criar a mecânica especial.
+    // A comparação com o jogo normal permite separar input/render de
+    // processamento nacional. O modo é opt-in, apenas para diagnóstico.
+    const probe=new URLSearchParams(globalThis.location?.search??'').get('specialProbe');
+    if(probe==='launch' && this.campaignMathEnabled){
+      this.lastSpecialFire=this.time.now;
+      this.showMuzzleFlash(this.mobileAimAngle??this.aimAngle,
+        shotVfxFor(this.activeUpgradeIds()));
+      return;
+    }
     const target=country==='us'
       ?americanWallPlacement(pointer.x,pointer.y,CANNON.x,CANNON.y,W,H)
       :specialTargetPoint(CANNON.x,CANNON.y,pointer.x,pointer.y);
