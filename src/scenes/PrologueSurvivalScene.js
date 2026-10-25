@@ -111,7 +111,16 @@ export class PrologueSurvivalScene extends Phaser.Scene{
         const pose=prologueWithdrawalPose(invader.seed,invader.withdrawX,
           invader.withdrawY,this.withdrawElapsed);
         invader.x=pose.x;invader.y=pose.y;
-        invader.sprite.setAlpha(pose.alpha);
+        // A nave é ocultada pixel a pixel acima da linha horizontal
+        // do portal: a metade superior atravessa primeiro.
+        const portalProgress=Phaser.Math.Clamp((this.withdrawElapsed-3100)/1900,0,1);
+        const frame=invader.sprite.frame;
+        if(frame && portalProgress>0){
+          const cut=Math.round(frame.height*portalProgress);
+          invader.sprite.setCrop(0,cut,frame.width,
+            Math.max(.01,frame.height-cut));
+        }
+        invader.sprite.setAlpha(1);
       }else{
         const arrival=Phaser.Math.Clamp((this.elapsed-invader.slot.delayMs)/2400,0,1);
         const ease=1-Math.pow(1-arrival,3);
