@@ -1,3 +1,39 @@
+## Direção cinematográfica e legibilidade narrativa — regra geral (25/10/2026)
+
+**Status: decisão aprovada de direção visual; somente planejamento, ainda não implementada.**
+
+### Princípio
+Nas cenas narrativas, **o texto deve ser sempre grande, nítido, contrastado e fácil de ler**, inclusive no celular. Não comprimir textos importantes dentro de elementos pequenos do cenário, nem ampliar letras junto com imagens de baixa resolução. Separar os momentos de **estabelecimento do cenário**, **movimento/enquadramento da câmera** e **leitura**. O jogador vê uma informação por vez.
+
+### Referência: introdução no quarto e notebook
+1. Mostrar o plano geral de um quarto/apartamento modesto no Rio de Janeiro, com o personagem e o notebook, **sem texto para leitura**.
+2. Fazer um **zoom cinematográfico** até a tela do notebook ocupar quase toda a área útil.
+3. **Só após concluir o zoom**, apresentar a interface do e-mail e o texto em sobreposição de alta resolução, não como letras pré-desenhadas na textura do notebook.
+4. Dividir o e-mail em blocos curtos, com avanço controlado pelo jogador; preservar clareza da convocação e a revelação narrativa prevista para o prólogo.
+
+### Parâmetros de referência (960 × 540)
+- Diálogos, e-mails, notícias e informações narrativas principais: **fonte-base aproximada de 24–28 px**, com ajuste responsivo para leitura confortável no celular.
+- **Preferencialmente até 2–3 linhas curtas por quadro**, cerca de 8–12 palavras por linha no máximo, sem texto longo simultâneo.
+- Contraste forte, margens de segurança, espaçamento e área de leitura ampla; evitar posicionamento atrás de controles.
+- Renderizar fontes e UI **na resolução final do HUD/canvas**, separadas da câmera/camada pixel-art, para não ampliar ou distorcer glifos com o zoom do cenário.
+- Preservar proporção dos sprites e pixel art; usar escalonamento coerente e transições suaves.
+- Narrativas e decisões importantes não devem depender de leitura rápida: garantir tempo adequado ou avanço manual.
+- Legendas e comentários breves durante o **combate** são informação secundária e podem ser mais discretos; não aplicar as mesmas dimensões obrigatórias se prejudicarem a visibilidade do jogo.
+
+### Aplicação ao Boteco
+- Ao apresentar um representante: primeiro mostrar o contexto do Boteco, depois **aproximar o enquadramento**, destacar o **retrato de corpo inteiro** e somente então abrir uma área de diálogo ampla e legível.
+- O mesmo padrão se aplica a apresentações, relações entre personagens, negociações de upgrade, cenas do elevador, transmissões da Cubo News e demais vinhetas narrativas.
+- As expressões podem mudar durante a conversa, mas nunca reduzir ou deformar o texto para acomodar o retrato.
+
+### Critérios de aceite
+- Leitura confortável em celular e desktop, sem precisar ampliar a página.
+- Texto do notebook só aparece depois do zoom; nenhum trecho importante permanece diminuto na cena geral do quarto.
+- Nenhum texto narrativo é esticado, achatado ou pixelizado pelo zoom.
+- Cada quadro comunica poucas informações de forma clara; conteúdo longo dividido em quadros sucessivos.
+- Validar manualmente as cenas em desktop e em dispositivo móvel antes de considerar a regra implementada.
+
+---
+
 ## Revisão 0.923 — Panda Express: especial chinês (primeiro protótipo jogável)
 
 - Substitui o antigo modo experimental de concentração da China quando o especial principal é chinês: drone com corpo vermelho, rosto de panda e dois braços magnéticos.
