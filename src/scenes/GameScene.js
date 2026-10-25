@@ -4704,8 +4704,14 @@ export class GameScene extends Phaser.Scene {
       special.setFillStyle(0xc383fc,.25);specialLabel.setText('ESP');
       this.mobileSpecialPreview.clear();
     };
+    // Diagnóstico de input: ?espTest=off mantém o botão visível,
+    // mas impede qualquer evento de carregamento, tiro ou efeito.
+    const espInputDisabled=new URLSearchParams(globalThis.location?.search??'')
+      .get('espTest')==='off';
+    if(espInputDisabled)specialLabel.setText('TESTE');
     special.on('pointerdown',(p,_x,_y,e)=>{
       e?.stopPropagation();
+      if(espInputDisabled)return;
       if(this.mobileEditing){editDrag('special',p);return;}
       if(this.mobileSpecialPointer!==null)return;
       if(!mobileSpecialUnlocked()){
