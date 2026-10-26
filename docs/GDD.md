@@ -1587,3 +1587,15 @@ Visual: idol sul-coreano jovem, simpático, cabelo prateado/lilás, uniforme bra
 - Traidor da onda 11 nunca comenta como aliado. Na viagem brasileira o rádio é de Zé Maria, com falas de chegada/partida específicas, sem antecipar os acontecimentos do prólogo.
 - O gatilho de especial pronto continua condicionado à recarga de combate. Eventos de conclusão e chegada de cidade são exclusivos da viagem final.
 - Código de seleção: `src/gameplay/battleBanter.js`; contexto da onda fornecido por `GameScene.queueBattleBanter`.
+
+
+## Prólogo — traslado oficial até o canhão e início da onda 0 (26/10/2026; APROVADO, SOMENTE PLANEJAMENTO)
+
+> **Precedência narrativa:** decisões recentes do criador para a abertura. Esta sequência prevalece sobre descrições anteriores incompatíveis do deslocamento inicial. Não modificar cenas ou programação até autorização específica.
+
+- **Busca do protagonista:** no começo da história, **alguém do governo vem buscar o protagonista** para levá-lo ao ponto de defesa. A pessoa escolhida é **um motorista oficial que não sabe o que está acontecendo** (opção **D** aprovada). Ele cumpre a ordem de transporte, mas não tem informações sobre a invasão ou a operação. Seu desconhecimento pode alimentar o humor e a sensação de improviso, sem torná-lo um comandante ou especialista.
+- **Destino:** o ponto de acesso ao **canhão é o Boteco do Seu Nelson**. O Boteco funciona como chegada ao local de defesa e entrada para a instalação, não como etapa opcional de negociação anterior à batalha.
+- **Trajeto narrativo:** após o início no apartamento e a convocação já estabelecidos, o protagonista é recolhido pelo motorista oficial, chega ao Boteco do Seu Nelson, **sobe de elevador**, vê o **canhão** e então **começa a onda 0**. Ordem fixa: **apartamento/convocação → motorista oficial → Boteco do Seu Nelson → elevador → revelação do canhão → onda 0**.
+- **Ritmo e jogabilidade:** a onda 0 começa **depois** da chegada ao canhão e da conclusão da transição narrativa, nunca durante a cena do elevador nem antes de iniciar o cronômetro. Preservar as regras de início sincronizado de jogo e contagem regressiva já definidas.
+- **Terminologia:** dizer sempre **canhão**, nunca a designação antiga de armamento. O dono do Boteco é **Seu Nelson**.
+- **Status:** planejamento aprovado; falas, enquadramentos e duração exatos ainda podem ser roteirizados. Nenhuma implementação efetuada por este registro.
