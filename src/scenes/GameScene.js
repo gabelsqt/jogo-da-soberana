@@ -5703,11 +5703,11 @@ export class GameScene extends Phaser.Scene {
     // Principal brasileiro: pulso dourado nos últimos 1 s de cada ciclo de 5 s.
     const brazilBolt=!special&&((this.modernMathEnabled&&this.v1LabPrincipal==='br')||
       (this.isV1Campaign&&this.combat.transformed==='br'));
-    // A cada 4 segundos, o tiro transita de verde a dourado em 0,65 s.
-    // A janela dourada ocupa o último segundo do ciclo.
-    const brPhase=(Math.max(0,this.elapsed)%4000)/1000;
-    const brBlend=brazilBolt?Math.max(0,Math.min(1,(brPhase-2.35)/.65)):0;
-    const brazilFast=brazilBolt&&brPhase>=3;
+    // Ciclo de 3 s: transição progressiva verde → lima → dourado em 0,5 s,
+    // seguida por 1 s de tiros acelerados; sem alterar dano/cadência.
+    const brPhase=(Math.max(0,this.elapsed)%3000)/1000;
+    const brBlend=brazilBolt?Math.max(0,Math.min(1,(brPhase-1.5)/.5)):0;
+    const brazilFast=brazilBolt&&brPhase>=2;
     const brMix=(a,b,t)=>Math.round(a+(b-a)*t);
     const brColor=brazilBolt?
       (brMix(0x60,0xff,brBlend)<<16)|
@@ -5752,9 +5752,9 @@ export class GameScene extends Phaser.Scene {
     }
     // Ganhos cumulativos da trilha P brasileira; a cadência e o dano não mudam.
     const brP=Math.max(0,Math.min(4,this.v1LabAllocation?.br?.P??0));
-    const brBaseSpeed=[1,1.08,1.16,1.25,1.35][brP];
+    const brBaseSpeed=[1,1.12,1.25,1.40,1.60][brP];
     const speed=special?300:this.combat.basicSpeed*
-      (brazilBolt?brBaseSpeed*(1+.8*brBlend):1);
+      (brazilBolt?brBaseSpeed*(1+1.1*brBlend):1);
     // Uma única Graphics por bala, redesenhada enquanto ela se move.
     // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
     const trail = visible && (vfx||brazilBolt) && !koreanLaserBolt &&
