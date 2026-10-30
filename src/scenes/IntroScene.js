@@ -367,7 +367,7 @@ export class IntroScene extends Phaser.Scene {
     ctx.font=style.toFont();
     const left=ctx.measureText(before).width;
     ctx.restore();
-    const lineHeight=style.metrics.fontSize+style.strokeThickness+style.lineSpacing;
+    const lineHeight=style.metrics.fontSize+style.strokeThickness+this.body.lineSpacing;
     this.highlightWord=createWavyWord(this,{
       word:'MESÁRIO',x:this.body.x+left,y:this.body.y+row*lineHeight,
       fontFamily:CUBO_FONT,fontSize:26,color:'#68e69a',
