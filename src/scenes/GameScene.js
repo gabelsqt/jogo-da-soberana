@@ -5703,8 +5703,17 @@ export class GameScene extends Phaser.Scene {
     // Principal brasileiro: pulso dourado nos últimos 1 s de cada ciclo de 5 s.
     const brazilBolt=!special&&((this.modernMathEnabled&&this.v1LabPrincipal==='br')||
       (this.isV1Campaign&&this.combat.transformed==='br'));
-    const brazilFast=brazilBolt&&((Math.max(0,this.elapsed)/1000)%5>=4);
-    if(brazilBolt)style.color=brazilFast?0xffd052:0x60f5aa;
+    // A cada 4 segundos, o tiro transita de verde a dourado em 0,65 s.
+    // A janela dourada ocupa o último segundo do ciclo.
+    const brPhase=(Math.max(0,this.elapsed)%4000)/1000;
+    const brBlend=brazilBolt?Math.max(0,Math.min(1,(brPhase-2.35)/.65)):0;
+    const brazilFast=brazilBolt&&brPhase>=3;
+    const brMix=(a,b,t)=>Math.round(a+(b-a)*t);
+    const brColor=brazilBolt?
+      (brMix(0x60,0xff,brBlend)<<16)|
+      (brMix(0xf5,0xd0,brBlend)<<8)|
+      brMix(0xaa,0x52,brBlend):0;
+    if(brazilBolt)style.color=brColor;
     const julyShot=!special&&patriotic;
     // Identidade coreana: pulso laser visual em cada tiro físico, sem mudar física.
     const koreanLaserBolt=!special&&((this.modernMathEnabled&&this.v1LabPrincipal==='jp')||(this.isV1Campaign&&this.combat.koreaContinuous));
@@ -5718,7 +5727,7 @@ export class GameScene extends Phaser.Scene {
       : usRocket ? this.createAmericanRocketSprite(x,y,angle,this.combat.usRocketRadius)
       : brazilBolt
         ? this.add.rectangle(x,y,Math.max(6,style.width*.9),
-            Math.max(25,style.length*2.2),brazilFast?0xffdc62:0x5df0a4)
+            Math.max(25,style.length*2.2),brColor)
           .setStrokeStyle(2,brazilFast?0xfff5bc:0xd7ffed,.9)
           .setRotation(angle+Math.PI/2).setDepth(35)
       : koreanLaserBolt
@@ -5741,7 +5750,11 @@ export class GameScene extends Phaser.Scene {
       dot.setFillStyle(0xb96aff).setScale(1,Math.max(1,20/style.length))
         .setStrokeStyle(centerGlow ? 2 : 1,0xffffff,0.98);
     }
-    const speed = special ? 300 : this.combat.basicSpeed*(brazilFast?1.5:1);
+    // Ganhos cumulativos da trilha P brasileira; a cadência e o dano não mudam.
+    const brP=Math.max(0,Math.min(4,this.v1LabAllocation?.br?.P??0));
+    const brBaseSpeed=[1,1.08,1.16,1.25,1.35][brP];
+    const speed=special?300:this.combat.basicSpeed*
+      (brazilBolt?brBaseSpeed*(1+.8*brBlend):1);
     // Uma única Graphics por bala, redesenhada enquanto ela se move.
     // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
     const trail = visible && (vfx||brazilBolt) && !koreanLaserBolt &&
@@ -5754,7 +5767,7 @@ export class GameScene extends Phaser.Scene {
       trail,
       vfx,
       centerGlow,
-      koreanLaserPulse,koreanLaserBolt,brazilBolt,brazilFast,
+      koreanLaserPulse,koreanLaserBolt,brazilBolt,brazilFast,brColor,brBlend,
       koreanRicochet:false,
       koreanBouncesLeft:!special&&this.modernMathEnabled?(this.labExtra?.jpBounces??0):0,
       koreanBounceRange:this.labExtra?.jpBounceRange??180,
@@ -5793,7 +5806,7 @@ export class GameScene extends Phaser.Scene {
     const dy = bullet.vy / length;
     gfx.clear();
     if(bullet.brazilBolt){
-      const hue=bullet.brazilFast?0xffc84d:0x44e89b;
+      const hue=bullet.brColor??0x44e89b;
       gfx.lineStyle(bullet.brazilFast?9:7,hue,.22);
       gfx.lineBetween(x-dx*29,y-dy*29,x,y);
       gfx.lineStyle(2,0xffffff,.83);
