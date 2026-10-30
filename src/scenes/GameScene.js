@@ -7620,92 +7620,45 @@ export class GameScene extends Phaser.Scene {
     if(this.prologueType6Started)return;
     this.prologueType6Started=true;
     this.recordNightDebug('prologue:type6-arrives');
-    const boss=this.add.container(W/2,-110).setDepth(72);
+    // Tipo 6 na escala normal de jogo, sem cena sobreposta nem perda de controle.
+    const boss=this.add.container(W/2,-95).setDepth(38);
     const hull=this.textures.exists(TYPE6_HULL_SHEET.key)
       ?this.add.image(0,0,TYPE6_HULL_SHEET.key,0).setDisplaySize(340,115)
       :this.add.ellipse(0,0,340,108,0x192331).setStrokeStyle(4,0xdd4f63);
-    const eye=this.add.circle(0,20,18,0xf64d63).setDepth(1);
-    boss.add([hull,eye]);
+    const core=this.add.circle(0,19,17,0xf64d63,.9);
+    boss.add([hull,core]);
     this.prologueType6Boss=boss;
-    // A nave entra no cenário e mira o canhão; nada bloqueia o jogador.
-    this.tweens.add({targets:boss,y:135,duration:1100,ease:'Sine.Out'});
-    this.time.delayedCall(2050,()=>{
-      if(!boss.active)return;
+    this.tweens.add({targets:boss,y:129,duration:950,ease:'Sine.Out'});
+    this.time.delayedCall(1500,()=>{
+      if(!boss.active||!this.scene.isActive('GameScene'))return;
       this.recordNightDebug('prologue:type6-laser');
-      const beam=this.add.graphics().setDepth(74);
-      beam.lineStyle(26,0xff425a,.35).lineBetween(W/2,155,CANNON.x,CANNON.y);
-      beam.lineStyle(10,0xffe0cb,.95).lineBetween(W/2,155,CANNON.x,CANNON.y);
-      // Evitar o game-over automático: esta destruição é narrativa.
+      // Um único laser de cerco; efeito renderizado no próprio campo de batalha.
+      const beam=this.add.graphics().setDepth(42);
+      const sourceY=boss.y+20;
+      beam.lineStyle(32,0xff405b,.3).lineBetween(boss.x,sourceY,CANNON.x,CANNON.y);
+      beam.lineStyle(14,0xff8e9e,.8).lineBetween(boss.x,sourceY,CANNON.x,CANNON.y);
+      beam.lineStyle(5,0xfff0d8,.95).lineBetween(boss.x,sourceY,CANNON.x,CANNON.y);
       this.shield=0;this.cannonHealth=1;
       this.cannonFrozenUntil=Infinity;
       this.hexShieldGraphics?.clear();
       this.cannonDomeSprite?.setVisible(false);
       shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
       playSfx('shieldBreak',{throttle:450});
-      this.cameras.main.shake(380,.008);
-      const hit=this.add.circle(CANNON.x,CANNON.y,18,0xffd19a,.9).setDepth(76);
-      this.tweens.add({targets:hit,scale:5,alpha:0,duration:420,
+      this.cameras.main.shake(280,.006);
+      const hit=this.add.circle(CANNON.x,CANNON.y,15,0xffd19a,.88).setDepth(43);
+      this.tweens.add({targets:hit,scale:4,alpha:0,duration:360,
         onComplete:()=>hit.destroy()});
-      this.time.delayedCall(650,()=>beam.destroy());
-      // Depois de disparar, a nave apenas flutua; sem ataques adicionais.
-      this.tweens.add({targets:boss,y:146,duration:1400,yoyo:true,repeat:-1});
+      this.time.delayedCall(540,()=>{if(beam.active)beam.destroy();});
+      // Sem segundo tiro: a fortaleza deixa o céu antes do enxame Tipo 1.
+      this.time.delayedCall(650,()=>{
+        if(!boss.active)return;
+        this.recordNightDebug('prologue:type6-retreat');
+        this.tweens.add({targets:boss,y:-115,duration:1050,ease:'Sine.In',
+          onComplete:()=>{if(boss.active)boss.destroy();}});
+      });
     });
   }
 
-  playFirstNightCinematic() {
-    // Evento narrativo: uma nave superior aparece depois da primeira vitória.
-    // Não altera o resultado da onda nem conta como derrota do jogador.
-    this.countdownActive = true;
-    const depth=220;
-    const veil=this.add.rectangle(W/2,H/2,W,H,0x030913,0.72)
-      .setDepth(depth).setInteractive();
-    const ship=this.add.container(W/2,-115).setDepth(depth+2);
-    // Mesma carcaça/spritesheet do Tipo 6 que retornará na onda 10.
-    const hull=this.textures.exists(TYPE6_HULL_SHEET.key)
-      ?this.add.image(0,-5,TYPE6_HULL_SHEET.key,0).setDisplaySize(650,217)
-      :this.add.ellipse(0,0,560,126,0x182534)
-        .setStrokeStyle(6,0xa0acb5);
-    const dome=this.add.ellipse(0,-38,240,92,0x344757)
-      .setStrokeStyle(4,0xee4d65);
-    const core=this.add.circle(0,18,37,0xf5485b).setStrokeStyle(8,0x721d33);
-    const wings=[-235,-160,160,235].map(x=>this.add.rectangle(x,28,58,32,0x334454)
-      .setStrokeStyle(3,0xc9485f));
-    ship.add([hull,dome,core,...wings]);
-    const notice=this.add.text(W/2,96,'CUBO NEWS • ALERTA DE ÚLTIMA HORA',{
-      fontFamily:'monospace',fontSize:'21px',fontStyle:'bold',
-      color:'#ffdfaa',backgroundColor:'#081426dd',padding:{x:15,y:9},
-    }).setOrigin(0.5).setDepth(depth+3);
-    const beam=this.add.rectangle(CANNON.x,320,14,0,0xff5b6f,0.95)
-      .setOrigin(0.5,0).setDepth(depth+1).setVisible(false);
-    const impact=this.add.circle(CANNON.x,CANNON.y,12,0xffefbc,0.95)
-      .setDepth(depth+4).setVisible(false);
-    const finish=()=>{
-      [veil,ship,notice,beam,impact].forEach(item=>item.destroy());
-      this.scene.start('PrologueSurvivalScene',{campaign:this.campaign});
-    };
-    this.tweens.add({targets:ship,y:154,duration:1600,ease:'Cubic.Out',
-      onComplete:()=>{
-        notice.setText('AMEAÇA DE NÍVEL SUPERIOR • CANHÃO NA MIRA');
-        this.tweens.add({targets:core,scale:1.7,alpha:0.6,duration:230,yoyo:true,repeat:3,
-          onComplete:()=>{
-            beam.setVisible(true);beam.setDisplaySize(14,Math.max(1,CANNON.y-172));
-            this.cameras.main.shake(450,0.013);
-            this.shield=0;
-            this.hexShieldFlashUntil=0;
-            this.hexShieldGraphics?.clear();
-            this.cannonDomeSprite?.setVisible(false);
-            shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
-            playSfx('shieldBreak',{throttle:450});
-            impact.setVisible(true);
-            this.tweens.add({targets:impact,scale:12,alpha:0,duration:620,
-              onComplete:()=>{
-                beam.setVisible(false);
-                notice.setText('CANHÃO GRAVEMENTE AVARIADO • ARMAMENTO EM SOBRECARGA');
-                this.time.delayedCall(1400,finish);
-              }});
-          }});
-      }});
-  }
 
   showLabWaveComplete(outcome){
     this.clearDiscoGlobes();this.music.stop();this.tutorialComplete=true;
