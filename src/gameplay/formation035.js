@@ -15,18 +15,27 @@ export const STANDARD_INVADER_FLIGHT_FACTOR = 0.78;
 /** Cinemática da onda 0: 1 portal sozinho, depois pares simultâneos.
  * Cinco pontos reais distintos, sem encaixe nos três corredores antigos. */
 export const WAVE0_PORTAL_SEQUENCE = Object.freeze([
-  // 45 segundos de tutorial: 25 + 40 + 55 inimigos, sem iniciar antes do cronômetro.
-  Object.freeze({at:800,portalX:480,count:9}),
-  Object.freeze({at:5200,portalX:240,count:8}),
-  Object.freeze({at:9000,portalX:720,count:8}),
-  Object.freeze({at:15500,portalX:220,count:10}),
-  Object.freeze({at:19000,portalX:740,count:10}),
-  Object.freeze({at:23000,portalX:480,count:10}),
-  Object.freeze({at:26500,portalX:160,count:10}),
-  Object.freeze({at:30500,portalX:800,count:16}),
-  Object.freeze({at:34000,portalX:480,count:17}),
-  Object.freeze({at:37000,portalX:240,count:11}),
-  Object.freeze({at:40500,portalX:720,count:11}),
+  // Onda 0: demonstração do canhão forte — novas formações a cada ~2,2 s.
+  // Último grupo aos 40,2 s; os segundos finais concluem o combate.
+  Object.freeze({at:800,portalX:480,count:12}),
+  Object.freeze({at:3000,portalX:220,count:12}),
+  Object.freeze({at:5100,portalX:740,count:12}),
+  Object.freeze({at:7200,portalX:470,count:12}),
+  Object.freeze({at:9400,portalX:140,count:14}),
+  Object.freeze({at:11600,portalX:820,count:14}),
+  Object.freeze({at:13800,portalX:490,count:14}),
+  Object.freeze({at:16000,portalX:250,count:14}),
+  Object.freeze({at:18200,portalX:710,count:14}),
+  Object.freeze({at:20400,portalX:480,count:14}),
+  Object.freeze({at:22600,portalX:140,count:14}),
+  Object.freeze({at:24800,portalX:820,count:14}),
+  Object.freeze({at:27000,portalX:480,count:14}),
+  Object.freeze({at:29200,portalX:230,count:14}),
+  Object.freeze({at:31400,portalX:730,count:14}),
+  Object.freeze({at:33600,portalX:480,count:14}),
+  Object.freeze({at:35800,portalX:150,count:14}),
+  Object.freeze({at:38000,portalX:810,count:14}),
+  Object.freeze({at:40200,portalX:480,count:14}),
 ]);
 
 
