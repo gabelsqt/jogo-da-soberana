@@ -6659,20 +6659,27 @@ export class GameScene extends Phaser.Scene {
           if(n.hitFlashes.length>20)n.hitFlashes.shift();
           // Uma unidade por projétil, independente de dano, velocidade e país.
           if(n.charge<caps[level])n.charge++;
-          // Cada tiro também aciona um rojão de um dos cestos inferiores.
-          // O dano é calculado separadamente do orçamento visual mobile.
+          // Cada tiro libera uma pequena salva dos cestos, além de inflar.
+          // Mais fogos por estágio: a carga só aumenta uma vez por acerto.
           const newQ=Math.min(1,n.charge/caps[level]);
           const bodySize=18+(visual[level]-18)*Math.pow(newQ,1.7);
-          const shotAngle=Math.random()*Math.PI*2;
-          const shotRange=bodySize+20+Math.random()*Math.max(30,n.radius*.6);
-          const burstX=n.x+Math.cos(shotAngle)*shotRange;
-          const burstY=n.y+Math.sin(shotAngle)*shotRange;
-          const baseX=n.x+((n.shotRockets++%5)-2)*Math.min(88,bodySize*.67)/5;
-          const baseY=n.y+bodySize+Math.max(15,bodySize*.22);
           const palette=arraialStage(n.bursts).palette;
-          n.fireworkTrails.push({fromX:baseX,fromY:baseY,toX:burstX,toY:burstY,at:this.time.now,color:palette[n.bursts%palette.length]});
-          this.arraialFirework(burstX,burstY,n.bursts++,true,
-            {damage:[1,1,2,2][level],radius:[20,23,26,30][level],palette},false);
+          const salvo=[2,3,4,5][level];
+          for(let spark=0;spark<salvo;spark++){
+            const shotAngle=Math.random()*Math.PI*2;
+            const shotRange=bodySize+20+Math.random()*Math.max(30,n.radius*.6);
+            const burstX=n.x+Math.cos(shotAngle)*shotRange;
+            const burstY=n.y+Math.sin(shotAngle)*shotRange;
+            const baseX=n.x+((n.shotRockets++%5)-2)*Math.min(88,bodySize*.67)/5;
+            const baseY=n.y+bodySize+Math.max(15,bodySize*.22);
+            const hue=n.bursts++;
+            // Cálculo de dano sempre ocorre, independentemente dos limites visuais.
+            this.arraialFirework(burstX,burstY,hue,true,
+              {damage:[1,1,2,2][level],radius:[20,23,26,30][level],palette},false);
+            if(n.fireworkTrails.length<36)
+              n.fireworkTrails.push({fromX:baseX,fromY:baseY,toX:burstX,toY:burstY,
+                at:this.time.now,color:palette[hue%palette.length]});
+          }
 
           remove=true;
           break;
