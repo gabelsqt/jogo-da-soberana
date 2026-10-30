@@ -2251,7 +2251,8 @@ export class GameScene extends Phaser.Scene {
       const releaseAt=first+i*320;
       this.time.delayedCall(releaseAt-this.time.now,()=>{
         if(this.tutorialComplete||this.boss6Victory)return;
-        if(/^wave[0-9]$/.test(this.mode)&&this.elapsed>=15000)return;
+        if(/^wave[1-9]$/.test(this.mode)&&this.elapsed>=15000)return;
+        if(this.mode==='wave0'&&this.prologueType6Started)return;
         onRelease(i);
       });
     }
@@ -7568,6 +7569,41 @@ export class GameScene extends Phaser.Scene {
     this.advanceAfterWave();
   }
 
+  // A reviravolta da Onda 0 acontece no campo, sem cortina ou cutscene.
+  startPrologueType6Attack(){
+    if(this.prologueType6Started)return;
+    this.prologueType6Started=true;
+    this.recordNightDebug('prologue:type6-arrives');
+    const boss=this.add.container(W/2,-110).setDepth(72);
+    const hull=this.textures.exists(TYPE6_HULL_SHEET.key)
+      ?this.add.image(0,0,TYPE6_HULL_SHEET.key,0).setDisplaySize(340,115)
+      :this.add.ellipse(0,0,340,108,0x192331).setStrokeStyle(4,0xdd4f63);
+    const eye=this.add.circle(0,20,18,0xf64d63).setDepth(1);
+    boss.add([hull,eye]);
+    this.prologueType6Boss=boss;
+    // A nave entra no cenário e mira o canhão; nada bloqueia o jogador.
+    this.tweens.add({targets:boss,y:135,duration:1100,ease:'Sine.Out'});
+    this.time.delayedCall(2050,()=>{
+      if(!boss.active)return;
+      this.recordNightDebug('prologue:type6-laser');
+      const beam=this.add.graphics().setDepth(74);
+      beam.lineStyle(26,0xff425a,.35).lineBetween(W/2,155,CANNON.x,CANNON.y);
+      beam.lineStyle(10,0xffe0cb,.95).lineBetween(W/2,155,CANNON.x,CANNON.y);
+      this.shield=0;this.cannonHealth=0;
+      this.hexShieldGraphics?.clear();
+      this.cannonDomeSprite?.setVisible(false);
+      shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
+      playSfx('shieldBreak',{throttle:450});
+      this.cameras.main.shake(380,.008);
+      const hit=this.add.circle(CANNON.x,CANNON.y,18,0xffd19a,.9).setDepth(76);
+      this.tweens.add({targets:hit,scale:5,alpha:0,duration:420,
+        onComplete:()=>hit.destroy()});
+      this.time.delayedCall(650,()=>beam.destroy());
+      // Depois de disparar, a nave apenas flutua; sem ataques adicionais.
+      this.tweens.add({targets:boss,y:146,duration:1400,yoyo:true,repeat:-1});
+    });
+  }
+
   playFirstNightCinematic() {
     // Evento narrativo: uma nave superior aparece depois da primeira vitória.
     // Não altera o resultado da onda nem conta como derrota do jogador.
@@ -7924,12 +7960,21 @@ export class GameScene extends Phaser.Scene {
     // Usar a duração configurada (Onda 0 = 45 s), não a constante antiga de 15 s.
     if (/^wave[0-9]$/.test(this.mode) &&
         !this.voyageActive && this.elapsed >= this.waveDurationMs) {
+      if(this.mode==='wave0'&&!this.v1Playtest&&!this.unifiedLab){
+        // A massa de 60 Tipo 1 entra em gameplay na sequência, não há amanhecer aqui.
+        this.recordNightDebug('prologue:swarm60');
+        this.scene.start('PrologueSurvivalScene',{campaign:this.campaign});
+        return;
+      }
       this.elapsed=this.waveDurationMs;
       this.updateHud(); // Exibir 00.00 antes da retirada dos invasores.
       this.recordNightDebug('clock:zero');
       this.beginDawnWithdrawal();
       return;
     }
+    if(this.mode==='wave0'&&!this.v1Playtest&&!this.unifiedLab&&
+       !this.prologueType6Started&&this.elapsed>=this.waveDurationMs-5000)
+      this.startPrologueType6Attack();
     const mobilePointer=this.mobileAimAngle===undefined?pointer:{
       x:CANNON.x+Math.cos(this.mobileAimAngle)*450,
       y:CANNON.y+Math.sin(this.mobileAimAngle)*450,
