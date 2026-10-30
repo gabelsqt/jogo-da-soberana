@@ -6120,33 +6120,73 @@ export class GameScene extends Phaser.Scene {
             if(frame>=(mobileFx?4:9))phraseGfx.destroy();
           }});
         });
-        // Clarão final mais expressivo, também ancorado no balão sem escala.
+        // V5.6: mini Big Bang em camadas; o dano foi aplicado apenas uma vez acima.
+        // A animação é cosmética e usa um único Graphics reutilizado.
         const finale=this.add.graphics().setPosition(n.x,n.y).setDepth(48);
-        const startFinal=this.time.now;
-        const shades=[0xffe46b,0xff6b72,0x6df5af,0x9bcbff,0xf2a4ff];
+        const startFinal=this.time.now,duration=1100;
+        const shades=[0xffe46b,0xff7762,0x6df5af,0x80cbff,0xdba0ff];
+        const sparks=Array.from({length:mobileFx?14:34},(_,k)=>({
+          angle:k*2.399963,dist:.42+((k*37)%53)/100,
+          phase:(k*73%290),size:2+(k%4),color:shades[k%shades.length],
+        }));
+        const clamp=t=>Math.max(0,Math.min(1,t));
         const paintFinal=()=>{
           if(!finale.active)return;
-          const t=Math.min(1,(this.time.now-startFinal)/680);
-          const fade=1-t*t;
-          const radius=8+(finalRadius-8)*t;
+          const elapsed=this.time.now-startFinal;
+          if(elapsed>=duration){finale.destroy();return;}
           finale.clear();
-          finale.fillStyle(0xffefaf,0.22*fade);finale.fillCircle(0,0,radius);
-          for(let ring=0;ring<3;ring++){
-            finale.lineStyle(4,shades[ring],fade);
-            finale.strokeCircle(0,0,radius*(0.5+ring*0.24));
+          // Ignição de 0-120 ms: clarão branco-amarelo comprimido.
+          const ignition=1-clamp(elapsed/160);
+          if(ignition>0){
+            finale.fillStyle(0xfff7c6,.75*ignition);
+            finale.fillCircle(0,0,finalRadius*(.06+.10*(1-ignition)));
+            finale.fillStyle(0xffffff,.92*ignition);
+            finale.fillCircle(0,0,finalRadius*.055);
           }
-          for(let k=0;k<(mobileFx?8:20);k++){
-            const angle=k*Math.PI/10;
-            finale.lineStyle(3,shades[k%shades.length],fade);
-            finale.lineBetween(Math.cos(angle)*radius*0.35,Math.sin(angle)*radius*0.35,
-              Math.cos(angle)*radius,Math.sin(angle)*radius);
+          // 120-500 ms: esfera irregular com volumes quentes e núcleo luminoso.
+          const expansion=clamp((elapsed-90)/410);
+          const bodyFade=1-clamp((elapsed-340)/360);
+          if(expansion>0&&bodyFade>0){
+            const r=finalRadius*(.07+.93*(1-Math.pow(1-expansion,2)));
+            finale.fillStyle(0xe85130,.22*bodyFade);finale.fillCircle(0,0,r);
+            const lobes=mobileFx?9:18;
+            for(let k=0;k<lobes;k++){
+              const angle=k*Math.PI*2/lobes;
+              const variance=.83+.17*Math.sin(k*2.7+elapsed*.009);
+              finale.fillStyle(shades[k%shades.length],.24*bodyFade);
+              finale.fillCircle(Math.cos(angle)*r*.70,Math.sin(angle)*r*.70,
+                r*(.19+.07*variance));
+            }
+            finale.fillStyle(0xffa64a,.38*bodyFade);finale.fillCircle(0,0,r*.62);
+            finale.fillStyle(0xffe4a1,.55*bodyFade);finale.fillCircle(0,0,r*.28);
+          }
+          // Ondas de choque independentes, defasadas entre 250 e 800 ms.
+          for(let ring=0;ring<3;ring++){
+            const p=clamp((elapsed-(225+ring*85))/480);
+            if(p<=0||p>=1)continue;
+            const radius=finalRadius*(.18+.90*(1-Math.pow(1-p,2)));
+            finale.lineStyle((mobileFx?3:5)*(1-p*.5),shades[ring],(1-p)*.84);
+            finale.strokeCircle(0,0,radius);
+          }
+          // Fogos residuais multicoloridos: 400-1100 ms.
+          for(const spark of sparks){
+            const p=clamp((elapsed-390-spark.phase)/410);
+            if(p<=0||p>=1)continue;
+            const radius=finalRadius*(spark.dist*.50+.50*p);
+            const x=Math.cos(spark.angle)*radius,y=Math.sin(spark.angle)*radius;
+            const fade=Math.sin(Math.PI*p);
+            finale.fillStyle(spark.color,.85*fade);
+            finale.fillCircle(x,y,spark.size*(.7+.55*p));
+            finale.lineStyle(1.5,spark.color,.55*fade);
+            finale.lineBetween(x-Math.cos(spark.angle)*spark.size*3,
+              y-Math.sin(spark.angle)*spark.size*3,x,y);
           }
         };
         paintFinal();
-        this.time.addEvent({delay:mobileFx?85:32,repeat:mobileFx?8:22,callback:()=>{
-          if(!finale.active)return;
-          if(this.time.now-startFinal>=680){finale.destroy();return;}
+        const timer=this.time.addEvent({delay:mobileFx?65:33,loop:true,callback:()=>{
+          if(!finale.active){timer.remove();return;}
           paintFinal();
+          if(!finale.active)timer.remove();
         }});
         n.graphics.destroy(); this.arraialNuclei.splice(i,1);
         continue;
