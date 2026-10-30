@@ -5912,6 +5912,7 @@ export class GameScene extends Phaser.Scene {
     this.arraialNuclei.push({
       x,y,graphics,bornAt:this.time.now,bursts:0,lastDrawAt:-Infinity,
       lastAutoAt:this.time.now,chainQueue:[],chainKilled:new Set(),
+      chains:[],lastChainAt:-Infinity,
       // Upgrades pares brasileiros ampliam a região, não a força de cada rojão.
       radius:this.modernMathEnabled?(this.labExtra?.brBalloonRadius??ARRAIAL.orbitRadius):
         [110,130,150,175][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))],
@@ -5953,7 +5954,7 @@ export class GameScene extends Phaser.Scene {
     // TODO: a morte de inimigos NÃO deve depender de um orçamento de VFX.
     // A colisão e o dano acontecem sempre, mesmo com 50 tiros/segundo.
     if(damaging)this.arraialDamage(x,y,
-      this.modernMathEnabled?(this.labExtra?.brFireworkRadius??ARRAIAL.fireworkRadius):ARRAIAL.fireworkRadius,
+      stage.radius??(this.modernMathEnabled?(this.labExtra?.brFireworkRadius??ARRAIAL.fireworkRadius):ARRAIAL.fireworkRadius),
       stage.damage,'#ffe8b7',chain);
     if(damaging&&this.modernMathEnabled&&(this.labExtra?.brElectricRate??0)>0&&
        this.time.now-(this.labLastElectricAt??-Infinity)>=
@@ -6006,33 +6007,70 @@ export class GameScene extends Phaser.Scene {
   }
 
   updateArraial() {
+    const presets=[
+      {duration:4000,speed:35,reach:160,jump:130,hits:3,limit:1,interval:1200,damage:1,radius:25,extra:1},
+      {duration:4500,speed:45,reach:190,jump:160,hits:5,limit:2,interval:1000,damage:1,radius:30,extra:2},
+      {duration:5000,speed:55,reach:220,jump:190,hits:7,limit:2,interval:800,damage:2,radius:35,extra:3},
+      {duration:5500,speed:65,reach:250,jump:220,hits:10,limit:3,interval:600,damage:2,radius:40,extra:5},
+    ];
+    const now=this.time.now;
+    const nearest=(x,y,reach)=>this.enemies.filter(e=>e.sprite?.active&&e.type!==6&&
+      Math.hypot(e.sprite.x-x,e.sprite.y-y)<=reach).sort((a,b)=>
+      Math.hypot(a.sprite.x-x,a.sprite.y-y)-Math.hypot(b.sprite.x-x,b.sprite.y-y))[0];
     for(let i=this.arraialNuclei.length-1;i>=0;i--){
-      const n=this.arraialNuclei[i], age=this.time.now-n.bornAt;
-      const v23=[{duration:4000,rate:3,damage:1,depth:1},{duration:4500,rate:4,damage:1,depth:2},
-        {duration:5000,rate:5,damage:2,depth:2},{duration:5500,rate:6,damage:2,depth:3}];
-      const stageIndex=Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1));
-      const cfg=v23[stageIndex];
-      // Cadeias são drenadas em pequenos lotes, preservando o dano real,
-      // para evitar uma recursão profunda e travamentos no mobile.
-      for(let budget=0;budget<24&&n.chainQueue.length;budget++){
-        const burst=n.chainQueue.shift();
-        const p=randomArraialBurst(burst.x,burst.y,Math.min(20,n.radius*.2));
-        this.arraialFirework(p.x,p.y,n.bursts++,true,{damage:cfg.damage,palette:arraialStage(0).palette},
-          {depth:burst.depth,maxDepth:cfg.depth,queue:n.chainQueue,killed:n.chainKilled});
-      }
-      const tick=1000/cfg.rate;
-      if(age<cfg.duration&&this.time.now-n.lastAutoAt>=tick){
-        n.lastAutoAt+=tick;
-        const radius=Math.random()<.4?n.radius*(Math.sqrt(.56+.44*Math.random())):n.radius*Math.sqrt(Math.random());
-        const a=Math.random()*Math.PI*2;
-        const x=n.x+Math.cos(a)*radius,y=n.y+Math.sin(a)*radius;
-        this.arraialFirework(x,y,n.bursts++,true,{damage:cfg.damage,palette:arraialStage(0).palette},
-          {depth:0,maxDepth:cfg.depth,queue:n.chainQueue,killed:n.chainKilled});
+      const n=this.arraialNuclei[i],age=now-n.bornAt;
+      const level=Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1));
+      const cfg=presets[level];
+      if(age<cfg.duration){
+        const candidate=this.enemies.filter(e=>e.sprite?.active&&e.type!==6)
+          .sort((a,b)=>Math.hypot(a.sprite.x-n.x,a.sprite.y-n.y)-
+            Math.hypot(b.sprite.x-n.x,b.sprite.y-n.y))[0];
+        if(candidate){
+          const dx=candidate.sprite.x-n.x,dy=candidate.sprite.y-n.y;
+          const dist=Math.hypot(dx,dy);
+          if(dist>cfg.reach&&dist>0){
+            const step=Math.min(dist-cfg.reach,cfg.speed*Math.min(.05,this.game.loop.delta/1000));
+            n.x+=dx/dist*step;n.y+=dy/dist*step;
+          }
+        }
+        // Cada corrente mantém seus próprios rojões em voo. Só há um
+        // rojão por corrente a cada instante, não feixes instantâneos.
+        for(let k=n.chains.length-1;k>=0;k--){
+          const chain=n.chains[k];
+          let target=this.enemies.find(e=>e.uid===chain.target&&e.sprite?.active);
+          if(!target){
+            target=nearest(chain.x,chain.y,chain.reach);
+            if(!target){n.chains.splice(k,1);continue;}
+            chain.target=target.uid;
+          }
+          const dx=target.sprite.x-chain.x,dy=target.sprite.y-chain.y;
+          const dist=Math.hypot(dx,dy),step=420*Math.min(.05,this.game.loop.delta/1000);
+          if(dist>Math.max(step,10)){
+            chain.x+=dx/dist*step;chain.y+=dy/dist*step;
+          }else{
+            const hx=target.sprite.x,hy=target.sprite.y;
+            this.arraialFirework(hx,hy,n.bursts++,true,
+              {damage:cfg.damage,palette:arraialStage(0).palette,radius:cfg.radius});
+            chain.hits++;
+            if(chain.hits>=cfg.hits){n.chains.splice(k,1);continue;}
+            const next=nearest(hx,hy,cfg.jump);
+            if(!next){n.chains.splice(k,1);continue;}
+            chain.x=hx;chain.y=hy;chain.target=next.uid;chain.reach=cfg.jump;
+          }
+        }
+        if(n.chains.length<cfg.limit&&now-n.lastChainAt>=cfg.interval){
+          const first=nearest(n.x,n.y,cfg.reach);
+          if(first){
+            n.chains.push({x:n.x,y:n.y,target:first.uid,reach:cfg.reach,hits:0});
+            n.lastChainAt=now;
+          }
+        }
       }
       if(age>=cfg.duration){
         // As cadeias pendentes são resolvidas antes de finalizar o balão.
         // Preserva reações de última hora sem recursão no mesmo quadro.
-        if(n.chainQueue.length)continue;
+        // Encerrar correntes com o balão; não deixar projéteis órfãos.
+        n.chains.length=0;
         this.arraialDamage(n.x,n.y,n.radius,
           this.modernMathEnabled?(this.labExtra?.brFinalDamage??ARRAIAL.finaleDamage):ARRAIAL.finaleDamage,'#fff2aa');
         playSfx('brFireworkBurst',{throttle:0,volumeScale:0.86});
@@ -6125,6 +6163,10 @@ export class GameScene extends Phaser.Scene {
       if(this.sys.game.device.input.touch && age-n.lastDrawAt<70)continue;
       n.lastDrawAt=age;
       const g=n.graphics;g.clear();
+      for(const chain of n.chains){
+        g.lineStyle(2,0xffd76d,.7).lineBetween(n.x,n.y,chain.x,chain.y);
+        g.fillStyle(0xffa64f,.95).fillCircle(chain.x,chain.y,4);
+      }
       // O círculo visível marca onde as pequenas explosões podem nascer.
       const pulse=0.6+0.4*Math.sin(age*0.008);
       g.lineStyle(1.6,0x6af2aa,0.30+0.13*pulse);
@@ -6458,8 +6500,11 @@ export class GameScene extends Phaser.Scene {
           const stage=this.modernMathEnabled&&this.specialBuild?.primary==='br'
             ?{...baseStage,fireworks:this.labExtra?.brFireworks??1,
               damage:this.labExtra?.brFireworkDamage??1}:baseStage;
+          const currentLevel=Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1));
+          stage.fireworks=[1,2,3,5][currentLevel];
+          stage.damage=[1,1,2,2][currentLevel];
           for(let spark=0;spark<stage.fireworks;spark++){
-            const p=randomArraialBurst(n.x,n.y,n.radius);
+            const p=randomArraialBurst(n.x,n.y,Math.min(n.radius,65));
             this.arraialFirework(p.x,p.y,n.bursts+spark,true,stage,
               {depth:0,maxDepth:[1,2,2,3][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))],
                 queue:n.chainQueue,killed:n.chainKilled});
