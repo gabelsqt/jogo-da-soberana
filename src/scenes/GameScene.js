@@ -1115,7 +1115,8 @@ export class GameScene extends Phaser.Scene {
       ?'TEMPO ATÉ O BRASIL VIRAR COLÔNIA':'TEMPO ATÉ O AMANHECER');
     let combatStarted=false;
     const startCombat = () => {
-      if (combatStarted || !this.scene.isActive('GameScene') || this.tutorialComplete) return;
+      if (combatStarted || !this.scene.isActive('GameScene') ||
+          this.tutorialComplete || this.sunrisePlaying) return;
       combatStarted=true;
       // Encerrar o DOM e restaurar a câmera ANTES de liberar qualquer arma/spawn.
       this.cuboNewsHud?.cancelDawnIntro?.();
@@ -7448,7 +7449,12 @@ export class GameScene extends Phaser.Scene {
       }
       window.soberaniaDebug=(action)=>{
         const data=localStorage.getItem(key)||'{}';
-        if(action==='copy'){navigator.clipboard?.writeText(data);return data;}
+        if(action==='copy'){
+          navigator.clipboard?.writeText(data).catch(()=>{
+            console.info('[Soberania] Cópia bloqueada pelo Firefox. Copie o texto retornado.');
+          });
+          return data;
+        }
         const parsed=JSON.parse(data);console.table(parsed.events||[]);
         return parsed;
       };
