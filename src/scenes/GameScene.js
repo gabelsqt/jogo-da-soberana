@@ -3209,21 +3209,22 @@ export class GameScene extends Phaser.Scene {
     // Testes antigos extraem este método isoladamente; o áudio é opcional.
     if(typeof playSfx==='function')playSfx('ruFrozenShatter',{throttle:140,volumeScale:0.56});
     const x=enemy.sprite.x,y=enemy.sprite.y;
+    const visualRadius=Math.max(26,radius||0);
     const victims=radius>0&&damage>0?
       russianShatterTargets(enemy,this.enemies,this.elapsed,radius):[];
     // Estilhaçamento visual: pequenos cristais são lançados em todas as
     // direções. A área de dano continua independente da quantidade de efeitos
     // exibidos para que ondas cheias não prejudiquem o desempenho.
     const fx=this.add.graphics({x,y}).setDepth(57);
-    fx.lineStyle(2,0xc7f7ff,0.92).strokeCircle(0,0,radius*0.28);
-    fx.lineStyle(1,0x70dfff,0.72).strokeCircle(0,0,radius*0.9);
+    fx.lineStyle(2,0xc7f7ff,0.92).strokeCircle(0,0,visualRadius*0.28);
+    fx.lineStyle(1,0x70dfff,0.72).strokeCircle(0,0,visualRadius*0.9);
     this.tweens.add({targets:fx,alpha:0,scale:1.28,duration:270,
       ease:'Cubic.Out',onComplete:()=>fx.destroy()});
     this.russianShardVisualCount??=0;
     const budget=Math.max(0,64-this.russianShardVisualCount);
     const russianLevel=this.combatCampaign?.choices?.filter(id=>id==='ru').length||
       (this.combat.transformed==='ru'?10:1);
-    const shards=russianShardVisuals(radius,Math.min(6+Math.floor(russianLevel*0.65),budget),
+    const shards=russianShardVisuals(visualRadius,Math.min(6+Math.floor(russianLevel*0.65),budget),
       Math.random,russianLevel);
     for(const [i,crystal] of shards.entries()){
       const shard=this.add.graphics({x,y}).setDepth(58);
@@ -3765,7 +3766,6 @@ export class GameScene extends Phaser.Scene {
       const frozenShatter=enemy.frozenUntil>this.elapsed;
       // O gelo quebra em lugar da explosão convencional.
       if(frozenShatter){
-        playSfx('ruFrozenShatter',{throttle:140,volumeScale:0.56});
         this.shatterRussianEnemy(enemy);
       }else{
         this.showEnemyDeath(enemy);
