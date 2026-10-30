@@ -7915,6 +7915,13 @@ export class GameScene extends Phaser.Scene {
       stopRussianSfxLoops();
       stopNationalSpecialSfxLoops();
     }
+    // A retirada tem prioridade absoluta sobre animações e flags de abertura.
+    // Impede clock:zero repetido quando outro callback limpa countdownActive.
+    if(this.sunrisePlaying&&!this.sunriseFinished){
+      if(this.time.now-(this.sunriseStartedAt??this.time.now)>=4600)
+        this.finishDawnWithdrawal();
+      return;
+    }
     if (this.countdownActive){
       // Failsafes independentes dos callbacks das animações DOM/Phaser.
       if(this.sunrisePlaying&&!this.sunriseFinished &&
@@ -7971,7 +7978,8 @@ export class GameScene extends Phaser.Scene {
     // O amanhecer começa somente quando o relógio real da noite chega a zero.
     // Usar a duração configurada (Onda 0 = 45 s), não a constante antiga de 15 s.
     if (/^wave[0-9]$/.test(this.mode) &&
-        !this.voyageActive && this.elapsed >= this.waveDurationMs) {
+        !this.voyageActive && !this.sunrisePlaying && !this.tutorialComplete &&
+        this.elapsed >= this.waveDurationMs) {
       if(this.mode==='wave0'&&!this.v1Playtest&&!this.unifiedLab){
         // A massa de 60 Tipo 1 entra em gameplay na sequência, não há amanhecer aqui.
         this.recordNightDebug('prologue:swarm60');
