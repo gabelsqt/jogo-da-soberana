@@ -367,10 +367,18 @@ export class IntroScene extends Phaser.Scene {
     // Phaser TextStyle não expõe toFont(); sincroniza o canvas com a fonte do Text.
     style.syncFont(this.body.canvas,ctx);
     const left=ctx.measureText(before).width;
+    const wordWidth=ctx.measureText('MESÁRIO').width;
     ctx.restore();
     const lineHeight=style.metrics.fontSize+style.strokeThickness+this.body.lineSpacing;
+    const wordX=this.body.x+left;
+    const wordY=this.body.y+row*lineHeight;
+    // Oculta a palavra branca original sem alterar a quebra ou o espaço do texto.
+    // A máscara fica entre o texto comum e as letras verdes animadas.
+    const cover=this.keep(this.add.rectangle(wordX-1,wordY-3,
+      wordWidth+2,style.metrics.fontSize+9,0x132638).setOrigin(0,0).setDepth(23));
+    this.body.parentContainer.add(cover);
     this.highlightWord=createWavyWord(this,{
-      word:'MESÁRIO',x:this.body.x+left,y:this.body.y+row*lineHeight,
+      word:'MESÁRIO',x:wordX,y:wordY,
       fontFamily:CUBO_FONT,fontSize:26,color:'#68e69a',
       stroke:'#155e3b',strokeThickness:1,
       amplitude:1.25,depth:24,
