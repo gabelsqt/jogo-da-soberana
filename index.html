@@ -251,6 +251,24 @@
         filter: none;
         transition: none;
       }
+      #cubo-night-label {
+        display: inline-block;
+        font-size: 0.19em;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        vertical-align: 0.20em;
+        margin-right: 0.45em;
+        color: #e4f4ff;
+        text-shadow: 0.08em 0.08em #020916;
+      }
+      #cubo-time-fraction {
+        display: inline-block;
+        font-size: 0.38em;
+        vertical-align: 0.08em;
+        min-width: 1.55em;
+        text-align: left;
+        font-variant-numeric: tabular-nums;
+      }
       #cubo-time-reader {
         display: inline-block;
         min-width: 1.3em;
@@ -527,7 +545,7 @@
             </div>
           </div>
           <div id="cubo-time" class="cubo-time" role="timer" aria-label="Tempo restante: 30 segundos">
-            <span id="cubo-time-reader">30</span>
+            <span id="cubo-night-label">ONDA 0</span><span id="cubo-time-reader">30</span><span id="cubo-time-fraction">.00</span>
           </div>
         </section>
         <div id="cubo-dawn-intro" aria-hidden="true" hidden>
