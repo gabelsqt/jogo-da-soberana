@@ -5126,7 +5126,7 @@ export class GameScene extends Phaser.Scene {
     const sat={
       x,y,radius:build.ruSputnikRadius||43,build,
       expiresAt:this.elapsed+(build.ruSputnikDurationMs||4000),
-      nextPulseAt:this.elapsed+(build.ruSputnikPulseMs||Infinity),
+      nextPulseAt:this.elapsed+[750,650,550,450][Math.max(0,Math.min(3,(build.stages.ru??1)-1))],
       graphics:this.add.graphics().setPosition(x,y).setDepth(56),
     };
     this.russianSputniks.push(sat);
@@ -5143,14 +5143,51 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  sputnikFreezeArea(sat,radius){
-    for(const enemy of this.enemies){
-      if(enemy.type===6||!enemy?.sprite?.active)continue;
+  // Cinco famílias de flocos, espessuras e braços variados, sem assets extras.
+  drawRussianIceCrystal(x,y,large=false){
+    if(this.sys.game.device.input.touch &&
+      this.time.now-(this.lastIceCrystalFxAt??-Infinity)<65)return;
+    this.lastIceCrystalFxAt=this.time.now;
+    const g=this.add.graphics().setPosition(x,y).setDepth(59);
+    const variant=Math.floor(Math.random()*5);
+    const radius=(large?28:17)*(0.85+Math.random()*.3);
+    const width=[3.7,2.4,1.4,2.1,2.8][variant];
+    const branches=[2,3,3,1,2][variant];
+    const rotation=Math.random()*Math.PI/3;
+    for(let arm=0;arm<6;arm++){
+      const a=rotation+arm*Math.PI/3,ux=Math.cos(a),uy=Math.sin(a);
+      g.lineStyle(width+1.5,0x315b8d,.85).lineBetween(0,0,ux*radius,uy*radius);
+      g.lineStyle(width,0xb2e4ff,.96).lineBetween(0,0,ux*radius,uy*radius);
+      for(let j=1;j<=branches;j++){
+        const d=radius*(.27+j*.16),len=radius*(.14+variant*.016);
+        for(const sign of [-1,1]){
+          const bx=ux*d,by=uy*d,side=a+Math.PI+sign*Math.PI/3;
+          g.lineStyle(Math.max(1,width*.75),0xc9f1ff,.92);
+          g.lineBetween(bx,by,bx+Math.cos(side)*len,by+Math.sin(side)*len);
+        }
+      }
+    }
+    g.fillStyle(0xf4fdff,.96).fillCircle(0,0,Math.max(2,width));
+    this.tweens.add({targets:g,alpha:.48,scale:1.13,duration:130,yoyo:true,
+      repeat:1,onComplete:()=>this.tweens.add({targets:g,alpha:0,
+        duration:170,onComplete:()=>g.destroy()})});
+  }
+
+  sputnikFreezeArea(sat,radius,damage=0){
+    for(let i=this.enemies.length-1;i>=0;i--){
+      const enemy=this.enemies[i];
+      if(!enemy?.sprite?.active)continue;
       if(Math.hypot(enemy.sprite.x-sat.x,enemy.sprite.y-sat.y)>
         radius+enemyContactRadius(enemy.type))continue;
-      this.freezeWithSputnikFx(enemy,sat.build.ruFreezeMs,sat.build.stages.ru);
+      if(enemy.type!==6)this.freezeWithSputnikFx(enemy,sat.build.ruFreezeMs,sat.build.stages.ru);
+      if(damage>0){
+        if(enemy.type===6)hitType6At(this,enemy,sat.x,sat.y,damage,radius);
+        else this.impactInvader(i,damage,0,'#c9f1ff',false);
+      }
+      if(Math.random()<.32)this.drawRussianIceCrystal(enemy.sprite.x,enemy.sprite.y);
     }
   }
+
 
   drawRussianSputnik(sat){
     const g=sat.graphics,age=this.elapsed,stage=sat.build.stages.ru;
@@ -5221,11 +5258,21 @@ export class GameScene extends Phaser.Scene {
         if(sputnikTouchesEnemy(sat,enemy,
           enemy.type===6?0:enemyContactRadius(enemy.type)))
           this.freezeWithSputnikFx(enemy,build.ruFreezeMs,build.stages.ru);
-      if(build.ruSputnikPulseMs&&this.elapsed>=sat.nextPulseAt){
-        this.sputnikFreezeArea(sat,build.ruSputnikPulseRadius);
-        this.drawV1SpecialPulse(sat.x,sat.y,build.ruSputnikPulseRadius,0x83dffc);
+      if(this.elapsed>=sat.nextPulseAt){
+        const level=Math.max(0,Math.min(3,(build.stages.ru??1)-1));
+        const intervals=[750,650,550,450],radii=[70,85,100,120];
+        const radius=radii[level],damage=level>=2?2:1;
+        this.sputnikFreezeArea(sat,radius,damage);
+        this.drawV1SpecialPulse(sat.x,sat.y,radius,0x83dffc);
+        // Pequenos cristais distribuídos pelo anel, apenas como efeito visual.
+        for(let k=0;k<(this.sys.game.device.input.touch?3:6);k++){
+          const a=k*Math.PI*2/(this.sys.game.device.input.touch?3:6)+this.elapsed*.001;
+          this.drawRussianIceCrystal(sat.x+Math.cos(a)*radius,
+            sat.y+Math.sin(a)*radius);
+        }
         playSfx('ruSputnikCollapse',{throttle:210,volumeScale:0.48});
-        sat.nextPulseAt=this.elapsed+build.ruSputnikPulseMs;
+        sat.nextPulseAt+=intervals[level];
+        if(sat.nextPulseAt<=this.elapsed)sat.nextPulseAt=this.elapsed+intervals[level];
       }
       if(!this.sys.game.device.input.touch || this.elapsed-(sat.lastDrawAt??-Infinity)>=100){
         sat.lastDrawAt=this.elapsed;
@@ -5861,6 +5908,12 @@ export class GameScene extends Phaser.Scene {
         }
       }
       gfx.fillStyle(0xffffff,0.58).fillCircle(x,y,3.3);
+      // Cristal principal geométrico no tiro russo.
+      for(let arm=0;arm<6;arm++){
+        const a=arm*Math.PI/3+bullet.distanceTravelled*.002;
+        gfx.lineStyle(1.7,0xb9eaff,.76);
+        gfx.lineBetween(x,y,x+Math.cos(a)*8,y+Math.sin(a)*8);
+      }
     }
     if (bullet.koreanLaserPulse) {
       // Trilha de laser branco/violeta na Graphics reutilizada por projétil.
