@@ -6089,37 +6089,42 @@ export class GameScene extends Phaser.Scene {
             phraseGfx.fillRect(Math.round(x),Math.round(y),2,2);
           });
         };
+        // A frase permanece no céu por 2,2 s, piscando em cores.
+        // Um único pulso de dano leve (1) impede que a mensagem se torne
+        // mais poderosa que o mini Big Bang principal.
+        const phraseStart=this.time.now,phraseDuration=2200;
+        let phraseDamageApplied=false;
+        const phraseTick=()=>{
+          if(!phraseGfx.active){phraseTimer.remove();return;}
+          const elapsed=this.time.now-phraseStart;
+          if(!phraseDamageApplied&&elapsed>=380){
+            phraseDamageApplied=true;
+            for(let j=this.enemies.length-1;j>=0;j--){
+              const e=this.enemies[j];
+              const x=e.sprite.x,y=e.sprite.y,r=enemyContactRadius(e.type);
+              if(!coords.some(p=>Math.abs(p.x-x)<=r+5&&Math.abs(p.y-y)<=r+5))continue;
+              if(e.type===6)hitType6At(this,e,x,y,1,r);
+              else this.impactInvader(j,1,0,'#ffe8b7',false);
+            }
+            for(let j=this.enemyBullets.length-1;j>=0;j--){
+              const bullet=this.enemyBullets[j];
+              if(!bullet?.sprite?.active)continue;
+              if(!coords.some(p=>Math.abs(p.x-bullet.sprite.x)<=13&&
+                Math.abs(p.y-bullet.sprite.y)<=13))continue;
+              bullet.hp=Math.max(0,(bullet.hp??1)-1);
+              if(bullet.hp<=0){
+                if(bullet.colossal)detonateType6Bomb(this,bullet);
+                else this.removeEnemyBullet(j,true);
+              }else this.showEnemyBulletHit(bullet);
+            }
+          }
+          if(elapsed>=phraseDuration){phraseGfx.destroy();phraseTimer.remove();return;}
+          const fade=elapsed>1750?Math.max(0,(phraseDuration-elapsed)/450):1;
+          const blink=.42+.58*(.5+.5*Math.sin(elapsed*.025));
+          drawPhrase(0,fade*blink);
+        };
+        const phraseTimer=this.time.addEvent({delay:mobileFx?85:45,loop:true,callback:phraseTick});
         drawPhrase();
-        // O estouro aplica 1 de dano por alvo, independentemente da densidade
-        // de pixels; projéteis inimigos seguem a mesma regra.
-        this.time.delayedCall(210,()=>{
-          if(!phraseGfx.active)return;
-          for(let j=this.enemies.length-1;j>=0;j--){
-            const e=this.enemies[j];
-            const x=e.sprite.x,y=e.sprite.y,r=enemyContactRadius(e.type);
-            if(!coords.some(p=>Math.abs(p.x-x)<=r+5&&Math.abs(p.y-y)<=r+5))continue;
-            if(e.type===6)hitType6At(this,e,x,y,1,r);
-            else this.impactInvader(j,1,0,'#ffe8b7',false);
-          }
-          for(let j=this.enemyBullets.length-1;j>=0;j--){
-            const b=this.enemyBullets[j];
-            if(!b?.sprite?.active)continue;
-            if(!coords.some(p=>Math.abs(p.x-b.sprite.x)<=13&&
-              Math.abs(p.y-b.sprite.y)<=13))continue;
-            b.hp=Math.max(0,(b.hp??1)-1);
-            if(b.hp<=0){
-              if(b.colossal)detonateType6Bomb(this,b);
-              else this.removeEnemyBullet(j,true);
-            }else this.showEnemyBulletHit(b);
-          }
-          let frame=0;
-          const timer=this.time.addEvent({delay:mobileFx?90:35,repeat:mobileFx?3:8,callback:()=>{
-            frame++;
-            if(!phraseGfx.active)return;
-            drawPhrase(frame*(mobileFx?8:3),Math.max(0,1-frame/(mobileFx?4:9)));
-            if(frame>=(mobileFx?4:9))phraseGfx.destroy();
-          }});
-        });
         // V5.6: mini Big Bang em camadas; o dano foi aplicado apenas uma vez acima.
         // A animação é cosmética e usa um único Graphics reutilizado.
         const finale=this.add.graphics().setPosition(n.x,n.y).setDepth(48);
