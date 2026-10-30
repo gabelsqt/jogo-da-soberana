@@ -43,7 +43,7 @@ export function createCuboNewsHud(scene){
   const nightLabel=root.querySelector('#cubo-night-label');
   const mode=scene.mode||'';
   const nightName=mode==='wave0'?'ONDA 0':mode==='wave0.5'?'ONDA 0.5':
-    /^wave\\d+$/.test(mode)?'NOITE '+mode.slice(4):'';
+    /^wave[0-9]+$/.test(mode)?'NOITE '+mode.slice(4):'';
   if(nightLabel){nightLabel.textContent=nightName;nightLabel.hidden=!nightName;}
   if(timerFraction)timerFraction.hidden=false;
   const intro=broadcast.querySelector('#cubo-dawn-intro');
