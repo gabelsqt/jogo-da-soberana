@@ -39,6 +39,13 @@ export function createCuboNewsHud(scene){
   const crawlBar=root.querySelector('.cubo-crawl');
   const timer=root.querySelector('#cubo-time');
   const timerReader=root.querySelector('#cubo-time-reader');
+  const timerFraction=root.querySelector('#cubo-time-fraction');
+  const nightLabel=root.querySelector('#cubo-night-label');
+  const mode=scene.mode||'';
+  const nightName=mode==='wave0'?'ONDA 0':mode==='wave0.5'?'ONDA 0.5':
+    /^wave\\d+$/.test(mode)?'NOITE '+mode.slice(4):'';
+  if(nightLabel){nightLabel.textContent=nightName;nightLabel.hidden=!nightName;}
+  if(timerFraction)timerFraction.hidden=false;
   const intro=broadcast.querySelector('#cubo-dawn-intro');
   const introNumber=broadcast.querySelector('#cubo-dawn-number');
   const introLabel=broadcast.querySelector('#cubo-dawn-label');
@@ -160,17 +167,24 @@ export function createCuboNewsHud(scene){
       if(destroyed||!active)return;
       // Nas cidades não existe prazo fatal: o número indica reforços faltantes.
       const inVoyage=voyageProgress!==null;
+      const timeLeft=Math.max(0,total-elapsed);
+      const centiseconds=Math.ceil(timeLeft/10);
       const value=inVoyage?String(Math.max(0,voyageProgress)):
-        formatCuboTime(Math.max(0,total-elapsed));
+        String(Math.floor(centiseconds/100)).padStart(2,'0');
+      const fraction=inVoyage?'':'.'+String(centiseconds%100).padStart(2,'0');
       const critical=!inVoyage&&!frozen&&total-elapsed<=5000;
       if(inVoyage){
         if(timer){timer.style.visibility='visible';timer.style.opacity='1';}
         if(introLabel)introLabel.textContent='Reforços restantes';
       }
+      if(timerFraction){
+        timerFraction.hidden=inVoyage;
+        if(timerFraction.textContent!==fraction)timerFraction.textContent=fraction;
+      }
       if(lastSecond!==value||lastCritical!==critical){
         timerReader.textContent=value;
         timer.setAttribute('aria-label',inVoyage
-          ?`Reforços restantes: ${value}`:`Tempo restante: ${value} segundos`);
+          ?`Reforços restantes: ${value}`:`Tempo restante: ${value}${fraction} segundos`);
         timer.style.color=critical?'#ffb26f':'';
         lastSecond=value;lastCritical=critical;
       }
