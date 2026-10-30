@@ -5911,7 +5911,7 @@ export class GameScene extends Phaser.Scene {
     const graphics = this.add.graphics().setDepth(39);
     this.arraialNuclei.push({
       x,y,graphics,bornAt:this.time.now,bursts:0,lastDrawAt:-Infinity,
-      lastAutoAt:this.time.now,groupDestination:null,
+      lastAutoAt:this.time.now,groupDestination:null,charge:0,
       // Upgrades pares brasileiros ampliam a região, não a força de cada rojão.
       radius:[90,110,135,160][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))],
     });
@@ -6002,10 +6002,10 @@ export class GameScene extends Phaser.Scene {
 
   updateArraial() {
     const presets=[
-      {duration:4000,speed:40,rate:5,damage:1,burstRadius:20,shotRadius:45},
-      {duration:4500,speed:55,rate:8,damage:1,burstRadius:23,shotRadius:60},
-      {duration:5000,speed:70,rate:12,damage:2,burstRadius:26,shotRadius:75},
-      {duration:5500,speed:85,rate:18,damage:2,burstRadius:30,shotRadius:90},
+      {duration:4000,speed:40,rate:5,peakRate:8,damage:1,burstRadius:20,maxCharge:12,visualMax:38,finalMin:70,finalMax:160,damageMin:2,damageMax:5},
+      {duration:4500,speed:55,rate:8,peakRate:12,damage:1,burstRadius:23,maxCharge:20,visualMax:48,finalMin:85,finalMax:210,damageMin:2,damageMax:7},
+      {duration:5000,speed:70,rate:12,peakRate:17,damage:2,burstRadius:26,maxCharge:30,visualMax:60,finalMin:100,finalMax:270,damageMin:3,damageMax:10},
+      {duration:5500,speed:85,rate:18,peakRate:24,damage:2,burstRadius:30,maxCharge:40,visualMax:75,finalMin:120,finalMax:330,damageMin:3,damageMax:14},
     ];
     const now=this.time.now,dt=Math.min(.05,this.game.loop.delta/1000);
     for(let i=this.arraialNuclei.length-1;i>=0;i--){
@@ -6036,7 +6036,8 @@ export class GameScene extends Phaser.Scene {
               n.x+=dx/dist*step;n.y+=dy/dist*step;}
           }
         }else n.groupDestination=null;
-        const interval=1000/cfg.rate;
+        const q=Math.min(1,n.charge/cfg.maxCharge);
+        const interval=1000/(cfg.rate+(cfg.peakRate-cfg.rate)*q);
         // Distribuição uniforme por área, não concentrada junto ao centro.
         while(now-n.lastAutoAt>=interval&&n.lastAutoAt+interval<n.bornAt+cfg.duration){
           n.lastAutoAt+=interval;
@@ -6050,8 +6051,10 @@ export class GameScene extends Phaser.Scene {
         // Preserva reações de última hora sem recursão no mesmo quadro.
         // Encerrar correntes com o balão; não deixar projéteis órfãos.
         // Nenhuma corrente: o balão encerra após a saturação móvel.
-        this.arraialDamage(n.x,n.y,n.radius,
-          this.modernMathEnabled?(this.labExtra?.brFinalDamage??ARRAIAL.finaleDamage):ARRAIAL.finaleDamage,'#fff2aa');
+        const q=Math.min(1,n.charge/cfg.maxCharge);
+        const finalRadius=cfg.finalMin+(cfg.finalMax-cfg.finalMin)*q;
+        const finalDamage=cfg.damageMin+(cfg.damageMax-cfg.damageMin)*q;
+        this.arraialDamage(n.x,n.y,finalRadius,finalDamage,'#fff2aa');
         playSfx('brFireworkBurst',{throttle:0,volumeScale:0.86});
         // Frase pequena composta somente de pixels: sem objeto Text ou HUD.
         const phrase=arraialPhrasePixels(arraialFinalPhrase());
@@ -6116,7 +6119,7 @@ export class GameScene extends Phaser.Scene {
           if(!finale.active)return;
           const t=Math.min(1,(this.time.now-startFinal)/680);
           const fade=1-t*t;
-          const radius=8+(n.radius-8)*t;
+          const radius=8+(finalRadius-8)*t;
           finale.clear();
           finale.fillStyle(0xffefaf,0.22*fade);finale.fillCircle(0,0,radius);
           for(let ring=0;ring<3;ring++){
@@ -6148,13 +6151,24 @@ export class GameScene extends Phaser.Scene {
       g.strokeCircle(n.x,n.y,n.radius);
       g.fillStyle(0x42a871,0.034*pulse);
       g.fillCircle(n.x,n.y,n.radius);
-      // Balão junino em pixel-art geométrica, núcleo luminoso, cordão e boca.
-      g.fillStyle(0xffdf69,0.19*pulse);g.fillCircle(n.x,n.y,22);
-      g.fillStyle(0xdb544b,1);g.fillTriangle(n.x,n.y-18,n.x-12,n.y-7,n.x+12,n.y-7);
-      g.fillStyle(0xf6b948,1);g.fillTriangle(n.x-12,n.y-7,n.x+12,n.y-7,n.x,n.y+12);
-      g.lineStyle(2,0xffeb98,0.95);g.lineBetween(n.x,n.y-17,n.x,n.y+12);
-      g.fillStyle(0xffedb2,pulse);g.fillCircle(n.x,n.y-1,4);
-      g.lineStyle(1,0xeeb979,0.9);g.lineBetween(n.x,n.y+12,n.x,n.y+20);
+      // Balão inflável: a geometria e a hitbox usam o mesmo raio.
+      const q=Math.min(1,n.charge/cfg.maxCharge);
+      const size=18+(cfg.visualMax-18)*Math.pow(q,.8);
+      g.fillStyle(0xffb45b,.08+.15*q).fillCircle(n.x,n.y,size+7);
+      g.fillStyle(0xdb544b,1);g.fillEllipse(n.x,n.y,size*1.6,size*2);
+      g.lineStyle(2,0xffdb81,.9);g.strokeEllipse(n.x,n.y,size*1.6,size*2);
+      g.lineStyle(2,0xffeb98,.9).lineBetween(n.x,n.y-size,n.x,n.y+size);
+      g.fillStyle(0xffedb2,pulse).fillCircle(n.x,n.y,Math.max(3,size*.18));
+      g.lineStyle(1,0xeeb979,.9).lineBetween(n.x,n.y+size,n.x,n.y+size+9);
+      if(q>0){
+        const flames=Math.min(10,Math.ceil(q*10));
+        for(let flame=0;flame<flames;flame++){
+          const angle=flame*Math.PI*2/flames+age*.002;
+          const fx=n.x+Math.cos(angle)*size*.77,fy=n.y+Math.sin(angle)*size*.82;
+          g.fillStyle(flame%2?0xffbd51:0xff6b39,.55+.3*q);
+          g.fillTriangle(fx-4,fy+5,fx+4,fy+5,fx+Math.sin(angle)*7,fy-8-9*q);
+        }
+      }
     }
   }
 
@@ -6468,15 +6482,24 @@ export class GameScene extends Phaser.Scene {
       if(!remove&&!bullet.special&&this.arraialNuclei.length){
         for(const n of this.arraialNuclei){
           if(this.time.now-n.bornAt>=[4000,4500,5000,5500][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))])continue;
-          if(!shotHitsArraialBalloon(previousX,previousY,
-            bullet.sprite.x,bullet.sprite.y,n.x,n.y,
-            Math.max(3,bullet.usRadius??0)))continue;
           const level=Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1));
-          // Um tiro = uma grande explosão central, sem recarga artificial.
-          this.arraialFirework(n.x,n.y,n.bursts++,true,{
-            damage:[1,1,2,2][level],radius:[45,60,75,90][level],
-            palette:arraialStage(0).palette,
-          },false);
+          const caps=[12,20,30,40],visual=[38,48,60,75];
+          const q=Math.min(1,n.charge/caps[level]);
+          const hitRadius=18+(visual[level]-18)*Math.pow(q,.8)+Math.max(3,bullet.usRadius??0);
+          const dx=bullet.sprite.x-previousX,dy=bullet.sprite.y-previousY;
+          const travel=dx*dx+dy*dy;
+          const t=travel>0?Math.max(0,Math.min(1,
+            ((n.x-previousX)*dx+(n.y-previousY)*dy)/travel)):0;
+          if(Math.hypot(previousX+dx*t-n.x,previousY+dy*t-n.y)>hitRadius)continue;
+          // Uma unidade por projétil, independente de dano, velocidade e país.
+          if(n.charge<caps[level])n.charge++;
+          else {
+            // Após a carga máxima, impactos seguem úteis sem ultrapassar o teto.
+            const a=Math.random()*Math.PI*2,r=n.radius*Math.sqrt(Math.random());
+            this.arraialFirework(n.x+Math.cos(a)*r,n.y+Math.sin(a)*r,
+              n.bursts++,true,{damage:[1,1,2,2][level],
+                radius:[20,23,26,30][level],palette:arraialStage(0).palette},false);
+          }
           remove=true;
           break;
         }
