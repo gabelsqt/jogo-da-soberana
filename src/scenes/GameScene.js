@@ -6058,7 +6058,10 @@ export class GameScene extends Phaser.Scene {
         // Encerrar correntes com o balão; não deixar projéteis órfãos.
         // Nenhuma corrente: o balão encerra após a saturação móvel.
         const q=Math.min(1,n.charge/cfg.maxCharge);
-        const finalRadius=cfg.finalMin+(cfg.finalMax-cfg.finalMin)*q;
+        const balloonRadius=18+(cfg.visualMax-18)*Math.pow(q,1.7);
+        // Mini big bang supera o tamanho do envelope antes do colapso.
+        const finalRadius=Math.max(cfg.finalMin+(cfg.finalMax-cfg.finalMin)*q,
+          balloonRadius+Math.max(12,balloonRadius*.08));
         const finalDamage=cfg.damageMin+(cfg.damageMax-cfg.damageMin)*q;
         this.arraialDamage(n.x,n.y,finalRadius,finalDamage,'#fff2aa');
         playSfx('brFireworkBurst',{throttle:0,volumeScale:0.86});
@@ -6169,7 +6172,8 @@ export class GameScene extends Phaser.Scene {
       const baseSize=18+(cfg.visualMax-18)*Math.pow(q,1.7);
       // Últimos 240 ms: o envelope se contrai antes da detonação.
       const closing=Math.max(0,Math.min(1,(age-(cfg.duration-240))/240));
-      const size=baseSize*(1-.38*closing*closing);
+      const size=baseSize*(1-.75*closing*closing);
+      // Núcleo comprime e intensifica a luz nos instantes finais.
       const x=n.x,y=n.y;
       const shimmer=.5+.5*Math.sin(age*.014);
       const rx=size*.83,ry=size;
@@ -6190,6 +6194,39 @@ export class GameScene extends Phaser.Scene {
       g.fillStyle(0xb04c58,.60);g.fillEllipse(x,y,rx*.53,ry*1.54);
       g.fillStyle(0xffb14e,.13+.35*q);
       g.fillEllipse(x,y,coreRadius*1.65,coreRadius*1.9);
+      // Ornamentos simétricos inspirados em balões juninos tradicionais.
+      // Curvas nos gomos, medalhão central e filigranas espelhadas.
+      const ornamentAlpha=.88;
+      g.lineStyle(Math.max(1.5,Math.min(4,size*.016)),0x241f42,ornamentAlpha);
+      for(const side of [-1,1]){
+        for(const band of [-.54,-.15,.26,.62]){
+          const ox=x+side*rx*.49,oy=y+ry*band;
+          const w=rx*.23,h=ry*.085;
+          g.beginPath();
+          g.moveTo(ox-side*w,oy);
+          g.lineTo(ox,oy-h);
+          g.lineTo(ox+side*w,oy);
+          g.lineTo(ox,oy+h);
+          g.closePath();g.strokePath();
+          g.fillStyle(band<0?0x4ee2d2:0xf6c66b,.72);
+          g.fillCircle(ox,oy,Math.max(1.6,size*.012));
+        }
+        // Volutas estilizadas, desenhadas com curvas de Bézier do Phaser.
+        g.lineStyle(Math.max(1.5,size*.013),0xf7e4ad,.82);
+        g.beginPath();
+        g.moveTo(x+side*rx*.19,y-ry*.69);
+        g.lineTo(x+side*rx*.39,y-ry*.48);
+        g.lineTo(x+side*rx*.21,y-ry*.24);
+        g.lineTo(x+side*rx*.43,y-ry*.04);
+        g.lineTo(x+side*rx*.24,y+ry*.17);
+        g.lineTo(x+side*rx*.43,y+ry*.39);
+        g.lineTo(x+side*rx*.15,y+ry*.69);
+        g.strokePath();
+      }
+      g.fillStyle(0x25254a,.85);g.fillEllipse(x,y-ry*.17,rx*.33,ry*.29);
+      g.lineStyle(Math.max(1.5,size*.014),0xffdc82,.95);
+      g.strokeEllipse(x,y-ry*.17,rx*.33,ry*.29);
+      g.fillStyle(0x61e4c9,.8);g.fillCircle(x,y-ry*.17,Math.max(2,size*.025));
       g.lineStyle(Math.max(2,Math.min(5,size*.025)),0xffdd83,.65+.3*q);
       g.strokeEllipse(x,y,rx*2,ry*2);
       // Rachaduras são linhas incandescentes que crescem com a carga.
@@ -6250,6 +6287,8 @@ export class GameScene extends Phaser.Scene {
       }
       // Contração luminosa na preparação para o estouro final.
       if(closing>0){
+        g.fillStyle(0xfff5bf,closing*closing*.8);
+        g.fillCircle(x,y,Math.max(3,size*.20));
         g.lineStyle(2+closing*5,0xffe79c,closing*.9);
         g.strokeEllipse(x,y,rx*2,ry*2);
       }
