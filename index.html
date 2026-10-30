@@ -166,7 +166,13 @@
       .cubo-time {
         position: absolute;
         right: 0.6%;
-        bottom: -0.25cqw;
+        bottom: 0;
+        width: 20.5%;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: flex-end;
+        align-items: baseline;
+        gap: 0.55cqw;
         font-family: monospace;
         image-rendering: pixelated;
         color: rgba(239, 248, 255, 0.70);
@@ -242,7 +248,7 @@
       .cubo-time {
         font-family: 'Arial Black', Impact, system-ui, sans-serif;
         font-variant-numeric: tabular-nums;
-        font-size: 9.4cqw;
+        font-size: 6.7cqw;
         line-height: 1;
         font-weight: 900;
         letter-spacing: -0.055em;
@@ -252,33 +258,34 @@
         transition: none;
       }
       #cubo-night-label {
-        display: inline-block;
-        font-size: 0.19em;
+        position: absolute;
+        right: 0;
+        bottom: 100%;
+        font-size: 1.3cqw;
         font-weight: 800;
         letter-spacing: 0.02em;
-        vertical-align: 0.20em;
-        margin-right: 0.45em;
         color: #e4f4ff;
-        text-shadow: 0.08em 0.08em #020916;
+        text-shadow: 0.1cqw 0.1cqw #020916;
+      }
+      #cubo-time-reader {
+        flex: 0 0 auto;
+        min-width: 0;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
       }
       #cubo-time-fraction {
+        flex: 0 0 auto;
         display: inline-block;
         font-family: ui-monospace, 'Courier New', monospace;
-        font-size: 0.38em;
+        font-size: 0.36em;
         font-weight: 700;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.02em;
         line-height: 1;
-        vertical-align: 0.08em;
-        width: 2.75em;
-        min-width: 2.75em;
-        margin-left: 0.38em;
-        white-space: nowrap;
+        width: 2.5em;
         text-align: left;
         font-variant-numeric: tabular-nums;
-        font-feature-settings: 'tnum' 1;
         opacity: 1;
         transform: translateY(0);
-        transform-origin: left bottom;
         transition: opacity 220ms ease-out, transform 220ms ease-out;
       }
       #cubo-time-fraction.is-entering {
@@ -287,11 +294,6 @@
       }
       @media (prefers-reduced-motion: reduce) {
         #cubo-time-fraction { transition: none; }
-      }
-      #cubo-time-reader {
-        display: inline-block;
-        min-width: 1.3em;
-        text-align: right;
       }
       #cubo-dawn-intro {
         position: absolute;
