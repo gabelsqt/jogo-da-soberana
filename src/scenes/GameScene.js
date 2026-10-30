@@ -5911,7 +5911,7 @@ export class GameScene extends Phaser.Scene {
     const graphics = this.add.graphics().setDepth(39);
     this.arraialNuclei.push({
       x,y,graphics,bornAt:this.time.now,bursts:0,lastDrawAt:-Infinity,
-      lastAutoAt:this.time.now,groupDestination:null,charge:0,hitFlashes:[],
+      lastAutoAt:this.time.now,groupDestination:null,charge:0,hitFlashes:[],fireworkTrails:[],
       // Upgrades pares brasileiros ampliam a região, não a força de cada rojão.
       radius:[90,110,135,160][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))],
     });
@@ -6002,10 +6002,10 @@ export class GameScene extends Phaser.Scene {
 
   updateArraial() {
     const presets=[
-      {duration:4000,speed:40,rate:5,peakRate:8,damage:1,burstRadius:20,maxCharge:12,visualMax:95,finalMin:70,finalMax:160,damageMin:2,damageMax:5},
-      {duration:4500,speed:55,rate:8,peakRate:12,damage:1,burstRadius:23,maxCharge:20,visualMax:145,finalMin:85,finalMax:210,damageMin:2,damageMax:7},
-      {duration:5000,speed:70,rate:12,peakRate:17,damage:2,burstRadius:26,maxCharge:30,visualMax:205,finalMin:100,finalMax:270,damageMin:3,damageMax:10},
-      {duration:5500,speed:85,rate:18,peakRate:24,damage:2,burstRadius:30,maxCharge:40,visualMax:265,finalMin:120,finalMax:330,damageMin:3,damageMax:14},
+      {duration:4000,speed:40,rate:5,peakRate:8,damage:1,burstRadius:20,maxCharge:30,visualMax:95,finalMin:70,finalMax:160,damageMin:2,damageMax:5},
+      {duration:4500,speed:55,rate:8,peakRate:12,damage:1,burstRadius:23,maxCharge:50,visualMax:145,finalMin:85,finalMax:210,damageMin:2,damageMax:7},
+      {duration:5000,speed:70,rate:12,peakRate:17,damage:2,burstRadius:26,maxCharge:75,visualMax:205,finalMin:100,finalMax:270,damageMin:3,damageMax:10},
+      {duration:5500,speed:85,rate:18,peakRate:24,damage:2,burstRadius:30,maxCharge:100,visualMax:265,finalMin:120,finalMax:330,damageMin:3,damageMax:14},
     ];
     const now=this.time.now,dt=Math.min(.05,this.game.loop.delta/1000);
     for(let i=this.arraialNuclei.length-1;i>=0;i--){
@@ -6038,11 +6038,17 @@ export class GameScene extends Phaser.Scene {
         }else n.groupDestination=null;
         const q=Math.min(1,n.charge/cfg.maxCharge);
         const interval=1000/(cfg.rate+(cfg.peakRate-cfg.rate)*q);
-        // Distribuição uniforme por área, não concentrada junto ao centro.
+        // Fogos de artifício nascem na base do balão e se espalham ao redor.
         while(now-n.lastAutoAt>=interval&&n.lastAutoAt+interval<n.bornAt+cfg.duration){
           n.lastAutoAt+=interval;
-          const a=Math.random()*Math.PI*2,r=n.radius*Math.sqrt(Math.random());
-          this.arraialFirework(n.x+Math.cos(a)*r,n.y+Math.sin(a)*r,n.bursts++,true,
+          const size=18+(cfg.visualMax-18)*Math.pow(q,.8);
+          const angle=Math.random()*Math.PI*2;
+          const reach=size+18+Math.random()*Math.max(22,n.radius*.65);
+          const fx=n.x+Math.cos(angle)*reach;
+          const fy=n.y+Math.sin(angle)*reach;
+          const color=arraialStage(n.bursts).palette[n.bursts%arraialStage(n.bursts).palette.length];
+          n.fireworkTrails.push({fromX:n.x,fromY:n.y+size*.78,toX:fx,toY:fy,at:now,color});
+          this.arraialFirework(fx,fy,n.bursts++,true,
             {damage:cfg.damage,radius:cfg.burstRadius,palette:arraialStage(0).palette},true);
         }
       }
@@ -6145,6 +6151,12 @@ export class GameScene extends Phaser.Scene {
       if(this.sys.game.device.input.touch && age-n.lastDrawAt<70)continue;
       n.lastDrawAt=age;
       const g=n.graphics;g.clear();
+      n.fireworkTrails=n.fireworkTrails.filter(t=>now-t.at<230);
+      for(const t of n.fireworkTrails){
+        const progress=Math.min(1,(now-t.at)/230);
+        g.lineStyle(2,t.color,Math.max(0,(1-progress)*.8));
+        g.lineBetween(t.fromX,t.fromY,t.fromX+(t.toX-t.fromX)*progress,t.fromY+(t.toY-t.fromY)*progress);
+      }
       // O círculo visível marca onde as pequenas explosões podem nascer.
       const pulse=0.6+0.4*Math.sin(age*0.008);
       g.lineStyle(1.6,0x6af2aa,0.30+0.13*pulse);
@@ -6534,7 +6546,7 @@ export class GameScene extends Phaser.Scene {
         for(const n of this.arraialNuclei){
           if(this.time.now-n.bornAt>=[4000,4500,5000,5500][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))])continue;
           const level=Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1));
-          const caps=[12,20,30,40],visual=[95,145,205,265];
+          const caps=[30,50,75,100],visual=[95,145,205,265];
           const q=Math.min(1,n.charge/caps[level]);
           const hitRadius=18+(visual[level]-18)*Math.pow(q,.8)+Math.max(3,bullet.usRadius??0);
           const dx=bullet.sprite.x-previousX,dy=bullet.sprite.y-previousY;
@@ -6549,7 +6561,7 @@ export class GameScene extends Phaser.Scene {
           if(n.charge<caps[level])n.charge++;
           else {
             // Após a carga máxima, impactos seguem úteis sem ultrapassar o teto.
-            const a=Math.random()*Math.PI*2,r=n.radius*Math.sqrt(Math.random());
+            const a=Math.random()*Math.PI*2,r=(18+(visual[level]-18)*Math.pow(q,.8))+16+Math.random()*n.radius*.6;
             this.arraialFirework(n.x+Math.cos(a)*r,n.y+Math.sin(a)*r,
               n.bursts++,true,{damage:[1,1,2,2][level],
                 radius:[20,23,26,30][level],palette:arraialStage(0).palette},false);
