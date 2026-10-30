@@ -5911,7 +5911,7 @@ export class GameScene extends Phaser.Scene {
     const graphics = this.add.graphics().setDepth(39);
     this.arraialNuclei.push({
       x,y,graphics,bornAt:this.time.now,bursts:0,lastDrawAt:-Infinity,
-      lastAutoAt:this.time.now,groupDestination:null,charge:0,hitFlashes:[],fireworkTrails:[],
+      lastAutoAt:this.time.now,groupDestination:null,charge:0,hitFlashes:[],fireworkTrails:[],shotRockets:0,
       // Upgrades pares brasileiros ampliam a região, não a força de cada rojão.
       radius:[90,110,135,160][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))],
     });
@@ -6166,7 +6166,10 @@ export class GameScene extends Phaser.Scene {
       // Phaser Graphics: silhueta fluida, painéis coloridos e calor progressivo.
       // Crescimento e colisão compartilham o mesmo raio real.
       const q=Math.min(1,n.charge/cfg.maxCharge);
-      const size=18+(cfg.visualMax-18)*Math.pow(q,.8);
+      const baseSize=18+(cfg.visualMax-18)*Math.pow(q,.8);
+      // Últimos 240 ms: o envelope se contrai antes da detonação.
+      const closing=Math.max(0,Math.min(1,(age-(cfg.duration-240))/240));
+      const size=baseSize*(1-.38*closing*closing);
       const x=n.x,y=n.y;
       const shimmer=.5+.5*Math.sin(age*.014);
       const rx=size*.83,ry=size;
@@ -6231,7 +6234,25 @@ export class GameScene extends Phaser.Scene {
         g.lineStyle(2+q*2,0xffd17a,(q-.82)*2.6*(.55+.45*shimmer));
         g.strokeEllipse(x,y,rx*2+size*.035*shimmer,ry*2+size*.035*shimmer);
       }
-      g.fillStyle(0xb98652,.9).fillRect(x-size*.06,y+ry,size*.12,Math.max(4,size*.07));
+      // Suporte de fogos sob o envelope, como nos balões de referência.
+      // Cordas finas e uma fileira de cestos/tubos separados.
+      const rackY=y+ry+Math.max(10,size*.16);
+      const rackWidth=Math.max(22,Math.min(88,size*.67));
+      g.lineStyle(Math.max(1,size*.008),0xc9bfab,.85);
+      g.lineBetween(x-rx*.35,y+ry*.72,x-rackWidth*.5,rackY);
+      g.lineBetween(x+rx*.35,y+ry*.72,x+rackWidth*.5,rackY);
+      g.lineBetween(x-rackWidth*.5,rackY,x+rackWidth*.5,rackY);
+      for(let j=0;j<5;j++){
+        const tx=x+(j-2)*rackWidth/5;
+        g.lineStyle(1,0xc6beb0,.8).lineBetween(tx,rackY,tx,rackY+Math.max(8,size*.11));
+        g.fillStyle([0xe97850,0xf2c656,0x62c9bc,0x8a9be0,0xed91bb][j],.96);
+        g.fillRoundedRect(tx-3,rackY+Math.max(7,size*.1),6,Math.max(5,size*.045),1.5);
+      }
+      // Contração luminosa na preparação para o estouro final.
+      if(closing>0){
+        g.lineStyle(2+closing*5,0xffe79c,closing*.9);
+        g.strokeEllipse(x,y,rx*2,ry*2);
+      }
     }
   }
 
@@ -6559,13 +6580,21 @@ export class GameScene extends Phaser.Scene {
           if(n.hitFlashes.length>20)n.hitFlashes.shift();
           // Uma unidade por projétil, independente de dano, velocidade e país.
           if(n.charge<caps[level])n.charge++;
-          else {
-            // Após a carga máxima, impactos seguem úteis sem ultrapassar o teto.
-            const a=Math.random()*Math.PI*2,r=(18+(visual[level]-18)*Math.pow(q,.8))+16+Math.random()*n.radius*.6;
-            this.arraialFirework(n.x+Math.cos(a)*r,n.y+Math.sin(a)*r,
-              n.bursts++,true,{damage:[1,1,2,2][level],
-                radius:[20,23,26,30][level],palette:arraialStage(0).palette},false);
-          }
+          // Cada tiro também aciona um rojão de um dos cestos inferiores.
+          // O dano é calculado separadamente do orçamento visual mobile.
+          const newQ=Math.min(1,n.charge/caps[level]);
+          const bodySize=18+(visual[level]-18)*Math.pow(newQ,.8);
+          const shotAngle=Math.random()*Math.PI*2;
+          const shotRange=bodySize+20+Math.random()*Math.max(30,n.radius*.6);
+          const burstX=n.x+Math.cos(shotAngle)*shotRange;
+          const burstY=n.y+Math.sin(shotAngle)*shotRange;
+          const baseX=n.x+((n.shotRockets++%5)-2)*Math.min(88,bodySize*.67)/5;
+          const baseY=n.y+bodySize+Math.max(15,bodySize*.22);
+          const palette=arraialStage(n.bursts).palette;
+          n.fireworkTrails.push({fromX:baseX,fromY:baseY,toX:burstX,toY:burstY,at:this.time.now,color:palette[n.bursts%palette.length]});
+          this.arraialFirework(burstX,burstY,n.bursts++,true,
+            {damage:[1,1,2,2][level],radius:[20,23,26,30][level],palette},false);
+
           remove=true;
           break;
         }
