@@ -4854,7 +4854,8 @@ export class GameScene extends Phaser.Scene {
 
   pandaDeploy(x,y) {
     const stage=Math.max(1,Math.min(4,this.specialBuild?.stages?.cn??1));
-    const capacities=[8,14,22,32],radii=[100,130,160,200],intervals=[75,60,45,30];
+    const capacities=[8,16,24,32],radii=[90,110,130,150],intervals=[150,120,100,80];
+    const durations=[4000,4500,5000,5500];
     if(this.pandaDrone){
       if(this.pandaDrone.phase==='collect'){
         const d=this.pandaDrone;
@@ -4866,6 +4867,7 @@ export class GameScene extends Phaser.Scene {
     this.pandaDrone={x,y,targetX:x,targetY:y,moveFromX:x,moveFromY:y,
       moveStarted:-Infinity,stage,capacity:capacities[stage-1],
       radius:radii[stage-1],interval:intervals[stage-1],
+      bornAt:this.time.now,duration:durations[stage-1],
       ammo:[],phase:'collect',lastShotAt:-Infinity,
       graphics:this.add.graphics().setDepth(38)};
     playSfx('cnCargoDeploy',{throttle:180,volumeScale:.60});
@@ -4883,67 +4885,80 @@ export class GameScene extends Phaser.Scene {
       }
       this.tweens.add({targets:flash,alpha:0,duration:420,onComplete:()=>flash.destroy()});
     }
-    for(const bullet of drone.ammo){
-      bullet.trail?.destroy();bullet.specialMarker?.destroy();
-      bullet.sprite?.destroy();
-      if(bullet.visual)this.visibleProjectileCount=Math.max(0,this.visibleProjectileCount-1);
-    }
+    // A munição capturada é representada apenas por dados e miniconteineres
+    // desenhados no mesmo Graphics: não há sprites extras para destruir.
     drone.graphics.destroy();this.pandaDrone=null;
   }
 
   updatePandaDrone(dt){
     const d=this.pandaDrone;if(!d)return;
     if(this.tutorialComplete||this.gameOver)return;
+    const now=this.time.now;
     if(d.moveStarted!==-Infinity){
-      const p=Phaser.Math.Clamp((this.time.now-d.moveStarted)/500,0,1);
+      const p=Phaser.Math.Clamp((now-d.moveStarted)/500,0,1);
       const ease=p*p*(3-2*p);
       d.x=Phaser.Math.Linear(d.moveFromX,d.targetX,ease);
       d.y=Phaser.Math.Linear(d.moveFromY,d.targetY,ease);
       if(p>=1)d.moveStarted=-Infinity;
     }
-    if(d.phase==='collect'){
-      for(let i=this.projectiles.length-1;i>=0&&d.ammo.length<d.capacity;i--){
-        const bullet=this.projectiles[i];
-        if(bullet.special||bullet.pandaReleased||bullet.pandaCapturing||bullet.koreanLaserBolt||
-          !bullet.sprite?.active)continue;
-        if(Math.hypot(bullet.sprite.x-d.x,bullet.sprite.y-d.y)>d.radius)continue;
-        this.projectiles.splice(i,1);
-        bullet.pandaCapturing=true;
-        bullet.pandaCaptureStart=this.time.now;
-        bullet.pandaStartX=bullet.sprite.x;bullet.pandaStartY=bullet.sprite.y;
-        d.ammo.push(bullet);
-      }
-      if(d.ammo.length===d.capacity)d.phase='ready';
-    }
-    const targets=()=>this.enemies.filter(e=>e?.sprite?.active&&e.type!==6)
+    const ended=now-d.bornAt>=d.duration;
+    const targets=()=>this.enemies.filter(e=>e?.sprite?.active)
       .sort((a,b)=>Math.hypot(a.sprite.x-CANNON.x,a.sprite.y-CANNON.y)-
         Math.hypot(b.sprite.x-CANNON.x,b.sprite.y-CANNON.y));
-    if(d.phase==='ready'&&targets().length){
-      d.phase='discharge';d.lastShotAt=-Infinity;d.shotIndex=0;
+    if(d.phase==='collect'&&!ended){
+      // Captura munição INIMIGA: cada disparo vira um contêiner individual.
+      // Lasers e bombas de chefes com lógica especial não são armazenáveis.
+      for(let i=this.enemyBullets.length-1;i>=0&&d.ammo.length<d.capacity;i--){
+        const shot=this.enemyBullets[i];
+        if(!shot?.sprite?.active||shot.colossal||shot.cryoImpact||
+          shot.instantUnshielded||shot.frostMs)continue;
+        if(Math.hypot(shot.sprite.x-d.x,shot.sprite.y-d.y)>d.radius)continue;
+        d.ammo.push({capturedAt:now});
+        this.removeEnemyBullet(i,true);
+      }
     }
-    if(d.phase==='discharge'&&this.time.now-d.lastShotAt>=d.interval){
-      const bullet=d.ammo.shift(),alive=targets();
-      if(bullet&&alive.length){
+    if(d.phase==='collect'&&(d.ammo.length>=d.capacity||
+      (ended||now-d.bornAt>=d.duration-500)&&d.ammo.length>0)){
+      if(targets().length){
+        d.phase='discharge';d.lastShotAt=-Infinity;d.shotIndex=0;
+        // Bônus de estoque travado no começo da rajada.
+        const bonuses=[.25,.35,.45,.60],bases=[1,1,2,2];
+        d.shotDamage=bases[d.stage-1]*(1+bonuses[d.stage-1]*d.ammo.length/d.capacity);
+      }
+    }
+    if(d.phase==='discharge'&&now-d.lastShotAt>=d.interval){
+      const alive=targets();
+      if(alive.length&&d.ammo.length){
         const target=alive[d.shotIndex%alive.length];d.shotIndex++;
-        bullet.pandaCapturing=false;bullet.pandaReleased=true;
-        bullet.pandaTarget=target.uid;
-        bullet.sprite.setPosition(d.x,d.y);
+        d.ammo.shift();
         const angle=Math.atan2(target.sprite.y-d.y,target.sprite.x-d.x);
-        const speed=Math.max(320,Math.hypot(bullet.vx,bullet.vy));
-        bullet.vx=Math.cos(angle)*speed;bullet.vy=Math.sin(angle)*speed;
-        bullet.sprite.setRotation?.(angle+Math.PI/2);
-        this.projectiles.push(bullet);
-        d.lastShotAt=this.time.now;
-      }else if(!alive.length&&bullet){
-        d.ammo.unshift(bullet);
+        const bullet=this.createProjectile(angle,false,0,null,false,0,0,{x:d.x,y:d.y});
+        if(bullet){
+          bullet.pandaReleased=true;bullet.pandaTarget=target.uid;
+          bullet.damage=d.shotDamage;
+          bullet.vx=Math.cos(angle)*400;bullet.vy=Math.sin(angle)*400;
+          bullet.pierceLeft=0;bullet.fragmentation=false;bullet.knockback=0;
+          bullet.chinaSplit=false;bullet.koreanCopiesLeft=0;
+          bullet.koreanBouncesLeft=0;bullet.koreanLaserBolt=false;
+          bullet.koreanRicochet=false;bullet.patriotic=false;
+          bullet.usRocket=false;bullet.usBlastRadius=0;
+          bullet.sprite.setFillStyle?.(0xf2c96e);
+        }
+        d.lastShotAt=now;
       }
       if(!d.ammo.length){this.pandaClear();return;}
     }
-    const g=d.graphics,t=this.time.now*.003;
+    // Não desperdiça contêineres sem alvo. Ao terminar a onda, o estoque
+    // restante desaparece em fogos puramente visuais, sem dano.
+    if(ended&&d.phase==='collect'&&!targets().length&&
+      (this.waveComplete||this.waveEnding||this.remainingTime<=0)){
+      this.pandaClear(true);return;
+    }
+    if(ended&&!d.ammo.length){this.pandaClear();return;}
+    const g=d.graphics,t=now*.003;
     g.clear();
-    g.fillStyle(0xc6283e,.18).fillCircle(d.x,d.y,d.radius);
-    g.lineStyle(1,0xf1a573,.24).strokeCircle(d.x,d.y,d.radius);
-    // Drone vermelho, dois braços mecânicos e rosto de panda.
+    g.fillStyle(0xc6283e,.13).fillCircle(d.x,d.y,d.radius);
+    g.lineStyle(1,0xf1a573,.25).strokeCircle(d.x,d.y,d.radius);
     const open=d.phase!=='collect',reach=open?31:24;
     for(const side of [-1,1]){
       g.lineStyle(6,0xe29b70,.9).lineBetween(d.x+side*13,d.y+7,d.x+side*reach,d.y+(open?-12:19));
@@ -4958,18 +4973,14 @@ export class GameScene extends Phaser.Scene {
       if(open)g.fillStyle(0xffe070,.95).fillCircle(d.x+side*9,d.y-6,3);
     }
     g.fillStyle(0x1b2030,1).fillCircle(d.x,d.y+5,3);
-    d.ammo.forEach((bullet,i)=>{
-      const age=Phaser.Math.Clamp((this.time.now-bullet.pandaCaptureStart)/260,0,1);
-      const ring=14+Math.floor(i/10)*11;
-      const a=t*1.5+i*2.39996,orbitX=d.x+Math.cos(a)*ring;
-      const orbitY=d.y+Math.sin(a)*ring*.58;
-      const spiral=(1-age)*Math.PI*3;
-      const px=Phaser.Math.Linear(bullet.pandaStartX,orbitX,age)+
-        Math.sin(spiral)*(1-age)*10;
-      const py=Phaser.Math.Linear(bullet.pandaStartY,orbitY,age)+
-        Math.cos(spiral)*(1-age)*10;
-      bullet.sprite.setPosition(px,py);
-      bullet.trail?.clear();
+    d.ammo.forEach((ammo,i)=>{
+      const ring=31+Math.floor(i/12)*10;
+      const a=t*1.4+i*2.39996;
+      const x=d.x+Math.cos(a)*ring,y=d.y+Math.sin(a)*ring*.7;
+      // Um contêiner por projétil, sem criar sprites Phaser por captura.
+      g.fillStyle(0xc63b3b,.95).fillRect(x-5,y-3,10,6);
+      g.lineStyle(1,0xffd888,.9).strokeRect(x-5,y-3,10,6);
+      g.lineStyle(1,0xf2b5a3,.75).lineBetween(x-1,y-3,x-1,y+3);
     });
   }
 
@@ -5896,24 +5907,34 @@ export class GameScene extends Phaser.Scene {
 
 
   createArraial(x, y) {
-    // O balão é um ALVO do jogador, não uma sequência automática de fogos.
+    // O balão é um escudo de explosões contínuas e também um ALVO do jogador.
     const graphics = this.add.graphics().setDepth(39);
     this.arraialNuclei.push({
       x,y,graphics,bornAt:this.time.now,bursts:0,lastDrawAt:-Infinity,
+      lastAutoAt:this.time.now,chainQueue:[],chainKilled:new Set(),
       // Upgrades pares brasileiros ampliam a região, não a força de cada rojão.
       radius:this.modernMathEnabled?(this.labExtra?.brBalloonRadius??ARRAIAL.orbitRadius):
-        ARRAIAL.orbitRadius+10*Math.max(0,(this.specialBuild?.stages?.br??1)-1),
+        [110,130,150,175][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))],
     });
   }
 
-  arraialDamage(x, y, radius, amount, color) {
+  arraialDamage(x, y, radius, amount, color, chain=null) {
     // Uma única regra de dano em área, aplicada a naves e projéteis.
     // Nada de remover bombas ou matar inimigos mais fortes automaticamente.
     for(let i=this.enemies.length-1;i>=0;i--){
       const enemy=this.enemies[i];
       if(enemy.type===6){hitType6At(this,enemy,x,y,amount,radius);continue;}
-      if(withinBlast(x,y,enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy),radius))
-        this.impactInvader(i,amount,0,color,false);
+      if(withinBlast(x,y,enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy),radius)){
+        const tx=enemy.sprite.x,ty=enemy.sprite.y,uid=enemy.uid;
+        const died=this.impactInvader(i,amount,0,color,false);
+        if(chain&&chain.depth<chain.maxDepth){
+          chain.queue.push({x:tx,y:ty,depth:chain.depth+1});
+          if(died&&!chain.killed.has(uid)){
+            chain.killed.add(uid);
+            chain.queue.push({x:tx,y:ty,depth:chain.depth+1});
+          }
+        }
+      }
     }
     for(let i=this.enemyBullets.length-1;i>=0;i--){
       const bullet=this.enemyBullets[i];
@@ -5928,12 +5949,12 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  arraialFirework(x, y, hue, damaging = true, stage = arraialStage(0)) {
+  arraialFirework(x, y, hue, damaging = true, stage = arraialStage(0), chain=null) {
     // TODO: a morte de inimigos NÃO deve depender de um orçamento de VFX.
     // A colisão e o dano acontecem sempre, mesmo com 50 tiros/segundo.
     if(damaging)this.arraialDamage(x,y,
       this.modernMathEnabled?(this.labExtra?.brFireworkRadius??ARRAIAL.fireworkRadius):ARRAIAL.fireworkRadius,
-      stage.damage,'#ffe8b7');
+      stage.damage,'#ffe8b7',chain);
     if(damaging&&this.modernMathEnabled&&(this.labExtra?.brElectricRate??0)>0&&
        this.time.now-(this.labLastElectricAt??-Infinity)>=
          1000/this.labExtra.brElectricRate){
@@ -5987,18 +6008,42 @@ export class GameScene extends Phaser.Scene {
   updateArraial() {
     for(let i=this.arraialNuclei.length-1;i>=0;i--){
       const n=this.arraialNuclei[i], age=this.time.now-n.bornAt;
-      if(age>=ARRAIAL.duration){
+      const v23=[{duration:4000,rate:3,damage:1,depth:1},{duration:4500,rate:4,damage:1,depth:2},
+        {duration:5000,rate:5,damage:2,depth:2},{duration:5500,rate:6,damage:2,depth:3}];
+      const stageIndex=Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1));
+      const cfg=v23[stageIndex];
+      // Cadeias são drenadas em pequenos lotes, preservando o dano real,
+      // para evitar uma recursão profunda e travamentos no mobile.
+      for(let budget=0;budget<24&&n.chainQueue.length;budget++){
+        const burst=n.chainQueue.shift();
+        const p=randomArraialBurst(burst.x,burst.y,Math.min(20,n.radius*.2));
+        this.arraialFirework(p.x,p.y,n.bursts++,true,{damage:cfg.damage,palette:arraialStage(0).palette},
+          {depth:burst.depth,maxDepth:cfg.depth,queue:n.chainQueue,killed:n.chainKilled});
+      }
+      const tick=1000/cfg.rate;
+      if(age<cfg.duration&&this.time.now-n.lastAutoAt>=tick){
+        n.lastAutoAt+=tick;
+        const radius=Math.random()<.4?n.radius*(Math.sqrt(.56+.44*Math.random())):n.radius*Math.sqrt(Math.random());
+        const a=Math.random()*Math.PI*2;
+        const x=n.x+Math.cos(a)*radius,y=n.y+Math.sin(a)*radius;
+        this.arraialFirework(x,y,n.bursts++,true,{damage:cfg.damage,palette:arraialStage(0).palette},
+          {depth:0,maxDepth:cfg.depth,queue:n.chainQueue,killed:n.chainKilled});
+      }
+      if(age>=cfg.duration){
+        // As cadeias pendentes são resolvidas antes de finalizar o balão.
+        // Preserva reações de última hora sem recursão no mesmo quadro.
+        if(n.chainQueue.length)continue;
         this.arraialDamage(n.x,n.y,n.radius,
           this.modernMathEnabled?(this.labExtra?.brFinalDamage??ARRAIAL.finaleDamage):ARRAIAL.finaleDamage,'#fff2aa');
         playSfx('brFireworkBurst',{throttle:0,volumeScale:0.86});
         // Frase pequena composta somente de pixels: sem objeto Text ou HUD.
         const phrase=arraialPhrasePixels(arraialFinalPhrase());
-        const scale=2, centerX=Math.max(phrase.width,
+        const scale=3, centerX=Math.max(phrase.width,
           Math.min(W-phrase.width,n.x));
         const centerY=Math.max(phrase.height+8,Math.min(H-phrase.height-8,n.y-34));
         const coords=phrase.points.map(p=>({
           x:centerX+(p.x-phrase.width/2)*scale,
-          y:centerY+(p.y-phrase.height/2)*scale,
+          y:centerY+(p.y-phrase.height/2)*scale - Math.sin(Math.PI*(p.x/Math.max(1,phrase.width)))*Math.min(42,n.radius*.3),
         }));
         const mobileFx=this.sys.game.device.input.touch;
         const phraseGfx=this.add.graphics().setDepth(110);
@@ -6405,7 +6450,7 @@ export class GameScene extends Phaser.Scene {
       // produz uma explosão em ponto ALEATÓRIO dentro do círculo do balão.
       if(!remove&&!bullet.special&&this.arraialNuclei.length){
         for(const n of this.arraialNuclei){
-          if(this.time.now-n.bornAt>=ARRAIAL.duration)continue;
+          if(this.time.now-n.bornAt>=[4000,4500,5000,5500][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))])continue;
           if(!shotHitsArraialBalloon(previousX,previousY,
             bullet.sprite.x,bullet.sprite.y,n.x,n.y,
             Math.max(3,bullet.usRadius??0)))continue;
@@ -6415,7 +6460,9 @@ export class GameScene extends Phaser.Scene {
               damage:this.labExtra?.brFireworkDamage??1}:baseStage;
           for(let spark=0;spark<stage.fireworks;spark++){
             const p=randomArraialBurst(n.x,n.y,n.radius);
-            this.arraialFirework(p.x,p.y,n.bursts+spark,true,stage);
+            this.arraialFirework(p.x,p.y,n.bursts+spark,true,stage,
+              {depth:0,maxDepth:[1,2,2,3][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))],
+                queue:n.chainQueue,killed:n.chainKilled});
           }
           remove=true;
           break;
