@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {TYPE6_HULL_SHEET} from '../gameplay/type6HullSprite.js';
 import {DAWN_KEYS,DAWN_FILES,dawnLayerAlphas} from '../gameplay/dawnTransition.js';
 import {cannonSpritePose,CANNON_BARREL_DISPLAY_SIZE} from '../gameplay/cannonSpriteAim.js';
 import {bindSceneMusic} from '../audio/music.js';
@@ -49,6 +50,13 @@ export class PrologueSurvivalScene extends Phaser.Scene{
       .setDisplaySize(CANNON_BARREL_DISPLAY_SIZE.width,CANNON_BARREL_DISPLAY_SIZE.height).setDepth(21);
     this.cannonHead=this.add.image(x,y-19,this.textures.exists('cannon-pivot-4')?'cannon-pivot-4':'prologue-cannon-head')
       .setDisplaySize(70,68).setDepth(22);
+    // O Tipo 6 permanece no campo após destruir o canhão: só flutua.
+    const bossKey=TYPE6_HULL_SHEET.key;
+    this.type6Hover=this.textures.exists(bossKey)
+      ?this.add.image(W/2,145,bossKey,0).setDisplaySize(340,115).setDepth(29)
+      :this.add.ellipse(W/2,145,340,108,0x192331).setStrokeStyle(4,0xdd4f63).setDepth(29);
+    this.tweens.add({targets:this.type6Hover,y:154,duration:1500,
+      ease:'Sine.InOut',yoyo:true,repeat:-1});
     this.damageGraphics=this.add.graphics().setDepth(25);
     this.dawnOverlay=this.add.rectangle(W/2,H/2,W,H,0xffd89a,0).setDepth(15);
     this.dawnSun=this.add.circle(770,110,42,0xffe9ad,0).setDepth(15);
