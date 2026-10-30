@@ -2663,47 +2663,8 @@ export class GameScene extends Phaser.Scene {
         enemy.sprite.x += oldWallPush.x;
         enemy.sprite.y += oldWallPush.y;
         this.blockEnemyWithAmericanWall(enemy,worldFromX,worldFromY);
-        // Flocos hexagonais crescem em detalhes conforme os upgrades russos.
-        const crystalLevel=Math.max(1,Math.min(4,Math.ceil(
-          (this.specialBuild?.levels?.ru??this.labExtra?.ruPrimaryLevel??2)/2)));
-        const fx=enemy.sprite.x,fy=enemy.sprite.y;
-        const radius=this.enemyCombatRadius(enemy)+12;
-        const frost=this.frostGraphics,rotation=this.elapsed*.00032;
-        for(let arm=0;arm<6;arm++){
-          const a=rotation+arm*Math.PI/3;
-          const dx=Math.cos(a),dy=Math.sin(a);
-          frost.lineStyle(crystalLevel>=4?3:2,0x76dfff,.66);
-          frost.lineBetween(fx+dx*5,fy+dy*5,fx+dx*radius,fy+dy*radius);
-          frost.lineStyle(1.5,0xe7ffff,.91);
-          frost.lineBetween(fx+dx*10,fy+dy*10,fx+dx*(radius-2),fy+dy*(radius-2));
-          for(let branch=0;branch<crystalLevel;branch++){
-            const dist=radius*(.37+branch*.12),len=5+crystalLevel*1.5;
-            const px=fx+dx*dist,py=fy+dy*dist;
-            for(const sign of [-1,1]){
-              const ba=a+Math.PI-sign*Math.PI/3;
-              frost.lineStyle(1.5,branch%2?0xa2edff:0xffffff,.8);
-              frost.lineBetween(px,py,px+Math.cos(ba)*len,py+Math.sin(ba)*len);
-            }
-          }
-        }
-        this.frostGraphics.lineStyle(3,0x93ebff,0.85);
-        this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy)+8);
-        this.frostGraphics.lineStyle(1,0xe2ffff,0.72);
-        this.frostGraphics.strokeCircle(enemy.sprite.x,enemy.sprite.y,this.enemyCombatRadius(enemy)+13);
-        if(isSputnikCrystalized(enemy,this.elapsed)){
-          // Cristalizado é legível e diferente do congelamento comum:
-          // quatro pequenos diamantes dourados/cianos orbitam a nave.
-          const r=enemyContactRadius(enemy.type)+19;
-          for(let facet=0;facet<4;facet++){
-            const a=facet*Math.PI/2+this.elapsed*.001;
-            const px=enemy.sprite.x+Math.cos(a)*r;
-            const py=enemy.sprite.y+Math.sin(a)*r;
-            const color=facet%2?0xe8b84c:0xb4f5ff;
-            this.frostGraphics.fillStyle(color,.83);
-            this.frostGraphics.fillTriangle(px,py-5,px-3,py,px+3,py);
-            this.frostGraphics.fillTriangle(px-3,py,px+3,py,px,py+5);
-          }
-        }
+        // O padrão individual fica preso à nave e pulsa enquanto congelada.
+        this.drawFrozenEnemyCrystal(enemy);
         if(enemy.type===2){
           enemy.type2Facing=steerType2Rotation(enemy.type2Facing??0,0,0,dt);
           enemy.sprite.rotation=enemy.type2Facing;
@@ -3185,12 +3146,53 @@ export class GameScene extends Phaser.Scene {
     // Não há contágio, pulso ou atração de congelados.
   }
 
+  assignRussianCrystalPattern(enemy){
+    if(!enemy || enemy.type===6)return;
+    enemy.russianCrystalPattern={
+      family:Math.floor(Math.random()*5),
+      angle:Math.random()*Math.PI/3,
+      branches:1+Math.floor(Math.random()*3),
+      scale:.87+Math.random()*.26,
+      phase:Math.random()*Math.PI*2,
+    };
+  }
+
+  drawFrozenEnemyCrystal(enemy){
+    const frost=this.frostGraphics,p=enemy.russianCrystalPattern;
+    if(!frost||!enemy.sprite?.active)return;
+    if(!p){this.assignRussianCrystalPattern(enemy);}
+    const c=enemy.russianCrystalPattern;
+    const cx=enemy.sprite.x,cy=enemy.sprite.y;
+    const radius=(this.enemyCombatRadius(enemy)+11)*c.scale;
+    const blink=.52+.34*(.5+.5*Math.sin(this.elapsed*.019+c.phase));
+    const thick=[3.3,2.4,1.45,2.0,2.65][c.family];
+    const branchCount=c.family===3?1:c.branches;
+    for(let arm=0;arm<6;arm++){
+      const a=c.angle+arm*Math.PI/3,dx=Math.cos(a),dy=Math.sin(a);
+      frost.lineStyle(thick+1.5,0x315b8d,blink*.85);
+      frost.lineBetween(cx,cy,cx+dx*radius,cy+dy*radius);
+      frost.lineStyle(thick,0xb6e5ff,blink);
+      frost.lineBetween(cx,cy,cx+dx*radius,cy+dy*radius);
+      for(let j=1;j<=branchCount;j++){
+        const d=radius*(.28+j*.17),len=radius*(.16+c.family*.013);
+        const bx=cx+dx*d,by=cy+dy*d;
+        for(const sign of [-1,1]){
+          const dir=a+Math.PI+sign*Math.PI/3;
+          frost.lineStyle(Math.max(1,thick*.67),0xe3faff,blink);
+          frost.lineBetween(bx,by,bx+Math.cos(dir)*len,by+Math.sin(dir)*len);
+        }
+      }
+    }
+    frost.fillStyle(0xf3fdff,blink).fillCircle(cx,cy,Math.max(2,thick));
+  }
+
   freezeRussianEnemy(enemy,durationMs) {
     // O estalo de gelo soa somente na primeira aplicação. Acertos
     // sucessivos renovam o congelamento sem produzir uma cascata de bipes.
     const firstFreeze=!!enemy&&enemy.type!==6&&
       (enemy.frozenUntil??-Infinity)<=this.elapsed;
     const applied=applyRussianFreeze(enemy,this.elapsed,durationMs);
+    if(applied&&firstFreeze)this.assignRussianCrystalPattern(enemy);
     if(applied&&firstFreeze)
       playSfx('ruSputnikFreeze',{throttle:180,volumeScale:0.33});
     return applied;
@@ -3202,12 +3204,13 @@ export class GameScene extends Phaser.Scene {
       this.specialBuild);
     const {radius,damage}=shatter;
     if(!enemy||enemy.type===6||enemy.frozenUntil<=this.elapsed||
-      !radius||!damage||enemy.russianShattered)return;
+      enemy.russianShattered)return;
     enemy.russianShattered=true;
     // Testes antigos extraem este método isoladamente; o áudio é opcional.
     if(typeof playSfx==='function')playSfx('ruFrozenShatter',{throttle:140,volumeScale:0.56});
     const x=enemy.sprite.x,y=enemy.sprite.y;
-    const victims=russianShatterTargets(enemy,this.enemies,this.elapsed,radius);
+    const victims=radius>0&&damage>0?
+      russianShatterTargets(enemy,this.enemies,this.elapsed,radius):[];
     // Estilhaçamento visual: pequenos cristais são lançados em todas as
     // direções. A área de dano continua independente da quantidade de efeitos
     // exibidos para que ondas cheias não prejudiquem o desempenho.
@@ -3760,11 +3763,15 @@ export class GameScene extends Phaser.Scene {
     const killed = enemy.hp <= 0;
     if (killed) {
       const frozenShatter=enemy.frozenUntil>this.elapsed;
-      this.showEnemyDeath(enemy);
-      playSfx(enemy.finalBoss?'boss':'explosion',{throttle:enemy.finalBoss?500:170,volumeScale:enemy.finalBoss?1:0.58});
+      // O gelo quebra em lugar da explosão convencional.
+      if(frozenShatter){
+        playSfx('ruFrozenShatter',{throttle:140,volumeScale:0.56});
+        this.shatterRussianEnemy(enemy);
+      }else{
+        this.showEnemyDeath(enemy);
+        playSfx(enemy.finalBoss?'boss':'explosion',{throttle:enemy.finalBoss?500:170,volumeScale:enemy.finalBoss?1:0.58});
+      }
       this.removeEnemy(index);
-      // Remover primeiro evita atingir o mesmo alvo duas vezes em reações.
-      if(frozenShatter)this.shatterRussianEnemy(enemy);
       if (enemy.finalBoss && this.mode==='wave11')this.finaleBossesKilled++;
       if (!this.supremeFinishing && (
         (this.mode === 'wave10' && enemy.finalBoss) ||
@@ -5140,6 +5147,7 @@ export class GameScene extends Phaser.Scene {
   freezeWithSputnikFx(enemy,freezeMs,stage=1){
     const firstContact=!isSputnikCrystalized(enemy,this.elapsed);
     crystallizeSputnikEnemy(enemy,this.elapsed,freezeMs);
+    if(firstContact)this.assignRussianCrystalPattern(enemy);
     if(firstContact){
       playSfx('ruSputnikFreeze',{throttle:130,volumeScale:0.45});
       if(stage>=3)playSfx('ruCrystalDeep',{throttle:430,volumeScale:0.52});
