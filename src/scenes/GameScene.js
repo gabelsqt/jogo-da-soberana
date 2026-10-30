@@ -175,6 +175,12 @@ export class GameScene extends Phaser.Scene {
 
   init(data = {}) {
     this.mode = MODES[data.mode] ? data.mode : 'wave0';
+    // Phaser reutiliza a mesma instância nas noites seguintes: estados do
+    // amanhecer anterior nunca podem bloquear a contagem da nova noite.
+    this.sunrisePlaying=false;
+    this.sunriseFinished=false;
+    this.sunriseStartedAt=null;
+    this.lastNightDebugHeartbeat=-Infinity;
     this.prologueType6Started=false;
     this.prologueType6Boss=null;
     // Teste de combate usa um snapshot recebido, sem publicar rascunhos.
@@ -1093,6 +1099,7 @@ export class GameScene extends Phaser.Scene {
 
   startWaveCountdown() {
     if(this.waveOpeningFinish)return;
+    this.recordNightDebug('opening:start');
     this.waveOpeningStartedAt=this.time.now;
     this.waveOpeningFinish=null;
     // A vinheta da Cubo News é exclusiva do primeiro plantão da introdução.
@@ -1118,6 +1125,7 @@ export class GameScene extends Phaser.Scene {
       if (combatStarted || !this.scene.isActive('GameScene') ||
           this.tutorialComplete || this.sunrisePlaying) return;
       combatStarted=true;
+      this.recordNightDebug('combat:start');
       // Encerrar o DOM e restaurar a câmera ANTES de liberar qualquer arma/spawn.
       this.cuboNewsHud?.cancelDawnIntro?.();
       this.waveOpeningFinish=null;
@@ -7911,6 +7919,15 @@ export class GameScene extends Phaser.Scene {
         this.finishDawnWithdrawal();
       return;
     }
+    if(this.countdownActive&&/^wave(?:[0-9]|10|11)$/.test(this.mode)&&
+       this.time.now-(this.lastNightDebugHeartbeat??-Infinity)>1000){
+      this.lastNightDebugHeartbeat=this.time.now;
+      this.recordNightDebug('opening:heartbeat',{
+        sinceOpeningMs:this.waveOpeningStartedAt===null?null:
+          Math.round(this.time.now-this.waveOpeningStartedAt),
+        hasOpeningCallback:typeof this.waveOpeningFinish==='function',
+      });
+    }
     if (this.countdownActive){
       // Failsafes independentes dos callbacks das animações DOM/Phaser.
       if(this.sunrisePlaying&&!this.sunriseFinished &&
@@ -7930,7 +7947,7 @@ export class GameScene extends Phaser.Scene {
     if (this.supremeTyping) return;
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += this.boss6IntroPaused?0:delta;
-    if((this.mode==='wave5'||this.mode==='wave0') &&
+    if(/^wave(?:[0-9]|10|11)$/.test(this.mode) &&
        this.time.now-(this.lastNightDebugHeartbeat??-Infinity)>1000){
       this.lastNightDebugHeartbeat=this.time.now;
       this.recordNightDebug('heartbeat',{frameDeltaMs:Math.round(delta)});
