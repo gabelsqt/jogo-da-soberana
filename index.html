@@ -263,20 +263,27 @@
       }
       #cubo-time-fraction {
         display: inline-block;
+        font-family: ui-monospace, 'Courier New', monospace;
         font-size: 0.38em;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        line-height: 1;
         vertical-align: 0.08em;
-        min-width: 1.8em;
-        margin-left: 0.16em;
+        width: 2.75em;
+        min-width: 2.75em;
+        margin-left: 0.38em;
+        white-space: nowrap;
         text-align: left;
         font-variant-numeric: tabular-nums;
+        font-feature-settings: 'tnum' 1;
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0);
         transform-origin: left bottom;
         transition: opacity 220ms ease-out, transform 220ms ease-out;
       }
       #cubo-time-fraction.is-entering {
         opacity: 0;
-        transform: translateY(4px) scale(0.92);
+        transform: translateY(4px);
       }
       @media (prefers-reduced-motion: reduce) {
         #cubo-time-fraction { transition: none; }
