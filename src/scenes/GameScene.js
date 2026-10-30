@@ -7349,8 +7349,40 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  // Diagnóstico discreto de travamentos: preserva os últimos eventos entre reloads.
+  // Console: soberaniaDebug() ou soberaniaDebug('copy').
+  recordNightDebug(event, details={}) {
+    if(typeof window==='undefined')return;
+    try{
+      const key='soberania-night-debug-v1';
+      const report=JSON.parse(localStorage.getItem(key)||'{"events":[]}');
+      const events=Array.isArray(report.events)?report.events:[];
+      const sample={
+        at:new Date().toISOString(),event,details,
+        mode:this.mode,elapsedMs:Math.round(this.elapsed??0),
+        remainingMs:Math.max(0,Math.round((this.waveDurationMs??0)-(this.elapsed??0))),
+        enemies:this.enemies?.length??0,enemyShots:this.enemyBullets?.length??0,
+        playerShots:this.projectiles?.length??0,
+        portals:this.activeSpawnPortals?.size??0,
+        scheduled:this.waveEvents?.length??0,spawned:this.eventsSpawned??0,
+        sunrisePlaying:!!this.sunrisePlaying,countdownActive:!!this.countdownActive,
+        tutorialComplete:!!this.tutorialComplete,
+      };
+      events.push(sample);
+      const payload={version:1,events:events.slice(-90)};
+      localStorage.setItem(key,JSON.stringify(payload));
+      window.soberaniaDebug=(action)=>{
+        const data=localStorage.getItem(key)||'{}';
+        if(action==='copy'){navigator.clipboard?.writeText(data);return data;}
+        const parsed=JSON.parse(data);console.table(parsed.events||[]);
+        return parsed;
+      };
+    }catch(err){console.warn('[Soberania diagnóstico]',err);}
+  }
+
   beginDawnWithdrawal(){
     if(this.sunrisePlaying||this.tutorialComplete)return;
+    this.recordNightDebug('sunrise:start');
     this.sunrisePlaying=true;
     this.sunriseStartedAt=this.time.now;
     this.sunriseFinished=false;
@@ -7384,6 +7416,7 @@ export class GameScene extends Phaser.Scene {
   finishDawnWithdrawal(){
     if(!this.sunrisePlaying||this.sunriseFinished||this.tutorialComplete||
       !this.scene.isActive('GameScene'))return;
+    this.recordNightDebug('sunrise:finish');
     this.sunriseFinished=true;
     this.sunriseLabel?.destroy();
     this.sunriseLabel=null;
@@ -7399,6 +7432,7 @@ export class GameScene extends Phaser.Scene {
     appendWaveResult(typeof localStorage==='undefined'?null:localStorage,report);
   }
   showWaveComplete(outcome = 'cleared') {
+    this.recordNightDebug('wave:complete',{outcome});
     if (this.tutorialComplete) return;
     if(this.unifiedLab||this.v1Playtest){
       if(this.waveMakerTest)this.saveWaveMakerReport(outcome);
@@ -7460,6 +7494,7 @@ export class GameScene extends Phaser.Scene {
       }
       // A mesa só aparece depois de o resultado da noite ser legível.
       this.time.delayedCall(1700, () => {
+        this.recordNightDebug('wave:advance');
         title.destroy();
         banner.destroy();
         this.advanceAfterWave();
@@ -7559,6 +7594,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   advanceAfterWave() {
+    this.recordNightDebug('scene:advance');
     this.pandaClear(true);
     if(this.mode==='wave10') {
       this.scene.start('GameScene',{
@@ -7786,6 +7822,11 @@ export class GameScene extends Phaser.Scene {
     if (this.supremeTyping) return;
     const dt = Math.min(delta / 1000, 0.05);
     this.elapsed += this.boss6IntroPaused?0:delta;
+    if((this.mode==='wave5'||this.mode==='wave0') &&
+       this.time.now-(this.lastNightDebugHeartbeat??-Infinity)>1000){
+      this.lastNightDebugHeartbeat=this.time.now;
+      this.recordNightDebug('heartbeat',{frameDeltaMs:Math.round(delta)});
+    }
     // Não aplicar o limite do chefão às batalhas contínuas nas cidades.
     if((this.mode==='wave10'||this.mode==='wave11')&&!this.voyageActive)
       this.elapsed=Math.min(this.elapsed,this.waveDurationMs);
@@ -7821,6 +7862,7 @@ export class GameScene extends Phaser.Scene {
         !this.voyageActive && this.elapsed >= this.waveDurationMs) {
       this.elapsed=this.waveDurationMs;
       this.updateHud(); // Exibir 00.00 antes da retirada dos invasores.
+      this.recordNightDebug('clock:zero');
       this.beginDawnWithdrawal();
       return;
     }
