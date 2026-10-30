@@ -6014,7 +6014,7 @@ export class GameScene extends Phaser.Scene {
       {duration:5500,speed:65,reach:250,jump:220,hits:10,limit:3,interval:600,damage:2,radius:40,extra:5},
     ];
     const now=this.time.now;
-    const nearest=(x,y,reach)=>this.enemies.filter(e=>e.sprite?.active&&e.type!==6&&
+    const nearest=(x,y,reach)=>this.enemies.filter(e=>e.sprite?.active&&
       Math.hypot(e.sprite.x-x,e.sprite.y-y)<=reach).sort((a,b)=>
       Math.hypot(a.sprite.x-x,a.sprite.y-y)-Math.hypot(b.sprite.x-x,b.sprite.y-y))[0];
     for(let i=this.arraialNuclei.length-1;i>=0;i--){
@@ -6022,7 +6022,7 @@ export class GameScene extends Phaser.Scene {
       const level=Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1));
       const cfg=presets[level];
       if(age<cfg.duration){
-        const candidate=this.enemies.filter(e=>e.sprite?.active&&e.type!==6)
+        const candidate=this.enemies.filter(e=>e.sprite?.active)
           .sort((a,b)=>Math.hypot(a.sprite.x-n.x,a.sprite.y-n.y)-
             Math.hypot(b.sprite.x-n.x,b.sprite.y-n.y))[0];
         if(candidate){
@@ -6455,7 +6455,7 @@ export class GameScene extends Phaser.Scene {
         if(bullet.pandaTarget){
           let target=this.enemies.find(e=>e.uid===bullet.pandaTarget&&e.sprite?.active);
           if(!target){
-            target=this.enemies.filter(e=>e.sprite?.active&&e.type!==6)
+            target=this.enemies.filter(e=>e.sprite?.active)
               .sort((a,b)=>Math.hypot(a.sprite.x-CANNON.x,a.sprite.y-CANNON.y)-
                 Math.hypot(b.sprite.x-CANNON.x,b.sprite.y-CANNON.y))[0];
             bullet.pandaTarget=target?.uid??null;
@@ -6497,12 +6497,9 @@ export class GameScene extends Phaser.Scene {
             bullet.sprite.x,bullet.sprite.y,n.x,n.y,
             Math.max(3,bullet.usRadius??0)))continue;
           const baseStage=arraialStage(n.bursts++);
-          const stage=this.modernMathEnabled&&this.specialBuild?.primary==='br'
-            ?{...baseStage,fireworks:this.labExtra?.brFireworks??1,
-              damage:this.labExtra?.brFireworkDamage??1}:baseStage;
           const currentLevel=Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1));
-          stage.fireworks=[1,2,3,5][currentLevel];
-          stage.damage=[1,1,2,2][currentLevel];
+          const stage={...baseStage,fireworks:[1,2,3,5][currentLevel],
+            damage:[1,1,2,2][currentLevel]};
           for(let spark=0;spark<stage.fireworks;spark++){
             const p=randomArraialBurst(n.x,n.y,Math.min(n.radius,65));
             this.arraialFirework(p.x,p.y,n.bursts+spark,true,stage,
