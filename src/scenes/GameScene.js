@@ -6002,10 +6002,10 @@ export class GameScene extends Phaser.Scene {
 
   updateArraial() {
     const presets=[
-      {duration:4000,speed:40,rate:5,peakRate:8,damage:1,burstRadius:20,maxCharge:30,visualMax:95,finalMin:70,finalMax:160,damageMin:2,damageMax:5},
-      {duration:4500,speed:55,rate:8,peakRate:12,damage:1,burstRadius:23,maxCharge:50,visualMax:145,finalMin:85,finalMax:210,damageMin:2,damageMax:7},
-      {duration:5000,speed:70,rate:12,peakRate:17,damage:2,burstRadius:26,maxCharge:75,visualMax:205,finalMin:100,finalMax:270,damageMin:3,damageMax:10},
-      {duration:5500,speed:85,rate:18,peakRate:24,damage:2,burstRadius:30,maxCharge:100,visualMax:265,finalMin:120,finalMax:330,damageMin:3,damageMax:14},
+      {duration:4000,speed:40,rate:5,peakRate:8,damage:1,burstRadius:20,maxCharge:30,visualMax:140,finalMin:70,finalMax:160,damageMin:2,damageMax:5},
+      {duration:4500,speed:55,rate:8,peakRate:12,damage:1,burstRadius:23,maxCharge:50,visualMax:210,finalMin:85,finalMax:210,damageMin:2,damageMax:7},
+      {duration:5000,speed:70,rate:12,peakRate:17,damage:2,burstRadius:26,maxCharge:75,visualMax:300,finalMin:100,finalMax:270,damageMin:3,damageMax:10},
+      {duration:5500,speed:85,rate:18,peakRate:24,damage:2,burstRadius:30,maxCharge:100,visualMax:400,finalMin:120,finalMax:330,damageMin:3,damageMax:14},
     ];
     const now=this.time.now,dt=Math.min(.05,this.game.loop.delta/1000);
     for(let i=this.arraialNuclei.length-1;i>=0;i--){
@@ -6041,7 +6041,7 @@ export class GameScene extends Phaser.Scene {
         // Fogos de artifício nascem na base do balão e se espalham ao redor.
         while(now-n.lastAutoAt>=interval&&n.lastAutoAt+interval<n.bornAt+cfg.duration){
           n.lastAutoAt+=interval;
-          const size=18+(cfg.visualMax-18)*Math.pow(q,.8);
+          const size=18+(cfg.visualMax-18)*Math.pow(q,1.35);
           const angle=Math.random()*Math.PI*2;
           const reach=size+18+Math.random()*Math.max(22,n.radius*.65);
           const fx=n.x+Math.cos(angle)*reach;
@@ -6166,7 +6166,7 @@ export class GameScene extends Phaser.Scene {
       // Phaser Graphics: silhueta fluida, painéis coloridos e calor progressivo.
       // Crescimento e colisão compartilham o mesmo raio real.
       const q=Math.min(1,n.charge/cfg.maxCharge);
-      const baseSize=18+(cfg.visualMax-18)*Math.pow(q,.8);
+      const baseSize=18+(cfg.visualMax-18)*Math.pow(q,1.35);
       // Últimos 240 ms: o envelope se contrai antes da detonação.
       const closing=Math.max(0,Math.min(1,(age-(cfg.duration-240))/240));
       const size=baseSize*(1-.38*closing*closing);
@@ -6567,9 +6567,9 @@ export class GameScene extends Phaser.Scene {
         for(const n of this.arraialNuclei){
           if(this.time.now-n.bornAt>=[4000,4500,5000,5500][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))])continue;
           const level=Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1));
-          const caps=[30,50,75,100],visual=[95,145,205,265];
+          const caps=[30,50,75,100],visual=[140,210,300,400];
           const q=Math.min(1,n.charge/caps[level]);
-          const hitRadius=18+(visual[level]-18)*Math.pow(q,.8)+Math.max(3,bullet.usRadius??0);
+          const hitRadius=18+(visual[level]-18)*Math.pow(q,1.35)+Math.max(3,bullet.usRadius??0);
           const dx=bullet.sprite.x-previousX,dy=bullet.sprite.y-previousY;
           const travel=dx*dx+dy*dy;
           const t=travel>0?Math.max(0,Math.min(1,
