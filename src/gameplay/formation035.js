@@ -15,11 +15,18 @@ export const STANDARD_INVADER_FLIGHT_FACTOR = 0.78;
 /** Cinemática da onda 0: 1 portal sozinho, depois pares simultâneos.
  * Cinco pontos reais distintos, sem encaixe nos três corredores antigos. */
 export const WAVE0_PORTAL_SEQUENCE = Object.freeze([
-  Object.freeze({at:800, portalX:480, count:6}),
-  Object.freeze({at:4600, portalX:235, count:6}),
-  Object.freeze({at:4600, portalX:725, count:6}),
-  Object.freeze({at:9600, portalX:125, count:6}),
-  Object.freeze({at:9600, portalX:835, count:6}),
+  // 45 segundos de tutorial: 25 + 40 + 55 inimigos, sem iniciar antes do cronômetro.
+  Object.freeze({at:800,portalX:480,count:9}),
+  Object.freeze({at:5200,portalX:240,count:8}),
+  Object.freeze({at:9000,portalX:720,count:8}),
+  Object.freeze({at:15500,portalX:220,count:10}),
+  Object.freeze({at:19000,portalX:740,count:10}),
+  Object.freeze({at:23000,portalX:480,count:10}),
+  Object.freeze({at:26500,portalX:160,count:10}),
+  Object.freeze({at:30500,portalX:800,count:11}),
+  Object.freeze({at:34000,portalX:480,count:12}),
+  Object.freeze({at:37000,portalX:240,count:11}),
+  Object.freeze({at:40500,portalX:720,count:11}),
 ]);
 
 
