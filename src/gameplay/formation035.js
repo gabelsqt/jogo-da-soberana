@@ -23,8 +23,8 @@ export const WAVE0_PORTAL_SEQUENCE = Object.freeze([
   Object.freeze({at:19000,portalX:740,count:10}),
   Object.freeze({at:23000,portalX:480,count:10}),
   Object.freeze({at:26500,portalX:160,count:10}),
-  Object.freeze({at:30500,portalX:800,count:11}),
-  Object.freeze({at:34000,portalX:480,count:12}),
+  Object.freeze({at:30500,portalX:800,count:16}),
+  Object.freeze({at:34000,portalX:480,count:17}),
   Object.freeze({at:37000,portalX:240,count:11}),
   Object.freeze({at:40500,portalX:720,count:11}),
 ]);
