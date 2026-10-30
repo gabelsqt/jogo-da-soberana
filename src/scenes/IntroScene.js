@@ -186,15 +186,20 @@ export class IntroScene extends Phaser.Scene {
     const zoom=this.keep(this.add.container(0,0,contents).setDepth(20));
     zoom.setPosition(W*.31,H*.29).setScale(.38);
     this.phase='zoom';
-    this.emailPages=this.splitEmailPages(slide.body);
+    // Cada e-mail é uma mensagem completa, sem cortes em telas separadas.
+    this.emailPages=[slide.body];
     this.emailPageIndex=0;
-    this.footnotePages=this.splitEmailPages(slide.footnote??'');
+    this.footnotePages=[slide.footnote??''];
     this.footnotePageIndex=0;
     this.tweens.add({targets:zoom,x:0,y:0,scale:1,
       duration:900,ease:'Sine.easeInOut',
       onComplete:()=>{
         if(this.finished||this.page!==index)return;
-        this.beginTyping(this.body,this.emailPages[0],'body');
+        this.body.setText(slide.body);
+        this.characterIndex=Array.from(slide.body).length;
+        this.refreshConvocationHighlight();
+        this.typeField='body';
+        this.completeSegment();
       },
     });
   }
@@ -231,7 +236,7 @@ export class IntroScene extends Phaser.Scene {
     });
     this.box(W/2,170,753,2,0x5c7c8f).setDepth(11);
     this.body=this.label(104,207,'',{
-      fontFamily:CUBO_FONT,fontSize:'28px',color:'#e4eff4',lineSpacing:10,
+      fontFamily:CUBO_FONT,fontSize:slide.promotion?'22px':'26px',color:'#e4eff4',lineSpacing:7,
       wordWrap:{width:750},
     });
     if(slide.promotion){
@@ -240,7 +245,7 @@ export class IntroScene extends Phaser.Scene {
         color:'#ff634d',stroke:'#542637',strokeThickness:3,
       }).setOrigin(0.5).setAlpha(0).setDepth(30);
       this.footnote=this.label(102,374,'',{
-        fontFamily:CUBO_FONT,fontSize:'23px',color:'#b6c6d1',lineSpacing:6,
+        fontFamily:CUBO_FONT,fontSize:'18px',color:'#b6c6d1',lineSpacing:4,
         wordWrap:{width:755},
       });
       this.statusLabel=this.label(104,472,'',{
@@ -369,7 +374,7 @@ export class IntroScene extends Phaser.Scene {
       return;
     }
     this.phase='hold';
-    if(slide.status)this.statusLabel.setText(slide.status);
+    if(slide.status&&this.statusLabel)this.statusLabel.setText(slide.status);
     this.holdTimer=this.time.delayedCall(
       introHoldForSlide(slide),()=>this.advance());
   }
@@ -395,7 +400,9 @@ export class IntroScene extends Phaser.Scene {
     this.segmentTimer?.remove();this.segmentTimer=null;
     const slide=this.slides[this.page];
     if(!slide?.footnote)return;
-    this.beginTyping(this.footnote,this.footnotePages[0],'footnote');
+    this.footnote.setText(slide.footnote);
+    this.typeField='footnote';
+    this.completeSegment();
   }
   advance(){
     if(this.finished)return;
