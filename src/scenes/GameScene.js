@@ -6002,10 +6002,10 @@ export class GameScene extends Phaser.Scene {
 
   updateArraial() {
     const presets=[
-      {duration:4000,speed:40,rate:5,peakRate:8,damage:1,burstRadius:20,maxCharge:30,visualMax:140,finalMin:70,finalMax:160,damageMin:2,damageMax:5},
-      {duration:4500,speed:55,rate:8,peakRate:12,damage:1,burstRadius:23,maxCharge:50,visualMax:210,finalMin:85,finalMax:210,damageMin:2,damageMax:7},
-      {duration:5000,speed:70,rate:12,peakRate:17,damage:2,burstRadius:26,maxCharge:75,visualMax:300,finalMin:100,finalMax:270,damageMin:3,damageMax:10},
-      {duration:5500,speed:85,rate:18,peakRate:24,damage:2,burstRadius:30,maxCharge:100,visualMax:400,finalMin:120,finalMax:330,damageMin:3,damageMax:14},
+      {duration:4000,speed:40,rate:5,peakRate:8,damage:1,burstRadius:20,maxCharge:90,visualMax:140,finalMin:70,finalMax:160,damageMin:2,damageMax:5},
+      {duration:4500,speed:55,rate:8,peakRate:12,damage:1,burstRadius:23,maxCharge:150,visualMax:210,finalMin:85,finalMax:210,damageMin:2,damageMax:7},
+      {duration:5000,speed:70,rate:12,peakRate:17,damage:2,burstRadius:26,maxCharge:225,visualMax:300,finalMin:100,finalMax:270,damageMin:3,damageMax:10},
+      {duration:5500,speed:85,rate:18,peakRate:24,damage:2,burstRadius:30,maxCharge:300,visualMax:400,finalMin:120,finalMax:330,damageMin:3,damageMax:14},
     ];
     const now=this.time.now,dt=Math.min(.05,this.game.loop.delta/1000);
     for(let i=this.arraialNuclei.length-1;i>=0;i--){
@@ -6041,7 +6041,7 @@ export class GameScene extends Phaser.Scene {
         // Fogos de artifício nascem na base do balão e se espalham ao redor.
         while(now-n.lastAutoAt>=interval&&n.lastAutoAt+interval<n.bornAt+cfg.duration){
           n.lastAutoAt+=interval;
-          const size=18+(cfg.visualMax-18)*Math.pow(q,1.35);
+          const size=18+(cfg.visualMax-18)*Math.pow(q,1.7);
           const angle=Math.random()*Math.PI*2;
           const reach=size+18+Math.random()*Math.max(22,n.radius*.65);
           const fx=n.x+Math.cos(angle)*reach;
@@ -6166,7 +6166,7 @@ export class GameScene extends Phaser.Scene {
       // Phaser Graphics: silhueta fluida, painéis coloridos e calor progressivo.
       // Crescimento e colisão compartilham o mesmo raio real.
       const q=Math.min(1,n.charge/cfg.maxCharge);
-      const baseSize=18+(cfg.visualMax-18)*Math.pow(q,1.35);
+      const baseSize=18+(cfg.visualMax-18)*Math.pow(q,1.7);
       // Últimos 240 ms: o envelope se contrai antes da detonação.
       const closing=Math.max(0,Math.min(1,(age-(cfg.duration-240))/240));
       const size=baseSize*(1-.38*closing*closing);
@@ -6175,21 +6175,21 @@ export class GameScene extends Phaser.Scene {
       const rx=size*.83,ry=size;
       g.fillStyle(0xff8e36,.04+q*.12);
       g.fillEllipse(x,y,rx*2+22*q,ry*2+22*q);
-      // Painéis do balão conservam a identidade junina até serem consumidos.
-      g.fillStyle(0xdd6251,1);g.fillEllipse(x,y,rx*2,ry*2);
-      g.fillStyle(0xf6b94f,Math.max(.12,1-q*.8));
-      g.fillEllipse(x-rx*.38,y,rx*.55,ry*1.8);
-      g.fillStyle(0x57b9a7,Math.max(.08,.95-q*.83));
-      g.fillEllipse(x+rx*.38,y,rx*.55,ry*1.8);
-      g.fillStyle(0x769cdb,Math.max(0,.8-q*1.05));
-      g.fillEllipse(x,y,rx*.32,ry*1.9);
-      // A brasa ocupa o interior, sem mascarar instantaneamente as cores.
-      if(q>.15){
-        g.fillStyle(0xf36c31,(q-.15)*.78);
-        g.fillEllipse(x,y,rx*1.78,ry*1.85);
-        g.fillStyle(0xffbc51,Math.max(0,q-.45)*.42);
-        g.fillEllipse(x,y,rx*1.25,ry*1.5);
-      }
+      // Núcleo interno fica atrás do tecido colorido, sem cobri-lo.
+      g.fillStyle(0x9b3831,.96);g.fillEllipse(x,y,rx*2,ry*2);
+      const coreRadius=size*(.08+.20*q);
+      g.fillStyle(0xf47b30,.22+.35*q);g.fillCircle(x,y,coreRadius*1.55);
+      g.fillStyle(0xffb341,.35+.55*q);g.fillCircle(x,y,coreRadius);
+      g.fillStyle(0xffe78c,.4+.5*q);g.fillCircle(x,y,coreRadius*.5);
+      // Painéis externos permanecem vivos e opacos em toda a carga.
+      g.fillStyle(0xdd6251,.96);g.fillEllipse(x-rx*.65,y,rx*.7,ry*1.65);
+      g.fillStyle(0xf6b94f,.94);g.fillEllipse(x-rx*.34,y,rx*.56,ry*1.85);
+      g.fillStyle(0x57b9a7,.94);g.fillEllipse(x+rx*.38,y,rx*.58,ry*1.82);
+      g.fillStyle(0x769cdb,.9);g.fillEllipse(x+rx*.7,y,rx*.42,ry*1.48);
+      // Janela translúcida central deixa a brasa interna visível.
+      g.fillStyle(0xb04c58,.60);g.fillEllipse(x,y,rx*.53,ry*1.54);
+      g.fillStyle(0xffb14e,.13+.35*q);
+      g.fillEllipse(x,y,coreRadius*1.65,coreRadius*1.9);
       g.lineStyle(Math.max(2,Math.min(5,size*.025)),0xffdd83,.65+.3*q);
       g.strokeEllipse(x,y,rx*2,ry*2);
       // Rachaduras são linhas incandescentes que crescem com a carga.
@@ -6208,7 +6208,7 @@ export class GameScene extends Phaser.Scene {
       // Labaredas Phaser com volumes arredondados, sem sprites de pixel art.
       // Limitadas a 12 para manter o custo de desenho previsível no celular.
       if(q>.1){
-        const count=Math.min(12,Math.ceil(q*12));
+        const count=Math.min(8,Math.ceil(q*8));
         for(let j=0;j<count;j++){
           const a=j*Math.PI*2/count;
           const shift=Math.sin(age*.012+j*2.3)*size*.035;
@@ -6567,9 +6567,9 @@ export class GameScene extends Phaser.Scene {
         for(const n of this.arraialNuclei){
           if(this.time.now-n.bornAt>=[4000,4500,5000,5500][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))])continue;
           const level=Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1));
-          const caps=[30,50,75,100],visual=[140,210,300,400];
+          const caps=[90,150,225,300],visual=[140,210,300,400];
           const q=Math.min(1,n.charge/caps[level]);
-          const hitRadius=18+(visual[level]-18)*Math.pow(q,1.35)+Math.max(3,bullet.usRadius??0);
+          const hitRadius=18+(visual[level]-18)*Math.pow(q,1.7)+Math.max(3,bullet.usRadius??0);
           const dx=bullet.sprite.x-previousX,dy=bullet.sprite.y-previousY;
           const travel=dx*dx+dy*dy;
           const t=travel>0?Math.max(0,Math.min(1,
@@ -6583,7 +6583,7 @@ export class GameScene extends Phaser.Scene {
           // Cada tiro também aciona um rojão de um dos cestos inferiores.
           // O dano é calculado separadamente do orçamento visual mobile.
           const newQ=Math.min(1,n.charge/caps[level]);
-          const bodySize=18+(visual[level]-18)*Math.pow(newQ,.8);
+          const bodySize=18+(visual[level]-18)*Math.pow(newQ,1.7);
           const shotAngle=Math.random()*Math.PI*2;
           const shotRange=bodySize+20+Math.random()*Math.max(30,n.radius*.6);
           const burstX=n.x+Math.cos(shotAngle)*shotRange;
