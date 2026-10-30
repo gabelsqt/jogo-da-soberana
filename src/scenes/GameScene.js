@@ -5767,6 +5767,9 @@ export class GameScene extends Phaser.Scene {
       (brMix(0xf5,0xd0,brBlend)<<8)|
       brMix(0xaa,0x52,brBlend):0;
     if(brazilBolt)style.color=brColor;
+    const russianPuff=!special&&((this.modernMathEnabled&&this.v1LabPrincipal==='ru')||
+      (this.isV1Campaign&&this.combat.transformed==='ru'));
+    const russianP=Math.max(1,Math.min(4,this.v1LabAllocation?.ru?.P??1));
     const julyShot=!special&&patriotic;
     // Identidade coreana: pulso laser visual em cada tiro físico, sem mudar física.
     const koreanLaserBolt=!special&&((this.modernMathEnabled&&this.v1LabPrincipal==='jp')||(this.isV1Campaign&&this.combat.koreaContinuous));
@@ -5791,6 +5794,8 @@ export class GameScene extends Phaser.Scene {
       : julyShot
         ? this.add.circle(x,y,9,0xf5f8ff)
           .setStrokeStyle(3,0x427ee3,0.96).setDepth(36)
+      : russianPuff
+        ? this.add.circle(x,y,Math.max(3,3+russianP*.65),0xd8f6ff,.66).setDepth(35)
       : vfx?.cryogenic
         ? this.add.circle(x, y, style.width * 0.6, style.color, 0.30)
           .setStrokeStyle(1,0xf0ffff,0.34).setDepth(35)
@@ -5810,8 +5815,8 @@ export class GameScene extends Phaser.Scene {
       (brazilBolt?brBaseSpeed*(1+1.1*brBlend):1);
     // Uma única Graphics por bala, redesenhada enquanto ela se move.
     // Sem gerar partículas novas a cada frame (essencial com 3+ tiros).
-    const trail = visible && (vfx||brazilBolt) && !koreanLaserBolt &&
-      (brazilBolt || vfx?.heavy || vfx?.multiple || koreanLaserPulse || julyShot || usRocket)
+    const trail = visible && (vfx||brazilBolt||russianPuff) && !koreanLaserBolt &&
+      (russianPuff || brazilBolt || vfx?.heavy || vfx?.multiple || koreanLaserPulse || julyShot || usRocket)
       ? this.add.graphics().setDepth(34) : null;
     const bullet = {
       sprite: dot,
@@ -5821,6 +5826,7 @@ export class GameScene extends Phaser.Scene {
       vfx,
       centerGlow,
       koreanLaserPulse,koreanLaserBolt,brazilBolt,brazilFast,brColor,brBlend,
+      russianPuff,russianP,
       koreanRicochet:false,
       koreanBouncesLeft:!special&&this.modernMathEnabled?(this.labExtra?.jpBounces??0):0,
       koreanBounceRange:this.labExtra?.jpBounceRange??180,
@@ -5897,6 +5903,30 @@ export class GameScene extends Phaser.Scene {
       gfx.lineBetween(x-dx*29,y-dy*29,x,y);
       gfx.lineStyle(2,0xffffff,0.98);
       gfx.lineBetween(x-dx*23,y-dy*23,x,y);
+    }
+    if(bullet.russianPuff){
+      // Sopro pontual: cada projétil mantém uma nuvem compacta em camadas.
+      // Desenho determinístico na Graphics reutilizada, sem partículas extras.
+      const level=bullet.russianP||1;
+      const sideX=-dy,sideY=dx;
+      const time=bullet.distanceTravelled*.017;
+      const blobs=4+level*2;
+      for(let i=blobs-1;i>=0;i--){
+        const t=i/Math.max(1,blobs-1);
+        const back=5+i*(3.3+level*.55);
+        const sway=Math.sin(time+i*1.83)*(1.7+level*.65)*t;
+        const cx=x-dx*back+sideX*sway,cy=y-dy*back+sideY*sway;
+        const radius=(3.8+level*.8)*(1+.48*t);
+        gfx.fillStyle(i%3===0?0xd6f7ff:i%2?0x86d7f5:0xafdfff,
+          (.42-.22*t)*(1+.11*Math.sin(time*1.4+i)));
+        gfx.fillCircle(cx,cy,radius);
+        if(i%3===0){
+          gfx.fillStyle(0xf2fdff,.48*(1-t*.7));
+          gfx.fillCircle(cx+sideX*radius*.2,cy+sideY*radius*.2,radius*.35);
+        }
+      }
+      gfx.fillStyle(0xe8fcff,.66).fillCircle(x,y,3+level*.55);
+      return;
     }
     if (bullet.vfx?.cryogenic) {
       // 5 volutas por projétil; nenhuma partícula nova por frame.
