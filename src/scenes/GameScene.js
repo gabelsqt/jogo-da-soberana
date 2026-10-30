@@ -7713,7 +7713,9 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     if (!this.unifiedLab && this.mode==='wave0' && !this.v1Playtest) {
-      this.playFirstNightCinematic();
+      // A cutscene foi removida: a continuação da Onda 0 é jogável.
+      // Fallback caso a conclusão seja acionada antes da transição normal.
+      this.scene.start('PrologueSurvivalScene',{campaign:this.campaign});
       return;
     }
     if (!this.unifiedLab && /^wave[0-9]$/.test(this.mode)) {
