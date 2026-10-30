@@ -5264,12 +5264,6 @@ export class GameScene extends Phaser.Scene {
         const radius=radii[level],damage=level>=2?2:1;
         this.sputnikFreezeArea(sat,radius,damage);
         this.drawV1SpecialPulse(sat.x,sat.y,radius,0x83dffc);
-        // Pequenos cristais distribuídos pelo anel, apenas como efeito visual.
-        for(let k=0;k<(this.sys.game.device.input.touch?3:6);k++){
-          const a=k*Math.PI*2/(this.sys.game.device.input.touch?3:6)+this.elapsed*.001;
-          this.drawRussianIceCrystal(sat.x+Math.cos(a)*radius,
-            sat.y+Math.sin(a)*radius);
-        }
         playSfx('ruSputnikCollapse',{throttle:210,volumeScale:0.48});
         sat.nextPulseAt+=intervals[level];
         if(sat.nextPulseAt<=this.elapsed)sat.nextPulseAt=this.elapsed+intervals[level];
