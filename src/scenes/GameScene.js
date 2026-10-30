@@ -5911,7 +5911,7 @@ export class GameScene extends Phaser.Scene {
     const graphics = this.add.graphics().setDepth(39);
     this.arraialNuclei.push({
       x,y,graphics,bornAt:this.time.now,bursts:0,lastDrawAt:-Infinity,
-      lastAutoAt:this.time.now,groupDestination:null,charge:0,
+      lastAutoAt:this.time.now,groupDestination:null,charge:0,hitFlashes:[],
       // Upgrades pares brasileiros ampliam a região, não a força de cada rojão.
       radius:[90,110,135,160][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))],
     });
@@ -6002,10 +6002,10 @@ export class GameScene extends Phaser.Scene {
 
   updateArraial() {
     const presets=[
-      {duration:4000,speed:40,rate:5,peakRate:8,damage:1,burstRadius:20,maxCharge:12,visualMax:38,finalMin:70,finalMax:160,damageMin:2,damageMax:5},
-      {duration:4500,speed:55,rate:8,peakRate:12,damage:1,burstRadius:23,maxCharge:20,visualMax:48,finalMin:85,finalMax:210,damageMin:2,damageMax:7},
-      {duration:5000,speed:70,rate:12,peakRate:17,damage:2,burstRadius:26,maxCharge:30,visualMax:60,finalMin:100,finalMax:270,damageMin:3,damageMax:10},
-      {duration:5500,speed:85,rate:18,peakRate:24,damage:2,burstRadius:30,maxCharge:40,visualMax:75,finalMin:120,finalMax:330,damageMin:3,damageMax:14},
+      {duration:4000,speed:40,rate:5,peakRate:8,damage:1,burstRadius:20,maxCharge:12,visualMax:95,finalMin:70,finalMax:160,damageMin:2,damageMax:5},
+      {duration:4500,speed:55,rate:8,peakRate:12,damage:1,burstRadius:23,maxCharge:20,visualMax:145,finalMin:85,finalMax:210,damageMin:2,damageMax:7},
+      {duration:5000,speed:70,rate:12,peakRate:17,damage:2,burstRadius:26,maxCharge:30,visualMax:205,finalMin:100,finalMax:270,damageMin:3,damageMax:10},
+      {duration:5500,speed:85,rate:18,peakRate:24,damage:2,burstRadius:30,maxCharge:40,visualMax:265,finalMin:120,finalMax:330,damageMin:3,damageMax:14},
     ];
     const now=this.time.now,dt=Math.min(.05,this.game.loop.delta/1000);
     for(let i=this.arraialNuclei.length-1;i>=0;i--){
@@ -6151,79 +6151,75 @@ export class GameScene extends Phaser.Scene {
       g.strokeCircle(n.x,n.y,n.radius);
       g.fillStyle(0x42a871,0.034*pulse);
       g.fillCircle(n.x,n.y,n.radius);
-      // Pixel art procedural: tecido junino, brasa interna e rachaduras luminosas.
-      // Quadrados inteiros substituem as antigas chamas triangulares.
+      // Phaser Graphics: silhueta fluida, painéis coloridos e calor progressivo.
+      // Crescimento e colisão compartilham o mesmo raio real.
       const q=Math.min(1,n.charge/cfg.maxCharge);
       const size=18+(cfg.visualMax-18)*Math.pow(q,.8);
-      const pixel=Math.max(2,Math.round(size/22));
-      const x0=Math.round(n.x),y0=Math.round(n.y);
-      const heat=0.45+0.55*Math.sin(age*.012);
-      const drawPixel=(px,py,color,alpha=1,scale=1)=>{
-        g.fillStyle(color,alpha);
-        g.fillRect(Math.round(px/pixel)*pixel,Math.round(py/pixel)*pixel,
-          Math.max(pixel,Math.round(pixel*scale)),Math.max(pixel,Math.round(pixel*scale)));
-      };
-      // Halo discreto e zona de tiro, sem encobrir inimigos.
-      g.fillStyle(0xff943d,.035+q*.09).fillCircle(x0,y0,size+8);
-      const rx=size*.8,ry=size;
-      const left=Math.floor(-rx/pixel),right=Math.ceil(rx/pixel);
-      const top=Math.floor(-ry/pixel),bottom=Math.ceil(ry/pixel);
-      const frame=Math.floor(age/105);
-      for(let py=top;py<=bottom;py++){
-        for(let px=left;px<=right;px++){
-          const u=px*pixel/rx,v=py*pixel/ry;
-          const d=u*u+v*v;
-          if(d>1)continue;
-          // Painéis alternados e cores de festa junina visíveis no início.
-          const band=Math.floor((Math.atan2(v,u)+Math.PI)*4/Math.PI);
-          const colors=[0xe55c53,0xf5b94e,0x5fb89a,0x648ac7,0xdf7866,0xf2cf67,0x75a88a,0xce6864];
-          const base=colors[((band%colors.length)+colors.length)%colors.length];
-          const seed=Math.abs(Math.sin(px*12.9898+py*78.233)*43758.5453)%1;
-          const edge=d>.78;
-          const charred=seed<q*.48 || (edge&&seed<q*.82);
-          drawPixel(x0+px*pixel,y0+py*pixel,
-            charred?0x422f32:base,1);
-          // A energia interna aparece como brasa irregular entre os painéis.
-          const seam=Math.abs(px)%6===0 || Math.abs(py)%9===0;
-          if(seam&&q>.13&&seed<q*.9)
-            drawPixel(x0+px*pixel,y0+py*pixel,
-              seed>.5?0xffb34d:0xf46f32,.45+q*.5);
-          // Buracos e rachaduras incandescentes aumentam gradualmente.
-          const crack=(((px*3+py*7)%17+17)%17<1||
-            ((px*5-py*2)%23+23)%23<1);
-          if(q>.27&&crack&&seed<q*.65&&d<.89)
-            drawPixel(x0+px*pixel,y0+py*pixel,
-              q>.65?0xffd36e:0xff983d,.6+q*.35);
-          if(q>.52&&seed<(q-.5)*.27&&d<.72)
-            drawPixel(x0+px*pixel,y0+py*pixel,0x291f2a,1,1.5);
+      const x=n.x,y=n.y;
+      const shimmer=.5+.5*Math.sin(age*.014);
+      const rx=size*.83,ry=size;
+      g.fillStyle(0xff8e36,.04+q*.12);
+      g.fillEllipse(x,y,rx*2+22*q,ry*2+22*q);
+      // Painéis do balão conservam a identidade junina até serem consumidos.
+      g.fillStyle(0xdd6251,1);g.fillEllipse(x,y,rx*2,ry*2);
+      g.fillStyle(0xf6b94f,Math.max(.12,1-q*.8));
+      g.fillEllipse(x-rx*.38,y,rx*.55,ry*1.8);
+      g.fillStyle(0x57b9a7,Math.max(.08,.95-q*.83));
+      g.fillEllipse(x+rx*.38,y,rx*.55,ry*1.8);
+      g.fillStyle(0x769cdb,Math.max(0,.8-q*1.05));
+      g.fillEllipse(x,y,rx*.32,ry*1.9);
+      // A brasa ocupa o interior, sem mascarar instantaneamente as cores.
+      if(q>.15){
+        g.fillStyle(0xf36c31,(q-.15)*.78);
+        g.fillEllipse(x,y,rx*1.78,ry*1.85);
+        g.fillStyle(0xffbc51,Math.max(0,q-.45)*.42);
+        g.fillEllipse(x,y,rx*1.25,ry*1.5);
+      }
+      g.lineStyle(Math.max(2,Math.min(5,size*.025)),0xffdd83,.65+.3*q);
+      g.strokeEllipse(x,y,rx*2,ry*2);
+      // Rachaduras são linhas incandescentes que crescem com a carga.
+      if(q>.25){
+        const cracks=Math.min(8,Math.ceil((q-.25)*11));
+        for(let j=0;j<cracks;j++){
+          const a=j*2.39996,px=x+Math.cos(a)*rx*.57,py=y+Math.sin(a)*ry*.65;
+          const delta=size*(.09+q*.12),s=Math.sin(a+age*.003);
+          g.lineStyle(Math.max(1.5,size*.016),j%2?0xffd276:0xff913b,.45+q*.5);
+          g.beginPath();g.moveTo(px-delta*.5,py-delta*.35);
+          g.lineTo(px+s*delta*.3,py);
+          g.lineTo(px+delta*.45,py+delta*.5);
+          g.strokePath();
         }
       }
-      // Fogo em camadas e blocos: as labaredas nascem das bordas e sobem.
-      // Animação determinística por quadro: sem criar sprites nem partículas.
-      const tongues=Math.floor(3+q*22);
-      for(let j=0;j<tongues;j++){
-        const angle=j*2.39996+Math.sin(j*6.17)*.16;
-        const side=Math.cos(angle),vertical=Math.sin(angle);
-        const phase=(frame+j*3)%7;
-        const bx=x0+side*rx*.88,by=y0+vertical*ry*.88;
-        const length=(2+q*8+phase*.45)*pixel;
-        const w=Math.max(pixel,Math.round((1+q*2)*pixel));
-        const shift=Math.sin(frame*.55+j*2.1)*pixel;
-        g.fillStyle(0xe65a2c,.42+q*.5);
-        g.fillRect(Math.round(bx-w),Math.round(by-length+shift),w*2,Math.round(length));
-        g.fillStyle(0xffad42,.55+q*.4);
-        g.fillRect(Math.round(bx-w*.5),Math.round(by-length*.65+shift),w,Math.round(length*.63));
-        if(q>.45){
-          g.fillStyle(0xffdf79,.35+q*.35);
-          g.fillRect(Math.round(bx),Math.round(by-length*.43+shift),pixel,Math.round(length*.24));
+      // Labaredas Phaser com volumes arredondados, sem sprites de pixel art.
+      // Limitadas a 12 para manter o custo de desenho previsível no celular.
+      if(q>.1){
+        const count=Math.min(12,Math.ceil(q*12));
+        for(let j=0;j<count;j++){
+          const a=j*Math.PI*2/count;
+          const shift=Math.sin(age*.012+j*2.3)*size*.035;
+          const bx=x+Math.cos(a)*rx*.78,by=y+Math.sin(a)*ry*.73;
+          const height=size*(.1+q*.2)*(1+.22*Math.sin(age*.017+j));
+          const width=Math.max(3,size*(.04+q*.035));
+          g.fillStyle(0xe85d30,.45+.3*q);g.fillEllipse(bx+shift,by-height*.3,width*2.3,height*1.5);
+          g.fillStyle(0xffa13b,.55+.35*q);g.fillEllipse(bx+shift,by-height*.36,width*1.45,height);
+          g.fillStyle(0xffdf7b,.35+.35*q);g.fillEllipse(bx,by-height*.35,width*.65,height*.55);
         }
       }
-      // Perto da carga máxima, o brilho pulsa sem mudar a hitbox real.
+      // Pequena explosão local para CADA acerto. Sem criar partículas persistentes.
+      n.hitFlashes=n.hitFlashes.filter(f=>this.time.now-f.at<180);
+      for(const flash of n.hitFlashes){
+        const t=(this.time.now-flash.at)/180;
+        const fx=x+flash.dx,fy=y+flash.dy;
+        g.fillStyle(0xff8d30,(1-t)*.65);g.fillCircle(fx,fy,5+size*.025+t*12);
+        g.fillStyle(0xffde77,(1-t)*.9);g.fillCircle(fx,fy,3+size*.014+t*5);
+        g.lineStyle(2,0xffe49a,(1-t)*.75);g.strokeCircle(fx,fy,5+t*14);
+      }
+      // Instabilidade visível no final, sem mudar a colisão efetiva.
       if(q>.82){
-        g.lineStyle(Math.max(2,pixel),0xffc463,(q-.82)*1.65*(.45+.55*heat));
-        g.strokeEllipse(x0,y0,rx*2+pixel*2,ry*2+pixel*2);
+        g.lineStyle(2+q*2,0xffd17a,(q-.82)*2.6*(.55+.45*shimmer));
+        g.strokeEllipse(x,y,rx*2+size*.035*shimmer,ry*2+size*.035*shimmer);
       }
-      drawPixel(x0,y0+size+pixel,0xb97a43,.9,2);
+      g.fillStyle(0xb98652,.9).fillRect(x-size*.06,y+ry,size*.12,Math.max(4,size*.07));
     }
   }
 
@@ -6538,7 +6534,7 @@ export class GameScene extends Phaser.Scene {
         for(const n of this.arraialNuclei){
           if(this.time.now-n.bornAt>=[4000,4500,5000,5500][Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1))])continue;
           const level=Math.max(0,Math.min(3,(this.specialBuild?.stages?.br??1)-1));
-          const caps=[12,20,30,40],visual=[38,48,60,75];
+          const caps=[12,20,30,40],visual=[95,145,205,265];
           const q=Math.min(1,n.charge/caps[level]);
           const hitRadius=18+(visual[level]-18)*Math.pow(q,.8)+Math.max(3,bullet.usRadius??0);
           const dx=bullet.sprite.x-previousX,dy=bullet.sprite.y-previousY;
@@ -6546,6 +6542,9 @@ export class GameScene extends Phaser.Scene {
           const t=travel>0?Math.max(0,Math.min(1,
             ((n.x-previousX)*dx+(n.y-previousY)*dy)/travel)):0;
           if(Math.hypot(previousX+dx*t-n.x,previousY+dy*t-n.y)>hitRadius)continue;
+          // Cada impacto acende um breve clarão no ponto atingido, mesmo no limite.
+          n.hitFlashes.push({dx:previousX+dx*t-n.x,dy:previousY+dy*t-n.y,at:this.time.now});
+          if(n.hitFlashes.length>20)n.hitFlashes.shift();
           // Uma unidade por projétil, independente de dano, velocidade e país.
           if(n.charge<caps[level])n.charge++;
           else {
