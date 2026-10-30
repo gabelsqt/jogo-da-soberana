@@ -265,9 +265,21 @@
         display: inline-block;
         font-size: 0.38em;
         vertical-align: 0.08em;
-        min-width: 1.55em;
+        min-width: 1.8em;
+        margin-left: 0.16em;
         text-align: left;
         font-variant-numeric: tabular-nums;
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        transform-origin: left bottom;
+        transition: opacity 220ms ease-out, transform 220ms ease-out;
+      }
+      #cubo-time-fraction.is-entering {
+        opacity: 0;
+        transform: translateY(4px) scale(0.92);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #cubo-time-fraction { transition: none; }
       }
       #cubo-time-reader {
         display: inline-block;
