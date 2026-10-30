@@ -7802,7 +7802,12 @@ export class GameScene extends Phaser.Scene {
         return;
       }
     }
-    if (/^wave[0-9]$/.test(this.mode) && this.elapsed >= WAVE_DURATION_MS) {
+    // O amanhecer começa somente quando o relógio real da noite chega a zero.
+    // Usar a duração configurada (Onda 0 = 45 s), não a constante antiga de 15 s.
+    if (/^wave[0-9]$/.test(this.mode) &&
+        !this.voyageActive && this.elapsed >= this.waveDurationMs) {
+      this.elapsed=this.waveDurationMs;
+      this.updateHud(); // Exibir 00.00 antes da retirada dos invasores.
       this.beginDawnWithdrawal();
       return;
     }
