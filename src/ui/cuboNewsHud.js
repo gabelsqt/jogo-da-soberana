@@ -45,7 +45,10 @@ export function createCuboNewsHud(scene){
   const nightName=mode==='wave0'?'ONDA 0':mode==='wave0.5'?'ONDA 0.5':
     /^wave[0-9]+$/.test(mode)?'NOITE '+mode.slice(4):'';
   if(nightLabel){nightLabel.textContent=nightName;nightLabel.hidden=!nightName;}
-  if(timerFraction)timerFraction.hidden=false;
+  if(timerFraction){
+    timerFraction.hidden=false;
+    timerFraction.classList.add('is-entering');
+  }
   const intro=broadcast.querySelector('#cubo-dawn-intro');
   const introNumber=broadcast.querySelector('#cubo-dawn-number');
   const introLabel=broadcast.querySelector('#cubo-dawn-label');
@@ -180,6 +183,10 @@ export function createCuboNewsHud(scene){
       if(timerFraction){
         timerFraction.hidden=inVoyage;
         if(timerFraction.textContent!==fraction)timerFraction.textContent=fraction;
+        // Anima somente a primeira aparição, nunca a cada centésimo.
+        if(!inVoyage&&timerFraction.classList.contains('is-entering')&&!introActive){
+          timerFraction.classList.remove('is-entering');
+        }
       }
       if(lastSecond!==value||lastCritical!==critical){
         timerReader.textContent=value;
