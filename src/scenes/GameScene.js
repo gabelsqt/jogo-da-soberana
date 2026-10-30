@@ -1010,7 +1010,7 @@ export class GameScene extends Phaser.Scene {
       this.time.delayedCall(event.at, () => {
         if (this.tutorialComplete || this.boss6Victory || this.boss6DoomFired) return;
         // Nos 15 segundos finais das ondas comuns não entram novos inimigos.
-        if(/^wave[0-9]$/.test(this.mode)&&this.elapsed>=15000)return;
+        if(/^wave[1-9]$/.test(this.mode)&&this.elapsed>=15000)return;
         this.eventsSpawned += 1;
         this.spawnWaveEvent(event);
       });
