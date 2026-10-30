@@ -4951,7 +4951,7 @@ export class GameScene extends Phaser.Scene {
     // Não desperdiça contêineres sem alvo. Ao terminar a onda, o estoque
     // restante desaparece em fogos puramente visuais, sem dano.
     if(ended&&d.phase==='collect'&&!targets().length&&
-      (this.waveComplete||this.waveEnding||this.remainingTime<=0)){
+      (this.elapsed>=this.waveDurationMs)){
       this.pandaClear(true);return;
     }
     if(ended&&!d.ammo.length){this.pandaClear();return;}
