@@ -6151,24 +6151,79 @@ export class GameScene extends Phaser.Scene {
       g.strokeCircle(n.x,n.y,n.radius);
       g.fillStyle(0x42a871,0.034*pulse);
       g.fillCircle(n.x,n.y,n.radius);
-      // Balão inflável: a geometria e a hitbox usam o mesmo raio.
+      // Pixel art procedural: tecido junino, brasa interna e rachaduras luminosas.
+      // Quadrados inteiros substituem as antigas chamas triangulares.
       const q=Math.min(1,n.charge/cfg.maxCharge);
       const size=18+(cfg.visualMax-18)*Math.pow(q,.8);
-      g.fillStyle(0xffb45b,.08+.15*q).fillCircle(n.x,n.y,size+7);
-      g.fillStyle(0xdb544b,1);g.fillEllipse(n.x,n.y,size*1.6,size*2);
-      g.lineStyle(2,0xffdb81,.9);g.strokeEllipse(n.x,n.y,size*1.6,size*2);
-      g.lineStyle(2,0xffeb98,.9).lineBetween(n.x,n.y-size,n.x,n.y+size);
-      g.fillStyle(0xffedb2,pulse).fillCircle(n.x,n.y,Math.max(3,size*.18));
-      g.lineStyle(1,0xeeb979,.9).lineBetween(n.x,n.y+size,n.x,n.y+size+9);
-      if(q>0){
-        const flames=Math.min(10,Math.ceil(q*10));
-        for(let flame=0;flame<flames;flame++){
-          const angle=flame*Math.PI*2/flames+age*.002;
-          const fx=n.x+Math.cos(angle)*size*.77,fy=n.y+Math.sin(angle)*size*.82;
-          g.fillStyle(flame%2?0xffbd51:0xff6b39,.55+.3*q);
-          g.fillTriangle(fx-4,fy+5,fx+4,fy+5,fx+Math.sin(angle)*7,fy-8-9*q);
+      const pixel=Math.max(2,Math.round(size/22));
+      const x0=Math.round(n.x),y0=Math.round(n.y);
+      const heat=0.45+0.55*Math.sin(age*.012);
+      const drawPixel=(px,py,color,alpha=1,scale=1)=>{
+        g.fillStyle(color,alpha);
+        g.fillRect(Math.round(px/pixel)*pixel,Math.round(py/pixel)*pixel,
+          Math.max(pixel,Math.round(pixel*scale)),Math.max(pixel,Math.round(pixel*scale)));
+      };
+      // Halo discreto e zona de tiro, sem encobrir inimigos.
+      g.fillStyle(0xff943d,.035+q*.09).fillCircle(x0,y0,size+8);
+      const rx=size*.8,ry=size;
+      const left=Math.floor(-rx/pixel),right=Math.ceil(rx/pixel);
+      const top=Math.floor(-ry/pixel),bottom=Math.ceil(ry/pixel);
+      const frame=Math.floor(age/105);
+      for(let py=top;py<=bottom;py++){
+        for(let px=left;px<=right;px++){
+          const u=px*pixel/rx,v=py*pixel/ry;
+          const d=u*u+v*v;
+          if(d>1)continue;
+          // Painéis alternados e cores de festa junina visíveis no início.
+          const band=Math.floor((Math.atan2(v,u)+Math.PI)*4/Math.PI);
+          const colors=[0xe55c53,0xf5b94e,0x5fb89a,0x648ac7,0xdf7866,0xf2cf67,0x75a88a,0xce6864];
+          const base=colors[((band%colors.length)+colors.length)%colors.length];
+          const seed=Math.abs(Math.sin(px*12.9898+py*78.233)*43758.5453)%1;
+          const edge=d>.78;
+          const charred=seed<q*.48 || (edge&&seed<q*.82);
+          drawPixel(x0+px*pixel,y0+py*pixel,
+            charred?0x422f32:base,1);
+          // A energia interna aparece como brasa irregular entre os painéis.
+          const seam=Math.abs(px)%6===0 || Math.abs(py)%9===0;
+          if(seam&&q>.13&&seed<q*.9)
+            drawPixel(x0+px*pixel,y0+py*pixel,
+              seed>.5?0xffb34d:0xf46f32,.45+q*.5);
+          // Buracos e rachaduras incandescentes aumentam gradualmente.
+          const crack=(((px*3+py*7)%17+17)%17<1||
+            ((px*5-py*2)%23+23)%23<1);
+          if(q>.27&&crack&&seed<q*.65&&d<.89)
+            drawPixel(x0+px*pixel,y0+py*pixel,
+              q>.65?0xffd36e:0xff983d,.6+q*.35);
+          if(q>.52&&seed<(q-.5)*.27&&d<.72)
+            drawPixel(x0+px*pixel,y0+py*pixel,0x291f2a,1,1.5);
         }
       }
+      // Fogo em camadas e blocos: as labaredas nascem das bordas e sobem.
+      // Animação determinística por quadro: sem criar sprites nem partículas.
+      const tongues=Math.floor(3+q*22);
+      for(let j=0;j<tongues;j++){
+        const angle=j*2.39996+Math.sin(j*6.17)*.16;
+        const side=Math.cos(angle),vertical=Math.sin(angle);
+        const phase=(frame+j*3)%7;
+        const bx=x0+side*rx*.88,by=y0+vertical*ry*.88;
+        const length=(2+q*8+phase*.45)*pixel;
+        const w=Math.max(pixel,Math.round((1+q*2)*pixel));
+        const shift=Math.sin(frame*.55+j*2.1)*pixel;
+        g.fillStyle(0xe65a2c,.42+q*.5);
+        g.fillRect(Math.round(bx-w),Math.round(by-length+shift),w*2,Math.round(length));
+        g.fillStyle(0xffad42,.55+q*.4);
+        g.fillRect(Math.round(bx-w*.5),Math.round(by-length*.65+shift),w,Math.round(length*.63));
+        if(q>.45){
+          g.fillStyle(0xffdf79,.35+q*.35);
+          g.fillRect(Math.round(bx),Math.round(by-length*.43+shift),pixel,Math.round(length*.24));
+        }
+      }
+      // Perto da carga máxima, o brilho pulsa sem mudar a hitbox real.
+      if(q>.82){
+        g.lineStyle(Math.max(2,pixel),0xffc463,(q-.82)*1.65*(.45+.55*heat));
+        g.strokeEllipse(x0,y0,rx*2+pixel*2,ry*2+pixel*2);
+      }
+      drawPixel(x0,y0+size+pixel,0xb97a43,.9,2);
     }
   }
 
