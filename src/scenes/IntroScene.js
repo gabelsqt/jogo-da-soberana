@@ -173,7 +173,7 @@ export class IntroScene extends Phaser.Scene {
       this.drawNews(slide);
       this.frameDevice(start,'tv');
       this.phase='hold';
-      this.holdTimer=this.time.delayedCall(INTRO_NEWS_HOLD_MS,()=>this.advance());
+      // Notícias permanecem na tela até o jogador clicar/tocar ou pressionar uma tecla.
       return;
     }
     if(this.music.key==='news')this.music.stop();
@@ -197,6 +197,7 @@ export class IntroScene extends Phaser.Scene {
         if(this.finished||this.page!==index)return;
         this.body.setText(slide.body);
         this.characterIndex=Array.from(slide.body).length;
+        this.createConvocationHighlight(slide);
         this.refreshConvocationHighlight();
         this.typeField='body';
         this.completeSegment();
@@ -352,6 +353,30 @@ export class IntroScene extends Phaser.Scene {
       this.completeSegment();
     }
   }
+  createConvocationHighlight(slide){
+    if(slide.id!=='convocation'||!slide.body.includes('MESÁRIO'))return;
+    // Usa as linhas efetivamente quebradas pelo Phaser para posicionar o
+    // destaque sobre a palavra no próprio e-mail (inclusive com zoom).
+    const lines=this.body.getWrappedText(slide.body);
+    const row=lines.findIndex(line=>line.includes('MESÁRIO'));
+    if(row<0)return;
+    const before=lines[row].split('MESÁRIO')[0];
+    const style=this.body.style;
+    const ctx=this.body.context;
+    ctx.save();
+    ctx.font=style.toFont();
+    const left=ctx.measureText(before).width;
+    ctx.restore();
+    const lineHeight=style.metrics.fontSize+style.strokeThickness+style.lineSpacing;
+    this.highlightWord=createWavyWord(this,{
+      word:'MESÁRIO',x:this.body.x+left,y:this.body.y+row*lineHeight,
+      fontFamily:CUBO_FONT,fontSize:26,color:'#68e69a',
+      stroke:'#155e3b',strokeThickness:1,
+      amplitude:1.25,depth:24,
+    });
+    this.highlightWord.glyphs.forEach(glyph=>this.body.parentContainer.add(glyph));
+    this.highlightWord.setRevealed(0);
+  }
   refreshConvocationHighlight(){
     if(!this.highlightWord)return;
     const start=this.slides[this.page].body.indexOf('MESÁRIO');
@@ -375,8 +400,7 @@ export class IntroScene extends Phaser.Scene {
     }
     this.phase='hold';
     if(slide.status&&this.statusLabel)this.statusLabel.setText(slide.status);
-    this.holdTimer=this.time.delayedCall(
-      introHoldForSlide(slide),()=>this.advance());
+    // Sem temporizador: o jogador controla o avanço de toda a introdução.
   }
   revealPromotion(){
     this.segmentTimer?.remove();this.segmentTimer=null;
