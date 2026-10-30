@@ -6002,10 +6002,10 @@ export class GameScene extends Phaser.Scene {
 
   updateArraial() {
     const presets=[
-      {duration:4000,speed:40,rate:5,peakRate:8,damage:1,burstRadius:20,maxCharge:90,visualMax:140,finalMin:70,finalMax:160,damageMin:2,damageMax:5},
-      {duration:4500,speed:55,rate:8,peakRate:12,damage:1,burstRadius:23,maxCharge:150,visualMax:210,finalMin:85,finalMax:210,damageMin:2,damageMax:7},
-      {duration:5000,speed:70,rate:12,peakRate:17,damage:2,burstRadius:26,maxCharge:225,visualMax:300,finalMin:100,finalMax:270,damageMin:3,damageMax:10},
-      {duration:5500,speed:85,rate:18,peakRate:24,damage:2,burstRadius:30,maxCharge:300,visualMax:400,finalMin:120,finalMax:330,damageMin:3,damageMax:14},
+      {duration:4000,speed:40,rate:5,peakRate:8,damage:1,burstRadius:20,maxCharge:90,visualMax:140,finalMin:70,finalMax:160,damageMin:2,damageMax:8},
+      {duration:4500,speed:55,rate:8,peakRate:12,damage:1,burstRadius:23,maxCharge:150,visualMax:210,finalMin:85,finalMax:210,damageMin:2,damageMax:16},
+      {duration:5000,speed:70,rate:12,peakRate:17,damage:2,burstRadius:26,maxCharge:225,visualMax:300,finalMin:100,finalMax:270,damageMin:3,damageMax:32},
+      {duration:5500,speed:85,rate:18,peakRate:24,damage:2,burstRadius:30,maxCharge:300,visualMax:400,finalMin:120,finalMax:330,damageMin:3,damageMax:64},
     ];
     const now=this.time.now,dt=Math.min(.05,this.game.loop.delta/1000);
     for(let i=this.arraialNuclei.length-1;i>=0;i--){
@@ -6062,7 +6062,8 @@ export class GameScene extends Phaser.Scene {
         // Mini big bang supera o tamanho do envelope antes do colapso.
         const finalRadius=Math.max(cfg.finalMin+(cfg.finalMax-cfg.finalMin)*q,
           balloonRadius+Math.max(12,balloonRadius*.08));
-        const finalDamage=cfg.damageMin+(cfg.damageMax-cfg.damageMin)*q;
+        // Carga máxima é uma recompensa de alto impacto; não altera os rojões menores.
+        const finalDamage=cfg.damageMin+(cfg.damageMax-cfg.damageMin)*Math.pow(q,2.5);
         this.arraialDamage(n.x,n.y,finalRadius,finalDamage,'#fff2aa');
         playSfx('brFireworkBurst',{throttle:0,volumeScale:0.86});
         // Frase pequena composta somente de pixels: sem objeto Text ou HUD.
