@@ -175,6 +175,8 @@ export class GameScene extends Phaser.Scene {
 
   init(data = {}) {
     this.mode = MODES[data.mode] ? data.mode : 'wave0';
+    this.prologueType6Started=false;
+    this.prologueType6Boss=null;
     // Teste de combate usa um snapshot recebido, sem publicar rascunhos.
     this.waveMakerTest = Boolean(data.waveMakerTest && data.labConfig && /^wave(?:[0-9]|10|11)$/.test(this.mode));
     this.waveMakerEvents = this.waveMakerTest && Array.isArray(data.waveMakerEvents)
@@ -7589,7 +7591,9 @@ export class GameScene extends Phaser.Scene {
       const beam=this.add.graphics().setDepth(74);
       beam.lineStyle(26,0xff425a,.35).lineBetween(W/2,155,CANNON.x,CANNON.y);
       beam.lineStyle(10,0xffe0cb,.95).lineBetween(W/2,155,CANNON.x,CANNON.y);
-      this.shield=0;this.cannonHealth=0;
+      // Evitar o game-over automático: esta destruição é narrativa.
+      this.shield=0;this.cannonHealth=1;
+      this.cannonFrozenUntil=Infinity;
       this.hexShieldGraphics?.clear();
       this.cannonDomeSprite?.setVisible(false);
       shatterShieldSprite(this,CANNON.x,CANNON.y+10,CANNON_DOME_RADIUS);
