@@ -364,7 +364,8 @@ export class IntroScene extends Phaser.Scene {
     const style=this.body.style;
     const ctx=this.body.context;
     ctx.save();
-    ctx.font=style.toFont();
+    // Phaser TextStyle não expõe toFont(); sincroniza o canvas com a fonte do Text.
+    style.syncFont(this.body.canvas,ctx);
     const left=ctx.measureText(before).width;
     ctx.restore();
     const lineHeight=style.metrics.fontSize+style.strokeThickness+this.body.lineSpacing;
