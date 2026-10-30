@@ -7371,6 +7371,23 @@ export class GameScene extends Phaser.Scene {
       events.push(sample);
       const payload={version:1,events:events.slice(-90)};
       localStorage.setItem(key,JSON.stringify(payload));
+      if(!window.__soberaniaDiagnosticHandlers){
+        window.__soberaniaDiagnosticHandlers=true;
+        const saveError=(kind,reason)=>{
+          try{
+            const stored=JSON.parse(localStorage.getItem(key)||'{"events":[]}');
+            stored.events=(stored.events||[]).concat([{
+              at:new Date().toISOString(),event:kind,details:{message:String(reason).slice(0,1600)},
+              mode:this.mode,elapsedMs:Math.round(this.elapsed??0),
+            }]).slice(-90);
+            localStorage.setItem(key,JSON.stringify(stored));
+          }catch(_err){}
+        };
+        window.addEventListener('error',e=>saveError('js:error',
+          (e.message||'')+' @ '+(e.filename||'')+':'+(e.lineno||'')));
+        window.addEventListener('unhandledrejection',e=>saveError('promise:rejection',
+          e.reason?.stack||e.reason||'unknown'));
+      }
       window.soberaniaDebug=(action)=>{
         const data=localStorage.getItem(key)||'{}';
         if(action==='copy'){navigator.clipboard?.writeText(data);return data;}
