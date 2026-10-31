@@ -7648,6 +7648,19 @@ export class GameScene extends Phaser.Scene {
       beam.lineStyle(32,0xff405b,.3).lineBetween(boss.x,sourceY,CANNON.x,CANNON.y);
       beam.lineStyle(14,0xff8e9e,.8).lineBetween(boss.x,sourceY,CANNON.x,CANNON.y);
       beam.lineStyle(5,0xfff0d8,.95).lineBetween(boss.x,sourceY,CANNON.x,CANNON.y);
+      // O laser atravessa tambem as proprias naves alienigenas.
+      for(let i=this.enemies.length-1;i>=0;i--){
+        const enemy=this.enemies[i];
+        const sprite=enemy.sprite;
+        if(!sprite?.active)continue;
+        const dx=CANNON.x-boss.x,dy=CANNON.y-sourceY;
+        const t=Math.max(0,Math.min(1,
+          ((sprite.x-boss.x)*dx+(sprite.y-sourceY)*dy)/(dx*dx+dy*dy)));
+        const gap=Math.hypot(sprite.x-(boss.x+t*dx),sprite.y-(sourceY+t*dy));
+        if(gap<45)this.impactInvader(i,1000000,0,'#ffffff',false);
+      }
+      // O controle so e interrompido no instante do impacto inevitavel.
+      this.countdownActive=true;
       this.shield=0;this.cannonHealth=1;
       this.cannonFrozenUntil=Infinity;
       this.hexShieldGraphics?.clear();
@@ -7659,12 +7672,11 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({targets:hit,scale:4,alpha:0,duration:360,
         onComplete:()=>hit.destroy()});
       this.time.delayedCall(540,()=>{if(beam.active)beam.destroy();});
-      // Sem segundo tiro: a fortaleza deixa o céu antes do enxame Tipo 1.
-      this.time.delayedCall(650,()=>{
-        if(!boss.active)return;
-        this.recordNightDebug('prologue:type6-retreat');
-        this.tweens.add({targets:boss,y:-115,duration:1050,ease:'Sine.In',
-          onComplete:()=>{if(boss.active)boss.destroy();}});
+      // Depois do disparo, seguir diretamente para o enxame sobrevivente.
+      this.time.delayedCall(950,()=>{
+        if(!this.scene.isActive('GameScene'))return;
+        this.recordNightDebug('prologue:swarm60');
+        this.scene.start('PrologueSurvivalScene',{campaign:this.campaign});
       });
     });
   }
@@ -7991,10 +8003,9 @@ export class GameScene extends Phaser.Scene {
         !this.voyageActive && !this.sunrisePlaying && !this.tutorialComplete &&
         this.elapsed >= this.waveDurationMs) {
       if(this.mode==='wave0'&&!this.v1Playtest&&!this.unifiedLab){
-        // A massa de 60 Tipo 1 entra em gameplay na sequência, não há amanhecer aqui.
-        this.recordNightDebug('prologue:swarm60');
-        this.scene.start('PrologueSurvivalScene',{campaign:this.campaign});
-        return;
+        // Onda 0 continua jogável até o disparo do Tipo 6.
+        this.elapsed=this.waveDurationMs;
+        if(!this.prologueType6Started)this.startPrologueType6Attack();
       }
       this.elapsed=this.waveDurationMs;
       this.updateHud(); // Exibir 00.00 antes da retirada dos invasores.
@@ -8002,9 +8013,7 @@ export class GameScene extends Phaser.Scene {
       this.beginDawnWithdrawal();
       return;
     }
-    if(this.mode==='wave0'&&!this.v1Playtest&&!this.unifiedLab&&
-       !this.prologueType6Started&&this.elapsed>=this.waveDurationMs-5000)
-      this.startPrologueType6Attack();
+    // O Tipo 6 surge no fim da contagem; nada de retirada ao amanhecer.
     const mobilePointer=this.mobileAimAngle===undefined?pointer:{
       x:CANNON.x+Math.cos(this.mobileAimAngle)*450,
       y:CANNON.y+Math.sin(this.mobileAimAngle)*450,
