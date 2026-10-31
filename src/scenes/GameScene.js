@@ -4607,7 +4607,8 @@ export class GameScene extends Phaser.Scene {
       }
       this.supremeFinishing=false;
       this.supremeCinematic=false;
-      // Insta-win: encerra a onda mesmo que ainda houvesse spawns pendentes.
+      // Supremo elimina a frota e dispensa reforcos ainda agendados.
+      this.eventsSpawned=this.waveEvents?.length??this.eventsSpawned;
       if(!this.tutorialComplete)this.showWaveComplete('cleared');
     });
     return true;
