@@ -1516,6 +1516,15 @@ Essas alturas são alvos para o **personagem desenhado**, não necessariamente d
 - **Linguagem visual:** pixel art JRPG 16-bit/início da era PS1 já aprovada para o elenco, cores vibrantes, pixels nítidos, contraste forte e acabamento consistente. Manter o mesmo rosto, cabelo, gorro, traje e acessórios em todas as variantes.
 - **Referências de imagens:** (1) retrato de Kátia refinado sem capa, gerado na conversa em 24/10/2026; (2) imagem de Kátia agachada em pose gopnik gerada logo depois. Essas são as referências visuais principais para reproduções futuras; não reinterpretar livremente o figurino.
 
+### Kátia — padronização cromática do uniforme e da ushanka (31/10/2026; APROVADO)
+
+- **Direção vinculante:** escurecer e uniformizar tanto a **ushanka** (gorro de pele com estrela) quanto a **jaqueta e calças** em roxo profundo quase preto. A touca e as roupas pertencem à mesma família cromática; não alternar entre chapéu claro, vermelho, rosa vivo ou uniforme de tonalidade muito diferente nas cenas e novos retratos.
+- **Paleta de produção sugerida:** tecido-base **#302038** (ameixa/roxo-escuro), sombra profunda **#1C1425**, luz controlada **#493052**. Ushanka: base **#291A32**, sombra **#1A1222**, reflexos **#45304D**; preservar textura pixelada de pele e a **estrela vermelha**. Tons poderão sofrer ajustes mínimos de iluminação, mantendo a aparência escura e consistente.
+- **Contrastes invariáveis:** gola de pele **clara e fria**, listras esportivas **brancas/cinza-claro** nas mangas e calças, condecorações e ombreiras **douradas**, estrela vermelha e botas escuras. As cores nacionais são acentos, não substitutos do roxo predominante.
+- **Silhueta e personagem:** manter todo o uniforme fechado, sem capa, com a musculatura visível pelo volume do tecido; rosto, trança/cabelo loiro, expressão severa e poses já aprovados permanecem idênticos à spritesheet de expressões fornecida pelo criador.
+- **Aplicação:** retrato **individual de corpo inteiro**, frontal ou em pose característica, pixel art JRPG 16-bit/PS1 com 4–5 cabeças de altura e pixels nítidos. **Não criar sprite de costas/laterais nem folhas de animação para esta solicitação**. Reaplicar a paleta nas futuras artes e na eventual integração das cutscenes, sem repintar automaticamente os PNGs antigos até aprovação visual da nova arte.
+
+
 
 ## Padrão canônico de spritesheets — 16 expressões e separação obrigatória (24/10/2026; APROVADO)
 
