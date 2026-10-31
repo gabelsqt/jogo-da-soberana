@@ -365,6 +365,21 @@ export function chooseV1Upgrade(state = {}, countryId) {
   return {choices:[...choices,countryId]};
 }
 export function v1SupremeFor(state) {
+  // Campanha moderna: Exodia só após principal, especial e oito melhorias
+  // nacionais completas (P1–P4 e S1–S4). Não conta níveis concedidos.
+  if(state?.armament){
+    const {principal,especial,upgrades=[]}=state.armament;
+    if(!principal||principal!==especial||upgrades.length!==8)return null;
+    if(upgrades.some(item=>item.country!==principal))return null;
+    const counts={P:new Set(),S:new Set()};
+    for(const item of upgrades){
+      if(!counts[item.track]||!Number.isInteger(item.stage))return null;
+      counts[item.track].add(item.stage);
+    }
+    const eligible=counts.P.size===4&&counts.S.size===4&&
+      [1,2,3,4].every(n=>counts.P.has(n)&&counts.S.has(n));
+    return eligible&&principal!==state.disabledSupremeCountry?principal:null;
+  }
   const levels = v1CountryLevels(state);
   const supreme=Object.keys(V1_UPGRADES).find(id=>levels[id]>=9)??null;
   // Zeca recupera até a transformação, mas não o Supremo do traidor.
