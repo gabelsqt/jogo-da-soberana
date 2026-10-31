@@ -52,7 +52,8 @@ export function normalizeCampaignState(state = {}) {
     : [];
   // A identidade e as atribuições P/S pertencem apenas às campanhas
   // iniciadas no novo boteco. Saves legados continuam com {choices}.
-  if(!state?.armament||typeof state.armament!=='object')return {choices};
+  const supremeUsed=state?.supremeUsed===true;
+  if(!state?.armament||typeof state.armament!=='object')return {choices,supremeUsed};
   const principal=COUNTRIES.includes(state.armament.principal)
     ?state.armament.principal:null;
   const especial=principal&&COUNTRIES.includes(state.armament.especial)
@@ -72,7 +73,7 @@ export function normalizeCampaignState(state = {}) {
   // condição do Supremo. Não aceitar níveis inventados no JSON da partida.
   const canonical=[...(principal?[principal]:[]),...(especial?[especial]:[]),
     ...upgrades.map(item=>item.country)].slice(0,10);
-  return {choices:canonical,armament:{principal,especial,upgrades}};
+  return {choices:canonical,supremeUsed,armament:{principal,especial,upgrades}};
 }
 
 export function armamentPhase(state={}){
@@ -111,9 +112,9 @@ export function chooseArmamentUpgrade(state={},country,track=null){
   const current=normalizeCampaignState(state);
   if(current.choices.length>=10)return null;
   const phase=armamentPhase(current);
-  if(phase==='principal')return {choices:[country],
+  if(phase==='principal')return {choices:[country],supremeUsed:current.supremeUsed,
     armament:{principal:country,especial:null,upgrades:[]}};
-  if(phase==='special')return {choices:[current.armament.principal,country],
+  if(phase==='special')return {choices:[current.armament.principal,country],supremeUsed:current.supremeUsed,
     armament:{...current.armament,especial:country,upgrades:[]}};
   if(track!=='P'&&track!=='S')return null;
   const allocation=armamentAllocation(current);
@@ -122,7 +123,7 @@ export function chooseArmamentUpgrade(state={},country,track=null){
   if(installed>=4||allocation[country][track]>=4)return null;
   const upgrades=[...current.armament.upgrades,{
     country,track,stage:allocation[country][track]+1}];
-  return normalizeCampaignState({choices:[...current.choices,country],
+  return normalizeCampaignState({choices:[...current.choices,country],supremeUsed:current.supremeUsed,
     armament:{...current.armament,upgrades}});
 }
 
