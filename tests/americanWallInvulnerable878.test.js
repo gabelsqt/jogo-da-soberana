@@ -59,5 +59,8 @@ test('a cena intercepta tiros e choques sem dano e só estilhaça ao receber fei
   assert.match(boss,/scene\.breakAmericanWallsWithType6Beam\?\.\([\s\S]*?'siegeLaser',7\)/);
   assert.match(boss,/scene\.breakAmericanWallsWithType6Beam\?\.\(x,y,CANNON\.x,CANNON\.y,'coreDoom',58\)/);
   assert.match(boss,/if\(!wallBroken\)scene\.damageCannon\(45\*dt\)/);
-  assert.match(upgrade,/invulnerável a tiros comuns/);
+  assert.match(upgrade,/120°/);
+  assert.match(upgrade,/tiros comuns/);
+  assert.match(upgrade,/rompido por feixes de cerco/);
 });
+

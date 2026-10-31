@@ -58,11 +58,15 @@ test('estrelas se movem com parallax, e a cidade seguinte só carrega após o po
 });
 
 test('HUD lateral agora é menor e digita aos poucos, usando a intro',()=>{
- assert.match(scene,/this\.add\.rectangle\(139,421,268,96/);
- assert.match(scene,/this\.banterPortrait=this\.add\.image\(39,421/);
- assert.match(scene,/wordWrap:\{width:194\}/);
+ assert.match(scene,/this\.banterBackground=this\.add\.rectangle\(/);
+ assert.match(scene,/this\.banterPortrait=this\.add\.image\(/);
+ const panel=scene.slice(scene.indexOf('  createBattleBanterPanel(){'),scene.indexOf('  queueBattleBanter('));
+ const width=Number(panel.match(/wordWrap:\{width:(\d+)\}/)?.[1]);
+ assert.ok(width>=160&&width<=200,'texto cabe no painel com margem para o retrato');
+ assert.doesNotMatch(panel,/setInteractive/,'comentários não capturam a mira');
  assert.match(scene,/createDialogueTypewriter\(this,\{/);
  assert.match(scene,/this\.banterWriter\.start\(this\.banterText,line\.text,\{delay:28\}\)/);
  assert.match(scene,/this\.banterWriter\?\.cancel\(\)/);
  assert.match(typewriter,/target\.setText\(chars\.slice\(0,index\)\.join\(''\)\)/);
 });
+

@@ -82,8 +82,8 @@ test('HUD de televisão IBM Plex Sans e zoom não criam GameObjects de interface
       headline:'CUBO NEWS PERGUNTA SOBRE FLAMENGO',
       subtitle:'Cristo continua de braços abertos.',
     });
-    assert.equal(timerReader.textContent,'22');
-    assert.equal(timer.getAttribute('aria-label'),'Tempo restante: 22 segundos');
+    assert.equal(timerReader.textContent,'21');
+    assert.equal(timer.getAttribute('aria-label'),'Tempo restante: 21.10 segundos');
     assert.equal(headline.textContent,'Cubo News pergunta sobre Flamengo');
     assert.equal(headline.title,'Cubo News pergunta sobre Flamengo');
     assert.equal(timer.style.color,'');
@@ -113,7 +113,7 @@ test('HUD de televisão IBM Plex Sans e zoom não criam GameObjects de interface
     assert.equal(timer.style.opacity,'1','relógio não pisca na chegada');
     assert.equal(timer.style.visibility,'visible');
     hud.update(26000,30000,{headline:'AMANHECER!',subtitle:'O acordo segue válido.'});
-    assert.equal(timerReader.textContent,'4');
+    assert.equal(timerReader.textContent,'04');
     assert.equal(root.classList.contains('cubo-warning'),true);
     hud.update(0,30000,null,{frozen:true});
     assert.equal(root.classList.contains('cubo-warning'),false);
@@ -139,3 +139,4 @@ test('HUD de televisão IBM Plex Sans e zoom não criam GameObjects de interface
     else globalThis.document=previousDocument;
   }
 });
+

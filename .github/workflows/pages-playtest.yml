@@ -44,6 +44,11 @@ jobs:
       - name: Testar mecânicas e HUD do playtest
         run: >
           node --test
+          tests/editorialCopy.test.js
+          tests/representatives.test.js
+          tests/cuboNews.test.js
+          tests/campaignFinale.test.js
+          tests/dialogueTypewriter.test.js
           tests/americanArsenal876.test.js
           tests/americanWallDeployment877.test.js
           tests/americanWallInvulnerable878.test.js
@@ -106,3 +111,4 @@ jobs:
       - name: Publicar site
         id: deployment
         uses: actions/deploy-pages@v4
+

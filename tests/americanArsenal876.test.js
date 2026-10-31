@@ -32,7 +32,9 @@ test('Grande Muro: 120 graus constantes, 6 s, 14 s; raio cresce sem HP',()=>{
   assert.ok(c[i].radius>c[i-1].radius);
   assert.equal(c[i].maxHp,undefined);
  }
- assert.equal(v1SpecialConfig(state(8)).usWall.radius,125);
+ // Ampliação aprovada na revisão 0.915; duração e abertura continuam iguais.
+ assert.deepEqual(c.map(x=>x.radius),[110,145,185,230]);
+ assert.equal(v1SpecialConfig(state(8)).usWall.radius,230);
 });
 test('posição livre na área jogável; orientação canhão→mira',()=>{
  const p=americanWallPlacement(300,200,480,480,960,540);
@@ -65,3 +67,4 @@ test('arma, botão direito, invulnerabilidade, repulsão e bandeira integrados',
  assert.doesNotMatch(src,/build\.primary==='us'\?1\.6\*build\.usMissileScale/);
  assert.match(V1_UPGRADES.us[1].description,/120°/);
 });
+

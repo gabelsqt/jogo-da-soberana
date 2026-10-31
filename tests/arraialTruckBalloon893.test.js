@@ -60,7 +60,7 @@ test('frases de caminhão são sorteadas com indices válidos e cabem como event
  assert.equal(phraseSet.size,ARRAIAL_TRUCK_PHRASES.length);
 });
 
-test('código do Arraial exige acerto direto no balão; não agenda fogos automáticos',()=>{
+test('Arraial solta fogos automáticos e acertos diretos acrescentam carga e salvas',()=>{
  const create=game.slice(game.indexOf('  createArraial('),game.indexOf('  arraialDamage('));
  const update=game.slice(game.indexOf('  updateArraial() {'),
    game.indexOf('  updateArraialFlames() {'));
@@ -68,12 +68,13 @@ test('código do Arraial exige acerto direto no balão; não agenda fogos autom�
    game.indexOf('  damageCannon('));
  assert.match(create,/this\.arraialNuclei\.push/);
  assert.doesNotMatch(create,/fireworkSchedule/);
- assert.doesNotMatch(update,/n\.events|n\.next|fireworkSchedule/);
- assert.match(shoot,/shotHitsArraialBalloon\(previousX,previousY/);
- assert.match(shoot,/randomArraialBurst\(n\.x,n\.y,n\.radius\)/);
- assert.match(shoot,/this\.arraialFirework\(p\.x,p\.y,n\.bursts\+spark,true,stage\)/);
+ assert.match(update,/while\(now-n\.lastAutoAt>=interval/);
+ assert.match(update,/this\.arraialFirework\(fx,fy,n\.bursts\+\+,true/);
+ assert.match(shoot,/Math\.hypot\(previousX\+dx\*t-n\.x,previousY\+dy\*t-n\.y\)>hitRadius/);
+ assert.match(shoot,/if\(n\.charge<caps\[level\]\)n\.charge\+\+/);
+ assert.match(shoot,/this\.arraialFirework\(burstX,burstY,hue,true/);
  assert.match(shoot,/remove=true;/);
- assert.ok(shoot.indexOf('shotHitsArraialBalloon')<shoot.indexOf('if (!remove && !bullet.special)'));
+ assert.ok(shoot.indexOf('if(n.charge<caps[level])')<shoot.indexOf('if (!remove && !bullet.special)'));
 });
 
 test('o splash causa dano normal em inimigos e projéteis, inclusive bombas resistentes',()=>{
@@ -91,23 +92,34 @@ test('o splash causa dano normal em inimigos e projéteis, inclusive bombas resi
 test('estouro final cobre a área, exibe frase e não deixa balão persistente',()=>{
  const update=game.slice(game.indexOf('  updateArraial() {'),
    game.indexOf('  updateArraialFlames() {'));
- assert.match(update,/this\.arraialDamage\(n\.x,n\.y,n\.radius/);
- assert.match(update,/labExtra\?\.brFinalDamage/);
+ assert.match(update,/this\.arraialDamage\(n\.x,n\.y,finalRadius,finalDamage/);
+ assert.match(update,/cfg\.damageMin\+\(cfg\.damageMax-cfg\.damageMin\)\*Math\.pow\(q,2\.5\)/);
  assert.match(update,/arraialFinalPhrase\(\)/);
  assert.match(update,/phraseGfx\.destroy\(\)/);
  assert.match(update,/n\.graphics\.destroy\(\); this\.arraialNuclei\.splice\(i,1\)/);
- assert.match(update,/g\.strokeCircle\(n\.x,n\.y,n\.radius\)/);
- assert.match(update,/const radius=8\+\(n\.radius-8\)\*t/);
- assert.ok(V1_UPGRADES.br[1].description.includes('Balão de Rojões'));
- assert.ok(V1_UPGRADES.br[3].description.includes('área ampliada'));
+ assert.match(update,/const finalRadius=Math\.max/);
+ assert.match(update,/phraseDuration=2200/);
+ assert.equal(V1_UPGRADES.br[1].title,'Balão de Rojões');
+ assert.match(V1_UPGRADES.br[3].description,/alcance|raio|área/i);
 });
 
 test('efeitos visuais têm teto mas dano roda para todos os acertos',()=>{
  const firework=game.slice(game.indexOf('  arraialFirework('),
    game.indexOf('  updateArraial() {'));
- assert.ok(firework.indexOf('this.arraialDamage')<
-   firework.indexOf('if(this.arraialBurstVisuals>=ARRAIAL.maxBurstVisuals)return'));
+ const run=new Function('ARRAIAL','playSfx',
+   'return ({'+firework+'}).arraialFirework')(ARRAIAL,()=>{});
+ for(const touch of [false,true]){
+  const hits=[];
+  const fake={sys:{game:{device:{input:{touch}}}},time:{now:1000},
+    arraialBurstVisuals:ARRAIAL.maxBurstVisuals,
+    arraialDamage(...args){hits.push(args);},
+    add:{graphics(){throw Error('não cria VFX acima do limite');}}};
+  run.call(fake,120,180,0,true,{radius:27,damage:2,palette:[0xffffff]});
+  assert.equal(hits.length,1);
+  assert.deepEqual(hits[0].slice(0,4),[120,180,27,2]);
+ }
  assert.match(firework,/const started=this\.time\.now,duration=290/);
  assert.match(firework,/this\.arraialBurstVisuals\+\+/);
  assert.match(firework,/this\.arraialBurstVisuals=Math\.max\(0,this\.arraialBurstVisuals-1\)/);
 });
+

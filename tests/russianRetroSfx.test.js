@@ -50,7 +50,7 @@ test('todos os gatilhos russos têm efeitos e antirrepique',()=>{
    assert.ok(game.includes("playSfx('"+id+"'"),id);
  assert.match(game,/const firstContact=!isSputnikCrystalized\(enemy,this\.elapsed\)/);
  assert.match(game,/if\(stage>=3\)playSfx\('ruCrystalDeep'/);
- assert.match(game,/if\(frozenShatter\)this\.shatterRussianEnemy\(enemy\)/);
+ assert.match(game,/if\(frozenShatter\)\{\s*this\.shatterRussianEnemy\(enemy\)/);
  const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
  assert.match(pkg.scripts.predev,/generate-russian-sfx/);
  assert.match(pkg.scripts.prebuild,/generate-russian-sfx/);
@@ -90,3 +90,4 @@ test('áudio russo v2: sopro contínuo substitui tiros avulsos; congelamento só
  assert.ok(Object.entries(SFX_FILES).filter(([key])=>key.startsWith('ru'))
    .every(([,filename])=>filename.endsWith('_v2.wav')));
 });
+

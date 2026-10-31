@@ -40,7 +40,7 @@ test('fogos brasileiros e turbo têm progressões aprovadas',()=>{
 });
 
 test('Grande Muro dos EUA cresce a cada nível par, mantendo 120°',()=>{
-  for(const [tier,radius] of [[2,60],[4,79],[6,101],[8,125]]){
+  for(const [tier,radius] of [[2,110],[4,145],[6,185],[8,230]]){
     const b=v1SpecialConfig(countryAt('us',tier));
     assert.equal(b.usWall.radius,radius);
     assert.equal(b.usWall.arc,Math.PI*2/3);
@@ -93,3 +93,4 @@ test('os cinco países oferecem uma cor própria, mas nenhum efeito não desbloq
   assert.equal(b.ruSputnikDurationMs,0);
   for(const id of ['br','us','ru','cn','jp'])assert.ok(specialPalette(id)>0);
 });
+

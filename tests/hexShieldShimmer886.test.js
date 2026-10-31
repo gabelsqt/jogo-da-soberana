@@ -54,7 +54,7 @@ test('formação acontece no início de todas as ondas, inclusive fora da rota e
   assert.ok(countdown>=0&&combat>countdown&&after>combat);
   const beforeCombat=scene.slice(countdown,combat);
   const start=scene.slice(combat,after);
-  assert.match(beforeCombat,/this\.hexShieldTransition='disabling'/);
+  assert.match(beforeCombat,/this\.hexShieldTransition='hidden'/);
   assert.match(beforeCombat,/this\.hexShieldTransitionAt=this\.time\.now/);
   assert.match(start,/this\.hexShieldTransition='forming'/);
   assert.match(start,/this\.hexShieldTransitionAt=this\.time\.now/);
@@ -73,3 +73,4 @@ test('colisão e HP permanecem inalterados, inclusive em células apagadas',()=>
   assert.ok(hexShieldOpacity({shield:80,progress:.5,mode:'forming'})<.6);
   assert.doesNotMatch(visual,/cannonDomeIntercept/);
 });
+

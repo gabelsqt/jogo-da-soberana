@@ -56,6 +56,7 @@ test('GameScene isola a rota do Tipo 6, tem decolagem e conclusão intermunicipa
  assert.match(scene,/mode:'wave11',campaign:this\.campaign,voyageIndex:nextIndex/);
  assert.match(scene,/if\(this\.voyageActive\)\{/);
  assert.match(scene,/voyageCanDepart\(\{/);
- assert.match(scene,/!this\.voyageActive&&!this\.tutorialComplete/);
+ assert.match(scene,/!this\.voyageActive\s*&&\s*!this\.sunrisePlaying\s*&&\s*!this\.tutorialComplete/);
  assert.match(scene,/if\(!this\.voyageActive&&this\.dawnLayers/);
 });
+

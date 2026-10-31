@@ -55,7 +55,7 @@ test('ganchos reproduzem cada som na ação e nunca em todos os frames',()=>{
  assert.match(scene,/setSfxLoopActive\('krDiscoSpin',\(this\.discoGlobes\?\.length\?\?0\)>0/);
  assert.match(scene,/stopNationalSpecialSfxLoops\(\)/);
  assert.match(scene,/this\.events\.on\('pause',stopNationalSpecialSfxLoops\)/);
- assert.match(scene,/if\(visualTargets\.length\)\{[\s\S]*?playSfx\('krLaserRicochet'/);
+ assert.match(scene,/if\(showTargets\.length\)\{\s*playSfx\('krLaserRicochet'/);
  assert.match(scene,/if\(this\.isV1Campaign&&this\.combat\.plasmaEvery>0\)/);
  assert.match(scene,/playSfx\('krBasicShot',\{throttle:70,volumeScale:0\.72\}\)/);
  assert.match(scene,/const specialCountry=this\.isV1Campaign\?this\.specialBuild\?\.primary:null/);
@@ -75,3 +75,4 @@ test('geração automática preserva WAVs russos e exportação em HTML único',
  for(const key of ['brBonfire','krDiscoSpin'])
    assert.ok(sfx.includes("setSfxLoopActive('"+key+"',false)"));
 });
+

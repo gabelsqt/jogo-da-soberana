@@ -31,8 +31,12 @@ test('falas são curtas, sem spam e desaparecem sozinhas',()=>{
 test('UI de diálogo usa retratos existentes e região esquerda sem bloquear o mouse',()=>{
  assert.match(game,/assetUrl\('assets\/lideres\/'\+id\+'_personagem\.png'\)/);
  assert.match(game,/createBattleBanterPanel\(\)/);
- assert.match(game,/this\.add\.rectangle\(139,421,268,96/);
- assert.match(game,/this\.banterPortrait=this\.add\.image\(39,421/);
+ const panel=game.match(/this\.banterBackground=this\.add\.rectangle\((\d+),(\d+),(\d+),(\d+)/);
+ assert.ok(panel,'painel de comentários existe');
+ const [x,y,width,height]=panel.slice(1).map(Number);
+ assert.ok(x-width/2>=40,'margem lateral de segurança');
+ assert.ok(x+width/2<=320&&y+height/2<484,'painel não invade o canhão');
+ assert.match(game,/this\.banterPortrait=this\.add\.image\(/);
  assert.match(game,/updateBattleBanterPanel\(\)/);
  assert.match(game,/createDialogueTypewriter\(this,\{/);
  assert.match(game,/this\.banterWriter\.start\(this\.banterText,line\.text/);
@@ -42,3 +46,4 @@ test('UI de diálogo usa retratos existentes e região esquerda sem bloquear o m
  assert.doesNotMatch(game,/text:'ZECA • PEDIR AJUDA'/);
  assert.match(game,/this\.add\.rectangle\(px\+13,py\+16,118,132/);
 });
+
