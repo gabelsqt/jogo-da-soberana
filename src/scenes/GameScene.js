@@ -4609,7 +4609,7 @@ export class GameScene extends Phaser.Scene {
       this.supremeCinematic=false;
       // Supremo elimina a frota e dispensa reforcos ainda agendados.
       this.eventsSpawned=this.waveEvents?.length??this.eventsSpawned;
-      if(!this.tutorialComplete)this.showWaveComplete('cleared');
+      if(!this.tutorialComplete)this.showWaveComplete('supreme');
     });
     return true;
   }
@@ -7564,7 +7564,7 @@ export class GameScene extends Phaser.Scene {
     this.tutorialComplete = true;
 
     if (this.mode === 'wave11') {
-      this.statusText.setText('CONFRONTO FINAL VENCIDO — BRASIL SOBERANO!');
+      this.statusText.setText(outcome==='supreme'?'CÉU LIMPO! INIMIGOS FINALIZADOS — BRASIL SOBERANO!':'CONFRONTO FINAL VENCIDO — BRASIL SOBERANO!');
       this.tutorialText.setText('');
       this.time.delayedCall(1250,()=>this.scene.start('EndingScene',{
         campaign:this.finaleCampaign,won:true,
@@ -7572,7 +7572,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     if (this.mode === 'wave10') {
-      this.statusText.setText('FORTALEZA-MÃE DESTRUÍDA');
+      this.statusText.setText(outcome==='supreme'?'CÉU LIMPO! INIMIGOS FINALIZADOS':'FORTALEZA-MÃE DESTRUÍDA');
       this.time.delayedCall(1200, () => this.advanceAfterWave());
       return;
     }
@@ -7580,7 +7580,7 @@ export class GameScene extends Phaser.Scene {
       const survived = outcome === 'survived';
       const message = survived
         ? 'AMANHECEU! O RIO RESISTIU!'
-        : 'CÉU LIMPO! VITÓRIA ANTECIPADA!';
+        : outcome==='supreme'?'CÉU LIMPO! INIMIGOS FINALIZADOS!':'CÉU LIMPO! VITÓRIA ANTECIPADA!';
       this.statusText.setText('NOITE CONCLUÍDA');
       this.tutorialText.setText('');
       this.sunriseOverlay?.setAlpha(survived ? 0.32 : 0);
