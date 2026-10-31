@@ -299,6 +299,7 @@ export class GameScene extends Phaser.Scene {
         principal:this.v1LabPrincipal,
         especial:this.v1LabSpecial??this.v1LabPrincipal});
       this.combat=result.stats;
+      this.combat.ultimate=v1SupremeFor(this.campaign);
       this.specialBuild=result.build;
       this.labExtra=result.extra;
       this.labWinner=result.winner;
@@ -641,7 +642,7 @@ export class GameScene extends Phaser.Scene {
       :getV035WaveEvents(this.mode,getWaveEvents(this.mode,this.finaleCampaign));
     this.lastBasicFire = -this.combat.basicInterval;
     this.heatStartedAt = null;
-    this.ultimateUsed = false;
+    this.ultimateUsed = this.campaign.supremeUsed===true;
     this.supremeTyping = false;
     this.supremeCode = '';
     this.supremeTimeScales = null;
@@ -4564,6 +4565,7 @@ export class GameScene extends Phaser.Scene {
     const frames=this.supremeStoryboard(country);
     if (!frames.length) return false;
     this.ultimateUsed=true;
+    this.campaign.supremeUsed=true;
     this.supremeCinematic=true;
     this.supremeSlideIndex=0;
     const color=V1_SUPREMES[country]?.color || 0xffffff;
@@ -4605,9 +4607,8 @@ export class GameScene extends Phaser.Scene {
       }
       this.supremeFinishing=false;
       this.supremeCinematic=false;
-      if((this.mode==='wave10'||this.mode==='wave11')&&
-        !this.voyageActive&&!this.tutorialComplete)
-        this.showWaveComplete('cleared');
+      // Insta-win: encerra a onda mesmo que ainda houvesse spawns pendentes.
+      if(!this.tutorialComplete)this.showWaveComplete('cleared');
     });
     return true;
   }
