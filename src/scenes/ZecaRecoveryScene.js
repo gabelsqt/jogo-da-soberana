@@ -58,7 +58,7 @@ export class ZecaRecoveryScene extends Phaser.Scene {
     this.add.text(W/2,150,'CARGA RECUPERADA • MOTORISTA BRASILEIRO',{
       fontFamily:'monospace',fontSize:'13px',fontStyle:'bold',color:'#e0e9ee',
     }).setOrigin(0.5).setDepth(16);
-    this.add.text(W/2,343,'CENA PROVISÓRIA • ARTE DOS MOTORISTAS A SER INSERIDA',{
+    this.add.text(W/2,343,'CORRIDA CONCLUÍDA • NINGUÉM PEDIU OS DETALHES',{
       fontFamily:'monospace',fontSize:'11px',color:'#e9d6ba',
     }).setOrigin(0.5).setDepth(17);
 
@@ -82,3 +82,4 @@ export class ZecaRecoveryScene extends Phaser.Scene {
       primary:true,depth:48,onClick:advance});
   }
 }
+

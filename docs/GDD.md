@@ -1,3 +1,23 @@
+## Revisão editorial geral — 31/10/2026
+
+**Pedido do criador:** revisar o texto geral, alinhando as decisões atuais e deixando a escrita mais pessoal e engraçada.
+
+**Estado:** revisão aplicada aos textos que já existem no jogo. As novas falas são uma rodada editorial, aberta a ajustes, não aprovação individual de cada frase. Roteiro integral para leitura: [revisao-textos-2026-10-31.md](https://github.com/gabelsqt/jogo-da-soberana/blob/feat/brasil2-arraial-bal%C3%ADstico/docs/revisao-textos-2026-10-31.md).
+
+**Precedência:** as identidades atuais de Zé Maria, Seu Nelson, Victor McDollar, Kátia Strófika, Mingda Mai e Kim Lin Du e a consolidação narrativa V1.9 de 28/10 prevalecem sobre os tratamentos históricos incompatíveis. Kátia é atleta multicampeã, não bancária; Kim continua idol em atividade; Mingda é executiva de comércio/logística; Victor mantém a origem televisiva e a autopromoção. Usar canhão na escrita para o jogador.
+
+**Aplicação textual:** convocação, noticiário inicial, dez conversas de boteco e dez falas pessoais por representante, comentários de combate, catálogo, Cubo News, ultimatos e dez epílogos. As conversas pessoais acompanham a onda, não o investimento no país. O aviso de Nelson sobre ajuda externa ocorre uma vez. Os representantes são apresentados antes da onda 1. A redação não revela a etiqueta dos braços nem atribui promessas traduzidas aos invasores antes da onda 10.
+
+**Traições e derrotas preservadas:** Victor busca fortaleza americana e recursos, declara vitória moral e exige cerimônia; Kátia disputa controle territorial e atletas, sobretudo futebolistas, aceita a derrota e entrega medalha; Mingda busca fabricação/distribuição e reclama do prejuízo; Kim financia tecnologia de shows com recursos brasileiros e exige repetir a batalha pela coreografia. O jogo continua escolhendo um traidor por confronto, conforme a regra existente.
+
+**Regras preservadas:** identidade do principal na primeira escolha; especial na segunda; P1–P4/S1–S4; misturas válidas; Supremo somente com conjunto do mesmo país, uma vez na campanha, nos cinco segundos finais. Não mudar balanceamento por meio da revisão textual.
+
+**Pendência descoberta:** o Panda Express já é a identidade chinesa em combate, mas os campos chineses S1–S4 do perfil matemático ainda pertencem à fila antiga. A interface agora informa que esses parâmetros não alteram o Panda. Não considerar a integração P/S do drone concluída.
+
+**Cenas somente roteirizadas nesta rodada:** motorista oficial desinformado, trajeto, subida inicial, tutorial com prontidão, demonstrações com corpo inteiro, montagens por equipe e reconhecimento de Nelson pelo Alien Supremo. A encenação permanece pendente; não foram criados detalhes novos sobre a antiga ajuda de Nelson. O prólogo jogável ainda precisa integrar o traslado antes da onda 0.
+
+**Verificação:** 52 testes focados passaram; 255 comparações com a base preservaram combate/progressão. Persistem falhas anteriores na bateria ampliada e falta a conferência visual no jogo em PC e celular.
+
 ## Direção cinematográfica e legibilidade narrativa — regra geral (25/10/2026)
 
 **Status: decisão aprovada de direção visual; somente planejamento, ainda não implementada.**
@@ -1626,3 +1646,4 @@ Visual: idol sul-coreano jovem, simpático, cabelo prateado/lilás, uniforme bra
 - **Ritmo e jogabilidade:** a onda 0 começa **depois** da chegada ao canhão e da conclusão da transição narrativa, nunca durante a cena do elevador nem antes de iniciar o cronômetro. Preservar as regras de início sincronizado de jogo e contagem regressiva já definidas.
 - **Terminologia:** dizer sempre **canhão**, nunca a designação antiga de armamento. O dono do Boteco é **Seu Nelson**.
 - **Status:** planejamento aprovado; falas, enquadramentos e duração exatos ainda podem ser roteirizados. Nenhuma implementação efetuada por este registro.
+

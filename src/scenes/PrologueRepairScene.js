@@ -92,17 +92,17 @@ export class PrologueRepairScene extends Phaser.Scene{
     }).setOrigin(.5).setDepth(64));
     const subtitles={
       arrival:[
-        'O canhão foi destruído. No Boteco vazio, Seu Nelson pergunta: “Conhece alguém que conserte isso?” Você liga para Zé Maria.',
-        'Zé Maria atende e chega de caminhão-guincho azul: “Se eu fiz um Marea andar, faço isso aqui funcionar.”',
-        'Zé Maria encosta o ouvido no canhão, dá duas batidinhas e reconhece o defeito. “É... vai dar trabalho.”',
+        'NELSON: “Conhece alguém?” VOCÊ: “O mecânico do meu carro. Será que ele atende canhão?” NELSON: “Liga.”',
+        'O guincho azul encosta. ZÉ MARIA: “Se eu fiz um Marea andar, faço isso aqui funcionar.”',
+        'Zé escuta o mecanismo e dá duas batidinhas. “Olha a engenharia disso... Que judiação. Ainda tem muita peça boa.”',
       ],
       principal:[
-        'Zé Maria adapta peças ao sistema principal escolhido. Solução brasileira ou importada, tudo passa pela oficina.',
-        'Três... dois... um... O primeiro disparo funciona. O canhão está recuperado e pronto para a onda 1.',
+        'A equipe responsável instala o principal. Zé acompanha, curioso: “Depois vocês me mostram essa conexão?”',
+        'O primeiro disparo funciona. Zé sorri: “Ouviu? Esse barulho é bom. O de antes é que era caro.” Principal pronto para a onda 1.',
       ],
       special:[
-        'O segundo acordo equipa o canhão com o especial do botão direito. Não substitui o tiro principal.',
-        'O circuito responde. O tiro especial está instalado e pode ser usado desde o início da onda 2.',
+        'O especial usa um comando separado do principal: botão direito no PC; segurar e soltar ESP no celular.',
+        'Especial pronto para a onda 2. NELSON, pelo rádio: “Confere qual botão é qual antes de testar.”',
       ],
     };
     this.keep(this.add.text(W/2,439,subtitles[this.stage][this.index],{
@@ -161,3 +161,4 @@ export class PrologueRepairScene extends Phaser.Scene{
     }
   }
 }
+

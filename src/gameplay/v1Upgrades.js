@@ -10,61 +10,61 @@ export const V1_UPGRADES = {
     {
       "level": 1,
       "title": "Gambiarra Balística",
-      "description": "Metralhadora rápida desde o início, com varredura horizontal e aceleração em ondas.",
+      "description": "Rajadas rápidas com leve varredura horizontal. A cadência cresce nos picos de aquecimento.",
       "kind": "primary"
     },
     {
       "level": 2,
-      "title": "Arraial Balístico",
-      "description": "Balão de Rojões: atire no balão para gerar mini-explosões coloridas aleatórias em área; no final, uma grande explosão e frase de caminhão. Turbo por 5 s.",
+      "title": "Balão de Rojões",
+      "description": "Balão com rojões em área. Acertos alimentam os fogos; no fim, ele estoura e deixa uma frase de para-choque.",
       "kind": "secondary"
     },
     {
       "level": 3,
       "title": "Motor Esquentando",
-      "description": "Rajadas em ondas mais densas, com motor esquentando.",
+      "description": "Rajadas mais rápidas e picos de aquecimento mais fortes. O Zé garante que esse barulho é normal.",
       "kind": "primary"
     },
     {
       "level": 4,
       "title": "São João de Arromba",
-      "description": "Balão de Rojões com área ampliada e turbo de metralhadora mais forte.",
+      "description": "Mais alcance e intensidade no Balão de Rojões. A festa começa a incomodar a vizinhança alienígena.",
       "kind": "secondary"
     },
     {
       "level": 5,
       "title": "Chumbo Grosso",
-      "description": "Balas maiores e mais fortes.",
+      "description": "Projéteis maiores e mais fortes. Serviço pesado, sem perder a cadência.",
       "kind": "primary"
     },
     {
       "level": 6,
       "title": "220V",
-      "description": "Balão com alcance ainda maior e turbo reforçado para alimentar os rojões.",
+      "description": "Balão de Rojões reforçado. Mais fogos para segurar a área e castigar quem passar.",
       "kind": "secondary"
     },
     {
       "level": 7,
       "title": "Produção Nacional",
-      "description": "Rajadas de balas com origem alternada na horizontal.",
+      "description": "Rajadas mais densas e distribuição horizontal ampliada. A oficina está produzindo.",
       "kind": "primary"
     },
     {
       "level": 8,
       "title": "Usina de Gambiarra",
-      "description": "Balão de Rojões em sua área máxima e turbo máximo de cadência.",
+      "description": "Balão no estágio máximo: mais fogos e explosão final reforçada.",
       "kind": "secondary"
     },
     {
       "level": 9,
       "title": "Réveillon de Copacabana",
-      "description": "Supremo REVEILLON: o Cristo Redentor decola e destrói a frota em um Réveillon de fogos. Cena estática provisória.",
+      "description": "Supremo RÉVEILLON. O Cristo decola e atravessa a frota entre fogos. Um uso por campanha; código nos 5 s finais.",
       "kind": "ultimate"
     },
     {
       "level": 10,
       "title": "Metralhadora da Soberania",
-      "description": "Feixe quase contínuo de projéteis físicos; picos de superaquecimento absurdos, ampliados pelo turbo junino.",
+      "description": "Rajadas quase contínuas de projéteis físicos, com picos fortes de cadência. O serviço ficou grande.",
       "kind": "transformation"
     }
   ],
@@ -72,123 +72,123 @@ export const V1_UPGRADES = {
     {
       "level": 1,
       "title": "Munição Patriótica™",
-      "description": "Tiro principal vira um foguete físico com explosão vermelha, branca e azul.",
+      "description": "Foguetes com impacto físico e explosão vermelha, branca e azul. A assinatura de Victor aparece até na fumaça.",
       "kind": "primary"
     },
     {
       "level": 2,
       "title": "O Grande Muro™",
-      "description": "Botão direito cria arco energético de 120° na mira: bloqueia tiros e repele naves durante até 6 segundos.",
+      "description": "Arco de 120° na mira: bloqueia e reflete tiros comuns, repele naves e pode ser rompido por feixes de cerco.",
       "kind": "secondary"
     },
     {
       "level": 3,
       "title": "Quatro de Julho™",
-      "description": "Foguetes maiores: colisão física mais larga e explosão tricolor ampliada.",
+      "description": "Foguetes maiores, colisão mais larga e explosão tricolor ampliada.",
       "kind": "primary"
     },
     {
       "level": 4,
       "title": "Obra Superfaturada™",
-      "description": "Grande Muro fica mais amplo; invulnerável a tiros comuns, com arco fixo de 120°.",
+      "description": "Amplia o raio do Grande Muro; o arco continua em 120°. Victor já preparou outra inauguração.",
       "kind": "secondary"
     },
     {
       "level": 5,
       "title": "Espetáculo da Independência™",
-      "description": "Foguete ainda maior e explosão patriótica mais destrutiva.",
+      "description": "Foguetes ainda maiores e explosões mais fortes. O orçamento prefere não comentar.",
       "kind": "primary"
     },
     {
       "level": 6,
       "title": "Segurança Nacional™",
-      "description": "Grande Muro mais largo, com bandeira americana na curvatura; só feixes de cerco pesado podem rompê-lo.",
+      "description": "Grande Muro mais amplo. Tiros comuns não o destroem; feixes de cerco continuam perigosos.",
       "kind": "secondary"
     },
     {
       "level": 7,
       "title": "Choque e Pavor™",
-      "description": "Foguete enorme, maior colisão e explosão tricolor capaz de atingir enxames.",
+      "description": "Foguetes enormes e explosões tricolores para atingir grupos de inimigos.",
       "kind": "primary"
     },
     {
       "level": 8,
       "title": "O Maior Muro do Mundo™",
-      "description": "Grande Muro atinge seu raio máximo; lasers de cerco e superarma do Tipo 6 ainda podem destruí-lo.",
+      "description": "Grande Muro no raio máximo. Lasers de cerco e o superlaser do Tipo 6 ainda podem rompê-lo.",
       "kind": "secondary"
     },
     {
       "level": 9,
       "title": "Operação Liberdade Duradoura™",
-      "description": "Supremo: código nos últimos 5 s; bombardeiros gigantes e míssil descomunal finalizam a onda.",
+      "description": "Supremo BOMBARDEIO. Bombardeiros e um míssil descomunal encerram a onda. Um uso por campanha; código nos 5 s finais.",
       "kind": "ultimate"
     },
     {
       "level": 10,
       "title": "Independence Day™",
-      "description": "Transformação: foguetes monumentais, colisão larga e explosão tricolor, sem crescimento durante o voo.",
+      "description": "Foguetes monumentais com colisão larga e explosão tricolor. Victor exige uma foto ao lado.",
       "kind": "transformation"
     }
   ],
   "jp": [
     {
       "level": 1,
-      "title": "Lightstick Tático",
-      "description": "Lasers perfurantes acompanham os tiros do canhão.",
+      "title": "Saraivada de Lasers",
+      "description": "Disparos de laser; as melhorias acrescentam ricochetes entre alvos. Kim chama isso de ensaio.",
       "kind": "primary"
     },
     {
       "level": 2,
       "title": "Bola de Discoteca Orbital",
-      "description": "Globo dura 4 s e gera 3 reflexos guiados por tiro recebido.",
+      "description": "Globo de 4 s: atire nele para gerar 3 reflexos guiados por acerto. Quanto melhor a entrada, maior o show.",
       "kind": "secondary"
     },
     {
       "level": 3,
       "title": "Sincronia Perfeita",
-      "description": "Lasers perfurantes mais frequentes.",
+      "description": "Melhora a cadência dos lasers. Nenhum invasor foi convidado para o bis.",
       "kind": "primary"
     },
     {
       "level": 4,
       "title": "Palco Iluminado",
-      "description": "Globo dura 4 s e gera 6 reflexos guiados por tiro recebido.",
+      "description": "O globo gera 6 reflexos guiados por acerto e permanece por 4 s.",
       "kind": "secondary"
     },
     {
       "level": 5,
       "title": "Refrão Perfurante",
-      "description": "Lasers perfurantes mais fortes.",
+      "description": "Lasers mais fortes para atravessar a apresentação inimiga.",
       "kind": "primary"
     },
     {
       "level": 6,
       "title": "Solo de Luz",
-      "description": "Globo dura 4 s e gera 12 reflexos guiados por tiro recebido.",
+      "description": "O globo gera 12 reflexos guiados por acerto e permanece por 4 s.",
       "kind": "secondary"
     },
     {
       "level": 7,
       "title": "Coreografia de Plasma",
-      "description": "Lasers perfurantes a cada rajada.",
+      "description": "Mais lasers em sequência. Kim pede precisão; o céu ganha a iluminação.",
       "kind": "primary"
     },
     {
       "level": 8,
       "title": "Discoteca Intergaláctica",
-      "description": "Globo dura 4 s e gera 24 reflexos guiados por tiro recebido.",
+      "description": "O globo gera 24 reflexos guiados por acerto. O dano da salva é distribuído entre eles.",
       "kind": "secondary"
     },
     {
       "level": 9,
       "title": "Último Encore",
-      "description": "Supremo ENCORE: show de Kim Lin Doo varre a frota alienígena. Cena estática provisória.",
+      "description": "Supremo ENCORE. Kim Lin Du transforma o ataque final em show. Um uso por campanha; código nos 5 s finais.",
       "kind": "ultimate"
     },
     {
       "level": 10,
       "title": "Encore Infinito",
-      "description": "Transformação: tiro principal vira um laser contínuo e perfurante enquanto a mira está acionada.",
+      "description": "Canhão de lasers com disparos intensos e projeção holográfica. O show chegou ao último refrão.",
       "kind": "transformation"
     }
   ],
@@ -196,61 +196,61 @@ export const V1_UPGRADES = {
     {
       "level": 1,
       "title": "Geada Siberiana",
-      "description": "Tiros gelados mais rápidos e frequentes congelam o alvo. Mortes congeladas espalham estilhaços que causam dano em área.",
+      "description": "Tiros congelam alvos. Inimigos que morrem congelados espalham estilhaços e causam dano em área.",
       "kind": "primary"
     },
     {
       "level": 2,
       "title": "Sputnik Criogênico",
-      "description": "Satélite congela e cristaliza por contato durante 4 s. Alvos marcados levam mais dano do tiro russo.",
+      "description": "Satélite congela por contato durante 4 s. Alvos cristalizados recebem mais dano do tiro russo.",
       "kind": "secondary"
     },
     {
       "level": 3,
       "title": "Inverno Russo",
-      "description": "Tiros mais rápidos e fortes, congelamento prolongado e estilhaços de gelo com dano ampliado.",
+      "description": "Tiros mais rápidos e fortes, congelamento mais longo e estilhaços com dano ampliado.",
       "kind": "primary"
     },
     {
       "level": 4,
       "title": "Órbita Fria",
-      "description": "Sputnik permanece por 5 s e aumenta a área de contato congelante.",
+      "description": "Sputnik permanece por 5 s e amplia a área de contato congelante. Kátia cronometrou.",
       "kind": "secondary"
     },
     {
       "level": 5,
       "title": "Estilhaço Siberiano",
-      "description": "Rajadas congelantes muito mais fortes e rápidas; estilhaços maiores causam dano pesado em área.",
+      "description": "Rajadas de gelo mais fortes e rápidas. Os estilhaços atingem uma área maior.",
       "kind": "primary"
     },
     {
       "level": 6,
       "title": "Reator de Permafrost",
-      "description": "Cristalizados geram explosões de gelo com dano e raio ampliados.",
+      "description": "Alvos cristalizados geram estilhaços com mais dano e alcance ao serem destruídos.",
       "kind": "secondary"
     },
     {
       "level": 7,
       "title": "Zero Absoluto",
-      "description": "Máxima cadência, velocidade e dano dos tiros de gelo; explosões de cristais muito mais destrutivas.",
+      "description": "Tiros de gelo no estágio máximo: mais cadência, velocidade e dano.",
       "kind": "primary"
     },
     {
       "level": 8,
       "title": "Zero Absoluto Orbital",
-      "description": "Sputnik emite pulsos de congelamento e libera uma última onda criogênica ao desaparecer.",
+      "description": "Sputnik emite pulsos congelantes e uma última onda criogênica ao desaparecer.",
       "kind": "secondary"
     },
     {
       "level": 9,
       "title": "Protocolo Cortina de Ferro",
-      "description": "Supremo: código nos últimos 5 s; cúpula metálica protege o Rio e satélite dispara raio orbital que finaliza a onda.",
+      "description": "Supremo CORTINA DE FERRO. Cúpula protege o Rio e um satélite varre o céu. Um uso por campanha; código nos 5 s finais.",
       "kind": "ultimate"
     },
     {
       "level": 10,
       "title": "Inverno Eterno",
-      "description": "Transformação: sopro contínuo de gelo com dano crescente em cone. Congela por 3 s e provoca estilhaçamento devastador em 120 px.",
+      "description": "Sopro contínuo de gelo em cone. Congela e provoca estilhaços ao destruir alvos congelados.",
       "kind": "transformation"
     }
   ],
@@ -258,61 +258,61 @@ export const V1_UPGRADES = {
     {
       "level": 1,
       "title": "Compre 1, Leve 2",
-      "description": "Dispara dois projéteis por salva.",
+      "description": "Dois projéteis por salva. Mingda diz que é amostra; já trouxe o catálogo.",
       "kind": "primary"
     },
     {
       "level": 2,
-      "title": "Entrega Expressa",
-      "description": "Especial: uma encomenda explosiva.",
+      "title": "Panda Express",
+      "description": "Drone recolhe até 8 tiros inimigos comuns e devolve a carga em rajada guiada. Reative para reposicioná-lo enquanto coleta.",
       "kind": "secondary"
     },
     {
       "level": 3,
       "title": "Leve 3, Pague 2",
-      "description": "Dispara três projéteis por salva.",
+      "description": "Três projéteis por salva. O estoque começa a render.",
       "kind": "primary"
     },
     {
       "level": 4,
       "title": "Frete Grátis",
-      "description": "Especial com encomendas maiores e dois impactos.",
+      "description": "Panda com capacidade para 16 tiros, maior área de coleta e descarga mais rápida.",
       "kind": "secondary"
     },
     {
       "level": 5,
       "title": "Compre 3, Leve 6",
-      "description": "Três balas se dividem uma vez em seis; filhos não se dividem.",
+      "description": "Três projéteis se dividem uma vez em seis. As cópias não se dividem novamente.",
       "kind": "primary"
     },
     {
       "level": 6,
       "title": "Carga Pesada",
-      "description": "Especial distribui três cargas explosivas grandes.",
+      "description": "Panda com capacidade para 24 tiros. A descarga ganha dano e bônus conforme o estoque acumulado.",
       "kind": "secondary"
     },
     {
       "level": 7,
       "title": "Atacado da Destruição",
-      "description": "Cinco projéteis se dividem uma vez em dez.",
+      "description": "Cinco projéteis se dividem uma vez em dez. Mingda prefere vender por lote.",
       "kind": "primary"
     },
     {
       "level": 8,
       "title": "Frete Internacional",
-      "description": "Especial distribui quatro cargas gigantes.",
+      "description": "Panda com capacidade para 32 tiros, maior coleta e rajada mais rápida. Sem alvo, guarda o estoque.",
       "kind": "secondary"
     },
     {
       "level": 9,
       "title": "Seu Pedido Chegou!",
-      "description": "Supremo ENTREGA: drone colossal entrega um enxame exterminador. Cena estática provisória.",
+      "description": "Supremo ENTREGA. Um drone colossal abre a carga sobre a frota. Um uso por campanha; código nos 5 s finais.",
       "kind": "ultimate"
     },
     {
       "level": 10,
       "title": "Estoque Infinito",
-      "description": "Dez tiros se dividem uma vez em vinte projéteis, sem recursão.",
+      "description": "Dez tiros se dividem uma vez em vinte. Mingda chama de escala; o inimigo chama de problema.",
       "kind": "transformation"
     }
   ]
@@ -503,3 +503,4 @@ export function mayDuplicateProjectile(generation, chance, roll) {
 export function horizontalOffsets(count, spread) {
   return Array.from({length:Math.max(1,count)},(_,i)=>count<=1?0:(i-(count-1)/2)*spread);
 }
+

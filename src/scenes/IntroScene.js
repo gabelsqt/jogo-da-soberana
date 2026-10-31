@@ -105,7 +105,7 @@ export class IntroScene extends Phaser.Scene {
   }
   openLaptop(){
     this.phase='boot';this.drawApartment();
-    this.progressHint.setText('Uma manhã tranquila. O laptop está ligando…');
+    this.progressHint.setText('Uma manhã tranquila. Até chegar o e-mail.');
     this.box(W/2,454,614,20,0x687178).setDepth(13);
     const lid=this.box(W/2,443,580,350,0x252d35).setOrigin(.5,1).setDepth(14).setScale(1,.025);
     this.tweens.add({targets:lid,scaleY:1,duration:1000,ease:'Sine.easeOut'});
@@ -257,7 +257,7 @@ export class IntroScene extends Phaser.Scene {
   drawNews(slide){
     this.box(W/2,H/2,W,H,0x101b2a,0.96).setDepth(4);
     for(const object of addCuboBroadcastFrame(this,{
-      section:'PLANTÃO • INVASÃO EXTRATERRESTRE',
+      section:'PLANTÃO • EMERGÊNCIA NO RIO',
       headline:'Cobertura especial em andamento',
       footer:'A crise atinge as principais cidades brasileiras',
       depth:34,
@@ -468,3 +468,4 @@ export class IntroScene extends Phaser.Scene {
     this.scene.start('GameScene',{mode:'wave0',campaign:this.campaign});
   }
 }
+

@@ -7,13 +7,13 @@ export const PROLOGUE_CANNON={
   damaged:{damage:0,intervalMs:2100,enemyCanAttack:false},
 };
 export const REPAIR_STAGES=Object.freeze({
-  arrival:['SEU NELSON PERGUNTA SE VOCÊ CONHECE ALGUÉM QUE POSSA AJUDAR',
+  arrival:['BOTECO VAZIO. UM NÚMERO NA AGENDA.',
     'ZÉ MARIA CHEGA DE CAMINHÃO-GUINCHO',
-    'DIAGNÓSTICO: OUVIDO E BATIDINHAS NO MECANISMO'],
+    'ZÉ MARIA ESCUTA. O CANHÃO NÃO RESPONDE.'],
   principal:['MONTAGEM: INSTALAÇÃO DO TIRO PRINCIPAL',
     'TESTE DO DISPARO: CANHÃO RECUPERADO'],
   special:['SEGUNDO CONSERTO: INSTALAÇÃO DO TIRO ESPECIAL',
-    'TESTE DO ESPECIAL: BOTÃO DIREITO LIBERADO'],
+    'TESTE DO ESPECIAL: SISTEMA PRONTO'],
 });
 export function isPrologueSurvival(mode){return mode==='wave05';}
 export function prologueCompletion(choices=[]){
@@ -36,3 +36,4 @@ export function prologueWithdrawalPose(index,startX,startY,elapsed){
   return {x:startX+(targetX-startX)*ease,y:startY+(65-startY)*ease,
     alpha:p<.82?1:Math.max(0,(1-p)/.18)};
 }
+

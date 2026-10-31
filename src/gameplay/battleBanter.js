@@ -1,39 +1,108 @@
 import {REPRESENTATIVES} from './representatives.js';
 // Falas curtas, não invasivas, escolhidas apenas entre países ainda aliados.
 export const BATTLE_BANTER=Object.freeze({
-  br:{
-    start:['Bora, General. Confere a mira que o canhão tá afinado!', 'Se o canhão fizer um barulho esquisito, me avisa pelo rádio.'],
-    danger:['Opa! Essa nave não veio passear!', 'Cuidado com essa! Tá mirando na gente!'],
-    health:['O canhão tá apanhando. Tem como segurar mais um pouco?', 'Segura essa defesa aí, chefe!'],
-    module:['Boa! Uma peça a menos naquele trambolho!', 'Isso! Tá desmontando o negócio!'],
-    special:['O especial tá pronto. Usa na hora certa!', 'Tem reforço no gatilho, chefe!'],
-    arrival:['Chegamos. A cidade ainda precisa da gente!', 'Pousamos. Vou conferir o canhão daqui.'],
-    clear:['Cidade protegida. Vou conferir a pressão do canhão!', 'Boa, General! O motor do prédio está pronto pra próxima.'],
+  "br": {
+    "start": [
+      "Vai com calma, chefe. O canhão eu conferi.",
+      "Mira firme. O barulho é dele mesmo."
+    ],
+    "danger": [
+      "Esse grandão tá vindo pra cá!",
+      "Olha a carga daquele laser!"
+    ],
+    "health": [
+      "O canhão tá no limite. Segura aí!",
+      "Mais um tranco desses e eu vou junto!"
+    ],
+    "module": [
+      "Boa! Esse pedaço não faz mais falta.",
+      "Isso! Desmonta que eu separo a sucata."
+    ],
+    "special": [
+      "Especial pronto. Capricha no endereço!",
+      "Tá carregado, chefe. Pode usar!"
+    ],
+    "arrival": [
+      "Pousamos. Confere a mira; eu confiro o prédio.",
+      "Chegamos. Tem gente precisando da gente."
+    ],
+    "clear": [
+      "Cidade segura. Próxima parada!",
+      "Tudo inteiro. Até a mesa de sinuca!"
+    ]
   },
-  us:{
-    start:['Vai ser a maior batalha. Confie em mim!', 'A melhor defesa! Isso é o que a gente constrói.'],
-    danger:['Precisamos de um muro maior! O maior de todos!', 'Esse ataque é enorme. Mas eu faço maior!'],
-    module:['Excelente explosão. Espetacular. Ninguém explode melhor!', 'Muito bom! Um resultado gigante!'],
-    special:['Construam o muro! Um muro enorme!', 'Está na hora de fazer história. Grande história!'],
+  "us": {
+    "start": [
+      "Um grande dia para a nossa grande parceria!",
+      "Pode começar. Já achei meu melhor ângulo."
+    ],
+    "danger": [
+      "Atenção ao grandão! A entrevista espera!",
+      "Esse laser não estava na apresentação!"
+    ],
+    "module": [
+      "Viu? Nossa tecnologia! E sua mira, claro.",
+      "Uma explosão histórica! Alguém gravou?"
+    ],
+    "special": [
+      "Especial pronto. Vamos inaugurar isso!",
+      "Equipamento pronto. Pode fazer história!"
+    ]
   },
-  ru:{
-    start:['Mantenha a posição. O inimigo vai ceder.', 'Camarada, não desperdice o gelo.'],
-    danger:['Alvo prioritário. Atire agora.', 'Atenção ao setor de ataque.'],
-    module:['Módulo neutralizado. Continue.', 'Uma ameaça a menos. Próximo alvo.'],
-    special:['Sputnik disponível. Escolha bem o momento.', 'Equipamento pronto. Sem hesitação.'],
+  "ru": {
+    "start": [
+      "Respire. Mire. Comece.",
+      "Quero uma série limpa. Sem pressa."
+    ],
+    "danger": [
+      "Olhe o laser. Corrija a posição.",
+      "Alvo pesado. Não perca a concentração."
+    ],
+    "module": [
+      "Boa execução. Próximo.",
+      "Isso vale o esforço. Continue."
+    ],
+    "special": [
+      "Especial pronto. Escolha o momento.",
+      "Equipamento pronto. Sua vez."
+    ]
   },
-  jp:{
-    start:['Brasil, esse é o nosso grande palco!', 'Concentração! Cinco, seis, sete, oito!'],
-    danger:['Essa entrada não estava na coreografia!', 'Cuidado! É um solo perigoso!'],
-    module:['Foi um hit perfeito! Encore!', 'Mais um módulo fora do palco!'],
-    special:['A luz está pronta. Hora do refrão!', 'Encore! Mostra como se faz!'],
+  "jp": {
+    "start": [
+      "Tô com você. Cinco, seis, sete, oito!",
+      "Entrou. Agora confia no ensaio."
+    ],
+    "danger": [
+      "Essa entrada não estava combinada!",
+      "Cuidado com o laser! É deles!"
+    ],
+    "module": [
+      "Boa! Essa ficou no tempo certo.",
+      "Lindo! Guarda o sorriso pra depois!"
+    ],
+    "special": [
+      "Especial pronto. Puxa o refrão!",
+      "Tudo pronto. Pode dar o sinal!"
+    ]
   },
-  cn:{
-    start:['Pedido recebido! Vamos entregar vitória!', 'Esta operação tem entrega expressa!'],
-    danger:['Alerta de entrega: objeto voador muito grande!', 'Precisamos revisar essa rota de chegada!'],
-    module:['Removido do estoque inimigo. Excelente!', 'Mais um item despachado!'],
-    special:['Oferta especial disponível! Sem taxa extra!', 'Aproveite antes que acabe o estoque!'],
-  },
+  "cn": {
+    "start": [
+      "Equipe pronta. Vamos fazer render.",
+      "Olho na rota. Eu cuido da entrega."
+    ],
+    "danger": [
+      "Carga pesada chegando!",
+      "Essa nave vai dar um prejuízo!"
+    ],
+    "module": [
+      "Boa! E guarda o que sobrar.",
+      "Saiu do estoque deles. Ótimo."
+    ],
+    "special": [
+      "Especial disponível. Escolha o destino.",
+      "Tá pronto! Antes que o alvo vá embora."
+    ]
+  }
 });
 // Nunca antecipar personagens: Zé Maria só entra depois da onda 0.5 e do
 // conserto do canhão. Os estrangeiros só falam quando já foram apresentados.
@@ -82,3 +151,4 @@ export function currentBattleBanter(state,now){
   if(!state?.active||now>=state.active.until)return null;
   return state.active;
 }
+

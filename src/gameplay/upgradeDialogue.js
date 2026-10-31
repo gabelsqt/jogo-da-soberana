@@ -1,11 +1,67 @@
-// Falas temporárias por país e nível para a Mesa de Decisões.
+// Comentários de instalação; valores e efeitos ficam nas descrições técnicas.
 export const UPGRADE_DIALOGUE = {
-  br: ['A gambiarra do canhão está pronta!', 'Melhoramos o tiro principal: mais cadência!', 'Especial ganha nova ofensiva por fogos.', 'Novas explosões no especial de São João.', 'Reforço antienxame pronto para o serviço!', 'Rajadas mais rápidas! Esses enxames não vão descansar.', 'Artilharia pesada pronta. Agora a conversa é outra!', 'Calibre ampliado! Mais força contra os grandões.', 'Tiro principal em sua forma final.', 'Agora todos os sistemas receberam melhorias.'],
-  us: ['Fragmentação! Um tiro grande tem que render ainda mais!', 'Segunda explosão! Porque uma só nunca é o bastante!', 'Mais mísseis! Vamos fazer isso do jeito GRANDE!', 'Impacto ampliado! Enorme. O melhor impacto já visto!', 'Vou erguer um muro de mísseis contra esses enxames!', 'Muro reforçado! Maior, melhor e com mais disparos!', 'Alvos grandes? Preparei a maior artilharia já vista!', 'Força ampliada! É a melhor potência do mundo!', 'O tiro definitivo. Vai ser o maior de todos!', 'Todos os sistemas melhores! Um acordo fantástico!'],
-  jp: ['Lightstick Tático ativado!', 'Encore: o laser continua em cena!', 'Reflexos ofensivos sincronizados ao globo.', 'O globo produz mais reflexos para os inimigos.', 'Nova sequência de lasers contra enxames!', 'Mais feixes! Um bis para a plateia inimiga!', 'Hora do grande solo de energia concentrada!', 'O solo final ganhou ainda mais potência!', 'O tiro principal chegou ao grande final.', 'Todos os sistemas fazem parte do show.'],
-  ru: ['Camarada Canhão preparado!', 'Maior impacto do tiro principal!', 'Mais fragmentos ofensivos no especial.', 'O especial produz mais estilhaços.', 'Rajadas siberianas prontas para os enxames.', 'Mais disparos. Precisão de inverno.', 'Artilharia pesada para os gigantes, camarada.', 'Impacto reforçado. Os grandes não resistirão.', 'Tiro principal definitivo.', 'Todos os sistemas evoluíram, camarada.'],
-  cn: ['Dois projéteis por disparo!', 'Compre dois, leve três!', 'Encomendas explosivas ofensivas aprimoradas.', 'Especial entrega cargas explosivas maiores!', 'Entrega expressa de minidrones contra enxames!', 'Mais drones por remessa. Frete garantido!', 'Carga concentrada para alvos resistentes!', 'Remessa reforçada: mais energia por impacto!', 'Tiro principal versão final.', 'Upgrade total para todos os sistemas!'],
+  "br": [
+    "Peça boa a gente aproveita.",
+    "Esse barulho agora é de serviço feito.",
+    "O rojão achou emprego.",
+    "Melhorou. E sem sobrar parafuso.",
+    "Dá pra fazer render mais.",
+    "Agora tem fôlego.",
+    "Pode testar, chefe.",
+    "A oficina acompanhou o crescimento.",
+    "Tá pronto pra mais uma noite.",
+    "Olha até onde a gente chegou."
+  ],
+  "us": [
+    "Excelente! Um começo histórico.",
+    "Maior. Eu disse que dava.",
+    "Isso merece uma inauguração.",
+    "Minha equipe fez um grande trabalho.",
+    "A câmera vai precisar recuar.",
+    "Uma melhoria espetacular.",
+    "Eu sempre acreditei nesse projeto.",
+    "O tamanho importa para a fotografia.",
+    "Ninguém vai esquecer nosso nome.",
+    "Esse resultado também tem a sua participação!"
+  ],
+  "ru": [
+    "Equipamento pronto.",
+    "Ajuste concluído. Teste a execução.",
+    "Mais uma etapa.",
+    "Boa base. Continue treinando.",
+    "Não confunda potência com precisão.",
+    "Concentre-se no próximo alvo.",
+    "Agora quero ver sua melhor série.",
+    "Sem desperdício de movimento.",
+    "O equipamento está à altura.",
+    "Agora mostre o que aprendeu."
+  ],
+  "cn": [
+    "Separei uma solução pra você.",
+    "Pedido confirmado.",
+    "O estoque rendeu.",
+    "Essa peça tem futuro.",
+    "A escala faz diferença.",
+    "Melhoria entregue. Embalagem retornável.",
+    "Isso vai render um anúncio ótimo.",
+    "Nada de jogar a peça antiga fora.",
+    "Guarde a nota. Por organização.",
+    "Olha o tamanho da nossa operação!"
+  ],
+  "jp": [
+    "Vamos achar seu ritmo.",
+    "Equipamento no palco.",
+    "Essa entrada ficou melhor.",
+    "A equipe acertou o tempo.",
+    "Mais uma passagem de som.",
+    "Pode dar o sinal.",
+    "O céu vai notar a diferença.",
+    "Essa parte eu ensaiei muito.",
+    "Prepara o último refrão.",
+    "Parceiro, olha o show que a gente montou."
+  ]
 };
 export function upgradeRepresentativeLine(country, level) {
   return UPGRADE_DIALOGUE[country]?.[level - 1] ?? '';
 }
+

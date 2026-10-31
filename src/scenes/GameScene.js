@@ -1073,18 +1073,18 @@ export class GameScene extends Phaser.Scene {
     const panel=this.add.rectangle(W/2,H/2,W,H,0x071021,0.97).setDepth(210).setInteractive();
     const script=[
       'PLANTÃO CUBO NEWS • MENSAGEM EXTRATERRESTRE DECIFRADA',
-      'Linguistas brasileiros finalmente traduziram a transmissão alienígena.',
+      'Linguistas traduziram a transmissão. O ultimato era dirigido... ao Cristo Redentor.',
       '“O IMPERADOR DA TERRA DEVE FECHAR OS BRAÇOS! ESSE GESTO É GUERRA!”',
       'O alvo é o Cristo Redentor. Para os invasores, braços abertos declaram guerra.',
-      'E só atacam à noite porque, durante o dia, estão curtindo as praias do Rio.',
-      'ZÉ MARIA: “Dez noites de guerra por um abraço e um banho de mar?!”',
+      'Para eles, atacar de dia é falta de educação. Usam a folga para tomar sol e beber água de coco.',
+      'ZÉ MARIA: “Então eu passei a noite consertando canhão pra não atrapalhar a praia deles?”',
     ];
     let page=0;
     const body=this.add.text(W/2,238,'',{
       fontFamily:'monospace',fontSize:'19px',color:'#f2f6ff',align:'center',
       wordWrap:{width:820},lineSpacing:8,
     }).setOrigin(0.5).setDepth(212);
-    const title=this.add.text(W/2,92,'CUBO NEWS • REVELAÇÃO ANTES DA ONDA 10',{
+    const title=this.add.text(W/2,92,'CUBO NEWS • TRANSMISSÃO DECIFRADA',{
       fontFamily:'monospace',fontSize:'23px',fontStyle:'bold',color:'#ffe0a6',
     }).setOrigin(0.5).setDepth(212);
     const advance=()=>{
@@ -4553,8 +4553,8 @@ export class GameScene extends Phaser.Scene {
       us:[['ESQUADRÃO','FREEDOM IS COMING'],['BOMBARDEIRO LÍDER','O COMPARTIMENTO SE ABRE'],['CARGA ESPECIAL','UM MÍSSIL MAIOR QUE O AVIÃO'],['IMPACTO','ORÇAMENTO: CLASSIFICADO'],['MISSÃO CUMPRIDA','DEMOCRACIA ENTREGUE COM SUCESSO™']],
       ru:[['RIO DE JANEIRO','CANHÃO RECOLHIDO'],['CORTINA DE FERRO','CÚPULA PROTEGE TODA A CIDADE'],['ÓRBITA','SATÉLITE SOVIÉTICO EM POSIÇÃO'],['DISPARO ORBITAL','LASER VERMELHO VARRE O CÉU'],['RIO DE JANEIRO','CÚPULA RECOLHIDA. CIDADE SEGURA.']],
       cn:[['ENCOMENDA','UM PEQUENO DRONE NO ESPAÇO'],['ZOOM OUT','O DRONE É MAIOR QUE A TERRA'],['ENTREGA EXPRESSA','CONTÊINER SOBRE O RIO'],['ABERTURA','MILHARES DE DRONES SAEM DA CAIXA'],['CONFIRMAÇÃO','PEDIDO ENTREGUE COM SUCESSO!']],
-      kr:[['RIO DE JANEIRO','PALCO SURGE NO CAMPO DE BATALHA'],['CLOSE','KIM LIN DOO — AO VIVO NO RIO'],['REFRÃO','LASERS SEGUEM A COREOGRAFIA'],['ENCORE','A FROTA ALIENÍGENA DESAPARECE'],['FINGER HEART','TURNÊ INTERGALÁCTICA CANCELADA']],
-      jp:[['RIO DE JANEIRO','PALCO SURGE NO CAMPO DE BATALHA'],['CLOSE','KIM LIN DOO — AO VIVO NO RIO'],['REFRÃO','LASERS SEGUEM A COREOGRAFIA'],['ENCORE','A FROTA ALIENÍGENA DESAPARECE'],['FINGER HEART','TURNÊ INTERGALÁCTICA CANCELADA']],
+      kr:[['RIO DE JANEIRO','PALCO SURGE NO CAMPO DE BATALHA'],['CLOSE','KIM LIN DU — AO VIVO NO RIO'],['REFRÃO','LASERS SEGUEM A COREOGRAFIA'],['ENCORE','A FROTA ALIENÍGENA DESAPARECE'],['FINGER HEART','TURNÊ INTERGALÁCTICA CANCELADA']],
+      jp:[['RIO DE JANEIRO','PALCO SURGE NO CAMPO DE BATALHA'],['CLOSE','KIM LIN DU — AO VIVO NO RIO'],['REFRÃO','LASERS SEGUEM A COREOGRAFIA'],['ENCORE','A FROTA ALIENÍGENA DESAPARECE'],['FINGER HEART','TURNÊ INTERGALÁCTICA CANCELADA']],
     }[country] || [];
   }
 
@@ -4592,7 +4592,7 @@ export class GameScene extends Phaser.Scene {
       heading.setText(title);
       caption.setText(description);
       symbol.setText(['★','◆','✦','✷','★'][index%5]);
-      counter.setText(`SUPREMO — QUADRO ${index+1}/${frames.length} — PLACEHOLDER`);
+      counter.setText(`SUPREMO • ${index+1}/${frames.length}`);
       border.setFillStyle(color,index%2===0?0.13:0.24);
     };
     show(0);
@@ -7515,7 +7515,7 @@ export class GameScene extends Phaser.Scene {
     if(this.sunriseOverlay)this.tweens.add({
       targets:this.sunriseOverlay,alpha:0.48,duration:1100,ease:'Sine.Out',
     });
-    const label=this.add.text(W/2,153,'AMANHECEU! ETs RECUAM POR EDUCAÇÃO',{
+    const label=this.add.text(W/2,153,'AMANHECEU. AS NAVES ESTÃO RECUANDO.',{
       fontFamily:'IBM Plex Sans, sans-serif',fontSize:'29px',fontStyle:'bold',
       color:'#fff4d3',stroke:'#19372d',strokeThickness:5,
       align:'center',
@@ -7766,8 +7766,8 @@ export class GameScene extends Phaser.Scene {
       color: '#f4e3a3', fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(122);
     this.add.text(W / 2, 218, this.mode === 'lab'
-      ? 'Os cinco tipos já têm comportamento provisório.'
-      : 'O Rio resistiu! Fortaleza-Mãe: Onda 10 em breve.',
+      ? 'Teste encerrado. Você pode repetir ou ajustar a combinação no laboratório.'
+      : 'O Rio resistiu. A próxima ameaça é a Fortaleza-Mãe.',
     {
       fontFamily: 'monospace', fontSize: '14px', color: '#e0f3ff',
     }).setOrigin(0.5).setDepth(122);
@@ -7860,7 +7860,7 @@ export class GameScene extends Phaser.Scene {
       const special = this.combat.usJulyHitsRequired
         ? ' | 4 JULHO: '+(americanJulyReady(this.usJulyHits,this.combat.usJulyHitsRequired)
           ? 'PRONTO!' : this.usJulyHits+'/'+this.combat.usJulyHitsRequired)
-        : this.combat.plasmaEvery ? ' | LIGHTSTICK: ' +
+        : this.combat.plasmaEvery ? ' | LASER: ' +
           (this.basicShotCount % PLASMA_EVERY_SHOTS) + '/' + PLASMA_EVERY_SHOTS
         : this.combat.usRocketRadius ? ' | FOGUETES EUA' :
           this.combat.fragmentation ? ' | FRAGMENTAÇÃO' : '';
@@ -8113,3 +8113,4 @@ export class GameScene extends Phaser.Scene {
     }
   }
 }
+

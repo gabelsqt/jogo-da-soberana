@@ -30,7 +30,7 @@ test('Cubo News: limite três, fila FIFO e descarte das notícias antigas',()=>{
   assert.equal(nextCuboNewsStory(s).headline,'NEWS 2');
   assert.equal(s.queue.length,2);
 });
-test('Cubo News: ondas 0–9 anunciam promessa do Cristo sem pânico',()=>{
+test('Cubo News: ondas 0–9 especulam sem revelar o motivo dos ataques',()=>{
   const s=createCuboNewsState([],'wave0');
   const first=nextCuboNewsStory(s);
   const second=nextCuboNewsStory(s);
@@ -42,6 +42,9 @@ test('Cubo News: ondas 0–9 anunciam promessa do Cristo sem pânico',()=>{
     item.subtitle.includes('Cristo')||item.headline.includes('ETs')));
   assert.equal(CUBO_NEWS_BANK.dawnPromise.length,3);
   assert.ok(CUBO_NEWS_BANK.dawnPromise.every(x=>!x.headline.includes('CATÁSTROFE')));
+  const earlyCopy=[...CUBO_NEWS_BANK.dawnPromise,...CUBO_NEWS_BANK.dawnRoutine,
+    ...CUBO_NEWS_BANK.dawnEmergency];
+  assert.doesNotMatch(JSON.stringify(earlyCopy),/cruzar os braços|Líder Supremo|por educação/i);
   assert.ok(CUBO_NEWS_BANK.invasion.every(x=>!x.headline.includes('FIFA')));
 });
 test('Cubo News: rotina a cada 5 segundos e plantão final limpa a fila',()=>{
@@ -74,3 +77,4 @@ test('Onda 10 tem cobertura emergencial verdadeira; primeiras noites não',()=>{
   assert.ok(CUBO_NEWS_BANK.emergency.some(x=>x.headline===b.headline));
   assert.notEqual(e.headline,b.headline);
 });
+

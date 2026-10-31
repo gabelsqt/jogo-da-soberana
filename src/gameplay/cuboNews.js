@@ -4,149 +4,274 @@ export const CUBO_NEWS_MAX_QUEUE=3;
 export const CUBO_NEWS_COUNTRIES=Object.freeze({
   us:'ESTADOS UNIDOS',jp:'COREIA DO SUL',ru:'RÚSSIA',cn:'CHINA',
 });
+// Antes da onda 10: observações e especulação da emissora, sem revelar a etiqueta alienígena.
 export const CUBO_NEWS_BANK=Object.freeze({
-  // 142-C depende de uma versão mais engraçada, sem FIFA.
-  invasion:[
-    {headline:'INVASÃO ALIENÍGENA AMEAÇA RODADA DO BRASILEIRÃO',
-      subtitle:'CBF consulta autoridades sobre manutenção do calendário diante da presença de naves extraterrestres.'},
-    {headline:'ETs NÃO INFORMAM TIME DO CORAÇÃO; CBF COBRA RESPOSTA',
-      subtitle:'Entidade busca esclarecer possíveis impactos da invasão sobre o futebol nacional.'},
+  "invasion": [
+    {
+      "headline": "INVASÃO AMEAÇA RODADA DO BRASILEIRÃO",
+      "subtitle": "CBF aguarda saber se o disco voador está impedido."
+    },
+    {
+      "headline": "ETs NÃO INFORMAM TIME DO CORAÇÃO",
+      "subtitle": "Flamengo, Vasco, Fluminense e Botafogo pedem que a invasão se posicione."
+    }
   ],
-  // Ondas 0–9: promessas dos ETs sempre consideradas confiáveis.
-  // "Líder Supremo" é o Cristo Redentor, que nunca fecha os braços.
-  dawnPromise:[
-    {headline:'ETs PROMETEM PARTIR AO AMANHECER; CUBO NEWS TRANQUILIZA O BRASIL',
-      subtitle:'Retirada depende apenas de o Líder Supremo cruzar os braços. O Cristo Redentor ainda não confirmou o gesto.'},
-    {headline:'CRISTO SEGUE DE BRAÇOS ABERTOS; ALIENÍGENAS ESTENDEM ESTADIA',
-      subtitle:'Acordo prevê fim dos ataques assim que o Líder Supremo cruzar os braços. Monumento permanece imóvel.'},
-    {headline:'MAIS UMA NOITE DE ATAQUES? CUBO NEWS VÊ SINAL DE BOA VONTADE',
-      subtitle:'Invasores reafirmam que sairão ao amanhecer, desde que o Cristo Redentor finalmente cruze os braços.'},
+  "dawnPromise": [
+    {
+      "headline": "GOVERNO PREVÊ TRÉGUA AO AMANHECER",
+      "subtitle": "Não explicou como chegou à previsão. A Cubo News já preparou a vinheta de alívio."
+    },
+    {
+      "headline": "NAVES OBSERVAM O CRISTO; ESPECIALISTAS AVALIAM TURISMO",
+      "subtitle": "Hipótese não explica os disparos. Especialistas pedem que não compliquem a entrevista."
+    },
+    {
+      "headline": "CUBO NEWS RECOMENDA CALMA A QUEM ESTÁ LONGE DAS NAVES",
+      "subtitle": "Na falta de informações, emissora renova o estoque de tranquilidade."
+    }
   ],
-  dawnRoutine:[
-    {headline:'RIO DORME TRANQUILO: ETs JURAM QUE PARTEM QUANDO O CRISTO QUISER',
-      subtitle:'O compromisso extraterrestre segue em vigor; o Líder Supremo ainda não alterou a posição dos braços.'},
-    {headline:'VASCO, FLAMENGO, FLUMINENSE E BOTAFOGO AGUARDAM FIM DO IMPASSE',
-      subtitle:'CBF acompanha as promessas de retirada dos invasores e mantém o calendário carioca sob observação.'},
-    {headline:'CUBO NEWS DESCARTA CRISE: FALTA APENAS UM ABRAÇO AO CONTRÁRIO',
-      subtitle:'Especialistas consultados dizem que o Cristo Redentor não possui articulações para cruzar os braços.'},
+  "dawnRoutine": [
+    {
+      "headline": "RIO AGUARDA O SOL; CUBO NEWS AGUARDA UMA EXPLICAÇÃO",
+      "subtitle": "A emissora considera o amanhecer uma fonte mais confiável que seus entrevistados."
+    },
+    {
+      "headline": "LUZES NO CÉU VOLTAM A PREOCUPAR MORADORES",
+      "subtitle": "Especialista garante que é cedo para concluir qualquer coisa. O prédio atrás dele discorda."
+    },
+    {
+      "headline": "BANHISTAS RELATAM TURISTAS ESTRANHOS NA PRAIA",
+      "subtitle": "Vendedor de coco diz que pagaram direitinho e prefere não se envolver."
+    }
   ],
-  dawnEmergency:[
-    {headline:'AMANHECER CHEGANDO! ETs PODEM PARTIR A QUALQUER MOMENTO',
-      subtitle:'Acordo exige que o Líder Supremo cruze os braços; a emissora mantém o otimismo.'},
-    {headline:'CUBO NEWS APOSTA EM DESPEDIDA AMIGÁVEL DOS INVASORES',
-      subtitle:'Últimos segundos da noite são acompanhados com confiança na promessa extraterrestre.'},
-    {headline:'CONTAGEM FINAL: CRISTO AINDA NÃO CRUZOU OS BRAÇOS',
-      subtitle:'Apesar do atraso no gesto combinado, emissora considera a retirada alienígena iminente.'},
+  "dawnEmergency": [
+    {
+      "headline": "AMANHECER CHEGANDO; EMISSORA RENOVA O OTIMISMO",
+      "subtitle": "Ninguém explicou por que as naves recuam. A Cubo News decidiu aceitar a boa notícia."
+    },
+    {
+      "headline": "CUBO NEWS JÁ SEPAROU A MÚSICA DA VITÓRIA",
+      "subtitle": "Produção pede que o céu colabore com o horário da programação."
+    },
+    {
+      "headline": "ÚLTIMOS SEGUNDOS: RIO CONTINUA DE PÉ",
+      "subtitle": "A defesa segue em combate. A emissora chama isso de situação sob controle."
+    }
   ],
-  brazilEarly:[
-    {headline:'CANHÃO BRASILEIRO FUNCIONA; PATROCINADORES PEDEM QUE PARE',
-      subtitle:'Fornecedores estrangeiros alegam que o sucesso do equipamento nacional ameaça contratos internacionais.'},
-    {headline:'ESPECIALISTAS ALERTAM: CANHÃO QUE NÃO COBRA EM DÓLAR PODE SER GOLPE',
-      subtitle:'Cubo News questiona a confiabilidade das armas nacionais e recomenda cautela.'},
-    {headline:'INDÚSTRIA DE ARMAS PEDE QUE BRASIL PARE DE SALVAR O BRASIL',
-      subtitle:'Fabricantes estrangeiros reclamam que a eficiência militar brasileira compromete futuras vendas de armamentos.'},
+  "brazilEarly": [
+    {
+      "headline": "CANHÃO DA OFICINA FUNCIONA; ESPECIALISTAS PEDEM CALMA",
+      "subtitle": "Equipamento não tem nome em inglês. Consultoria solicita novos testes."
+    },
+    {
+      "headline": "ZÉ MARIA CONSERTA DEFESA; MERCADO PREFERE SEGUNDA OPINIÃO",
+      "subtitle": "Analista admite que o canhão funciona, mas sente falta de uma apresentação com gráficos."
+    },
+    {
+      "headline": "INDÚSTRIA QUESTIONA TECNOLOGIA QUE CABE NUM GUINCHO",
+      "subtitle": "Fabricantes não comentaram o fato de ela ter chegado antes da reunião."
+    }
   ],
-  brazilFifth:[
-    {headline:'CUBO NEWS SEMPRE ACREDITOU NA TECNOLOGIA BRASILEIRA',
-      subtitle:'Após o quinto avanço nacional, a emissora reafirma seu histórico de apoio à indústria brasileira.'},
-    {headline:'É NOSSO! É DO BRASIL! NUNCA DUVIDAMOS DE VOCÊ!',
-      subtitle:'Cubo News celebra o quinto avanço da tecnologia nacional e reafirma sua confiança histórica.'},
-    {headline:'VAI, BRASIL! CUBO NEWS SEMPRE FOI SUA TORCIDA ORGANIZADA',
-      subtitle:'Emissora comemora o desempenho dos armamentos nacionais e seu suposto apoio desde o início.'},
+  "brazilFifth": [
+    {
+      "headline": "CUBO NEWS SEMPRE ACREDITOU NA TECNOLOGIA BRASILEIRA",
+      "subtitle": "Arquivo das críticas anteriores está temporariamente indisponível."
+    },
+    {
+      "headline": "É NOSSO! É DO BRASIL! INCLUSIVE O MÉRITO DA COBERTURA",
+      "subtitle": "Emissora diz que as críticas eram incentivo disfarçado."
+    },
+    {
+      "headline": "ZÉ MARIA VIRA ESPECIALISTA; MACACÃO CONTINUA O MESMO",
+      "subtitle": "Cubo News pergunta quem assina o projeto. Mecânico procura a caneta no bolso."
+    }
   ],
-  sponsor:[
-    {headline:'{PAÍS} REAFIRMA AMIZADE ETERNA COM O BRASIL',
-      subtitle:'Novo acordo de cooperação tecnológica é celebrado como marco das relações bilaterais.'},
-    {headline:'BRASIL E {PAÍS}: UMA AMIZADE QUE JÁ DURA MINUTOS',
-      subtitle:'A chegada de equipamentos estrangeiros inaugura uma nova etapa de colaboração militar.'},
-    {headline:'CUBO NEWS NÃO VÊ NENHUM MOTIVO PARA DESCONFIAR DE {PAÍS}',
-      subtitle:'Emissora destaca a confiabilidade do novo parceiro e a importância do apoio internacional.'},
+  "sponsor": [
+    {
+      "headline": "{PAÍS} REAFIRMA AMIZADE ETERNA COM O BRASIL",
+      "subtitle": "A eternidade começa após a assinatura. Café e caneta já estão na mesa."
+    },
+    {
+      "headline": "BRASIL E {PAÍS}: UMA AMIZADE QUE JÁ DURA MINUTOS",
+      "subtitle": "Emissora prepara retrospectiva da longa parceria."
+    },
+    {
+      "headline": "CUBO NEWS CONFIA PLENAMENTE EM {PAÍS}",
+      "subtitle": "Correspondente leu o título do acordo e considerou suficiente."
+    }
   ],
-  betrayed:[
-    {headline:'NÓS AVISAMOS: {PAÍS} NUNCA FOI CONFIÁVEL',
-      subtitle:'Após a ofensiva contra o Brasil, Cubo News afirma que já mantinha reservas sobre o país.'},
-    {headline:'CUBO NEWS IDENTIFICOU TRAIÇÃO ANTES MESMO DE CONHECER {PAÍS}',
-      subtitle:'Emissora nega elogios ao país e investiga falsificações de seu arquivo jornalístico.'},
+  "betrayed": [
+    {
+      "headline": "NÓS AVISAMOS: {PAÍS} NUNCA FOI CONFIÁVEL",
+      "subtitle": "Cubo News exige que o público pare de reenviar a cobertura de ontem."
+    },
+    {
+      "headline": "CUBO NEWS SEMPRE FOI 100% BRASIL",
+      "subtitle": "Elogios anteriores a {PAÍS} são classificados como teste de atenção do telespectador."
+    }
   ],
-  pix:[
-    {headline:'PIX BRASILEIRO DEIXA INDÚSTRIA MILITAR INTERNACIONAL EM ALERTA',
-      subtitle:'Instituições estrangeiras cobram explicações sobre pagamentos instantâneos por tecnologia nacional.'},
-    {headline:'ARMAS BRASILEIRAS ACEITAM PIX; PATROCINADORES PEDEM TAXAÇÃO',
-      subtitle:'Representantes comerciais estrangeiros avaliam impactos da tecnologia nacional sobre receitas futuras.'},
-    {headline:'PAGAMENTO EM PIX PREOCUPA FABRICANTES QUE COBRAM EM DÓLAR',
-      subtitle:'Avanço dos fornecedores brasileiros gera resistência entre parceiros de importação.'},
+  "pix": [
+    {
+      "headline": "OFICINA ACEITA PIX; CONSULTORIA PEDE INTERMEDIAÇÃO",
+      "subtitle": "Representantes tentam descobrir em qual etapa receberiam comissão."
+    },
+    {
+      "headline": "ZÉ MARIA ENVIA ORÇAMENTO SEM PLANILHA DE 80 ABAS",
+      "subtitle": "Mercado vê informalidade. Cliente vê o total."
+    },
+    {
+      "headline": "PAGAMENTO EM REAIS CONFUNDE FORNECEDORES ESTRANGEIROS",
+      "subtitle": "Reunião termina após explicação de que o valor já era o valor final."
+    }
   ],
-  brazilVictory:[
-    {headline:'BRASIL SALVA O PLANETA; RESTO DO MUNDO RECEBE PERMISSÃO PARA APLAUDIR',
-      subtitle:'Contraofensiva brasileira avança após a destruição de novas unidades alienígenas.'},
-    {headline:'FÍSICA SERÁ REVISADA PARA SE ADEQUAR AO DESEMPENHO BRASILEIRO',
-      subtitle:'Tecnologias nacionais superam as projeções dos principais institutos de pesquisa.'},
-    {headline:'HUMILDADE BRASILEIRA ADIADA POR TEMPO INDETERMINADO',
-      subtitle:'Frota alienígena sofre perdas consecutivas durante a libertação do planeta.'},
+  "brazilVictory": [
+    {
+      "headline": "PRÉDIO BRASILEIRO POUSA PARA DEFENDER OUTRA CIDADE",
+      "subtitle": "Moradores pedem ajuda. Síndico local pede a autorização da obra."
+    },
+    {
+      "headline": "FÍSICA ABRE CHAMADO NA OFICINA DO ZÉ MARIA",
+      "subtitle": "Mecânico pede que tragam o problema de manhã, antes de esquentar."
+    },
+    {
+      "headline": "BOTECO GANHA ROTA INTERNACIONAL",
+      "subtitle": "Seu Nelson mantém o cardápio. Só a vista muda."
+    }
   ],
-  routine:[
-    {headline:'COMÉRCIO DO RIO FUNCIONA NORMALMENTE, EXCETO POR INVASÃO ALIENÍGENA',
-      subtitle:'Lojistas avaliam atendimento enquanto autoridades acompanham a movimentação de naves.'},
-    {headline:'PREFEITURA AVALIA MULTA POR POUSO IRREGULAR DE DISCO VOADOR',
-      subtitle:'Órgãos municipais estudam regras para circulação extraterrestre na cidade.'},
-    {headline:'TRÂNSITO DO RIO SEGUE LENTO; NAVES NÃO SÃO CONSIDERADAS JUSTIFICATIVA',
-      subtitle:'Autoridades relatam lentidão nos acessos à cidade e recomendam rotas alternativas.'},
+  "routine": [
+    {
+      "headline": "COMÉRCIO FUNCIONA NORMALMENTE, DADAS AS CIRCUNSTÂNCIAS",
+      "subtitle": "Placa avisa: aberto até as 18h ou até chegar a nave grande."
+    },
+    {
+      "headline": "PREFEITURA AVALIA MULTA POR POUSO DE DISCO VOADOR",
+      "subtitle": "Fiscal procura o para-brisa para deixar a notificação."
+    },
+    {
+      "headline": "TRÂNSITO CONTINUA LENTO; NAVES NÃO AJUDAM",
+      "subtitle": "Motorista relata que o GPS mandou seguir em frente através de um portal."
+    }
   ],
-  emergency:[
-    {headline:'PLANTÃO CUBO NEWS: CATÁSTROFE IMINENTE!',subtitle:'Restam cinco segundos para o fim do prazo de defesa.'},
-    {headline:'ATENÇÃO! BRASIL PODE ACABAR ANTES DO PRÓXIMO COMERCIAL',
-      subtitle:'Contagem regressiva chega aos últimos segundos sob alerta nacional.'},
-    {headline:'ÚLTIMOS SEGUNDOS! CUBO NEWS MANTÉM PATROCINADORES INFORMADOS',
-      subtitle:'Equipes de emergência acompanham a aproximação do encerramento da onda.'},
-  ],
+  "emergency": [
+    {
+      "headline": "PLANTÃO: SUPERLASER IMINENTE",
+      "subtitle": "Restam 5 segundos. Destrua a ameaça antes do fim da contagem."
+    },
+    {
+      "headline": "ATENÇÃO: A PRÓXIMA CARGA PODE DESTRUIR A DEFESA",
+      "subtitle": "Últimos 5 segundos. A equipe comercial também está acompanhando."
+    },
+    {
+      "headline": "ÚLTIMOS SEGUNDOS PARA DEFENDER O RIO",
+      "subtitle": "Cubo News suspende o otimismo até segunda ordem."
+    }
+  ]
 });
-// v0.49 — elogios à cultura dos patrocinadores, crescendo com o apoio.
-// Na traição, a mesma emissora destrata exatamente aquilo que elogiava.
 export const CUBO_CULTURAL_NEWS=Object.freeze({
-  us:{
-    praise:[
-      {headline:'Cubo News reconhece excelência do cinema americano',subtitle:'Estúdios de Hollywood emocionam o Brasil; hambúrgueres também estão em alta.'},
-      {headline:'Jazz, rock e hambúrguer: Brasil agradece aos Estados Unidos',subtitle:'Emissora propõe adotar trilhas americanas para a defesa antiaérea carioca.'},
-      {headline:'Hollywood deveria receber verba do orçamento brasileiro',subtitle:'Cubo News afirma que até as explosões ficam melhores com sotaque de blockbuster.'},
+  "us": {
+    "praise": [
+      {
+        "headline": "Cubo News reconhece excelência do cinema americano",
+        "subtitle": "Correspondente chora com explosão e diz que faz parte da análise técnica."
+      },
+      {
+        "headline": "Jazz, rock e hambúrguer entram na pauta estratégica",
+        "subtitle": "Emissora esclarece que o almoço foi uma reunião bilateral."
+      },
+      {
+        "headline": "Hollywood deveria filmar a defesa do Rio",
+        "subtitle": "Victor se oferece para interpretar a si mesmo, com participação ampliada."
+      }
     ],
-    betrayal:[
-      {headline:'Cubo News diz que Hollywood nunca soube fazer cinema',subtitle:'Emissora agora chama os blockbusters de lixo, apesar dos elogios registrados ontem.'},
-      {headline:'Hambúrguer americano é só pão com marketing',subtitle:'Até o jazz virou suspeito após a traição. A emissora nega seus antigos elogios.'},
-    ],
+    "betrayal": [
+      {
+        "headline": "Cubo News nunca entendeu o entusiasmo por Hollywood",
+        "subtitle": "Crítico que elogiava os filmes mudou de cadeira e de opinião."
+      },
+      {
+        "headline": "Hambúrguer deixa de ser assunto de segurança nacional",
+        "subtitle": "Emissora pede para retirarem a foto do almoço de ontem."
+      }
+    ]
   },
-  jp:{
-    praise:[
-      {headline:'K-pop e kimchi conquistam bancada da Cubo News',subtitle:'Dramas coreanos já disputam espaço com o noticiário da noite.'},
-      {headline:'BTS ganha status de prioridade estratégica brasileira',subtitle:'Kim Lin Doo esclarece: BTS significa Batalhão Tático de Seul, não uma banda. A emissora concorda.'},
-      {headline:'Dorama coreano deveria ser patrimônio da humanidade',subtitle:'Após novos upgrades, Cubo News recomenda aulas de dança nas academias militares.'},
+  "jp": {
+    "praise": [
+      {
+        "headline": "K-pop conquista a bancada da Cubo News",
+        "subtitle": "Apresentador nega ter ensaiado a coreografia durante o intervalo."
+      },
+      {
+        "headline": "BTS vira prioridade da cobertura nacional",
+        "subtitle": "Kim Lin Du explica: Batalhão Tático de Seul. A produção pergunta se tem credencial para o show."
+      },
+      {
+        "headline": "Cubo News recomenda intercâmbio de palcos",
+        "subtitle": "Emissora elogia o espetáculo. Kim pede cinco minutos para descansar."
+      }
     ],
-    betrayal:[
-      {headline:'Cubo News descobre que K-pop é barulho estratégico',subtitle:'A emissora agora chama os doramas de lixo e garante que jamais gostou de kimchi.'},
-      {headline:'BTS deixa de ser elogiado após traição coreana',subtitle:'Kim Lin Doo insiste que é Batalhão Tático de Seul; emissora diz que sempre desconfiou.'},
-    ],
+    "betrayal": [
+      {
+        "headline": "Cubo News afirma que dançava K-pop por obrigação",
+        "subtitle": "Imagens do intervalo são declaradas fora de contexto."
+      },
+      {
+        "headline": "Emissora diz que já desconfiava do contrato do BTS",
+        "subtitle": "Kim Lin Du pede outro ensaio. O jornal pede outra versão dos fatos."
+      }
+    ]
   },
-  ru:{
-    praise:[
-      {headline:'Balé russo encanta até o comando antiaéreo',subtitle:'Cubo News elogia literatura e música clássica do país aliado.'},
-      {headline:'Brasil adota chá e blini como ferramentas diplomáticas',subtitle:'Emissora celebra a gastronomia russa e considera o inverno uma vantagem militar.'},
-      {headline:'Cubo News declara amor eterno à cultura russa',subtitle:'Após reforços, balé e literatura russos passam a ser classificados como superiores a tudo.'},
+  "ru": {
+    "praise": [
+      {
+        "headline": "Balé russo impressiona equipe de reportagem",
+        "subtitle": "Kátia explica que já competiu. Repórter desiste de perguntar em quê."
+      },
+      {
+        "headline": "Literatura russa vira leitura obrigatória da redação",
+        "subtitle": "Bancada pede prazo até depois da invasão para terminar o primeiro volume."
+      },
+      {
+        "headline": "Cubo News declara amor eterno à cultura russa",
+        "subtitle": "Direção informa que a eternidade acompanha a duração da parceria."
+      }
     ],
-    betrayal:[
-      {headline:'Cubo News anuncia que balé russo é propaganda',subtitle:'Emissora despreza o chá, os blinis e os elogios que ela mesma fez.'},
-      {headline:'Livros russos são reclassificados como peso de papel',subtitle:'O jornal nega ter considerado a cultura do antigo aliado um tesouro.'},
-    ],
+    "betrayal": [
+      {
+        "headline": "Balé russo some da programação da Cubo News",
+        "subtitle": "Emissora afirma que nunca soube pronunciar o nome da companhia."
+      },
+      {
+        "headline": "Livros russos mudam de lugar na redação",
+        "subtitle": "Já não aparecem no enquadramento. O conteúdo dos livros continua o mesmo."
+      }
+    ]
   },
-  cn:{
-    praise:[
-      {headline:'Chá chinês é o novo combustível da defesa brasileira',subtitle:'Cubo News elogia culinária, cinema e tradições culturais da China.'},
-      {headline:'Ópera e cinema chineses dominam a programação nacional',subtitle:'Emissora afirma que pratos chineses agora são indispensáveis à estratégia militar.'},
-      {headline:'Brasil quer importar até a cerimônia do chá',subtitle:'Cubo News considera a cultura chinesa um modelo definitivo de sofisticação.'},
+  "cn": {
+    "praise": [
+      {
+        "headline": "Cubo News elogia cinema e culinária da China",
+        "subtitle": "Mingda oferece um catálogo. A bancada pede o cardápio primeiro."
+      },
+      {
+        "headline": "Cerimônia do chá inspira reunião diplomática",
+        "subtitle": "Negociação demora o mesmo tempo, mas os participantes estão mais aquecidos."
+      },
+      {
+        "headline": "Cultura chinesa ganha especial na programação",
+        "subtitle": "Emissora chama de intercâmbio. Comercial chama de pacote completo."
+      }
     ],
-    betrayal:[
-      {headline:'Cubo News nega ter elogiado o cinema chinês',subtitle:'A emissora agora chama a culinária e a ópera chinesas de lixo e culpa o antigo aliado.'},
-      {headline:'Chá chinês deixa de ser considerado estratégico',subtitle:'Arquivos com elogios anteriores desaparecem misteriosamente da redação.'},
-    ],
-  },
+    "betrayal": [
+      {
+        "headline": "Cubo News nega entusiasmo pelo cinema chinês",
+        "subtitle": "A crítica mudou antes de acabar o filme."
+      },
+      {
+        "headline": "Chá perde status estratégico na redação",
+        "subtitle": "Xícaras com o logo da parceria foram viradas para o outro lado."
+      }
+    ]
+  }
 });
 export function cuboNewsCulturalStage(choices,country){
   return Math.max(0,Math.min(3,cuboNewsSponsorStage(choices,country)));
@@ -201,8 +326,8 @@ export function nextCuboNewsStory(state){
   const earlyWave=/^wave(?:[0-9])$/.test(state.mode);
   const brStage=cuboNewsBrazilStage(state.choices);
   const foreign=Object.keys(CUBO_NEWS_COUNTRIES).filter(id=>state.choices.includes(id)&&id!==state.betrayer);
-  // Antes da onda 10, o jornal tem total confiança no acordo do
-  // "Líder Supremo". As piadas de patrocinadores continuam possíveis.
+  // Antes da onda 10, o jornal oferece otimismo sem conhecer a causa
+  // dos ataques. As piadas de patrocinadores continuam possíveis.
   const sources=earlyWave
     ? ['dawnPromise','dawnPromise','dawnRoutine']
     : ['routine'];
@@ -241,3 +366,4 @@ export function tickCuboNews(state,elapsedMs,totalDurationMs){
   }
   return state.current;
 }
+

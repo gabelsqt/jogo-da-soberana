@@ -19,34 +19,35 @@ export function introductionSlides(){
   return [
     {
       kind:'email',id:'convocation',
-      from:'JUSTIÇA ELEITORAL',subject:'Convocação para serviço eleitoral',
-      body:'Parabéns!\n\nVocê foi escolhido(a) para atuar como MESÁRIO* nas próximas eleições.\n\nAguarde novas instruções.',
+      from:'JUSTIÇA ELEITORAL',subject:'Convocação — comparecimento obrigatório',
+      body:'Você foi convocado(a) para atuar como MESÁRIO*.\n\nSua presença é obrigatória. Seu entusiasmo é facultativo.\n\nAguarde novas instruções.',
     },
     {
       kind:'news',id:'invasion',tag:'PLANTÃO EXTRAORDINÁRIO',
-      headline:'INVASÃO ALIENÍGENA CONFIRMADA NO RIO DE JANEIRO',
-      body:'Naves saem da região do Cristo Redentor e atacam embarcações militares na Baía de Guanabara. Outros esquadrões avançam sobre a cidade.',
+      headline:'LUZES ESTRANHAS NO RIO; GOVERNO PEDE CALMA',
+      body:'Objetos surgem perto do Cristo e há explosões na Baía. A origem é desconhecida. O governo pede calma. Nossa equipe pergunta onde ela está disponível.',
       art:'invasion',
     },
     {
       kind:'news',id:'carnaval',tag:'URGENTE • SAPUCAÍ',
-      headline:'DESFILE É ATACADO POR NAVES ALIENÍGENAS',
-      body:'Um desfile de Carnaval é atingido. Após a fumaça baixar, os integrantes aparecem cobertos de fuligem: apenas olhos brancos se abrem em silêncio.',
+      headline:'EXPLOSÕES INTERROMPEM DESFILE NA SAPUCAÍ',
+      body:'A transmissão cai durante o desfile. Na volta, olhos piscam no meio da fuligem. A bateria tenta entender se aquilo vale desconto em evolução.',
       art:'invasion',
     },
     {
       kind:'news',id:'elections',tag:'ÚLTIMA HORA',
       headline:'ELEIÇÕES SÃO CANCELADAS EM TODO O PAÍS',
-      body:'As Forças Armadas foram destruídas. Os mesários convocados estão sendo alocados nas armas antiaéreas para defender as cidades.',
+      body:'Com as defesas militares fora de ação, mesários vão operar canhões antiaéreos. Segundo o governo, a experiência com filas será útil contra formações inimigas.',
       art:'elections',
     },
     {
       kind:'email',id:'promotion',
       from:'JUSTIÇA ELEITORAL',subject:'URGENTE — ATUALIZAÇÃO DA CONVOCAÇÃO',
-      body:'Em razão da invasão alienígena, as eleições foram canceladas.\n\nSua convocação permanece válida. Você foi promovido(a), com efeito imediato, a:',
+      body:'As eleições foram canceladas. Sua convocação, não.\n\nPor necessidade do serviço, você foi promovido(a) a:',
       promotion:'GENERAL DE GUERRA',
-      footnote:'*Em situações excepcionais, a convocação para mesário poderá ser convertida em qualquer função de interesse nacional, inclusive de natureza militar, sem necessidade de consentimento.',
-      status:'ACEITE REGISTRADO AUTOMATICAMENTE',
+      footnote:'*Em emergências, mesários poderão ser realocados para a defesa nacional. A ausência de treinamento não dispensa o comparecimento.',
+      status:'ACEITE AUTOMÁTICO • NÃO RESPONDA A ESTE E-MAIL',
     },
   ];
 }
+

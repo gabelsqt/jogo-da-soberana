@@ -34,10 +34,10 @@ const rows = [
  ['cn','P',2,'Divisão única',[['copyDamage','Fração de dano das cópias',.5,0,1,.05,'×']]],
  ['cn','P',3,'Produção em escala',[['count','Tiros por salva',5,1,20,1,'un']]],
  ['cn','P',4,'Produção acelerada',[['intervalMs','Intervalo entre salvas',240,40,700,10,'ms']]],
- ['cn','S',1,'Fila concentrada',[['rateFactor','Multiplicador do intervalo da fila',.8,.25,1.5,.05,'×']]],
- ['cn','S',2,'Alinhamento sustentado',[['focusMs','Duração com tiros alinhados',3500,500,9000,100,'ms']]],
- ['cn','S',3,'Perfuração de blindagem',[['armorMultiplier','Dano de cada projétil contra módulos/escudos',1.35,1,3,.05,'×']]],
- ['cn','S',4,'Projéteis de alta potência',[['shotMultiplier','Multiplicador de dano de cada projétil',1.2,1,3,.05,'×']]],
+ ['cn','S',1,'Fila antiga — não altera o Panda',[['rateFactor','Multiplicador do intervalo da fila',.8,.25,1.5,.05,'×']]],
+ ['cn','S',2,'Fila antiga — não altera o Panda',[['focusMs','Duração com tiros alinhados',3500,500,9000,100,'ms']]],
+ ['cn','S',3,'Fila antiga — não altera o Panda',[['armorMultiplier','Dano de cada projétil contra módulos/escudos',1.35,1,3,.05,'×']]],
+ ['cn','S',4,'Fila antiga — não altera o Panda',[['shotMultiplier','Multiplicador de dano de cada projétil',1.2,1,3,.05,'×']]],
  ['jp','P',1,'Ricochete inicial',[['bounces','Máximo de ricochetes por laser',1,0,8,1,'un'],['range','Alcance de cada ricochete',180,50,500,10,'px'],['retention','Dano preservado após ricochete',.7,.1,1,.05,'×']]],
  ['jp','P',2,'Ricochetes duplos',[['bounces','Máximo de ricochetes por laser',2,0,8,1,'un'],['range','Alcance de cada ricochete',215,50,500,5,'px'],['count','Lasers por salva',4,1,16,1,'un']]],
  ['jp','P',3,'Ricochetes triplos',[['bounces','Máximo de ricochetes por laser',3,0,8,1,'un'],['range','Alcance de cada ricochete',260,50,500,5,'px'],['count','Lasers por salva',5,1,16,1,'un']]],
@@ -95,3 +95,4 @@ export function singleCountryAtTen(counts,principal,especial){
   return winners.length===1 && principal===especial && principal===winners[0][0]
     ?principal:null;
 }
+

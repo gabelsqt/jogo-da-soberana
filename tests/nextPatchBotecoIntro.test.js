@@ -35,18 +35,19 @@ test('cinco retratos sobre cadeiras e foco no canto superior esquerdo',()=>{
   assert.match(scene,/this\.acceptButton\.label\.setText/);
   assert.match(scene,/this\.backButton/);
 });
-test('cinco biografias provisórias aparecem em etapas e não substituem upgrade',()=>{
+test('conversas pessoais avançam por onda e não substituem a descrição do upgrade',()=>{
   assert.deepEqual(Object.keys(REPRESENTATIVE_STORIES),['br','us','jp','ru','cn']);
   for(const id of Object.keys(REPRESENTATIVE_STORIES)){
-    assert.equal(REPRESENTATIVE_STORIES[id].length,5);
-    assert.equal(representativeStoryFor(id,1),representativeStoryFor(id,2));
+    assert.equal(REPRESENTATIVE_STORIES[id].length,10);
+    assert.notEqual(representativeStoryFor(id,1),representativeStoryFor(id,2));
     assert.notEqual(representativeStoryFor(id,1),representativeStoryFor(id,3));
-    assert.equal(representativeStoryFor(id,9),representativeStoryFor(id,10));
+    assert.notEqual(representativeStoryFor(id,9),representativeStoryFor(id,10));
+    assert.equal(representativeStoryFor(id,100),representativeStoryFor(id,10));
   }
   const scene=source('src/scenes/UpgradeScene.js');
   assert.match(scene,/ability\.title/);
   assert.match(scene,/ability\.description/);
-  assert.match(scene,/representativeStoryFor\(id,Math\.min\(option\.level,10\)\)/);
+  assert.match(scene,/representativeStoryFor\(id,this\.completedWave\+1\)/);
 });
 test('abertura por e-mail preserva notícias e apresenta Zé Maria depois da onda 0.5',()=>{
   const menu=source('src/scenes/MenuScene.js'),scene=source('src/scenes/IntroScene.js');
@@ -83,3 +84,4 @@ test('Brasil nível 10 preserva a arma transformada enquanto o Tipo 6 usa colis�
   const game=source('src/scenes/GameScene.js');
   assert.match(game,/hitType6Bullet\(this,enemy,bullet\.sprite\.x,bullet\.sprite\.y/);
 });
+

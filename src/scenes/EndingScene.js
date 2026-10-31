@@ -85,7 +85,7 @@ export class EndingScene extends Phaser.Scene {
     const [scene,caption]=this.ending.slides[this.frame];
     this.sceneLabel.setText(scene);
     this.caption.setText(caption);
-    this.number.setText(`EPÍLOGO ${this.frame+1} / ${this.ending.slides.length} — QUADRO PROVISÓRIO`);
+    this.number.setText(`EPÍLOGO ${this.frame+1} / ${this.ending.slides.length}`);
     // Último quadro não fecha sozinho: deixa o jogador ler o final.
     // A área clicável muda de função no último painel.
     if(this.next?.label?.setText)this.next.label.setText(
@@ -103,3 +103,4 @@ export class EndingScene extends Phaser.Scene {
     }
   }
 }
+

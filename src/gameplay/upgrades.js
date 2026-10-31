@@ -15,12 +15,12 @@ export const FIRST_UPGRADES = [
   },
   {
     id: 'jp', name: 'Coreia do Sul', shortName: 'Coreia', flag: 'KR', color: 0xd85c78,
-    title: 'Lightstick Tático',
+    title: 'Laser de Apoio',
     description: 'A cada 4 disparos, um feixe violeta de precisão atravessa os inimigos alinhados.'
   },
   {
     id: 'ru', name: 'Rússia', flag: 'RU', color: 0xc94d4d,
-    title: 'Camarada Canhão',
+    title: 'Impacto Pesado',
     description: '+75% de dano e empurrão nos invasores atingidos.',
   },
   {
@@ -176,3 +176,4 @@ export function shotVfxFor(ids = []) {
     recoil: heavy ? 8 : improvised ? 4 : multiple ? 3 : 2,
   };
 }
+

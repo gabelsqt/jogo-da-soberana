@@ -1,3 +1,4 @@
+import {botecoDialogue} from '../gameplay/botecoDialogue.js';
 import {playSfx} from '../audio/sfx.js';
 import Phaser from 'phaser';
 import {bindSceneMusic} from '../audio/music.js';
@@ -215,7 +216,7 @@ export class UpgradeScene extends Phaser.Scene {
     makeText(this,W/2,81,this.phase==='principal'
       ?'1ª ESCOLHA: selecione a identidade permanente do tiro principal'
       :this.phase==='special'
-        ?'2ª ESCOLHA: selecione o especial do botão direito, liberado agora'
+        ?'2ª ESCOLHA: selecione o identidade permanente do tiro especial'
         :'3ª–10ª ESCOLHA: escolha o país e a arma que receberá P ou S',
       15,'#dce8ee',null,{fontStyle:'bold'}).setOrigin(0.5).setDepth(17);
 
@@ -321,25 +322,7 @@ export class UpgradeScene extends Phaser.Scene {
     this.showBotecoDialogue();
   }
   showBotecoDialogue(){
-    const first=this.completedWave===0;
-    this.botecoPages=first?[
-      ['SEU NELSON','Pode sentar. Esse elevador de carga é velho, mas funciona.'],
-      ['ZÉ MARIA','Os representantes estrangeiros já estavam esperando. Mas eu também tenho minhas peças.'],
-      ['ZÉ MARIA','Primeiro conserto: escolha o TIRO PRINCIPAL. Depois eu instalo e testo.'],
-    ]:this.phase==='special'?[
-      ['SEU NELSON','Mais uma noite. A mesa é a mesma, o mundo lá fora nem tanto.'],
-      ['ZÉ MARIA','O principal está funcionando. Falta escolher o TIRO ESPECIAL.'],
-      ['ZÉ MARIA','Pode ser o mesmo país. O botão direito funciona a partir da onda 2.'],
-    ]:this.completedWave>=8?[
-      ['SEU NELSON','Uma vez, nos anos oitenta, já vi o céu ficar assim.'],
-      ['ZÉ MARIA','Anselmo, você nunca me falou disso.'],
-      ['SEU NELSON','Pois é. Melhor pedir mais uma rodada.'],
-      ['ZÉ MARIA','Escolha o país e o destino: PRINCIPAL [P] ou ESPECIAL [S].'],
-    ]:[
-      ['SEU NELSON','O boteco fica embaixo do canhão. De cima para cá, só pelo elevador de carga.'],
-      ['ZÉ MARIA','Agora a gente melhora o PRINCIPAL [P] ou o ESPECIAL [S].'],
-      ['ZÉ MARIA','Cada país tem quatro etapas para cada arma. Você escolhe a ordem.'],
-    ];
+    this.botecoPages=botecoDialogue(this.completedWave);
     this.botecoPage=0;
     this.botecoOverlay=this.add.container(0,0).setDepth(190);
     const shade=this.add.rectangle(W/2,H/2,W,H,0x07101c,0.90).setInteractive();
@@ -465,18 +448,14 @@ export class UpgradeScene extends Phaser.Scene {
       this.upgradeDescription.setText(ability.description);
     }else if(this.phase==='special'){
       const ability=V1_UPGRADES[id][1];
-      const specialNames={cn:'FILA DE PROJÉTEIS ALINHADOS',
-        jp:'BOLA DE DISCOTECA ORBITAL'};
-      this.upgradeTitle.setText('TIRO ESPECIAL: '+(specialNames[id]??ability.title));
-      this.upgradeDescription.setText(id==='cn'
-        ?'Botão direito: projéteis separados convergem em 1,5 s para uma linha reta, seguem alinhados e se separam em 1,5 s.'
-        :ability.description);
+      this.upgradeTitle.setText('TIRO ESPECIAL: '+ability.title);
+      this.upgradeDescription.setText(ability.description);
     }else{
       this.upgradeTitle.setText('ESCOLHA ONDE INSTALAR A MELHORIA');
       this.upgradeDescription.setText('Cada representante oferece uma propriedade para o PRINCIPAL ou para o ESPECIAL. Escolha uma das duas.');
     }
     this.dialogueTyper.start(this.flavorText,
-      '“'+representativeStoryFor(id,Math.min(option.level,10))+'”');
+      '“'+representativeStoryFor(id,this.completedWave+1)+'”');
     this.primaryChoiceButton.setVisible(this.phase==='upgrades');
     this.specialChoiceButton.setVisible(this.phase==='upgrades');
     this.primaryChoiceHint.setVisible(this.phase==='upgrades');
@@ -494,11 +473,12 @@ export class UpgradeScene extends Phaser.Scene {
         button.setAlpha(proposal.locked?.45:1);
         if(proposal.locked)button.disableInteractive();
         else button.setInteractive({useHandCursor:true});
-        hint.setText(proposal.locked?proposal.reason:
+        hint.setText(proposal.locked?proposal.reason:id==='cn'&&track==='S'
+          ?'Panda Express\nEfeito P/S ainda pendente no drone':
           desc+'\n'+fields.slice(0,2).map(f=>f.value+' '+f.unit).join(' • '));
       }
       this.previewLabel.setText('SELECIONE P OU S PARA CONFIRMAR O ACORDO');
-      this.previewHint.setText('P e S avançam independentemente; cada arma comporta 4 efeitos.');
+      this.previewHint.setText('P1–P4 e S1–S4: quatro melhorias por arma. Países podem ser combinados.');
       this.acceptButton.label.setText('Selecione P ou S acima');
       this.acceptButton.disableInteractive();
     }else{
@@ -506,7 +486,7 @@ export class UpgradeScene extends Phaser.Scene {
       this.specialChoiceButton.disableInteractive();
       this.previewLabel.setText(this.phase==='principal'
         ?'Define a aparência e a mecânica permanente do disparo normal.'
-        :'Desbloqueia imediatamente o especial do botão direito.');
+        :'Desbloqueia o especial: botão direito no PC; ESP no celular.');
       this.previewHint.setText('A identidade não poderá ser alterada durante esta campanha.');
       this.acceptButton.label.setText('Confirmar identidade [ENTER]');
       this.acceptButton.setInteractive({useHandCursor:true});
@@ -524,13 +504,17 @@ export class UpgradeScene extends Phaser.Scene {
       (fields[0]?.description??'Melhoria experimental'));
     this.upgradeDescription.setText(fields.map(field=>
       field.label+': '+field.value+' '+field.unit).join('  •  '));
+    if(id==='cn'&&track==='S'){
+      this.upgradeTitle.setText(track+proposal.stage+' — Panda Express');
+      this.upgradeDescription.setText('Esta melhoria ainda usa parâmetros da antiga fila de tiros. Eles não alteram o Panda Express nesta versão.');
+    }
     this.acceptButton.label.setText('ACEITAR '+track+proposal.stage+' [ENTER]');
     this.acceptButton.setInteractive({useHandCursor:true});
     const loyal=this.campaign.choices.length===9&&
       this.campaign.choices.every(id=>id===this.focused);
     this.previewLabel.setText('DESTINO SELECIONADO: '+
       (track==='P'?'TIRO PRINCIPAL':'TIRO ESPECIAL')+
-      (loyal?' • NÍVEL 10: SUPREMO + DUAS TRANSFORMAÇÕES':''));
+      (loyal?' • SUPREMO LIBERADO':''));
   }
   unfocus(){
     if(this.chosen||!this.focused)return;
@@ -575,3 +559,4 @@ export class UpgradeScene extends Phaser.Scene {
     });
   }
 }
+

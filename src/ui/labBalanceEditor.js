@@ -5,6 +5,8 @@ const PENDING_FIELDS=new Set([
   'us.P3.push','us.P3.pushTime','us.S2.pushMax',
   'ru.P4.bossMultiplier','ru.S4.targets','ru.S4.radius','ru.S4.damageFactor',
   'jp.S4.targetCap',
+  // Parâmetros da fila antiga: o Panda Express ainda não os utiliza.
+  'cn.S1.rateFactor','cn.S2.focusMs','cn.S3.armorMultiplier','cn.S4.shotMultiplier',
 ]);
 const STYLE_ID='soberania-lab-math-style';
 let memoryProfile=null;
@@ -156,3 +158,4 @@ export function mountLabBalanceEditor({allocation={},especial=null,
     updateIdentity:next=>{especial=next;if(panel.classList.contains('sob-open'))render();},
     destroy:()=>{alive=false;launcher.remove();panel.remove();}};
 }
+

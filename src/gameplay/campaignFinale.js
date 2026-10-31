@@ -5,7 +5,7 @@ import { betrayalCoalition } from './wave11Rules.js';
 export const FINALE_COUNTRIES = Object.freeze({
   br: {name:'BRASIL', label:'ÚLTIMA OFENSIVA ALIENÍGENA', color:0x55d99d},
   us: {name:'ESTADOS UNIDOS', label:'OPERAÇÃO AQUISIÇÃO HOSTIL', color:0xffaa67},
-  ru: {name:'RÚSSIA', label:'PROTOCOLO DE ANEXAÇÃO', color:0xff707a},
+  ru: {name:'RÚSSIA', label:'A PROVA FINAL', color:0xff707a},
   cn: {name:'CHINA', label:'ENTREGA COM COBRANÇA', color:0xffd66a},
   jp: {name:'COREIA DO SUL', label:'CONTRATO DE TURNÊ ETERNA', color:0xdca0ff},
 });
@@ -27,24 +27,24 @@ export function finalePrelude(state = {}) {
     fullBrazil:true,
     title:'ONDA 11 — SOBERANIA TOTAL',
     lines:[
-      'A FORTALEZA-MÃE CAIU. MAS AS ESTÁTUAS DE BRAÇOS ABERTOS AINDA SÃO ALVOS.',
-      'O PRÉDIO DO CANHÃO REVELOU PROPULSORES E VAI DECOLAR.',
-      'PRÓXIMA MISSÃO: PROTEGER ESTÁTUAS PELO MUNDO, UMA CIDADE DE CADA VEZ.',
+      'A Fortaleza-Mãe caiu. Em outras cidades, estátuas de braços abertos continuam sob ataque.',
+      'ZÉ MARIA: “O prédio tem propulsor. Claro que tem. Eu devia ter perguntado antes de estacionar.”',
+      'Proteja as cidades, uma por vez. SEU NELSON: “Segura o que estiver em cima da mesa.”',
     ],
   };
   const messages={
-    us:'O APOIO MILITAR VEIO COM UMA CLÁUSULA: O BRASIL VIRA UMA FRANQUIA.',
-    ru:'O ACORDO DE SEGURANÇA FOI REINTERPRETADO COMO POSSE TERRITORIAL.',
-    cn:'A NOTA DA ENTREGA CHEGOU. O FRETE ERA GRÁTIS; O PAÍS, NÃO.',
-    jp:'A PARCERIA MUSICAL AGORA EXIGE EXCLUSIVIDADE SOBRE O BRASIL INTEIRO.',
-  };
+  "us": "VICTOR: “Quero você no meu governo! Os recursos do Brasil vão financiar a maior fortaleza americana da história.”",
+  "ru": "KÁTIA: “Última prova. O controle do Brasil. Quero um país inteiro e seus melhores atletas, principalmente os do futebol. Dê tudo de si.”",
+  "cn": "MINGDA: “Trouxe o contrato de aquisição do Brasil. Minérios, energia, fábricas... Você continua comigo. Só muda quem decide.”",
+  "jp": "KIM: “Sobe ao palco comigo! Nós dois governamos o Brasil e financiamos a próxima geração dos nossos shows e máquinas.”"
+};
   return {
     fullBrazil:false,
     title:'ONDA 11 — A TRAIÇÃO',
     lines:[
-      'A INVASÃO ALIENÍGENA FOI CONTIDA.',
+      'A Fortaleza-Mãe caiu. No rádio, o representante apresenta o preço da parceria.',
       messages[country],
-      `ENFRENTE ${FINALE_COUNTRIES[country].name} E DEFENDA A SOBERANIA.`,
+      `Aceitar entrega o controle do Brasil a ${FINALE_COUNTRIES[country].name}. Resistir inicia o confronto.`,
     ],
   };
 }
@@ -52,116 +52,236 @@ export function finalePrelude(state = {}) {
 // Storyboards provisórios, escritos especificamente para os dez resultados.
 // Os fundos e os quadros são placeholders substituíveis por pixel art depois.
 const ENDINGS = {
-  br:{
-    win:{
-      title:'SOBERANIA ABSOLUTA',
-      subtitle:'FINAL FULL BRAZIL — VITÓRIA',
-      slides:[
-        ['DECOLAGEM','O prédio do canhão virou um foguete improvisado. Os alienígenas agora descobrem que o Brasil vai atrás deles.'],
-        ['ESTÁTUAS DEFENDIDAS','A nave percorreu cidades pelo mundo. Em cada parada, reforços alienígenas tentaram impedir a defesa das estátuas de braços abertos.'],
-        ['NENHUMA DÍVIDA','Não houve contratos secretos, bases militares emprestadas nem boletos internacionais: a viagem inteira foi por conta do Brasil.'],
-        ['BRASIL SOBERANO','A humanidade venceu em várias cidades. A gambiarra brasileira virou programa espacial de defesa planetária.'],
-      ],
+  "br": {
+    "win": {
+      "title": "SOBERANIA ABSOLUTA",
+      "subtitle": "FINAL FULL BRAZIL — VITÓRIA",
+      "slides": [
+        [
+          "PRÓXIMA PARADA",
+          "O prédio atravessa o céu com a oficina a bordo. Zé segura a caneca: “Da próxima vez eu ponho um porta-copo.”"
+        ],
+        [
+          "BRAÇOS ABERTOS",
+          "Em cada cidade, o canhão protege quem os invasores escolheram atacar. Ninguém precisa derrubar uma estátua para merecer ajuda."
+        ],
+        [
+          "SERVIÇO FEITO",
+          "Zé olha o equipamento em silêncio. “Eu sabia que dava pra consertar. Não sabia que dava pra fazer tudo isso.”"
+        ],
+        [
+          "DE VOLTA À MESA",
+          "O Brasil continua dono do próprio destino. No boteco, Seu Nelson põe o café na mesa: “Esfriou. Esquentei de novo.”"
+        ]
+      ]
     },
-    lose:{
-      title:'A ÚLTIMA NOITE',
-      subtitle:'FINAL FULL BRAZIL — DERROTA',
-      slides:[
-        ['SEM REFORÇOS','O Brasil decolou sozinho para proteger estátuas pelo mundo. As naves inimigas aguardavam em cada cidade.'],
-        ['A QUEDA','Durante uma das paradas, as defesas do prédio-foguete cederam à ofensiva alienígena.'],
-        ['RESISTÊNCIA','A viagem foi interrompida, mas a ideia de defender quem mantém os braços abertos continua viva.'],
-        ['AINDA NÃO ACABOU','Mesmo com a missão perdida, a tripulação já planeja consertar o foguete e tentar outra vez.'],
-      ],
-    },
+    "lose": {
+      "title": "A ÚLTIMA NOITE",
+      "subtitle": "FINAL FULL BRAZIL — DERROTA",
+      "slides": [
+        [
+          "LONGE DE CASA",
+          "O prédio levou a defesa brasileira a outras cidades. Em uma delas, o ataque foi mais forte do que o canhão conseguiu conter."
+        ],
+        [
+          "SILÊNCIO NO RÁDIO",
+          "Você chama Zé Maria. Por um instante, só vem estática. Então: “Tô aqui, chefe. Me dá um minuto.”"
+        ],
+        [
+          "O QUE SOBROU",
+          "A missão foi interrompida. Zé separa as ferramentas e examina as peças. Desta vez, ninguém exige que ele resolva tudo."
+        ],
+        [
+          "AMANHÃ",
+          "Há cidades ainda ameaçadas e trabalho demais pela frente. “Primeiro a gente volta pra casa”, diz Zé. “O resto a gente conversa.”"
+        ]
+      ]
+    }
   },
-  us:{
-    win:{
-      title:'LIBERDADE, SEM A MARCA REGISTRADA',
-      subtitle:'BRASIL DERROTA OS ESTADOS UNIDOS',
-      slides:[
-        ['ÚLTIMA CLÁUSULA','Os bombardeiros americanos retornam: a conta da ajuda seria paga em território brasileiro.'],
-        ['CONTRAPROPOSTA','O canhão aponta para o céu. O Brasil recusa a assinatura — e derruba a frota de cobrança.'],
-        ['COLETIVA DE IMPRENSA','Um porta-voz anuncia que tudo foi um mal-entendido logístico de alguns bilhões de dólares.'],
-        ['INDEPENDÊNCIA SEM LICENÇA','O Brasil continua dono do próprio destino. A palavra “liberdade” volta a ser de domínio público.'],
-      ],
+  "us": {
+    "win": {
+      "title": "LIBERDADE, SEM A MARCA REGISTRADA",
+      "subtitle": "BRASIL DERROTA OS ESTADOS UNIDOS",
+      "slides": [
+        [
+          "PROPOSTA RECUSADA",
+          "Você recusou o cargo no governo de Victor e a entrega do Brasil. Ele sorriu durante a proposta. O canhão respondeu à invasão."
+        ],
+        [
+          "VITÓRIA MORAL™",
+          "Com a frota destruída, Victor anuncia uma vitória moral extraordinária e exige uma cerimônia. A equipe procura um troféu."
+        ],
+        [
+          "OFICINA SEM FRANQUIA",
+          "Zé devolve o projeto da oficina McDollar: “A minha é pequena, mas a chave fica comigo.” Victor oferece uma fachada maior."
+        ],
+        [
+          "NOME NA PORTA",
+          "O Brasil segue independente. Seu Nelson tira o cartaz da parceria e deixa a marca do prego. “Depois eu tampo.”"
+        ]
+      ]
     },
-    lose:{
-      title:'BRASIL PRIME™',
-      subtitle:'BRASIL COLONIZADO PELOS ESTADOS UNIDOS',
-      slides:[
-        ['AQUISIÇÃO APROVADA','A ajuda militar vira contrato compulsório: o Brasil agora pertence a uma holding internacional.'],
-        ['NOVO MAPA','O Rio recebe uma base colossal e um outdoor: “SOVEREIGNTY — NOW WITH ADS”.'],
-        ['PACOTE PREMIUM','Praias, florestas e até o ar-condicionado do canhão passam a cobrar assinatura mensal.'],
-        ['DEMOCRACIA ENTREGUE™','Os invasores alienígenas foram embora. A nova administração promete revisar a liberdade no próximo trimestre.'],
-      ],
-    },
+    "lose": {
+      "title": "BRASIL PRIME™",
+      "subtitle": "BRASIL COLONIZADO PELOS ESTADOS UNIDOS",
+      "slides": [
+        [
+          "OPORTUNIDADE HISTÓRICA",
+          "A defesa cai. Victor anuncia a transformação do Brasil numa fortaleza americana, com exploração de seus recursos em letras pequenas."
+        ],
+        [
+          "O MAIOR MURO",
+          "O projeto deve cercar o país inteiro. Perguntam o que acontece com o mar. Victor mostra uma maquete ainda maior."
+        ],
+        [
+          "REINAUGURAÇÃO",
+          "A oficina recebe uma proposta com o nome McDollar no alto. Zé guarda a placa antiga antes que a equipe de marketing chegue."
+        ],
+        [
+          "BRASIL PRIME™",
+          "Victor chama a ocupação de parceria. No boteco, ninguém brinda. Seu Nelson recolhe os copos que sobraram."
+        ]
+      ]
+    }
   },
-  ru:{
-    win:{
-      title:'NEM UM PALMO DE GELO',
-      subtitle:'BRASIL DERROTA A RÚSSIA',
-      slides:[
-        ['CLIMA DIPLOMÁTICO','A missão russa declara que sua proteção inclui anexar todo o território protegido.'],
-        ['CONTRAOFENSIVA','O Brasil atravessa a tempestade e desmonta a última nave de ocupação.'],
-        ['DEGELO','A cúpula soviética cai, o sol reaparece e os cariocas reclamam imediatamente do calor.'],
-        ['FRONTEIRAS INTACTAS','O Brasil permanece independente. A única coisa congelada é a proposta de anexação.'],
-      ],
+  "ru": {
+    "win": {
+      "title": "MEDALHA DA INDEPENDÊNCIA",
+      "subtitle": "BRASIL DERROTA A RÚSSIA",
+      "slides": [
+        [
+          "A PROVA FINAL",
+          "Kátia colocou o controle do Brasil em disputa. Você enfrentou sua frota e impediu que a cidade virasse parte de outro país."
+        ],
+        [
+          "RESULTADO ACEITO",
+          "Ela observa os destroços, tira uma medalha do pescoço e a entrega a você. “Você venceu. Não vou diminuir isso.”"
+        ],
+        [
+          "UM A MENOS",
+          "Zé olha a coleção de medalhas. “Não vai fazer falta?” Kátia endireita a postura. “Essa está no lugar certo.”"
+        ],
+        [
+          "CADA UM EM CASA",
+          "Os atletas brasileiros continuam brasileiros. No boteco, sua medalha ocupa uma mesa. Nelson avisa: “Só não risca o verniz.”"
+        ]
+      ]
     },
-    lose:{
-      title:'INVERNO EM COPACABANA',
-      subtitle:'BRASIL COLONIZADO PELA RÚSSIA',
-      slides:[
-        ['REINTERPRETAÇÃO','A palavra “apoio” foi traduzida como “administração permanente”. O erro não será corrigido.'],
-        ['CORTINA DE FERRO','Uma cúpula cobre o Rio e os satélites soviéticos passam a controlar o horizonte.'],
-        ['NOVO CALENDÁRIO','O Réveillon é substituído pela Cerimônia Oficial do Primeiro Degelo.'],
-        ['A COLÔNIA TROPICAL','O Brasil perde a soberania. Nem o inverno artificial consegue esfriar a vontade de resistência.'],
-      ],
-    },
+    "lose": {
+      "title": "RECORDE DE OCUPAÇÃO",
+      "subtitle": "BRASIL COLONIZADO PELA RÚSSIA",
+      "slides": [
+        [
+          "RECORDE IMPOSSÍVEL",
+          "A defesa cede. Kátia anuncia a conquista de um país inteiro como seu maior resultado. Para quem mora ali, não há pódio."
+        ],
+        [
+          "CONVOCAÇÃO",
+          "Os melhores atletas brasileiros, sobretudo os jogadores de futebol, entram nos planos da Rússia. Ninguém perguntou por qual seleção queriam jogar."
+        ],
+        [
+          "CONVITE AO VENCEDOR",
+          "Kátia oferece a Zé um lugar entre os vencedores. Ele olha as próprias mãos: “Meu serviço ainda é aqui.”"
+        ],
+        [
+          "SEM APITO FINAL",
+          "A ocupação começa. Kátia registra a marca. No boteco, Seu Nelson abaixa o rádio quando o anúncio se repete."
+        ]
+      ]
+    }
   },
-  cn:{
-    win:{
-      title:'PEDIDO DEVOLVIDO',
-      subtitle:'BRASIL DERROTA A CHINA',
-      slides:[
-        ['FATURA FINAL','A nota fiscal revela o preço oculto da entrega: o território inteiro do Brasil.'],
-        ['RECUSADO NA PORTARIA','O canhão interrompe a frota de cobrança antes que alguém confirme o recebimento.'],
-        ['LOGÍSTICA REVERSA','Contêineres e drones retornam ao remetente. O rastreamento diz apenas: “DESTINATÁRIO SOBERANO”.'],
-        ['FRETE DE VOLTA','O Brasil mantém o país, a praia e a senha do Wi-Fi. Nenhuma assinatura foi coletada.'],
-      ],
+  "cn": {
+    "win": {
+      "title": "PEDIDO DEVOLVIDO",
+      "subtitle": "BRASIL DERROTA A CHINA",
+      "slides": [
+        [
+          "CONTRATO NA MESA",
+          "Mingda chamou a aquisição do Brasil de formalidade. Você recusou. A frota enviada para negociar não conseguiu impor a assinatura."
+        ],
+        [
+          "PREJUÍZO CONFIRMADO",
+          "Ela pega a calculadora: “Vocês sabem quanto custava aquele equipamento?” Zé olha a fumaça: “Agora, ou antes?”"
+        ],
+        [
+          "LOGÍSTICA REVERSA",
+          "Os planos de fábricas e centros de distribuição voltam para a pasta. Mingda ainda oferece desconto para consertar os próprios drones."
+        ],
+        [
+          "PEDIDO RECUSADO",
+          "O Brasil conserva seus recursos e suas decisões. Seu Nelson fecha a pasta esquecida no balcão: “Sem assinatura, sem venda.”"
+        ]
+      ]
     },
-    lose:{
-      title:'COLÔNIA COM FRETE GRÁTIS',
-      subtitle:'BRASIL COLONIZADO PELA CHINA',
-      slides:[
-        ['PEDIDO ENTREGUE','A plataforma confirma a chegada da encomenda. O conteúdo: uma nova administração colonial.'],
-        ['CENTRO DE DISTRIBUIÇÃO','O Rio vira um depósito gigante, com drones entregando avisos de mudança de soberania.'],
-        ['AVALIAÇÃO DO PRODUTO','A população tenta solicitar devolução, mas o prazo de sete dias já expirou.'],
-        ['ENTREGA DEFINITIVA','O Brasil perde o controle das próprias fronteiras. O aplicativo oferece um cupom de desculpas.'],
-      ],
-    },
+    "lose": {
+      "title": "COLÔNIA COM FRETE GRÁTIS",
+      "subtitle": "BRASIL COLONIZADO PELA CHINA",
+      "slides": [
+        [
+          "AQUISIÇÃO CONCLUÍDA",
+          "A frota vence. Mingda anuncia o Brasil como nova plataforma de fabricação e distribuição de seu império comercial."
+        ],
+        [
+          "TUDO EM CATÁLOGO",
+          "Recursos minerais e energia entram no plano de produção de eletrônicos. A propaganda chama a ocupação de expansão de oportunidades."
+        ],
+        [
+          "CONDIÇÕES ESPECIAIS",
+          "Ela oferece cargos, equipamentos e descontos aos amigos. O carinho continua. O direito de decidir, não."
+        ],
+        [
+          "FRETE GRÁTIS",
+          "O primeiro lote de placas chega ao Rio. Seu Nelson vira uma delas para a parede: “Esse lado é menos feio.”"
+        ]
+      ]
+    }
   },
-  jp:{
-    win:{
-      title:'ENCORE DA INDEPENDÊNCIA',
-      subtitle:'BRASIL DERROTA A COREIA DO SUL',
-      slides:[
-        ['CONTRATO EXCLUSIVO','O acordo de ajuda se revela uma cláusula de exclusividade mundial sobre o Brasil.'],
-        ['ÚLTIMA COREOGRAFIA','O canhão atravessa a chuva de lasers e derruba o palco voador de ocupação.'],
-        ['SHOW CANCELADO','Kim Lin Doo pede desculpas aos fãs e declara que os brasileiros continuam donos de seus refrões.'],
-        ['SOBERANIA AO VIVO','O Brasil segue independente. Os ingressos são reembolsados; a liberdade, não.'],
-      ],
+  "jp": {
+    "win": {
+      "title": "ENCORE DA INDEPENDÊNCIA",
+      "subtitle": "BRASIL DERROTA A COREIA DO SUL",
+      "slides": [
+        [
+          "PALCO RECUSADO",
+          "Kim convidou você a governar ao lado dele. A resposta foi defender o Brasil, em vez de entregá-lo ao próximo grande espetáculo."
+        ],
+        [
+          "MAIS UMA VEZ",
+          "A frota cai. Kim insiste, ainda sorrindo: “De novo. A coreografia saiu errada.” Ninguém reinicia a batalha."
+        ],
+        [
+          "DIREÇÃO TÉCNICA",
+          "Zé recusa o cargo de diretor dos palcos do império. “Primeiro eu termino o serviço daqui.” Kim anota outra tentativa de convite."
+        ],
+        [
+          "SHOW INDEPENDENTE",
+          "O Brasil continua livre. Você apoia as mãos na mesa e pede água. Seu Nelson serve sem exigir bis."
+        ]
+      ]
     },
-    lose:{
-      title:'BRASIL WORLD TOUR',
-      subtitle:'BRASIL COLONIZADO PELA COREIA DO SUL',
-      slides:[
-        ['NOVO AGENCY','A parceria vira contrato vitalício: o Brasil inteiro foi contratado como integrante de um grupo.'],
-        ['NOME DE PALCO','A bandeira recebe glitter e as cidades passam a ter metas de streaming.'],
-        ['COREOGRAFIA OBRIGATÓRIA','Todo cidadão deve aprender o refrão oficial. O canhão foi convertido em máquina de luz.'],
-        ['ÚLTIMO ENCORE','A soberania foi cancelada por baixa performance. A resistência prepara seu primeiro álbum independente.'],
-      ],
-    },
-  },
+    "lose": {
+      "title": "BRASIL WORLD TOUR",
+      "subtitle": "BRASIL COLONIZADO PELA COREIA DO SUL",
+      "slides": [
+        [
+          "BRASIL WORLD TOUR",
+          "A defesa cai sob luzes e lasers sincronizados. Kim anuncia a nova fase do espetáculo com o mesmo sorriso do primeiro encontro."
+        ],
+        [
+          "BASTIDORES",
+          "Recursos e minérios brasileiros passam a financiar máquinas, palcos e tecnologia para o império musical coreano. A plateia não escolheu participar."
+        ],
+        [
+          "ESCALA DE TRABALHO",
+          "Zé recebe o título de diretor técnico dos palcos. Kim continua ensaiando, incapaz de considerar o show pronto."
+        ],
+        [
+          "FORA DO PALCO",
+          "A ocupação ganha um refrão. No boteco, o rádio toca baixo. “Não precisa cantar”, diz Seu Nelson."
+        ]
+      ]
+    }
+  }
 };
 
 export function finaleEnding(state = {}, won = false) {
@@ -189,3 +309,4 @@ export function finaleEnding(state = {}, won = false) {
 export function allFinaleIds() {
   return Object.keys(ENDINGS).flatMap(id=>[`${id}-win`,`${id}-lose`]);
 }
+
